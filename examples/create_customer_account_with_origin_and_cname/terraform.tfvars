@@ -1,8 +1,8 @@
 partner_info = {
-    api_token = "AULdReDoB3gb0D7LNTx857NQvrcIKyvL"
-    partner_user_id = 7613
-    partner_id = 3249
-    api_address = "http://dev-api.edgecast.com/v2/"
+    api_token = ""
+    partner_user_id = 0
+    partner_id = 0
+    api_address = ""
 }
 
 new_customer_info = {
@@ -18,19 +18,19 @@ new_customer_info = {
 new_admin_user = {
     first_name = "admin"
     last_name = "user"
-    email = "adminuser16@test.com"
+    email = ""
     is_admin = true
 }
 
 origin_info = {
-    origins = ["http://dev-images-customer-origin26.mysite.com","http://dev-images-customer-origin27.mysite.com"]
+    origins = [""]
     load_balancing = "RR"
-    host_header = "dev-images16.mysite.com"
-    directory_name = "image16"
+    host_header = ""
+    directory_name = ""
 }
 
 cname_info =  {
-    cname = "dev-images-customer-origin16.edgec4tz.com"
+    cname = ""
     type = 3
     origin_type = 80
 }
