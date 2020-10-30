@@ -66,12 +66,14 @@ variable "origin_info" {
     load_balancing = string
     host_header = string
     directory_name = string
+    media_type = string
   })
   default = {
     origins = []
     load_balancing = "RR"
     host_header = ""
     directory_name = ""
+    media_type = "httplarge"
   }
 }
 
@@ -148,9 +150,10 @@ resource "vmp_customer_user" "test_customer_admin" {
   is_admin = var.new_admin_user.is_admin
 }
 
-resource "vmp_origin" "images" {
+resource "vmp_origin" "origin_images" {
     account_number = vmp_customer.test_customer.id
     directory_name = var.origin_info.directory_name
+    media_type = var.origin_info.media_type
     host_header = var.origin_info.host_header
     http {
         load_balancing = var.origin_info.load_balancing
@@ -158,10 +161,10 @@ resource "vmp_origin" "images" {
     }
 }
 
-resource "vmp_cname" "images" {
+resource "vmp_cname" "cname_images" {
     account_number = vmp_customer.test_customer.id
     name = var.cname_info.cname
     type = var.cname_info.type
-    origin_id = vmp_origin.images.id
+    origin_id = vmp_origin.origin_images.id
     origin_type = var.cname_info.origin_type
 }
