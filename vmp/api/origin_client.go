@@ -27,6 +27,22 @@ type AddOriginResponse struct {
 	CustomerOriginId int
 }
 
+type UpdateOriginRequest struct {
+	DirectoryName     string
+	HostHeader        string
+	HttpHostnames     []UpdateOriginRequestHostname
+	HttpsHostnames    []UpdateOriginRequestHostname
+	HttpLoadBalancing string
+}
+
+type UpdateOriginRequestHostname struct {
+	Name string
+}
+
+type UpdateOriginResponse struct {
+	CustomerOriginId int
+}
+
 type Origin struct {
 	Id                int
 	DirectoryName     string
@@ -48,8 +64,9 @@ func NewOriginApiClient(baseApiClient *ApiClient, accountNumber string) *OriginA
 	return apiClient
 }
 
-func (c *OriginApiClient) AddHttpLargeOrigin(origin *AddOriginRequest) (*AddOriginResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/origins/httplarge", c.AccountNumber), origin)
+func (c *OriginApiClient) AddOrigin(origin *AddOriginRequest, mediaType string) (*AddOriginResponse, error) {
+	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/origins/%s", c.AccountNumber, mediaType), origin)
+	InfoLogger.Printf("Add origin in %s [POST] Url: %s\n", mediaType, request.URL)
 
 	parsedResponse := &AddOriginResponse{}
 
@@ -58,8 +75,20 @@ func (c *OriginApiClient) AddHttpLargeOrigin(origin *AddOriginRequest) (*AddOrig
 	return parsedResponse, err
 }
 
-func (c *OriginApiClient) GetHttpLargeOrigin(id int) (*Origin, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/origins/httplarge/%d", c.AccountNumber, id), nil)
+func (c *OriginApiClient) UpdateOrigin(origin *UpdateOriginRequest, originID int, mediaType string) (*UpdateOriginResponse, error) {
+	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, originID), origin)
+	InfoLogger.Printf("Update origin in %s [PUT] Url: %s\n", mediaType, request.URL)
+
+	parsedResponse := &UpdateOriginResponse{}
+
+	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+
+	return parsedResponse, err
+}
+
+func (c *OriginApiClient) GetOrigin(id int, mediaType string) (*Origin, error) {
+	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, id), nil)
+	InfoLogger.Printf("Get origin in %s [GET] Url: %s\n", mediaType, request.URL)
 
 	parsedResponse := &Origin{}
 
@@ -70,6 +99,7 @@ func (c *OriginApiClient) GetHttpLargeOrigin(id int) (*Origin, error) {
 
 func (c *OriginApiClient) DeleteOrigin(id int) error {
 	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/origins/%d", c.AccountNumber, id), nil)
+	InfoLogger.Printf("DeleteOrigin [DELETE] Url: %s\n", request.URL)
 
 	_, err = c.BaseApiClient.SendRequest(request, nil)
 

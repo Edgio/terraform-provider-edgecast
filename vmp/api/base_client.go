@@ -8,10 +8,18 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/hashicorp/go-retryablehttp"
+)
+
+var (
+	WarningLogger *log.Logger
+	InfoLogger    *log.Logger
+	ErrorLogger   *log.Logger
 )
 
 type ApiClient struct {
@@ -20,6 +28,15 @@ type ApiClient struct {
 	Token     string
 
 	HttpClient *retryablehttp.Client
+}
+
+func init() {
+	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	InfoLogger = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 }
 
 func NewApiClient(apiBaseUri string, apiToken string) (*ApiClient, error) {

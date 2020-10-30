@@ -1,12 +1,13 @@
+#Please update data in <> in order to run your terraform
 partner_info = {
-    api_token = ""
-    partner_user_id = 0
-    partner_id = 0
-    api_address = ""
+    api_token = "<YOUR_API_TOKEN>"
+    partner_user_id = 1 #PCC USER ID
+    partner_id = 1 #PCC Partner ID
+    api_address = "<VerizonMedia API BASE URL>" #http://api.edgecast.com/v2/
 }
 
 new_customer_info = {
-    company_name = "Terraform test customer demo16"
+    company_name = "<Customer Name>"
     service_level_code = "STND"
     #all available services=> 1:HTTP Large Object,2:HTTPS Large Object,3:HTTP Small Object,4:HTTPS Small Object,6:Windows,7:Advanced Reports,8:Real-Time Stats,9:Token Auth,10:Edge Performance Analytics,15:Origin Storage,16:RSYNC,19:ADN,20:Download Manager,21:ADNS,22:Dedicated Hosting,23:Edge Optimizer,25:DNS Route,26:DNS Zones,29:DNS Health Checks,31:Bandwidth By Report Code,32:DNS-Standard,33:DNS-Adaptive,34:DNS-APR,38:WAF,39:Analysis Engine,40:HTTP Rate Limiting,41:Basic Rules v4.0,42:Advanced Rules v4.0,43:Mobile Device Detection Rules v4.0,44:Rules Engine v4.0,47:Translate,48:Dynamic Cloud Packaging,49:Encrypted HLS,50:Origin Shield,51:Reports and Logs,52:Log Delivery,54:SSA,56:Encrypted Key Rotation,57:Real-Time Log Delivery,58:Report Builder,59:Dynamic Imaging,60:China Delivery,61:WAF Essential,62:Report Builder Users,63:Report Builder Rows,64:Report Builder Reports,65:Edge Functions,66:Certificate Provisioning,67:Edge-Insights,68:Edge Image Optimizer,69:Url Redirects,70:Azure Cloud Storage
     services = [1,9,15,19]
@@ -16,21 +17,22 @@ new_customer_info = {
 }
 
 new_admin_user = {
-    first_name = "admin"
-    last_name = "user"
-    email = ""
+    first_name = "<first_name>"
+    last_name = "<last_name>"
+    email = "<admin_email_address>"
     is_admin = true
 }
 
 origin_info = {
-    origins = [""]
-    load_balancing = "RR"
-    host_header = ""
-    directory_name = ""
+    origins = ["<comma separated origin URL"] #e.g. "http://dev-images-customer-origin30-1.mysite.com","http://dev-images-customer-origin31-1.mysite.com"]
+    load_balancing = "RR" #Round Robin
+    host_header = "<host_header_url>" #e.g. dev-images18.mysite.com
+    directory_name = "<directory_name>" #e.g. image18
+    media_type = "<media_type>" # available options: httplage, httpSmall, adn
 }
 
 cname_info =  {
-    cname = ""
+    cname = "<cname_url>" #e.g. dev-images-customer-origin18-update.edgec4tz.com
     type = 3
     origin_type = 80
 }
