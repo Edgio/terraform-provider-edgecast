@@ -127,19 +127,6 @@ resource "vmp_customer" "test_customer" {
 
   # TODO use data source to get ID (need a new endpoint for this)
   access_modules = var.new_customer_info.access_modules
-
-  # TODO: may need to change these into their own resource type... but need new endpoints
-  # HTTP Large
-  domain {
-      type = 1 # TODO use data source to get ID
-      url = "http://wpc.5F534.omegacdn.net"
-    }
-  
-  # ADN
-  domain {
-      type = 30 # TODO use data source to get ID
-      url = "http://adn.5F534.omegacdn.net"
-    }
 }
 
 resource "vmp_customer_user" "test_customer_admin" {
