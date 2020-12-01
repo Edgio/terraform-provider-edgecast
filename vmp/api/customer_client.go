@@ -132,7 +132,7 @@ type GetCustomerResponse struct {
 func (apiClient *CustomerAPIClient) GetCustomer(accountNumber string) (*GetCustomerResponse, error) {
 	relURL := fmt.Sprintf("pcc/customers/%s", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
-	InfoLogger.Printf("AddHttpLargeOrigin [POST] Url: %s\n", request.URL)
+	InfoLogger.Printf("GetCustomer [GET] Url: %s\n", request.URL)
 
 	if err != nil {
 		return nil, err
@@ -149,6 +149,34 @@ func (apiClient *CustomerAPIClient) GetCustomer(accountNumber string) (*GetCusto
 	return parsedResponse, nil
 }
 
+// AccessModule represents a module that a customer has access to
+type AccessModule struct {
+	ID       int
+	Name     string
+	ParentID *int
+}
+
+// GetCustomerAccessModules retrieves a Customer's Access Module info using the Hex Account Number
+func (apiClient *CustomerAPIClient) GetCustomerAccessModules(accountNumber string) (*[]AccessModule, error) {
+	relURL := fmt.Sprintf("pcc/customers/%s/accessmodules", accountNumber)
+	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
+	InfoLogger.Printf("GetCustomerAccessModules [POST] Url: %s\n", request.URL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var accessModules []AccessModule
+
+	_, err = apiClient.BaseAPIClient.SendRequest(request, &accessModules)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &accessModules, nil
+}
+
 // Service -
 type Service struct {
 	ID       int
@@ -158,7 +186,7 @@ type Service struct {
 }
 
 // GetAvailableCustomerServices gets all service information available for a partner to administor to thier customers
-func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, error) {
+func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() ([]Service, error) {
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", "pcc/customers/services", nil)
 	InfoLogger.Printf("GetAvailableCustomerServices [GET] Url: %s\n", request.URL)
 	if err != nil {
@@ -173,11 +201,11 @@ func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, 
 		return nil, err
 	}
 
-	return &services, nil
+	return services, nil
 }
 
 // GetCustomerServices gets the list of services available to a customer and whether each is active for the customer
-func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) (*[]Service, error) {
+func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) ([]Service, error) {
 	relURL := fmt.Sprintf("pcc/customers/%s/services", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
 	InfoLogger.Printf("GetCustomerServices [GET] Url: %s\n", request.URL)
@@ -194,7 +222,7 @@ func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) (*
 		return nil, err
 	}
 
-	return &services, nil
+	return services, nil
 }
 
 // UpdateCustomerServices -
