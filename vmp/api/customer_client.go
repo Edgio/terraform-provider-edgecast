@@ -160,7 +160,7 @@ type AccessModule struct {
 func (apiClient *CustomerAPIClient) GetCustomerAccessModules(accountNumber string) (*[]AccessModule, error) {
 	relURL := fmt.Sprintf("pcc/customers/%s/accessmodules", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
-	InfoLogger.Printf("GetCustomerAccessModules [POST] Url: %s\n", request.URL)
+	InfoLogger.Printf("GetCustomerAccessModules [GET] Url: %s\n", request.URL)
 
 	if err != nil {
 		return nil, err
