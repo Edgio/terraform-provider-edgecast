@@ -32,50 +32,63 @@ Running `terraform init` will automatically download and install the plugin for 
 
 ```terraform
 provider "vmp" {
-    api_token = "YOUR_API_TOKEN"
+    api_token = "xxx"  # your API token provided by Verizon Media
+    partner_user_id = 1111 # your partner user id provided by Verizon Media
+    partner_id = 1111 # your partner id provided by Verizon Media
+    api_address = "http://api.vdms.io/v2/"  # Verizon Media API base URL
 }
 ```
 There are two ways to set your data. One is to set your configuration data directly in the main.tf file.
-For your local test, it may be useful. However, if you had multi-environments, we would recommend to use terraform.tfvars file.
-This file contains all variables that you need in order to run the terraform.
+For local testing, this works fine. **However, if you have multi-environments, we would recommend to use terraform.tfvars file.
+This file contains all variables that you need in order to run the terraform. Please refer to the [Using Variable Files](#Using%20Variable%20Files) section.** 
 
-### Provision MCC accounts.
-[Example usage TBD]
+### Provision MCC Accounts
+Please use the Verizon Media API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
-### Setup features services
-Such as: HTTP Large, HTTP Small, ADN, Rules Engine, and WAF, etc.
+```terraform
+resource "vmp_customer" "my_customer" {
+  company_name = "My Company Name"
+  service_level_code = "STND"
+  services = [1,2,3]
+  delivery_region =  1
+  access_modules = [1,2,3]
+}
+```
 
-[Example usage TBD]
-### Configure delivery regions
-Such as: Global Standard, Global Premium + Asia, and North America
+### Provision MCC Users
+```terraform
+resource "vmp_customer_user" "test_customer_admin" {
+  account_number = vmp_customer.my_customer.id
+  first_name = "Admin"
+  last_name = "User"
+  email = "admin@mycompany.com"
+  is_admin = true
+}
+```
 
-[Example usage TBD]
-### Configure MCC access modules.
-[Example usage TBD]
-### Configure MCC accounts
-[Example usage TBD]
-### Configure origins
+### Configure Origins
 ```terraform
 resource "vmp_origin" "images" {
     directory_name = "images3"
     host_header = "dev-images.mysite.com"
     http {
         load_balancing = "RR"
-        hostnames = ["http://dev-images-customer-origin.mysite.com"]
+        hostnames = ["http://dev-images-customer-origin.mysite.com", "http://dev-images-customer-origin2.mysite.com"]
     }
 }
 ```
-### Configure cnames
+### Configure CNAMEs
 ```terraform
 resource "vmp_cname" "images" {
     name ="dev-images-customer-origin.mysite.com"
     type = 3
-    origin_id = "${ec_origin.images.id}"
+    origin_id = "${vmp_origin.images.id}"
     origin_type = 80
 }
 ```
 
-### Configure all variables in terraform.tfvars
+### Variable File Usage
 ```terraform
 partner_info = {
     api_token = "xxx"  #your API token provided by Verizon Media
