@@ -49,7 +49,7 @@ func NewOriginApiClient(baseApiClient *ApiClient, accountNumber string) *OriginA
 }
 
 func (c *OriginApiClient) AddHttpLargeOrigin(origin *AddOriginRequest) (*AddOriginResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/origins/httplarge", c.AccountNumber), origin)
+	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/origins/httplarge", c.AccountNumber), origin, false)
 
 	parsedResponse := &AddOriginResponse{}
 
@@ -59,7 +59,7 @@ func (c *OriginApiClient) AddHttpLargeOrigin(origin *AddOriginRequest) (*AddOrig
 }
 
 func (c *OriginApiClient) GetHttpLargeOrigin(id int) (*Origin, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/origins/httplarge/%d", c.AccountNumber, id), nil)
+	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/origins/httplarge/%d", c.AccountNumber, id), nil, false)
 
 	parsedResponse := &Origin{}
 
@@ -69,7 +69,7 @@ func (c *OriginApiClient) GetHttpLargeOrigin(id int) (*Origin, error) {
 }
 
 func (c *OriginApiClient) DeleteOrigin(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/origins/%d", c.AccountNumber, id), nil)
+	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/origins/%d", c.AccountNumber, id), nil, false)
 
 	_, err = c.BaseApiClient.SendRequest(request, nil)
 

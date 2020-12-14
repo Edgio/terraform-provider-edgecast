@@ -37,8 +37,13 @@ type UpdateCnameRequest struct {
 	Name                string
 	DirPath             string
 	EnableCustomReports int
+	MediaTypeId         int
 	OriginId            int
 	OriginType          int
+}
+
+type UpdateCnameResponse struct {
+	CnameId int
 }
 
 func NewCnameApiClient(baseApiClient *ApiClient, accountNumber string) *CnameApiClient {
@@ -51,7 +56,7 @@ func NewCnameApiClient(baseApiClient *ApiClient, accountNumber string) *CnameApi
 }
 
 func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/cnames", c.AccountNumber), cname)
+	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/cnames", c.AccountNumber), cname, false)
 	parsedResponse := &AddCnameResponse{}
 
 	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
@@ -59,8 +64,18 @@ func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, er
 	return parsedResponse, err
 }
 
+func (c *CnameApiClient) UpdateCname(cname *UpdateCnameRequest, cnameId int) (*UpdateCnameResponse, error) {
+
+	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, cnameId), cname, false)
+	parsedResponse := &UpdateCnameResponse{}
+
+	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+
+	return parsedResponse, err
+}
+
 func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
+	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
 
 	parsedResponse := &Cname{}
 
@@ -70,7 +85,7 @@ func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
 }
 
 func (c *CnameApiClient) DeleteCname(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
+	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
 
 	_, err = c.BaseApiClient.SendRequest(request, nil)
 

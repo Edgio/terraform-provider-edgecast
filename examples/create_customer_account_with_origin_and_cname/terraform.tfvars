@@ -1,8 +1,11 @@
 partner_info = {
+    api_address = ""
     api_token = ""
+    ids_client_secret = ""
+    ids_client_id = ""
+    ids_scope = ""
     partner_user_id = 0
     partner_id = 0
-    api_address = ""
 }
 
 new_customer_info = {
