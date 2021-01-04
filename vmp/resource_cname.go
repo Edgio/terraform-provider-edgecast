@@ -4,6 +4,8 @@ package vmp
 
 import (
 	"context"
+	"log"
+	"os"
 	"strconv"
 
 	"terraform-provider-vmp/vmp/api"
@@ -11,6 +13,17 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+func init() {
+	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	InfoLogger = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+}
 
 func resourceCname() *schema.Resource {
 	return &schema.Resource{
@@ -46,12 +59,15 @@ func resourceCname() *schema.Resource {
 
 func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
+	InfoLogger.Printf("account_number: %s\n", accountNumber)
 	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(accountNumber)
 
 	if err != nil {
+		ErrorLogger.Println(err)
 		return diag.FromErr(err)
 	}
 
+	InfoLogger.Printf("origin_id: %d\n", d.Get("origin_id").(int))
 	addCnameRequest := &api.AddCnameRequest{
 		Name:        d.Get("name").(string),
 		MediaTypeId: d.Get("type").(int),
@@ -105,7 +121,7 @@ func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	addCnameRequest := &api.AddCnameRequest{
+	updateCnameRequest := &api.UpdateCnameRequest{
 		Name:        d.Get("name").(string),
 		MediaTypeId: d.Get("type").(int),
 		OriginId:    d.Get("origin_id").(int),
@@ -114,7 +130,10 @@ func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 
 	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
 
-	parsedResponse, err := cnameAPIClient.AddCname(addCnameRequest)
+	cnameId, _ := strconv.Atoi(d.Id())
+	InfoLogger.Printf("CnameId to be updated %d", cnameId)
+
+	parsedResponse, err := cnameAPIClient.UpdateCname(updateCnameRequest, cnameId)
 
 	if err != nil {
 		return diag.FromErr(err)

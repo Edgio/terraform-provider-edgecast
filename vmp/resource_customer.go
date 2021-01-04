@@ -73,22 +73,6 @@ func resourceCustomer() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
 			},
-			"domain": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"url": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"type": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-					},
-				},
-			},
 		},
 	}
 }
@@ -223,23 +207,6 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		if err != nil {
 			return diag.FromErr(err)
-		}
-	}
-
-	if attr, ok := d.GetOk("domain"); ok {
-		attrList := attr.(*schema.Set).List()
-
-		for _, d := range attrList {
-			domain := d.(map[string]interface{})
-
-			url := domain["url"].(string)
-			domainType := domain["type"].(int)
-
-			err = customerAPIClient.UpdateCustomerDomainURL(accountNumber, domainType, url)
-
-			if err != nil {
-				return diag.FromErr(err)
-			}
 		}
 	}
 

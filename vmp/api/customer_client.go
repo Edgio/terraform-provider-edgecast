@@ -65,7 +65,9 @@ func NewCustomerAPIClient(baseAPIClient *ApiClient, partnerUserID int, partnerID
 // AddCustomer -
 func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (string, error) {
 	relURL := fmt.Sprintf("pcc/customers?partneruserid=%d", apiClient.PartnerUserID)
+
 	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)
+	InfoLogger.Printf("AddCustomer [POST] Url: %s\n", request.URL)
 
 	parsedResponse := &struct {
 		AccountNumber string
@@ -130,7 +132,9 @@ type GetCustomerResponse struct {
 // GetCustomer retrieves a Customer's info using the Hex Account Number
 func (apiClient *CustomerAPIClient) GetCustomer(accountNumber string) (*GetCustomerResponse, error) {
 	relURL := fmt.Sprintf("pcc/customers/%s", accountNumber)
+
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
+	InfoLogger.Printf("AddHttpLargeOrigin [POST] Url: %s\n", request.URL)
 
 	if err != nil {
 		return nil, err
@@ -157,7 +161,10 @@ type Service struct {
 
 // GetAvailableCustomerServices gets all service information available for a partner to administor to thier customers
 func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, error) {
+
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", "pcc/customers/services", nil, false)
+	InfoLogger.Printf("GetAvailableCustomerServices [GET] Url: %s\n", request.URL)
+
 	if err != nil {
 		return nil, err
 	}
@@ -176,7 +183,10 @@ func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, 
 // GetCustomerServices gets the list of services available to a customer and whether each is active for the customer
 func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) (*[]Service, error) {
 	relURL := fmt.Sprintf("pcc/customers/%s/services", accountNumber)
+
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
+	InfoLogger.Printf("GetCustomerServices [GET] Url: %s\n", request.URL)
+
 
 	if err != nil {
 		return nil, err
@@ -206,6 +216,8 @@ func (apiClient *CustomerAPIClient) UpdateCustomerServices(accountNumber string,
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
+	InfoLogger.Printf("UpdateCustomerServicers [PUT] Url: %s\n", request.URL)
+
 	if err != nil {
 		return err
 	}
@@ -228,6 +240,8 @@ func (apiClient *CustomerAPIClient) GetCustomerDeliveryRegion(accountNumber stri
 	relURL := fmt.Sprintf("pcc/customers/%s/deliveryregions", accountNumber)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
+	InfoLogger.Printf("GetCustomerDeliveryRegion [GET] Url: %s\n", request.URL)
+
 	if err != nil {
 		return 0, err
 	}
@@ -259,6 +273,8 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
+	InfoLogger.Printf("UpdateCustomerDomainURL [PUT] Url: %s\n", request.URL)
+
 
 	if err != nil {
 		return err
@@ -281,6 +297,8 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber s
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
+	InfoLogger.Printf("UpdateCustomerDeliveryRegion [PUT] Url: %s\n", request.URL)
+
 
 	if err != nil {
 		return err
@@ -295,7 +313,9 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber s
 func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 	// TODO: support custom ids for accounts
 	relURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+
 	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil, false)
+	InfoLogger.Printf("DeleteCustomer [DELETE] Url: %s\n", request.URL)
 
 	if err != nil {
 		return err
@@ -310,7 +330,10 @@ func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 func (apiClient *CustomerAPIClient) UpdateCustomer(accountNumber string, body *CustomerCreateUpdate) error {
 	// TODO: support custom ids for accounts
 	relURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
+	InfoLogger.Printf("UpdateCustomer [PUT] Url: %s\n", request.URL)
+
 
 	if err != nil {
 		return err
@@ -328,6 +351,7 @@ func (apiClient *CustomerAPIClient) UpdateCustomerAccessModule(accountNumber str
 	body := &struct{ Status int8 }{Status: 1}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
+	InfoLogger.Printf("UpdateCustomerAccessModule [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
 		return err
