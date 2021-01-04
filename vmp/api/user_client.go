@@ -46,8 +46,9 @@ type CustomerUser struct {
 func (apiClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUserID int) (*CustomerUser, error) {
 	// TODO: support custom id types, not just Hex ID ANs
 	relURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
-	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
+	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
 	InfoLogger.Printf("GetCustomerUser [GET] Url: %s\n", request.URL)
+
 
 	if err != nil {
 		return nil, err
@@ -68,7 +69,7 @@ func (apiClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUs
 func (apiClient *UserAPIClient) AddCustomerUser(accountNumber string, body *CustomerUser) (int, error) {
 	// TODO: support custom id types, not just Hex ID ANs
 	relURL := fmt.Sprintf("pcc/customers/users?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
-	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body)
+	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)
 	InfoLogger.Printf("AddCustomerUser [POST] Url: %s\n", request.URL)
 
 	parsedResponse := &struct {
@@ -89,7 +90,7 @@ func (apiClient *UserAPIClient) UpdateCustomerUser(accountNumber string, custome
 	// TODO: support custom ids for accounts
 	relURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body)
+	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
 	InfoLogger.Printf("UpdateCustomerUser [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
@@ -106,7 +107,7 @@ func (apiClient *UserAPIClient) DeleteCustomerUser(accountNumber string, custome
 	// TODO: support custom ids for accounts
 	relURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil)
+	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil, false)
 	InfoLogger.Printf("DeleteCustomerUser [DELETE] Url: %s\n", request.URL)
 
 	if err != nil {

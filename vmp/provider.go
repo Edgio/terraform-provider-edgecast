@@ -26,6 +26,21 @@ func Provider() *schema.Provider {
 				Required: true,
 				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
 			},
+			"ids_client_secret": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+			},
+			"ids_client_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+			},
+			"ids_scope": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+			},
 			"account_number": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -70,8 +85,11 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	accountNumber := d.Get("account_number").(string)
 	partnerUserID := d.Get("partner_user_id").(int)
 	partnerID := d.Get("partner_id").(int)
+	idsClientId := d.Get("ids_client_id").(string)
+	idsClientSecret := d.Get("ids_client_secret").(string)
+	idsScope := d.Get("ids_scope").(string)
 
-	apiClient, err := api.NewApiClient(apiBaseURI, apiToken)
+	apiClient, err := api.NewApiClient(apiBaseURI, apiToken, idsClientId, idsClientSecret, idsScope)
 
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{

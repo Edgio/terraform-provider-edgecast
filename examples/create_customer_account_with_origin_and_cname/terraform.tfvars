@@ -1,9 +1,12 @@
 #Please update data in <> in order to run your terraform
 partner_info = {
-    api_token = "<YOUR_API_TOKEN>"
-    partner_user_id = 1 #PCC USER ID
-    partner_id = 1 #PCC Partner ID
-    api_address = "<VerizonMedia API BASE URL>" #http://api.edgecast.com/v2/
+    api_address = ""
+    api_token = ""
+    ids_client_secret = ""
+    ids_client_id = ""
+    ids_scope = ""
+    partner_user_id = 0
+    partner_id = 0
 }
 
 new_customer_info = {

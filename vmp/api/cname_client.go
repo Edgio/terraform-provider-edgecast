@@ -48,17 +48,6 @@ type UpdateCnameResponse struct {
 	CnameId int
 }
 
-func init() {
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	InfoLogger = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-}
-
 func NewCnameApiClient(baseApiClient *ApiClient, accountNumber string) *CnameApiClient {
 	apiClient := &CnameApiClient{
 		BaseApiClient: baseApiClient,
@@ -69,8 +58,10 @@ func NewCnameApiClient(baseApiClient *ApiClient, accountNumber string) *CnameApi
 }
 
 func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/cnames", c.AccountNumber), cname)
+
+	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/cnames", c.AccountNumber), cname, false)
 	InfoLogger.Printf("AddCname [POST] Url: %s\n", request.URL)
+
 	parsedResponse := &AddCnameResponse{}
 
 	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
@@ -80,8 +71,10 @@ func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, er
 
 func (c *CnameApiClient) UpdateCname(cname *UpdateCnameRequest, cnameId int) (*UpdateCnameResponse, error) {
 
-	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, cnameId), cname)
+
+	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, cnameId), cname, false)
 	InfoLogger.Printf("UpdateCname [PUT] Url: %s\n", request.URL)
+
 	parsedResponse := &UpdateCnameResponse{}
 
 	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
@@ -90,7 +83,8 @@ func (c *CnameApiClient) UpdateCname(cname *UpdateCnameRequest, cnameId int) (*U
 }
 
 func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
+
+	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
 	InfoLogger.Printf("GetCname [GET] Url: %s\n", request.URL)
 
 	parsedResponse := &Cname{}
@@ -101,7 +95,8 @@ func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
 }
 
 func (c *CnameApiClient) DeleteCname(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
+
+	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
 	InfoLogger.Printf("DeleteCname [DELETE] Url: %s\n", request.URL)
 
 	_, err = c.BaseApiClient.SendRequest(request, nil)
