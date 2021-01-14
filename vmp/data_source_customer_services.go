@@ -51,7 +51,7 @@ func dataSourceCustomerServicesRead(ctx context.Context, d *schema.ResourceData,
 
 	services := []interface{}{}
 
-	for _, s := range resp {
+	for _, s := range *resp {
 		service := map[string]interface{}{
 			"id":        s.ID,
 			"name":      s.Name,
