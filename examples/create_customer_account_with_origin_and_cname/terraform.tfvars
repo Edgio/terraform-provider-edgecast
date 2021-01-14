@@ -1,9 +1,12 @@
 #Please update data in <> in order to run your terraform
 partner_info = {
-    api_token = "<YOUR_API_TOKEN>"
-    partner_user_id = 1 #PCC USER ID
-    partner_id = 1 #PCC Partner ID
-    api_address = "<VerizonMedia API BASE URL>" #http://api.edgecast.com/v2/
+    #for pointing to staging environment, leave null to default to production
+    api_address = null
+    # You must provide either an API Token or IDS credentials, but not both
+    api_token = null
+    ids_client_secret = null
+    ids_client_id = null
+    ids_scope = null
 }
 
 new_customer_info = {
