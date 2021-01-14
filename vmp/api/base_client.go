@@ -6,13 +6,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"strconv"
 	"os"
+	"strconv"
+
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -152,4 +154,13 @@ func (c *ApiClient) GetIdsToken() (map[string]interface{}, error) {
 	var result map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&result)
 	return result, err
+}
+
+// FormatURLAddPartnerID is a utility function for adding the optional partner ID query string param
+func FormatURLAddPartnerID(originalURL string, partnerID *int) string {
+	if partnerID != nil {
+		return originalURL + fmt.Sprintf("&partnerid=%d", *partnerID)
+	}
+
+	return originalURL
 }

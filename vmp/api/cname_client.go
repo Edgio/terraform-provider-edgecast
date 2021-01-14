@@ -4,8 +4,6 @@ package api
 
 import (
 	"fmt"
-	"log"
-	"os"
 )
 
 type CnameApiClient struct {
@@ -70,7 +68,6 @@ func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, er
 }
 
 func (c *CnameApiClient) UpdateCname(cname *UpdateCnameRequest, cnameId int) (*UpdateCnameResponse, error) {
-
 
 	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, cnameId), cname, false)
 	InfoLogger.Printf("UpdateCname [PUT] Url: %s\n", request.URL)

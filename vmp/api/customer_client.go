@@ -9,8 +9,8 @@ import (
 // CustomerAPIClient interacts with the Verizon Media API
 type CustomerAPIClient struct {
 	BaseAPIClient *ApiClient
-	PartnerUserID int
-	PartnerID     int
+	PartnerUserID *int
+	PartnerID     *int
 }
 
 // CustomerCreateUpdate represents a request to add a new customer
@@ -54,7 +54,7 @@ type CustomerCreateUpdate struct {
 }
 
 // NewCustomerAPIClient -
-func NewCustomerAPIClient(baseAPIClient *ApiClient, partnerUserID int, partnerID int) *CustomerAPIClient {
+func NewCustomerAPIClient(baseAPIClient *ApiClient, partnerUserID *int, partnerID *int) *CustomerAPIClient {
 	return &CustomerAPIClient{
 		BaseAPIClient: baseAPIClient,
 		PartnerUserID: partnerUserID,
@@ -64,7 +64,12 @@ func NewCustomerAPIClient(baseAPIClient *ApiClient, partnerUserID int, partnerID
 
 // AddCustomer -
 func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (string, error) {
-	relURL := fmt.Sprintf("pcc/customers?partneruserid=%d", apiClient.PartnerUserID)
+
+	relURL := "pcc/customers"
+
+	if apiClient.PartnerUserID != nil {
+		relURL = relURL + fmt.Sprintf("?partneruserid=%d", *apiClient.PartnerUserID)
+	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)
 	InfoLogger.Printf("AddCustomer [POST] Url: %s\n", request.URL)
@@ -187,7 +192,6 @@ func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) (*
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
 	InfoLogger.Printf("GetCustomerServices [GET] Url: %s\n", request.URL)
 
-
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +268,8 @@ func (apiClient *CustomerAPIClient) GetCustomerDeliveryRegion(accountNumber stri
 // UpdateCustomerDomainURL -
 func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string, domainType int, url string) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/domains/%d/url?idtype=an&id=%s&partnerid=%d", domainType, accountNumber, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("pcc/customers/domains/%d/url?idtype=an&id=%s", domainType, accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
 
 	body := &struct {
 		URL string `json:"Url"`
@@ -274,7 +279,6 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
 	InfoLogger.Printf("UpdateCustomerDomainURL [PUT] Url: %s\n", request.URL)
-
 
 	if err != nil {
 		return err
@@ -288,7 +292,8 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string
 // UpdateCustomerDeliveryRegion -
 func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber string, deliveryRegionID int) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/deliveryregions?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("pcc/customers/deliveryregions?idtype=an&id=%s", accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
 
 	body := &struct {
 		ID int `json:"Id"`
@@ -298,7 +303,6 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber s
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
 	InfoLogger.Printf("UpdateCustomerDeliveryRegion [PUT] Url: %s\n", request.URL)
-
 
 	if err != nil {
 		return err
@@ -312,7 +316,8 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber s
 // DeleteCustomer -
 func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s", accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil, false)
 	InfoLogger.Printf("DeleteCustomer [DELETE] Url: %s\n", request.URL)
@@ -329,11 +334,11 @@ func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 // UpdateCustomer -
 func (apiClient *CustomerAPIClient) UpdateCustomer(accountNumber string, body *CustomerCreateUpdate) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s", accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
 	InfoLogger.Printf("UpdateCustomer [PUT] Url: %s\n", request.URL)
-
 
 	if err != nil {
 		return err
@@ -347,7 +352,9 @@ func (apiClient *CustomerAPIClient) UpdateCustomer(accountNumber string, body *C
 // UpdateCustomerAccessModule -
 func (apiClient *CustomerAPIClient) UpdateCustomerAccessModule(accountNumber string, accessModuleID int) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/accessmodules/%d/status?idtype=an&id=%s&partnerid=%d", accessModuleID, accountNumber, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("pcc/customers/accessmodules/%d/status?idtype=an&id=%s", accessModuleID, accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
+
 	body := &struct{ Status int8 }{Status: 1}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)

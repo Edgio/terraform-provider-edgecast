@@ -147,10 +147,6 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	config := m.(*ProviderConfiguration)
 
-	if config.PartnerID == 0 || config.PartnerUserID == 0 {
-		return diag.Errorf("customer resource requires partner_user_id and partner_id")
-	}
-
 	payload, err := getCustomerCreateUpdate(d)
 
 	if err != nil {

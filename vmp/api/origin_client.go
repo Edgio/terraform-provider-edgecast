@@ -64,10 +64,9 @@ func NewOriginApiClient(baseApiClient *ApiClient, accountNumber string) *OriginA
 	return apiClient
 }
 
-func (c *OriginApiClient) AddHttpLargeOrigin(origin *AddOriginRequest) (*AddOriginResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/origins/httplarge", c.AccountNumber), origin, false)
+func (c *OriginApiClient) AddOrigin(origin *AddOriginRequest, mediaType string) (*AddOriginResponse, error) {
+	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/origins/%s", c.AccountNumber, mediaType), origin, false)
 	InfoLogger.Printf("Add origin in %s [POST] Url: %s\n", mediaType, request.URL)
-
 
 	parsedResponse := &AddOriginResponse{}
 
@@ -101,7 +100,6 @@ func (c *OriginApiClient) GetOrigin(id int, mediaType string) (*Origin, error) {
 func (c *OriginApiClient) DeleteOrigin(id int) error {
 	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/origins/%d", c.AccountNumber, id), nil, false)
 	InfoLogger.Printf("DeleteOrigin [DELETE] Url: %s\n", request.URL)
-
 
 	_, err = c.BaseApiClient.SendRequest(request, nil)
 

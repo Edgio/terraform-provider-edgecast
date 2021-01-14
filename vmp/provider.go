@@ -18,41 +18,38 @@ func Provider() *schema.Provider {
 		Schema: map[string]*schema.Schema{
 			"api_address": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
-				//DefaultFunc: schema.EnvDefaultFunc("VM_API_ADDRESS", ""),
+				Optional: true,
+				Default:  "https://api.vdms.io/v2/",
 			},
 			"api_token": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
-				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+				Optional: true,
 			},
 			"ids_client_secret": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
-				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+				Optional: true,
 			},
 			"ids_client_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
-				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+				Optional: true,
 			},
 			"ids_scope": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
-				//DefaultFunc: schema.EnvDefaultFunc("VM_API_TOKEN", ""),
+				Optional: true,
 			},
 			"account_number": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				//DefaultFunc: schema.EnvDefaultFunc("VM_ACCOUNT_NUMBER", ""),
 			},
 			"partner_user_id": &schema.Schema{
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
+				Default:  nil,
 			},
 			"partner_id": &schema.Schema{
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
+				Default:  nil,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -72,8 +69,8 @@ func Provider() *schema.Provider {
 type ProviderConfiguration struct {
 	AccountNumber string
 	APIClient     *api.ApiClient
-	PartnerUserID int
-	PartnerID     int
+	PartnerUserID *int
+	PartnerID     *int
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
@@ -83,13 +80,24 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	apiBaseURI := d.Get("api_address").(string)
 	apiToken := d.Get("api_token").(string)
 	accountNumber := d.Get("account_number").(string)
-	partnerUserID := d.Get("partner_user_id").(int)
-	partnerID := d.Get("partner_id").(int)
-	idsClientId := d.Get("ids_client_id").(string)
+	idsClientID := d.Get("ids_client_id").(string)
 	idsClientSecret := d.Get("ids_client_secret").(string)
 	idsScope := d.Get("ids_scope").(string)
 
-	apiClient, err := api.NewApiClient(apiBaseURI, apiToken, idsClientId, idsClientSecret, idsScope)
+	// Must use either API Token or IDS credentials, but not both
+	idsProvided := len(idsClientID) > 0 && len(idsClientSecret) > 0 && len(idsScope) > 0
+	apiTokenProvided := len(apiToken) > 0
+
+	if (apiTokenProvided && idsProvided) || (!apiTokenProvided && !idsProvided) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Please provide either an API Token or IDS credentials, but not both",
+		})
+
+		return nil, diags
+	}
+
+	apiClient, err := api.NewApiClient(apiBaseURI, apiToken, idsClientID, idsClientSecret, idsScope)
 
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -100,12 +108,22 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		return nil, diags
 	}
 
-	return &ProviderConfiguration{
+	config := ProviderConfiguration{
 		APIClient:     apiClient,
 		AccountNumber: accountNumber,
-		PartnerUserID: partnerUserID,
-		PartnerID:     partnerID,
-	}, diags
+	}
+
+	if partnerUserIDValue, ok := d.GetOk("partner_user_id"); ok {
+		partnerUserID := partnerUserIDValue.(int)
+		config.PartnerUserID = &partnerUserID
+	}
+
+	if partnerIDValue, ok := d.GetOk("partner_id"); ok {
+		partnerID := partnerIDValue.(int)
+		config.PartnerID = &partnerID
+	}
+
+	return &config, diags
 }
 
 // ApplyAccountNumberOverride creates a new ProviderConfiguration when an override is desired for Account Number
