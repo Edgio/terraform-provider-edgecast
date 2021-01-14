@@ -40,6 +40,8 @@ provider "vmp" {
 	ids_client_secret = "xxx"	ids_client_id = "xxx"	ids_scope = "scope1 scope2"
 }
 ```
+**Note for Verizon Media internal users:** you must also specify `partner_id` and `partner_user_id` in addition to your credentials.
+
 There are two ways to set your data. One is to set your configuration data directly in the main.tf file.
 For local testing, this works fine. **However, if you have multi-environments, we would recommend to use terraform.tfvars file.
 This file contains all variables that you need in order to run the terraform. Please refer to the [Using Variable Files](#Using%20Variable%20Files) section.** 
