@@ -291,23 +291,24 @@ func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("delivery_region", deliveryRegion)
 	}
 
-	if accessModules, err := customerAPIClient.GetCustomerAccessModules(accountNumber); err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "error retrieving customer access modules",
-			Detail:   err.Error(),
-		})
-	} else {
-		accessModuleIds := []int{}
+	// Uncomment below when new API endpoint is up on production
+	// if accessModules, err := customerAPIClient.GetCustomerAccessModules(accountNumber); err != nil {
+	// 	diags = append(diags, diag.Diagnostic{
+	// 		Severity: diag.Error,
+	// 		Summary:  "error retrieving customer access modules",
+	// 		Detail:   err.Error(),
+	// 	})
+	// } else {
+	// 	accessModuleIds := []int{}
 
-		for _, a := range *accessModules {
-			accessModuleIds = append(accessModuleIds, a.ID)
-		}
+	// 	for _, a := range *accessModules {
+	// 		accessModuleIds = append(accessModuleIds, a.ID)
+	// 	}
 
-		// order matters for terraform state, so we'll sort
-		sort.Ints(accessModuleIds)
-		d.Set("access_modules", accessModuleIds)
-	}
+	// 	// order matters for terraform state, so we'll sort
+	// 	sort.Ints(accessModuleIds)
+	// 	d.Set("access_modules", accessModuleIds)
+	// }
 
 	return diags
 }
