@@ -31,13 +31,17 @@ Follow the instructions to [install it as a plugin.](https://`www.terraform.io/d
 Running `terraform init` will automatically download and install the plugin for your use as long as your terraform configuration references the provider like so:
 
 ```terraform
+# You must provide either an API Token or IDS Credentials, but not both!
 provider "vmp" {
-    api_token = "xxx"  # your API token provided by Verizon Media
-    partner_user_id = 1111 # your partner user id provided by Verizon Media
-    partner_id = 1111 # your partner id provided by Verizon Media
-    api_address = "http://api.vdms.io/v2/"  # Verizon Media API base URL
+	# your API token provided by Verizon Media
+	api_token = "xxx"
+	
+	# OR your IDS credentials provided by Verizon Media
+	ids_client_secret = "xxx"	ids_client_id = "xxx"	ids_scope = "scope1 scope2"
 }
 ```
+**Note for Verizon Media internal users:** you must also specify `partner_id` and `partner_user_id` in addition to your credentials.
+
 There are two ways to set your data. One is to set your configuration data directly in the main.tf file.
 For local testing, this works fine. **However, if you have multi-environments, we would recommend to use terraform.tfvars file.
 This file contains all variables that you need in order to run the terraform. Please refer to the [Using Variable Files](#Using%20Variable%20Files) section.** 
@@ -90,12 +94,7 @@ resource "vmp_cname" "images" {
 
 ### Variable File Usage
 ```terraform
-partner_info = {
-    api_token = "xxx"  #your API token provided by Verizon Media
-    partner_user_id = 1111 #your partner userID
-    partner_id = 1111 #partnerID
-    api_address = "http://api.vdms.io/v2/"  # Verizon Media API base URL
-}
+partner_info = {    #for pointing to staging environment, leave null to default to production    api_address = null    # You must provide either an API Token or IDS credentials, but not both    api_token = null    ids_client_secret = null    ids_client_id = null    ids_scope = null}
 
 new_customer_info = {
     company_name = "Terraform test customer demo15" #Customer Name

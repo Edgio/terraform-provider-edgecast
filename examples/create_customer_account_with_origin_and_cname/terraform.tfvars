@@ -1,12 +1,12 @@
 #Please update data in <> in order to run your terraform
 partner_info = {
-    api_address = ""
-    api_token = ""
-    ids_client_secret = ""
-    ids_client_id = ""
-    ids_scope = ""
-    partner_user_id = 0
-    partner_id = 0
+    #for pointing to staging environment, leave null to default to production
+    api_address = null
+    # You must provide either an API Token or IDS credentials, but not both
+    api_token = null
+    ids_client_secret = null
+    ids_client_id = null
+    ids_scope = null
 }
 
 new_customer_info = {
