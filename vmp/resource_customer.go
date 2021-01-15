@@ -5,6 +5,7 @@ package vmp
 import (
 	"context"
 	"fmt"
+	"sort"
 	"strconv"
 
 	"terraform-provider-vmp/vmp/api"
@@ -24,8 +25,8 @@ func resourceCustomer() *schema.Resource {
 			"company_name":                 &schema.Schema{Type: schema.TypeString, Required: true},
 			"status":                       &schema.Schema{Type: schema.TypeInt, Computed: true},
 			"service_level_code":           &schema.Schema{Type: schema.TypeString, Required: true},
-			"bandwidth_usage_limit":        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"data_transferred_usage_limit": &schema.Schema{Type: schema.TypeString, Optional: true},
+			"bandwidth_usage_limit":        &schema.Schema{Type: schema.TypeString, Optional: true, Default: "0"},
+			"data_transferred_usage_limit": &schema.Schema{Type: schema.TypeString, Optional: true, Default: "0"},
 			"account_id":                   &schema.Schema{Type: schema.TypeString, Optional: true},
 			"address1":                     &schema.Schema{Type: schema.TypeString, Optional: true},
 			"address2":                     &schema.Schema{Type: schema.TypeString, Optional: true},
@@ -72,22 +73,6 @@ func resourceCustomer() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
-			},
-			"domain": {
-				Type:     schema.TypeSet,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"url": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"type": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -159,13 +144,7 @@ func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate,
 }
 
 func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
 	config := m.(*ProviderConfiguration)
-
-	if config.PartnerID == 0 || config.PartnerUserID == 0 {
-		return diag.Errorf("customer resource requires partner_user_id and partner_id")
-	}
 
 	payload, err := getCustomerCreateUpdate(d)
 
@@ -195,26 +174,6 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 
 		err = customerAPIClient.UpdateCustomerServices(accountNumber, providedServiceIDs, 1)
-
-		// currentServices, err := customerAPIClient.GetCustomerServices(accountNumber)
-		// currentServiceIDs := selectServiceIDs(*currentServices)
-
-		// servicesToAdd := IntArrayDiff(providedServiceIDs, currentServiceIDs)
-
-		// if len(servicesToAdd) > 0 {
-		// 	err = customerAPIClient.UpdateCustomerServices(accountNumber, servicesToAdd, 1)
-		// 	if err != nil {
-		// 		return diag.FromErr(err)
-		// 	}
-		// }
-
-		// servicesToDelete := IntArrayDiff(currentServiceIDs, providedServiceIDs)
-		// if len(servicesToDelete) > 0 {
-		// 	//err = customerAPIClient.UpdateCustomerServices(accountNumber, servicesToDelete, 0)
-		// 	if err != nil {
-		// 		return diag.FromErr(err)
-		// 	}
-		// }
 	}
 
 	if attr, ok := d.GetOk("delivery_region"); ok {
@@ -223,23 +182,6 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 		if err != nil {
 			return diag.FromErr(err)
-		}
-	}
-
-	if attr, ok := d.GetOk("domain"); ok {
-		attrList := attr.(*schema.Set).List()
-
-		for _, d := range attrList {
-			domain := d.(map[string]interface{})
-
-			url := domain["url"].(string)
-			domainType := domain["type"].(int)
-
-			err = customerAPIClient.UpdateCustomerDomainURL(accountNumber, domainType, url)
-
-			if err != nil {
-				return diag.FromErr(err)
-			}
 		}
 	}
 
@@ -257,7 +199,7 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 	}
 
-	return diags
+	return resourceCustomerRead(ctx, d, m)
 }
 
 func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -327,13 +269,15 @@ func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	} else {
 		serviceIds := []int{}
 
-		for _, s := range *services {
+		for _, s := range services {
 			// return only those services with Status = 1
 			if s.Status == 1 {
 				serviceIds = append(serviceIds, s.ID)
 			}
 		}
 
+		// order matters for terraform state, so we'll sort
+		sort.Ints(serviceIds)
 		d.Set("services", serviceIds)
 	}
 
@@ -347,7 +291,24 @@ func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("delivery_region", deliveryRegion)
 	}
 
-	// Need GET AccessModules
+	// Uncomment below when new API endpoint is up on production
+	// if accessModules, err := customerAPIClient.GetCustomerAccessModules(accountNumber); err != nil {
+	// 	diags = append(diags, diag.Diagnostic{
+	// 		Severity: diag.Error,
+	// 		Summary:  "error retrieving customer access modules",
+	// 		Detail:   err.Error(),
+	// 	})
+	// } else {
+	// 	accessModuleIds := []int{}
+
+	// 	for _, a := range *accessModules {
+	// 		accessModuleIds = append(accessModuleIds, a.ID)
+	// 	}
+
+	// 	// order matters for terraform state, so we'll sort
+	// 	sort.Ints(accessModuleIds)
+	// 	d.Set("access_modules", accessModuleIds)
+	// }
 
 	return diags
 }
