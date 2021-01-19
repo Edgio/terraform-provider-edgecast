@@ -64,7 +64,7 @@ func NewCustomerAPIClient(baseAPIClient *ApiClient, partnerUserID int, partnerID
 
 // AddCustomer -
 func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (string, error) {
-	relURL := fmt.Sprintf("pcc/customers?partneruserid=%d", apiClient.PartnerUserID)
+	relURL := fmt.Sprintf("v2/pcc/customers?partneruserid=%d", apiClient.PartnerUserID)
 	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body)
 
 	parsedResponse := &struct {
@@ -129,7 +129,7 @@ type GetCustomerResponse struct {
 
 // GetCustomer retrieves a Customer's info using the Hex Account Number
 func (apiClient *CustomerAPIClient) GetCustomer(accountNumber string) (*GetCustomerResponse, error) {
-	relURL := fmt.Sprintf("pcc/customers/%s", accountNumber)
+	relURL := fmt.Sprintf("v2/pcc/customers/%s", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
 
 	if err != nil {
@@ -157,7 +157,7 @@ type Service struct {
 
 // GetAvailableCustomerServices gets all service information available for a partner to administor to thier customers
 func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, error) {
-	request, err := apiClient.BaseAPIClient.BuildRequest("GET", "pcc/customers/services", nil)
+	request, err := apiClient.BaseAPIClient.BuildRequest("GET", "v2/pcc/customers/services", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, 
 
 // GetCustomerServices gets the list of services available to a customer and whether each is active for the customer
 func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) (*[]Service, error) {
-	relURL := fmt.Sprintf("pcc/customers/%s/services", accountNumber)
+	relURL := fmt.Sprintf("v2/pcc/customers/%s/services", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
 
 	if err != nil {
@@ -195,7 +195,7 @@ func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) (*
 
 // UpdateCustomerServices -
 func (apiClient *CustomerAPIClient) UpdateCustomerServices(accountNumber string, serviceIDs []int, status int8) error {
-	relURL := fmt.Sprintf("pcc/customers/%s/services", accountNumber)
+	relURL := fmt.Sprintf("v2/pcc/customers/%s/services", accountNumber)
 
 	body := &struct {
 		Status      int8
@@ -225,7 +225,7 @@ func (apiClient *CustomerAPIClient) UpdateCustomerServices(accountNumber string,
 
 // GetCustomerDeliveryRegion gets the current active delivery region set for the customer
 func (apiClient *CustomerAPIClient) GetCustomerDeliveryRegion(accountNumber string) (int, error) {
-	relURL := fmt.Sprintf("pcc/customers/%s/deliveryregions", accountNumber)
+	relURL := fmt.Sprintf("v2/pcc/customers/%s/deliveryregions", accountNumber)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
 	if err != nil {
@@ -250,7 +250,7 @@ func (apiClient *CustomerAPIClient) GetCustomerDeliveryRegion(accountNumber stri
 // UpdateCustomerDomainURL -
 func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string, domainType int, url string) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/domains/%d/url?idtype=an&id=%s&partnerid=%d", domainType, accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/domains/%d/url?idtype=an&id=%s&partnerid=%d", domainType, accountNumber, apiClient.PartnerID)
 
 	body := &struct {
 		URL string `json:"Url"`
@@ -272,7 +272,7 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string
 // UpdateCustomerDeliveryRegion -
 func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber string, deliveryRegionID int) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/deliveryregions?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/deliveryregions?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
 
 	body := &struct {
 		ID int `json:"Id"`
@@ -294,7 +294,7 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber s
 // DeleteCustomer -
 func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
 	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil)
 
 	if err != nil {
@@ -309,7 +309,7 @@ func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 // UpdateCustomer -
 func (apiClient *CustomerAPIClient) UpdateCustomer(accountNumber string, body *CustomerCreateUpdate) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body)
 
 	if err != nil {
@@ -324,7 +324,7 @@ func (apiClient *CustomerAPIClient) UpdateCustomer(accountNumber string, body *C
 // UpdateCustomerAccessModule -
 func (apiClient *CustomerAPIClient) UpdateCustomerAccessModule(accountNumber string, accessModuleID int) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/accessmodules/%d/status?idtype=an&id=%s&partnerid=%d", accessModuleID, accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/accessmodules/%d/status?idtype=an&id=%s&partnerid=%d", accessModuleID, accountNumber, apiClient.PartnerID)
 	body := &struct{ Status int8 }{Status: 1}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body)

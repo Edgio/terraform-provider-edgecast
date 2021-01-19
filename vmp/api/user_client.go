@@ -45,7 +45,7 @@ type CustomerUser struct {
 // GetCustomerUser -
 func (apiClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUserID int) (*CustomerUser, error) {
 	// TODO: support custom id types, not just Hex ID ANs
-	relURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil)
 
 	if err != nil {
@@ -66,7 +66,7 @@ func (apiClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUs
 // AddCustomerUser -
 func (apiClient *UserAPIClient) AddCustomerUser(accountNumber string, body *CustomerUser) (int, error) {
 	// TODO: support custom id types, not just Hex ID ANs
-	relURL := fmt.Sprintf("pcc/customers/users?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/users?idtype=an&id=%s&partnerid=%d", accountNumber, apiClient.PartnerID)
 	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body)
 
 	parsedResponse := &struct {
@@ -85,7 +85,7 @@ func (apiClient *UserAPIClient) AddCustomerUser(accountNumber string, body *Cust
 // UpdateCustomerUser -
 func (apiClient *UserAPIClient) UpdateCustomerUser(accountNumber string, customerUserID int, body *CustomerUser) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body)
 
@@ -101,7 +101,7 @@ func (apiClient *UserAPIClient) UpdateCustomerUser(accountNumber string, custome
 // DeleteCustomerUser -
 func (apiClient *UserAPIClient) DeleteCustomerUser(accountNumber string, customerUserID int) error {
 	// TODO: support custom ids for accounts
-	relURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
+	relURL := fmt.Sprintf("v2/pcc/customers/users/%d?idtype=an&id=%s&partnerid=%d", customerUserID, accountNumber, apiClient.PartnerID)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil)
 

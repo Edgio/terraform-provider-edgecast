@@ -64,20 +64,19 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	rulesEngineAPIClient := api.NewRulesEngineAPIClient(providerConfiguration.APIClient)
 
-	cnameID, _ := strconv.Atoi(d.Id())
+	policyID, _ := strconv.Atoi(d.Id())
 
-	parsedResponse, err := cnameAPIClient.GetCname(cnameID)
+	parsedResponse, err := rulesEngineAPIClient.GetPolicy(policyID)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
+	// TODO set resource properties using response object
 	d.Set("name", parsedResponse.Name)
-	d.Set("origin_id", parsedResponse.OriginId)
-	d.Set("origin_string", parsedResponse.OriginString)
 
 	return diags
 }

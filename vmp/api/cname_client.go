@@ -51,7 +51,7 @@ func NewCnameApiClient(baseApiClient *ApiClient, accountNumber string) *CnameApi
 }
 
 func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("mcc/customers/%s/cnames", c.AccountNumber), cname)
+	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/cnames", c.AccountNumber), cname)
 	parsedResponse := &AddCnameResponse{}
 
 	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
@@ -60,7 +60,7 @@ func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, er
 }
 
 func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
+	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("v2/mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
 
 	parsedResponse := &Cname{}
 
@@ -70,7 +70,7 @@ func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
 }
 
 func (c *CnameApiClient) DeleteCname(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
+	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("v2/mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil)
 
 	_, err = c.BaseApiClient.SendRequest(request, nil)
 
