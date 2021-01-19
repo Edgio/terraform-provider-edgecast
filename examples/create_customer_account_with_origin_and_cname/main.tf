@@ -3,8 +3,8 @@
 terraform {
   required_providers {
     vmp = {
-      version = "0.1"
-      source = "github.com/terraform-providers/vmp"
+      version = "0.0.7"
+      source = "VerizonDigital/vmp"
     }
   }
 }
@@ -17,15 +17,10 @@ variable "partner_info" {
   type = object ({
     api_address = string
     api_token = string
-    partner_user_id = number
-    partner_id = number
+    ids_client_secret = string
+    ids_client_id = string
+    ids_scope = string
   })
-  default = {
-    api_address = ""
-    api_token = ""
-    partner_user_id = 0
-    partner_id = 0
-  }
 }
 
 variable "new_customer_info" {
@@ -66,12 +61,14 @@ variable "origin_info" {
     load_balancing = string
     host_header = string
     directory_name = string
+    media_type = string
   })
   default = {
     origins = []
     load_balancing = "RR"
     host_header = ""
     directory_name = ""
+    media_type = "httplarge"
   }
 }
 
@@ -94,20 +91,10 @@ variable "cname_info" {
 provider "vmp" {
     api_address = var.partner_info.api_address
     api_token = var.partner_info.api_token
-	  partner_user_id = var.partner_info.partner_user_id
-    partner_id = var.partner_info.partner_id
+    ids_client_secret = var.partner_info.ids_client_secret
+    ids_client_id = var.partner_info.ids_client_id
+    ids_scope = var.partner_info.ids_scope
 }
-
-##########################################
-# Data Sources - Read-only data from VM APIs
-##########################################
-
-# data "vmp_customer_services" "rules_engine" {
-# }
-
-# output "rules_engine_services" {
-#   value = data.vmp_customer_services.rules_engine.services
-# }
 
 ##########################################
 # Resources
@@ -125,19 +112,6 @@ resource "vmp_customer" "test_customer" {
 
   # TODO use data source to get ID (need a new endpoint for this)
   access_modules = var.new_customer_info.access_modules
-
-  # TODO: may need to change these into their own resource type... but need new endpoints
-  # HTTP Large
-  domain {
-      type = 1 # TODO use data source to get ID
-      url = "http://wpc.5F534.omegacdn.net"
-    }
-  
-  # ADN
-  domain {
-      type = 30 # TODO use data source to get ID
-      url = "http://adn.5F534.omegacdn.net"
-    }
 }
 
 resource "vmp_customer_user" "test_customer_admin" {
@@ -148,9 +122,10 @@ resource "vmp_customer_user" "test_customer_admin" {
   is_admin = var.new_admin_user.is_admin
 }
 
-resource "vmp_origin" "images" {
+resource "vmp_origin" "origin_images" {
     account_number = vmp_customer.test_customer.id
     directory_name = var.origin_info.directory_name
+    media_type = var.origin_info.media_type
     host_header = var.origin_info.host_header
     http {
         load_balancing = var.origin_info.load_balancing
@@ -158,10 +133,10 @@ resource "vmp_origin" "images" {
     }
 }
 
-resource "vmp_cname" "images" {
+resource "vmp_cname" "cname_images" {
     account_number = vmp_customer.test_customer.id
     name = var.cname_info.cname
     type = var.cname_info.type
-    origin_id = vmp_origin.images.id
+    origin_id = vmp_origin.origin_images.id
     origin_type = var.cname_info.origin_type
 }
