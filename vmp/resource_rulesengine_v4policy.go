@@ -18,21 +18,63 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		ReadContext:   resourcePolicyRead,
 		UpdateContext: resourcePolicyUpdate,
 		DeleteContext: resourcePolicyDelete,
-
-		Schema: map[string]*schema.Schema{},
+		Schema: map[string]*schema.Schema{
+			"policyid": &schema.Schema{
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"customerid": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"customeruserid": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"portaltypeid": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"policy": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+		},
 	}
 }
 
 func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	// not implemented
-	return nil
+	var diags diag.Diagnostics
+	policy := d.Get("policy").(string)
+	customerid := d.Get("customerid").(string)
+	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
+	customeruserid := d.Get("customeruserid").(string)
+	InfoLogger.Printf("policy: %s\n", policy)
+
+	config := m.(*ProviderConfiguration)
+
+	reClient := api.NewRulesEngineApiClient(config.APIClient)
+
+	parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	//InfoLogger.Printf("policy: %s\n", res)
+	d.SetId(parsedResponse.Id)
+
+	return diags
 }
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	providerConfiguration := m.(*ProviderConfiguration)
+	policy := d.Get("policy").(string)
+	portaltypeid := d.Get("portaltypeid").(int) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
+	customeruserid := d.Get("customeruserid").(int)
+	InfoLogger.Printf("policy: %s\n", policy)
 
-	rulesEngineAPIClient := api.NewRulesEngineAPIClient(providerConfiguration.APIClient)
+	rulesEngineAPIClient := api.NewRulesEngineApiClient(providerConfiguration.APIClient)
 
 	policyID, _ := strconv.Atoi(d.Id())
 
@@ -55,8 +97,8 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 		return diag.FromErr(err)
 	}
 
-	// Policy properties
-	d.SetId(parsedResponse.ID)
+	// Set properties
+	d.SetId(parsedResponse.Id)
 
 	return diags
 }
