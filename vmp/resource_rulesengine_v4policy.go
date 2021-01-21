@@ -20,6 +20,22 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		DeleteContext: resourcePolicyDelete,
 
 		Schema: map[string]*schema.Schema{
+			"policyid": &schema.Schema{
+				Type:     schema.TypeInt,
+				Required: true,
+			},
+			"customerid": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"customeruserid": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"portaltypeid": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
 			"policy": &schema.Schema{
 				Type:     schema.TypeString,
 				Required: true,
@@ -29,31 +45,26 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 }
 
 func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	accountNumber := d.Get("account_number").(string)
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(accountNumber)
+	var diags diag.Diagnostics
+	policy := d.Get("policy").(string)
+	customerid := d.Get("customerid").(string)
+	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
+	customeruserid := d.Get("customeruserid").(string)
+	InfoLogger.Printf("policy: %s\n", policy)
+
+	config := m.(*ProviderConfiguration)
+
+	reClient := api.NewRulesEngineApiClient(config.APIClient)
+
+	parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	//InfoLogger.Printf("policy: %s\n", res)
+	d.SetId(parsedResponse.ID)
 
-	addCnameRequest := &api.AddCnameRequest{
-		Name:        d.Get("name").(string),
-		MediaTypeId: d.Get("type").(int),
-		OriginId:    d.Get("origin_id").(int),
-		OriginType:  d.Get("origin_type").(int),
-	}
-
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
-
-	parsedResponse, err := cnameAPIClient.AddCname(addCnameRequest)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(strconv.Itoa(parsedResponse.CnameId))
-
-	return resourceCnameRead(ctx, d, m)
+	return diags
 }
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {

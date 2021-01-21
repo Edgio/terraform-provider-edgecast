@@ -1,0 +1,32 @@
+{
+    '@type': 'policy',
+    'name':'test policy',
+    'description':'This is a test policy of PolicyCreate.',
+    'state':'draft',
+    'platform':'3',
+    'rules': [
+        {
+            '@type':'rule',
+            'name':'test rule1',
+            'description': 'This is a test rule1.',
+            'matches': [{
+                'type': 'match.origin.customer-origin.literal',
+                'value': '/8017DA1/Origin-NGUX/',
+                'features': [{
+                    'type': 'feature.caching.compress-file-types',
+                    'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+                }]
+                }, {
+                    'type': 'match.request.request-header.wildcard',
+                    'name': 'User-Agent',
+                    'result': 'nomatch',
+                    'value': '*MSIE\\ 5*Mac* *MSIE\\ 4* *Mozilla/4* *compatible;*',
+                    'ignore-case': 'True',
+                    'features': [{
+                        'type': 'feature.caching.compress-file-types',
+                        'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+                    }]
+                }]
+        }
+    ]
+}

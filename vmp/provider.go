@@ -53,10 +53,11 @@ func Provider() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"vmp_origin":        resourceOrigin(),
-			"vmp_cname":         resourceCname(),
-			"vmp_customer":      resourceCustomer(),
-			"vmp_customer_user": resourceCustomerUser(),
+			"vmp_origin":              resourceOrigin(),
+			"vmp_cname":               resourceCname(),
+			"vmp_customer":            resourceCustomer(),
+			"vmp_customer_user":       resourceCustomerUser(),
+			"vmp_httplarge_re_policy": resourceRulesEngineV4Policy(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": dataSourceCustomerServices(),
