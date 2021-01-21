@@ -19,64 +19,44 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		UpdateContext: resourcePolicyUpdate,
 		DeleteContext: resourcePolicyDelete,
 
-		Schema: map[string]*schema.Schema{
-			"policy": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-			},
-		},
+		Schema: map[string]*schema.Schema{},
 	}
 }
 
 func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	accountNumber := d.Get("account_number").(string)
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(accountNumber)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	addCnameRequest := &api.AddCnameRequest{
-		Name:        d.Get("name").(string),
-		MediaTypeId: d.Get("type").(int),
-		OriginId:    d.Get("origin_id").(int),
-		OriginType:  d.Get("origin_type").(int),
-	}
-
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
-
-	parsedResponse, err := cnameAPIClient.AddCname(addCnameRequest)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(strconv.Itoa(parsedResponse.CnameId))
-
-	return resourceCnameRead(ctx, d, m)
+	// not implemented
+	return nil
 }
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	providerConfiguration := m.(*ProviderConfiguration)
 
 	rulesEngineAPIClient := api.NewRulesEngineAPIClient(providerConfiguration.APIClient)
 
 	policyID, _ := strconv.Atoi(d.Id())
 
-	parsedResponse, err := rulesEngineAPIClient.GetPolicy(policyID)
+	var customerID int
+
+	parsedCustomerID, parseErr := strconv.ParseInt(providerConfiguration.AccountNumber, 16, 32)
+
+	if parseErr == nil {
+		customerID = int(parsedCustomerID)
+	} else {
+		d.SetId("")
+		return diag.FromErr(parseErr)
+	}
+
+	parsedResponse, err := rulesEngineAPIClient.GetPolicy(customerID, policyID)
+	InfoLogger.Printf("%+v\n", parsedResponse)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	// TODO set resource properties using response object
-	d.Set("name", parsedResponse.Name)
+	// Policy properties
+	d.SetId(parsedResponse.ID)
 
 	return diags
 }
