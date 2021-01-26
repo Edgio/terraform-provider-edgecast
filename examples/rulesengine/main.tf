@@ -3,8 +3,8 @@
 terraform {
   required_providers {
     vmp = {
-      version = "0.0.1"
-      source = "github.com/terraform-providers/vmp"
+      version = "0.0.8"
+      source = "VerizonDigital/vmp"
     }
   }
 }
@@ -22,22 +22,24 @@ variable "partner_info" {
     ids_scope = string
   })
 }
-variable "httplarge_policy_request" {
+variable "httplarge_policy" {
+  type = string
+  default = ""
+}
+
+variable "customer_info" {
   type = object({
-    policyid = number
-    policy = string
-    customerid = string
-    customeruserid = number
-    portaltypeid = number
+    account_number = string
+    customeruserid = string
+    portaltypeid = string
   })
   default = {
-    policyid = 0
-    policy = ""
-    customerid = ""
-    customeruserid = 0
-    portaltypeid = 1
+    account_number = ""
+    customeruserid = ""
+    portaltypeid = "1"
   }
 }
+
 ##########################################
 # Providers
 ##########################################
@@ -51,17 +53,9 @@ provider "vmp" {
 }
 
 
-resource "vmp_httplarge_re_policy" "httplarge_policy"{
-  policyid = var.httplarge_policy_request.policyid
-  customerid = var.httplarge_policy_request.customerid
-  customeruserid = var.httplarge_policy_request.customeruserid
-  portaltypeid = var.httplarge_policy_request.portaltypeid
-  policy = var.httplarge_policy_request.policy #
+resource "vmp_rules_engine_policy" "httplarge_policy"{
+  account_number = var.customer_info.account_number
+  customeruserid = var.customer_info.customeruserid
+  portaltypeid = var.customer_info.portaltypeid
+  policy = var.httplarge_policy
 }
-// resource "vmp_httplarge_re_policy" "httplarge_policy"{
-//   policyid = var.httplarge_policy_request.policyid
-//   customerid = var.httplarge_policy_request.customerid
-//   customeruserid = var.httplarge_policy_request.customeruserid
-//   portaltypeid = var.httplarge_policy_request.portaltypeid
-//   policy = jsonencode(jsondecode(file("${path.module}/httplarge-policy.json")))
-// }

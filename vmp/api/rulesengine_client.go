@@ -2,17 +2,20 @@
 package api
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
 )
 
+const rulesEngineRelUrlFormat = "rules-engine/v1.1/%s"
+
 type RulesEngineApiClient struct {
 	BaseApiClient *ApiClient
 }
 
-type AddPolicyResponse struct {
-	ID          string    `json:"id,omitempty"`
+type GetPolicyResponse struct {
+	Id          string    `json:"id,omitempty"`
 	Type        string    `json:"@type,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
@@ -24,9 +27,21 @@ type AddPolicyResponse struct {
 	Rules       []Rule    `json:"rules,omitempty"`
 }
 
-// Rule -
+type AddPolicyResponse struct {
+	Id          string    `json:"id,omitempty"`
+	Type        string    `json:"@type,omitempty"`
+	Name        string    `json:"name,omitempty"`
+	Description string    `json:"description,omitempty"`
+	PolicyType  string    `json:"policy_type,omitempty"`
+	State       string    `json:"state,omitempty"`
+	Platform    string    `json:"platform,omitempty"`
+	CreatedAt   time.Time `json:"created_at,omitempty"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	Rules       []Rule    `json:"rules,omitempty"`
+}
+
 type Rule struct {
-	ID          string                   `json:"id,omitempty"`
+	Id          string                   `json:"id,omitempty"`
 	Name        string                   `json:"name,omitempty"`
 	Description string                   `json:"description,omitempty"`
 	Ordinal     int                      `json:"ordinal,omitempty"`
@@ -35,56 +50,54 @@ type Rule struct {
 	Matches     []map[string]interface{} `json:"matches,omitempty"`
 }
 
-// Match -
-// Features are treated as a map because their properties are indeterminate
 type Match struct {
-	Type       string `json:@type`
-	Id         int
+	Id         int    `json:"id`
+	Type       string `json:"@type"`
 	Ordinal    int    `json:"ordinal,omitempty"`
 	Value      string `json:"value,omitempty"`
-	codes      string `json:"codes,omitempty"`
-	compare    string `json:"compare,omitempty"`
-	encoded    bool   `json:"encoded,omitempty"`
-	hostnames  string `json:"hostnames,omitempty"`
-	ignoreCase bool   `json:"ignore-case,omitempty"`
-	name       string `json:"name,omitempty"`
-	relativeTo string `json:"relative-to,omitempty"`
-	result     string `json:"result,omitempty"`
+	Codes      string `json:"codes,omitempty"`
+	Compare    string `json:"compare,omitempty"`
+	Encoded    bool   `json:"encoded,omitempty"`
+	Hostnames  string `json:"hostnames,omitempty"`
+	IgnoreCase bool   `json:"ignore-case,omitempty"`
+	Name       string `json:"name,omitempty"`
+	RelativeTo string `json:"relative-to,omitempty"`
+	Result     string `json:"result,omitempty"`
 	Matches    []map[string]interface{}
 	Features   []map[string]interface{}
 }
 
 type Feature struct {
-	action          string   `json:action,omitempty`
-	code            string   `json:code,omitempty`
-	destination     string   `json:destination,omitempty`
-	eanbled         bool     `json:enabled,omitempty`
-	expires         int      `json:expires,omitempty`
-	extensions      string   `json:extensions,omitempty`
-	format          string   `json:format,omitempty`
-	headerName      string   `json:header-name,omitempty`
-	headerValue     string   `json:header-value,omitempty`
-	instance        string   `json:instance,omitempty`
-	kbytesPerSecond int      `json:kbytes-per-second,omitempty`
-	mediaTypes      []string `json:mediaTypes,omitempty`
-	methods         string   `json:methods,omitempty`
-	milliseconds    int      `json:milliseconds,omitempty`
-	mode            string   `json:mode,omitempty`
-	name            string   `json:name,omitempty`
-	names           []string `json:names,omitempty`
-	parameters      string   `json:parameters,omitempty`
-	prebufSeconds   int      `json:prebuf-seconds,omitempty`
-	requests        int      `json:requests,omitempty`
-	seconds         int      `json:seconds,omitempty`
-	seekEnd         string   `json:seekEnd,omitempty`
-	seekStart       string   `json:seekStart,omitempty`
-	site            string   `json:site,omitempty`
-	source          string   `json:source,omitempty`
-	status          string   `json:status,omitempty`
-	tags            string   `json:tags,omitempty`
-	treatment       string   `json:treatment,omitempty`
-	units           string   `json:units,omitempty`
-	value           string   `json:value,omitempty`
+	Action          string   `json:"action,omitempty"`
+	Code            string   `json:"code,omitempty"`
+	Destination     string   `json:"destination,omitempty"`
+	Enabled         bool     `json:"enabled,omitempty"`
+	Expires         int      `json:"expires,omitempty"`
+	Extensions      string   `json:"extensions,omitempty"`
+	Format          string   `json:"format,omitempty"`
+	HeaderName      string   `json:"header-name,omitempty"`
+	HeaderValue     string   `json:"header-value,omitempty"`
+	Instance        string   `json:"instance,omitempty"`
+	KbytesPerSecond int      `json:"kbytes-per-second,omitempty"`
+	MediaTypes      []string `json:"mediaTypes,omitempty"`
+	Methods         string   `json:"methods,omitempty"`
+	Milliseconds    int      `json:"milliseconds,omitempty"`
+	Mode            string   `json:"mode,omitempty"`
+	Name            string   `json:"name,omitempty"`
+	Names           []string `json:"names,omitempty"`
+	Parameters      string   `json:"parameters,omitempty"`
+	PrebufSeconds   int      `json:"prebuf-seconds,omitempty"`
+	Requests        int      `json:"requests,omitempty"`
+	Seconds         int      `json:"seconds,omitempty"`
+	SeekEnd         string   `json:"seekEnd,omitempty"`
+	SeekStart       string   `json:"seekStart,omitempty"`
+	Site            string   `json:"site,omitempty"`
+	Source          string   `json:"source,omitempty"`
+	Status          string   `json:"status,omitempty"`
+	Tags            string   `json:"tags,omitempty"`
+	Treatment       string   `json:"treatment,omitempty"`
+	Units           string   `json:"units,omitempty"`
+	Value           string   `json:"value,omitempty"`
 }
 
 func NewRulesEngineApiClient(baseApiClient *ApiClient) *RulesEngineApiClient {
@@ -95,14 +108,48 @@ func NewRulesEngineApiClient(baseApiClient *ApiClient) *RulesEngineApiClient {
 	return apiClient
 }
 
-func (c *RulesEngineApiClient) AddPolicy(policy string, customerid string, portaltypeid string, customeruserid string) (*AddPolicyResponse, error) {
+// GetPolicy -
+func (apiClient *RulesEngineApiClient) GetPolicy(customerId int, customerUserId string, portalTypeId string, policyId int) (map[string]interface{}, error) {
+	relURL := formatRulesEngineRelURL("policies/%d", policyId)
+	request, err := apiClient.BaseApiClient.BuildRequest("GET", relURL, nil, true)
+
+	if err != nil {
+		return nil, err
+	}
+
+	request.Header.Set("Portals_CustomerId", strconv.Itoa(customerId))
+	request.Header.Set("Portals_UserId", customerUserId)
+	request.Header.Set("Portals_PortalTypeId", portalTypeId)
+
+	InfoLogger.Printf("GetPolicy [GET] Url: %s\n", request.URL)
+	//parsedResponse := &GetPolicyResponse{}
+	parsedResponse := make(map[string]interface{})
+
+	_, err = apiClient.BaseApiClient.SendRequest(request, &parsedResponse)
+
+	if err != nil {
+		return nil, err
+	}
+
+	InfoLogger.Printf("RE policy response: %+v\n", parsedResponse)
+	return parsedResponse, nil
+}
+
+func (c *RulesEngineApiClient) AddPolicy(policy string, accountNumber string, portalTypeId string, customerUserId string) (*AddPolicyResponse, error) {
 	request, err := c.BaseApiClient.BuildRequest("POST", "rules-engine/v1.1/policies", policy, true)
-	// convert hex string to int
-	output, err := strconv.ParseInt(hexaNumberToInteger(customerid), 16, 64)
-	InfoLogger.Printf("customerId: %d\n", output)
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(output, 10))
-	request.Header.Set("Portals_UserId", customeruserid)
-	request.Header.Set("Portals_PortalTypeId", portaltypeid)
+
+	// account number hex string -> customer ID
+	customerId, err := strconv.ParseInt(accountNumber, 16, 64)
+
+	if err != nil {
+		return nil, err
+	}
+
+	InfoLogger.Printf("customerId: %d\n", customerId)
+
+	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
+	request.Header.Set("Portals_UserId", customerUserId)
+	request.Header.Set("Portals_PortalTypeId", portalTypeId)
 	InfoLogger.Printf("policy from terraform.tfvars: %s\n", policy)
 	parsedResponse := &AddPolicyResponse{}
 
@@ -112,29 +159,14 @@ func (c *RulesEngineApiClient) AddPolicy(policy string, customerid string, porta
 	return parsedResponse, err
 }
 
-/*
-func (c *RulesEngineApiClient) GetHttpLargeOrigin(id int) (*Origin, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("rules-engine/v1.1/policies/%d", id), nil, true)
-
-	parsedResponse := &Origin{}
-
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
-
-	return parsedResponse, err
-}
-
-
-func (c *RulesEngineApiClient) DeleteOrigin(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("mcc/customers/%s/origins/%d", c.AccountNumber, id), nil)
-
-	_, err = c.BaseApiClient.SendRequest(request, nil)
-
-	return err
-}*/
-
-func hexaNumberToInteger(hexaString string) string {
+func removeHexPrefix(hexaString string) string {
 	// replace 0x or 0X with empty String
 	numberStr := strings.Replace(hexaString, "0x", "", -1)
 	numberStr = strings.Replace(numberStr, "0X", "", -1)
 	return numberStr
+}
+
+func formatRulesEngineRelURL(subFormat string, params ...interface{}) string {
+	subPath := fmt.Sprintf(subFormat, params...)
+	return fmt.Sprintf(rulesEngineRelUrlFormat, subPath)
 }

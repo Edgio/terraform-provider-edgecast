@@ -9,12 +9,13 @@ partner_info = {
     ids_scope = ""
 }
 
-httplarge_policy_request = {
-    policyid = 0
-    customerid = "" 
+customer_info = {
+    account_number = ""
     customeruserid = ""
-    portaltypeid = "1"
-    policy = <<POLICYCREATE
+    portaltypeid = 0
+}
+
+httplarge_policy = <<POLICYCREATE
     {
     '@type': 'policy',
     'name':'test policy1182021-40',
@@ -47,4 +48,3 @@ httplarge_policy_request = {
     ]
 }
 POLICYCREATE
-}

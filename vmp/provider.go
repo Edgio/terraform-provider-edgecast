@@ -19,7 +19,7 @@ func Provider() *schema.Provider {
 			"api_address": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "https://api.vdms.io/v2/",
+				Default:  "https://api.vdms.io/",
 			},
 			"api_token": &schema.Schema{
 				Type:     schema.TypeString,
@@ -57,7 +57,7 @@ func Provider() *schema.Provider {
 			"vmp_cname":               resourceCname(),
 			"vmp_customer":            resourceCustomer(),
 			"vmp_customer_user":       resourceCustomerUser(),
-			"vmp_httplarge_re_policy": resourceRulesEngineV4Policy(),
+			"vmp_rules_engine_policy": resourceRulesEngineV4Policy(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": dataSourceCustomerServices(),
