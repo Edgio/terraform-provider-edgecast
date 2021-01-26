@@ -41,7 +41,7 @@ type AddPolicyResponse struct {
 }
 
 type Rule struct {
-	Id          string                   `json:"id"`
+	Id          string                   `json:"id,omitempty"`
 	Name        string                   `json:"name,omitempty"`
 	Description string                   `json:"description,omitempty"`
 	Ordinal     int                      `json:"ordinal,omitempty"`
@@ -109,7 +109,7 @@ func NewRulesEngineApiClient(baseApiClient *ApiClient) *RulesEngineApiClient {
 }
 
 // GetPolicy -
-func (apiClient *RulesEngineApiClient) GetPolicy(customerId int, customerUserId int, portalTypeId int, policyId int) (*GetPolicyResponse, error) {
+func (apiClient *RulesEngineApiClient) GetPolicy(customerId int, customerUserId string, portalTypeId string, policyId int) (map[string]interface{}, error) {
 	relURL := formatRulesEngineRelURL("policies/%d", policyId)
 	request, err := apiClient.BaseApiClient.BuildRequest("GET", relURL, nil, true)
 
@@ -118,11 +118,13 @@ func (apiClient *RulesEngineApiClient) GetPolicy(customerId int, customerUserId 
 	}
 
 	request.Header.Set("Portals_CustomerId", strconv.Itoa(customerId))
-	request.Header.Set("Portals_UserId", strconv.Itoa(customerUserId))
-	request.Header.Set("Portals_PortalTypeId", strconv.Itoa(policyId))
+	request.Header.Set("Portals_UserId", customerUserId)
+	request.Header.Set("Portals_PortalTypeId", portalTypeId)
 
 	InfoLogger.Printf("GetPolicy [GET] Url: %s\n", request.URL)
-	parsedResponse := &GetPolicyResponse{}
+	//parsedResponse := &GetPolicyResponse{}
+	parsedResponse := make(map[string]interface{})
+
 	_, err = apiClient.BaseApiClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
