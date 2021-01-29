@@ -5,7 +5,9 @@ package vmp
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strconv"
+	"time"
 
 	"terraform-provider-vmp/vmp/api"
 
@@ -67,7 +69,6 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	InfoLogger.Printf("account number: %s\n", d.Get("account_number").(string))
 
 	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
 
@@ -79,22 +80,18 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	policy := d.Get("policy").(string)
 	portalTypeID := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
 	customerUserID := d.Get("customeruserid").(string)
-	InfoLogger.Printf("policy: %s\n", policy)
+	InfoLogger.Printf("user input policy: %s\n", policy)
 
 	rulesEngineAPIClient := api.NewRulesEngineApiClient(providerConfiguration.APIClient)
 
 	policyID, _ := strconv.Atoi(d.Id())
 	InfoLogger.Printf("Policy ID is %d \n", policyID)
 
-	var customerID int
+	customerID, err := parseCustomerID(providerConfiguration.AccountNumber)
 
-	parsedCustomerID, parseErr := strconv.ParseInt(providerConfiguration.AccountNumber, 16, 32)
-
-	if parseErr == nil {
-		customerID = int(parsedCustomerID)
-	} else {
+	if err != nil {
 		d.SetId("")
-		return diag.FromErr(parseErr)
+		return diag.FromErr(err)
 	}
 
 	policyMap, err := rulesEngineAPIClient.GetPolicy(customerID, customerUserID, portalTypeID, policyID)
@@ -141,7 +138,8 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	json := string(jsonBytes)
-	InfoLogger.Printf("Retrieved policy: %s\n", json)
+
+	InfoLogger.Printf("Retrieved policy from API: %s\n", json)
 	d.Set("policy", json)
 
 	return diags
@@ -182,17 +180,75 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	portalTypeID := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
+	customerUserID := d.Get("customeruserid").(string)
+	policy := d.Get("policy").(string)
 
-	cnameID, _ := strconv.Atoi(d.Id())
+	// pull out platform and policy type
+	policyMap := make(map[string]interface{})
+	json.Unmarshal([]byte(policy), &policyMap)
 
-	err = cnameAPIClient.DeleteCname(cnameID)
+	platform := policyMap["platform"].(string)
+
+	// You can't actually delete policies, so we will instead
+	// create a placeholder empty policy for the customer for the given platform and policy type
+	emptyPolicy := map[string]interface{}{
+		"@type":    "policy-create",
+		"name":     fmt.Sprintf("Terraform Placeholder - %s", time.Now().Format(time.RFC3339)),
+		"platform": platform,
+		"state":    "locked",
+		"rules": []map[string]interface{}{
+			{
+				"@type":       "rule-create",
+				"name":        "placeholder rule",
+				"description": "placeholder rule created by the Verizon Media Terraform Provider",
+				"matches": []map[string]interface{}{
+					{
+						"type":    "match.always",
+						"ordinal": 1,
+						"features": []map[string]interface{}{
+							{
+								"type":  "feature.comment",
+								"value": "empty policy",
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	emptyPolicyJSONBytes, err := json.Marshal(emptyPolicy)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	emptyPolicyJSON := string(emptyPolicyJSONBytes)
+
+	InfoLogger.Printf("Placeholder policy: %s\n", emptyPolicyJSON)
+
+	rulesEngineAPIClient := api.NewRulesEngineApiClient(providerConfiguration.APIClient)
+
+	resp, err := rulesEngineAPIClient.AddPolicy(emptyPolicyJSON, providerConfiguration.AccountNumber, portalTypeID, customerUserID)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	InfoLogger.Printf("API response: %+v\n", resp)
+
 	d.SetId("")
 
 	return diags
+}
+
+func parseCustomerID(accountNumber string) (int, error) {
+	parsedCustomerID, parseErr := strconv.ParseInt(accountNumber, 16, 32)
+
+	if parseErr == nil {
+		return int(parsedCustomerID), nil
+	}
+
+	return 0, parseErr
 }

@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -72,17 +71,23 @@ func (c *ApiClient) BuildRequest(method, path string, body interface{}, isUsingI
 
 	u := c.BaseUrl.ResolveReference(rel)
 
-	var buf io.ReadWriter
+	var payload interface{}
 
 	if body != nil {
-		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
+		switch body.(type) {
+		case string:
+			payload = []byte(body.(string))
+		default:
+			buf := new(bytes.Buffer)
+			err := json.NewEncoder(buf).Encode(body)
+			if err != nil {
+				return nil, err
+			}
+			payload = buf
 		}
 	}
 
-	req, err := retryablehttp.NewRequest(method, u.String(), buf)
+	req, err := retryablehttp.NewRequest(method, u.String(), payload)
 
 	if err != nil {
 		return nil, err

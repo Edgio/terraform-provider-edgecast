@@ -13,7 +13,7 @@ terraform {
 # Variables
 ##########################################
 
-variable "partner_info" {
+variable "provider_config" {
   type = object ({
     api_address = string
     api_token = string
@@ -45,11 +45,11 @@ variable "customer_info" {
 ##########################################
 
 provider "vmp" {
-    api_address = var.partner_info.api_address
-    api_token = var.partner_info.api_token
-    ids_client_secret = var.partner_info.ids_client_secret
-    ids_client_id = var.partner_info.ids_client_id
-    ids_scope = var.partner_info.ids_scope
+    api_address = var.provider_config.api_address
+    api_token = var.provider_config.api_token
+    ids_client_secret = var.provider_config.ids_client_secret
+    ids_client_id = var.provider_config.ids_client_id
+    ids_scope = var.provider_config.ids_scope
 }
 
 
