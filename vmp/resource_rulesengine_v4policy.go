@@ -36,6 +36,14 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
+			"deploy_to": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"deploy_request_id": &schema.Schema{
+				Type:     schema.TypeString,
+				Required: true,
+			},
 		},
 	}
 }
@@ -43,24 +51,41 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	policy := d.Get("policy").(string)
-	// customerid := d.Get("customerid").(string)
-	// portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
-	// customeruserid := d.Get("customeruserid").(string)
-	InfoLogger.Printf("policy: %s\n", policy)
+	customerid := d.Get("account_number").(string)
+	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
+	customeruserid := d.Get("customeruserid").(string)
 
-	// config := m.(*ProviderConfiguration)
+	InfoLogger.Printf("resourcePolicyCreate >> policy: %s\n", policy)
 
-	// reClient := api.NewRulesEngineApiClient(config.APIClient)
+	config := m.(*ProviderConfiguration)
 
-	// parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
+	reClient := api.NewRulesEngineApiClient(config.APIClient)
 
-	// if err != nil {
-	// 	return diag.FromErr(err)
-	// }
-	// //InfoLogger.Printf("policy: %s\n", res)
-	// d.SetId(parsedResponse.Id)
-	d.SetId("20")
+	parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	policyId, e := strconv.Atoi(parsedResponse.Id)
+	if e != nil {
+		return diag.FromErr(e)
+	}
+	d.SetId(parsedResponse.Id)
 	d.Set("policy", policy)
+
+	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> policyId: %d\n", policyId)
+
+	payload := getDeployRequestData(d, policyId)
+	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> DeployRequest >> payload: %+v\n", payload)
+	deployResponse, deployErr := reClient.DeployPolicy(payload, customerid, portaltypeid, customeruserid)
+	if deployErr != nil {
+		return diag.FromErr(deployErr)
+	}
+
+	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> DeployRequest >> deployrequestId: %+v\n", deployResponse)
+
+	d.Set("deploy_request_id", deployResponse.Id)
 
 	return diags
 }
@@ -148,30 +173,9 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 }
 
 func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+	diags := resourcePolicyCreate(ctx, d, m)
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	addCnameRequest := &api.AddCnameRequest{
-		Name:        d.Get("name").(string),
-		MediaTypeId: d.Get("type").(int),
-		OriginId:    d.Get("origin_id").(int),
-		OriginType:  d.Get("origin_type").(int),
-	}
-
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
-
-	parsedResponse, err := cnameAPIClient.AddCname(addCnameRequest)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(strconv.Itoa(parsedResponse.CnameId))
-
-	return resourceCnameRead(ctx, d, m)
+	return diags
 }
 
 func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -195,4 +199,13 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	d.SetId("")
 
 	return diags
+}
+
+func getDeployRequestData(d *schema.ResourceData, policyId int) *api.AddDeployRequest {
+
+	return &api.AddDeployRequest{
+		Message:     "Auto-submitted policy",
+		PolicyId:    policyId,
+		Environment: d.Get("deploy_to").(string),
+	}
 }

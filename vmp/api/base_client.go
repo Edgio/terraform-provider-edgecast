@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -72,17 +71,23 @@ func (c *ApiClient) BuildRequest(method, path string, body interface{}, isUsingI
 
 	u := c.BaseUrl.ResolveReference(rel)
 
-	var buf io.ReadWriter
+	var payload interface{}
 
 	if body != nil {
-		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
-			return nil, err
+		switch body.(type) {
+		case string:
+			payload = []byte(body.(string))
+		default:
+			buf := new(bytes.Buffer)
+			err := json.NewEncoder(buf).Encode(body)
+			if err != nil {
+				return nil, err
+			}
+			payload = buf
 		}
 	}
 
-	req, err := retryablehttp.NewRequest(method, u.String(), buf)
+	req, err := retryablehttp.NewRequest(method, u.String(), payload)
 
 	if err != nil {
 		return nil, err
@@ -114,7 +119,6 @@ func (c *ApiClient) SendRequest(req *retryablehttp.Request, v interface{}) (*htt
 	}
 
 	defer resp.Body.Close()
-
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		body, err := ioutil.ReadAll(resp.Body)
 
@@ -128,10 +132,18 @@ func (c *ApiClient) SendRequest(req *retryablehttp.Request, v interface{}) (*htt
 
 	if v != nil {
 		err = json.NewDecoder(resp.Body).Decode(v)
+
 	}
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted {
 
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		InfoLogger.Printf("SendRequest >> Response Body:%s", bodyString)
+	}
 	return resp, err
-
 }
 
 func (c *ApiClient) GetIdsToken() (map[string]interface{}, error) {

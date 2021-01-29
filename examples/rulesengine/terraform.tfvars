@@ -12,39 +12,35 @@ partner_info = {
 customer_info = {
     account_number = ""
     customeruserid = ""
-    portaltypeid = 0
+    portaltypeid = ""
 }
 
-httplarge_policy = <<POLICYCREATE
-    {
+#deploy_to: Production or Staging
+#deploy_request_id: Do not change it ever. It will be updated after deployment
+httplarge_policy = {
+    deploy_to = "" 
+    deploy_request_id = 0
+    policy = <<POLICYCREATE
+{
     '@type': 'policy',
-    'name':'test policy1182021-40',
+    'name':'test policy-01272021-49',
     'description':'This is a test policy of PolicyCreate.',
-    'state':'draft',
+    'state':'locked',
+    'platform':'3',
     'rules': [
         {
             '@type':'rule',
-            'name':'test rule1',
-            'description': 'This is a test rule1.',
+            'name':'rule1',
+            'description': 'This is a test rule20.',
             'matches': [{
-                'type': 'match.origin.customer-origin.literal',
-                'value': '/8017DA1/Origin-NGUX/',
+                'type': 'match.always',
                 'features': [{
-                    'type': 'feature.caching.compress-file-types',
-                    'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+                    'type': 'feature.comment',
+                    'value': 'test'
                 }]
-                }, {
-                    'type': 'match.request.request-header.wildcard',
-                    'name': 'User-Agent',
-                    'result': 'nomatch',
-                    'value': '*MSIE\\ 5*Mac* *MSIE\\ 4* *Mozilla/4* *compatible;*',
-                    'ignore-case': 'True',
-                    'features': [{
-                        'type': 'feature.caching.compress-file-types',
-                        'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
-                    }]
-                }]
+            }]
         }
     ]
 }
 POLICYCREATE
+}

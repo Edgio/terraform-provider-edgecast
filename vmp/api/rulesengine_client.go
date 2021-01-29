@@ -27,7 +27,41 @@ type GetPolicyResponse struct {
 	Rules       []Rule    `json:"rules,omitempty"`
 }
 
+type AddDeployPolicyResponse struct {
+	Id          string                   `json:"id,omitempty"`
+	AtId        string                   `json:"@id,omitempty"`
+	Type        string                   `json:"@type,omitempty"`
+	Links       []map[string]interface{} `json:"@links,omitempty"`
+	State       string                   `json:"state,omitempty"`
+	Environment string                   `json:"environment,omitempty"`
+	CustomerId  string                   `json:"customer_id"`
+	CreatedAt   time.Time                `json:"created_at,omitempty"`
+	UpdatedAt   time.Time                `json:"updated_at,omitempty"`
+	IsVisible   bool                     `json:"is_visible,omitempty"`
+	Policies    AddPolicyResponse        `json:"policies,omitempty"`
+	History     []map[string]interface{} `json:"history,omitempty"`
+	User        User                     `json:"user,omitempty"`
+}
+
+type UpdateDeployPolicyStateResponse struct {
+	Id    string `json:"id,omitempty"`
+	State string `json:state,omitempty`
+}
+
 type AddPolicyResponse struct {
+	Id          string    `json:"id,omitempty"`
+	Type        string    `json:"@type,omitempty"`
+	Name        string    `json:"name,omitempty"`
+	Description string    `json:"description,omitempty"`
+	PolicyType  string    `json:"policy_type,omitempty"`
+	State       string    `json:"state,omitempty"`
+	Platform    string    `json:"platform,omitempty"`
+	CreatedAt   time.Time `json:"created_at,omitempty"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	Rules       []Rule    `json:"rules,omitempty"`
+}
+
+type UpdatePolicyResponse struct {
 	Id          string    `json:"id,omitempty"`
 	Type        string    `json:"@type,omitempty"`
 	Name        string    `json:"name,omitempty"`
@@ -100,6 +134,19 @@ type Feature struct {
 	Value           string   `json:"value,omitempty"`
 }
 
+type AddDeployRequest struct {
+	PolicyId    int    `json:"policy_id"`
+	Environment string `json:"environment,omitempty"`
+	Message     string `json:"message"`
+}
+
+type User struct {
+	Id        string `json:"id,omitempty"`
+	FirstName string `json:"first_name,omitempty"`
+	LastName  string `json:"last_name,omitempty"`
+	Email     string `json:"email,omitempty"`
+}
+
 func NewRulesEngineApiClient(baseApiClient *ApiClient) *RulesEngineApiClient {
 	apiClient := &RulesEngineApiClient{
 		BaseApiClient: baseApiClient,
@@ -145,8 +192,6 @@ func (c *RulesEngineApiClient) AddPolicy(policy string, accountNumber string, po
 		return nil, err
 	}
 
-	InfoLogger.Printf("customerId: %d\n", customerId)
-
 	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
 	request.Header.Set("Portals_UserId", customerUserId)
 	request.Header.Set("Portals_PortalTypeId", portalTypeId)
@@ -156,6 +201,46 @@ func (c *RulesEngineApiClient) AddPolicy(policy string, accountNumber string, po
 	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
 
 	InfoLogger.Printf("RE policy response: %+v\n", parsedResponse)
+	return parsedResponse, err
+}
+
+// func (c *RulesEngineApiClient) UpdatePolicy(policy string, customerId string, portalTypeId string, customerUserId string) (*UpdatePolicyResponse, error) {
+// 	InfoLogger.Printf("RE PATCH Request body:%s", policy)
+// 	request, err := c.BaseApiClient.BuildRequest("PATCH", "rules-engine/v1.1/policies", policy, true)
+
+// 	InfoLogger.Printf("customerId: %d\n", customerId)
+
+// 	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
+// 	request.Header.Set("Portals_UserId", customerUserId)
+// 	request.Header.Set("Portals_PortalTypeId", portalTypeId)
+// 	InfoLogger.Printf("policy from terraform.tfvars: %s\n", policy)
+// 	parsedResponse := &UpdatePolicyResponse{}
+
+// 	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+
+// 	InfoLogger.Printf("RE policy response: %+v\n", parsedResponse)
+// 	return parsedResponse, err
+// }
+
+func (c *RulesEngineApiClient) DeployPolicy(body *AddDeployRequest, accountNumber string, portalTypeId string, customerUserId string) (*AddDeployPolicyResponse, error) {
+	InfoLogger.Printf("REClient >> DeployPolicyRequest: %+v\n", body)
+	request, err := c.BaseApiClient.BuildRequest("POST", "rules-engine/v1.1/deploy-requests", body, true)
+
+	// account number hex string -> customer ID
+	customerId, err := strconv.ParseInt(accountNumber, 16, 64)
+
+	if err != nil {
+		return nil, err
+	}
+	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
+	request.Header.Set("Portals_UserId", customerUserId)
+	request.Header.Set("Portals_PortalTypeId", portalTypeId)
+
+	parsedResponse := &AddDeployPolicyResponse{}
+
+	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+
+	InfoLogger.Printf("REClient >> DeployPolicyResponse: %+v\n", parsedResponse)
 	return parsedResponse, err
 }
 
