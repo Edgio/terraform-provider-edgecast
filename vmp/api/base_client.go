@@ -119,7 +119,6 @@ func (c *ApiClient) SendRequest(req *retryablehttp.Request, v interface{}) (*htt
 	}
 
 	defer resp.Body.Close()
-
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		body, err := ioutil.ReadAll(resp.Body)
 
@@ -133,10 +132,18 @@ func (c *ApiClient) SendRequest(req *retryablehttp.Request, v interface{}) (*htt
 
 	if v != nil {
 		err = json.NewDecoder(resp.Body).Decode(v)
+
 	}
+	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted {
 
+		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+		bodyString := string(bodyBytes)
+		InfoLogger.Printf("SendRequest >> Response Body:%s", bodyString)
+	}
 	return resp, err
-
 }
 
 func (c *ApiClient) GetIdsToken() (map[string]interface{}, error) {
