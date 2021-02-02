@@ -185,6 +185,10 @@ func (apiClient *RulesEngineApiClient) GetPolicy(customerId int, customerUserId 
 func (c *RulesEngineApiClient) AddPolicy(policy string, accountNumber string, portalTypeId string, customerUserId string) (*AddPolicyResponse, error) {
 	request, err := c.BaseApiClient.BuildRequest("POST", "rules-engine/v1.1/policies", policy, true)
 
+	if err != nil {
+		return nil, err
+	}
+
 	// account number hex string -> customer ID
 	customerId, err := strconv.ParseInt(accountNumber, 16, 64)
 
