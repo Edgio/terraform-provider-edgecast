@@ -24,11 +24,11 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"customeruserid": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"portaltypeid": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 			},
 			"policy": &schema.Schema{
 				Type:     schema.TypeString,
@@ -44,7 +44,7 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 			},
 			"deploy_request_id": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true,
 			},
 		},
 	}
@@ -53,41 +53,12 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	policy := d.Get("policy").(string)
-	customerid := d.Get("account_number").(string)
-	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
-	customeruserid := d.Get("customeruserid").(string)
 
-	InfoLogger.Printf("resourcePolicyCreate >> policy: %s\n", policy)
-
-	config := m.(*ProviderConfiguration)
-
-	reClient := api.NewRulesEngineApiClient(config.APIClient)
-
-	parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
+	err := addPolicy(policy, false, d, m)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	policyId, e := strconv.Atoi(parsedResponse.Id)
-	if e != nil {
-		return diag.FromErr(e)
-	}
-	d.SetId(parsedResponse.Id)
-	d.Set("policy", policy)
-
-	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> policyId: %d\n", policyId)
-
-	payload := getDeployRequestData(d, policyId)
-	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> DeployRequest >> payload: %+v\n", payload)
-	deployResponse, deployErr := reClient.DeployPolicy(payload, customerid, portaltypeid, customeruserid)
-	if deployErr != nil {
-		return diag.FromErr(deployErr)
-	}
-
-	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> DeployRequest >> deployrequestId: %+v\n", deployResponse)
-
-	d.Set("deploy_request_id", deployResponse.Id)
 
 	return diags
 }
@@ -171,24 +142,15 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 }
 
 func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	diags := resourcePolicyCreate(ctx, d, m)
-
-	return diags
+	return resourcePolicyCreate(ctx, d, m)
 }
 
 func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	portalTypeID := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
-	customerUserID := d.Get("customeruserid").(string)
 	policy := d.Get("policy").(string)
 
-	// pull out platform and policy type
+	// pull out platform from existing policy
 	policyMap := make(map[string]interface{})
 	json.Unmarshal([]byte(policy), &policyMap)
 
@@ -232,17 +194,11 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	InfoLogger.Printf("Placeholder policy: %s\n", emptyPolicyJSON)
 
-	rulesEngineAPIClient := api.NewRulesEngineApiClient(providerConfiguration.APIClient)
-
-	resp, err := rulesEngineAPIClient.AddPolicy(emptyPolicyJSON, providerConfiguration.AccountNumber, portalTypeID, customerUserID)
+	err = addPolicy(emptyPolicyJSON, true, d, m)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
-
-	InfoLogger.Printf("API response: %+v\n", resp)
-
-	d.SetId("")
 
 	return diags
 }
@@ -264,4 +220,51 @@ func getDeployRequestData(d *schema.ResourceData, policyId int) *api.AddDeployRe
 		PolicyId:    policyId,
 		Environment: d.Get("deploy_to").(string),
 	}
+}
+
+func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m interface{}) error {
+	customerid := d.Get("account_number").(string)
+	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
+	customeruserid := d.Get("customeruserid").(string)
+
+	InfoLogger.Printf("addPolicy >> policy: %s\n", policy)
+
+	config := m.(*ProviderConfiguration)
+
+	reClient := api.NewRulesEngineApiClient(config.APIClient)
+
+	parsedResponse, addPolicyErr := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
+	if addPolicyErr != nil {
+		return addPolicyErr
+	}
+
+	policyId, parseErr := strconv.Atoi(parsedResponse.Id)
+	if addPolicyErr != nil {
+		return parseErr
+	}
+
+	if !isEmptyPolicy {
+		d.SetId(parsedResponse.Id)
+		d.Set("policy", policy)
+	}
+
+	InfoLogger.Printf("addPolicy >> PolicyCreateResponse >> policyId: %d\n", policyId)
+
+	payload := getDeployRequestData(d, policyId)
+	InfoLogger.Printf("addPolicy >> PolicyCreateResponse >> DeployRequest >> payload: %+v\n", payload)
+	deployResponse, deployErr := reClient.DeployPolicy(payload, customerid, portaltypeid, customeruserid)
+
+	if deployErr != nil {
+		return deployErr
+	}
+
+	InfoLogger.Printf("resourcePolicyCreate >> PolicyCreateResponse >> DeployRequest >> deployrequestId: %+v\n", deployResponse)
+
+	if isEmptyPolicy {
+		d.SetId("") // indicates "delete" happened
+	} else {
+		d.Set("deploy_request_id", deployResponse.Id)
+	}
+
+	return nil
 }

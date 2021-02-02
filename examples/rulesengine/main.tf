@@ -1,12 +1,10 @@
 # Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
-#      version = "0.0.1"
-#     source = "github.com/terraform-providers/vmp"
-#
+
 terraform {
   required_providers {
     vmp = {
-      version = "0.1"
-      source = "github.com/terraform-providers/vmp"
+      version = "0.0.8"
+      source = "VerizonDigital/vmp"
     }
   }
 }
@@ -28,16 +26,14 @@ variable "httplarge_policy" {
   type = object({
     policy = string
     deploy_to = string
-    deploy_request_id = string
   })
   default = {
     policy=""
     deploy_to=""
-    deploy_request_id=""
   }
 }
 
-variable "customer_info" {
+variable "test_customer_info" {
   type = object({
     account_number = string
     customeruserid = string
@@ -63,10 +59,11 @@ provider "vmp" {
 }
 
 resource "vmp_rules_engine_policy" "httplarge_policy"{
-  account_number = var.customer_info.account_number
-  customeruserid = var.customer_info.customeruserid
-  portaltypeid = var.customer_info.portaltypeid
   policy = var.httplarge_policy.policy
   deploy_to = var.httplarge_policy.deploy_to
-  deploy_request_id = var.httplarge_policy.deploy_request_id
+
+  # optional - for internal testing
+  account_number = var.test_customer_info.account_number
+  customeruserid = var.test_customer_info.customeruserid
+  portaltypeid = var.test_customer_info.portaltypeid
 }
