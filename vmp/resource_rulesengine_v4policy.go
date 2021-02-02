@@ -15,6 +15,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"placeholder rule created by the Verizon Media Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"placeholder rule\"}],\"state\":\"locked\"}"
+
 func resourceRulesEngineV4Policy() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourcePolicyCreate,
@@ -158,43 +160,10 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interfa
 
 	// You can't actually delete policies, so we will instead
 	// create a placeholder empty policy for the customer for the given platform and policy type
-	emptyPolicy := map[string]interface{}{
-		"@type":    "policy-create",
-		"name":     fmt.Sprintf("Terraform Placeholder - %s", time.Now().Format(time.RFC3339)),
-		"platform": platform,
-		"state":    "locked",
-		"rules": []map[string]interface{}{
-			{
-				"@type":       "rule-create",
-				"name":        "placeholder rule",
-				"description": "placeholder rule created by the Verizon Media Terraform Provider",
-				"matches": []map[string]interface{}{
-					{
-						"type":    "match.always",
-						"ordinal": 1,
-						"features": []map[string]interface{}{
-							{
-								"type":  "feature.comment",
-								"value": "empty policy",
-							},
-						},
-					},
-				},
-			},
-		},
-	}
+	timestamp := time.Now().Format(time.RFC3339)
+	emptyPolicyJSON := fmt.Sprintf(emptyPolicyFormat, timestamp, platform, timestamp)
 
-	emptyPolicyJSONBytes, err := json.Marshal(emptyPolicy)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	emptyPolicyJSON := string(emptyPolicyJSONBytes)
-
-	InfoLogger.Printf("Placeholder policy: %s\n", emptyPolicyJSON)
-
-	err = addPolicy(emptyPolicyJSON, true, d, m)
+	err := addPolicy(emptyPolicyJSON, true, d, m)
 
 	if err != nil {
 		return diag.FromErr(err)
