@@ -16,37 +16,37 @@ import (
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_address": &schema.Schema{
+			"api_address": {
 				Type:     schema.TypeString,
 				Optional: true,
 				Default:  "https://api.vdms.io/",
 			},
-			"api_token": &schema.Schema{
+			"api_token": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ids_client_secret": &schema.Schema{
+			"ids_client_secret": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ids_client_id": &schema.Schema{
+			"ids_client_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ids_scope": &schema.Schema{
+			"ids_scope": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"partner_user_id": &schema.Schema{
+			"partner_user_id": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  nil,
 			},
-			"partner_id": &schema.Schema{
+			"partner_id": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  nil,
@@ -84,19 +84,6 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	idsClientID := d.Get("ids_client_id").(string)
 	idsClientSecret := d.Get("ids_client_secret").(string)
 	idsScope := d.Get("ids_scope").(string)
-
-	// Must use either API Token or IDS credentials, but not both
-	idsProvided := len(idsClientID) > 0 && len(idsClientSecret) > 0 && len(idsScope) > 0
-	apiTokenProvided := len(apiToken) > 0
-
-	if (apiTokenProvided && idsProvided) || (!apiTokenProvided && !idsProvided) {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Please provide either an API Token or IDS credentials, but not both",
-		})
-
-		return nil, diags
-	}
 
 	apiClient, err := api.NewApiClient(apiBaseURI, apiToken, idsClientID, idsClientSecret, idsScope)
 

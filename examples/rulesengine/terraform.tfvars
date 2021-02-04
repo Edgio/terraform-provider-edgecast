@@ -1,45 +1,54 @@
 #Please update data in <> in order to run your terraform
 provider_config = {
     #for pointing to staging environment, leave null to default to production
-    api_address = ""
+    api_address = "http://dev-api.edgecast.com"
     # You must provide either an API Token or IDS credentials, but not both
     api_token = ""
-    ids_client_secret = ""
-    ids_client_id = ""
-    ids_scope = ""
+    ids_client_secret = "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk"
+    ids_client_id = "31ef8e8f-0120-4112-8554-3eb11e83d58b"
+    ids_scope = "ec.rules ec.rules.admin ec.rules.deploy_dist"
 }
 
 test_customer_info = {
-    # optional params - for internal testing
-    account_number = ""
-    customeruserid = ""
-    portaltypeid = ""
+    account_number = "5F534"
+    customeruserid = "349706"
+    portaltypeid = 1
 }
 
-#deploy_to: Production or Staging
-httplarge_policy = {
-    deploy_to = "staging" 
-    policy = <<POLICYCREATE
-{
-    '@type': 'policy',
-    'name':'test policy-01272021-58',
-    'description':'This is a test policy of PolicyCreate.',
-    'state':'locked',
-    'platform':'3',
-    'rules': [
-        {
-            '@type':'rule',
-            'name':'rule1',
-            'description': 'This is a test rule26.',
-            'matches': [{
-                'type': 'match.always',
-                'features': [{
-                    'type': 'feature.comment',
-                    'value': 'test'
-                }]
-            }]
-        }
-    ]
-}
-POLICYCREATE
-}
+# valid values are "production" and "staging"
+environment = "staging"
+
+# example policy that can be referenced in main.tf
+# httplarge_policy = <<POLICYCREATE
+#     {
+#     '@type': 'policy',
+#     'name':'test policy1182021-40',
+#     'description':'This is a test policy of PolicyCreate.',
+#     'state':'draft',
+#     'rules': [
+#         {
+#             '@type':'rule',
+#             'name':'test rule1',
+#             'description': 'This is a test rule1.',
+#             'matches': [{
+#                 'type': 'match.origin.customer-origin.literal',
+#                 'value': '/000000/Origin-X/',
+#                 'features': [{
+#                     'type': 'feature.caching.compress-file-types',
+#                     'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+#                 }]
+#                 }, {
+#                     'type': 'match.request.request-header.wildcard',
+#                     'name': 'User-Agent',
+#                     'result': 'nomatch',
+#                     'value': '*MSIE\\ 5*Mac* *MSIE\\ 4* *Mozilla/4* *compatible;*',
+#                     'ignore-case': 'True',
+#                     'features': [{
+#                         'type': 'feature.caching.compress-file-types',
+#                         'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+#                     }]
+#                 }]
+#         }
+#     ]
+# }
+# POLICYCREATE

@@ -15,7 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"placeholder rule created by the Verizon Media Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"placeholder rule\"}],\"state\":\"locked\"}"
+const emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"Placeholder rule created by the Verizon Media Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"Empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"Placeholder Rule\"}],\"state\":\"locked\"}"
 
 func resourceRulesEngineV4Policy() *schema.Resource {
 	return &schema.Resource{
@@ -24,27 +24,27 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		UpdateContext: resourcePolicyUpdate,
 		DeleteContext: resourcePolicyDelete,
 		Schema: map[string]*schema.Schema{
-			"customeruserid": &schema.Schema{
+			"customeruserid": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"portaltypeid": &schema.Schema{
+			"portaltypeid": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"policy": &schema.Schema{
+			"policy": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"deploy_to": &schema.Schema{
+			"deploy_to": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"deploy_request_id": &schema.Schema{
+			"deploy_request_id": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -68,7 +68,7 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+	config, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
 
 	if err != nil {
 		d.SetId("")
@@ -80,19 +80,12 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	customerUserID := d.Get("customeruserid").(string)
 	InfoLogger.Printf("user input policy: %s\n", policy)
 
-	rulesEngineAPIClient := api.NewRulesEngineApiClient(providerConfiguration.APIClient)
+	rulesEngineAPIClient := api.NewRulesEngineApiClient(config.APIClient)
 
 	policyID, _ := strconv.Atoi(d.Id())
 	InfoLogger.Printf("Policy ID is %d \n", policyID)
 
-	customerID, err := parseCustomerID(providerConfiguration.AccountNumber)
-
-	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
-
-	policyMap, err := rulesEngineAPIClient.GetPolicy(customerID, customerUserID, portalTypeID, policyID)
+	policyMap, err := rulesEngineAPIClient.GetPolicy(config.AccountNumber, customerUserID, portalTypeID, policyID)
 
 	if err != nil {
 		d.SetId("")
@@ -172,16 +165,6 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func parseCustomerID(accountNumber string) (int, error) {
-	parsedCustomerID, parseErr := strconv.ParseInt(accountNumber, 16, 32)
-
-	if parseErr == nil {
-		return int(parsedCustomerID), nil
-	}
-
-	return 0, parseErr
-}
-
 func getDeployRequestData(d *schema.ResourceData, policyId int) *api.AddDeployRequest {
 
 	return &api.AddDeployRequest{
@@ -192,13 +175,21 @@ func getDeployRequestData(d *schema.ResourceData, policyId int) *api.AddDeployRe
 }
 
 func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m interface{}) error {
+	config, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+
+	if err != nil {
+		if !isEmptyPolicy {
+			d.SetId("")
+		}
+
+		return err
+	}
+
 	customerid := d.Get("account_number").(string)
 	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
 	customeruserid := d.Get("customeruserid").(string)
 
 	InfoLogger.Printf("addPolicy >> policy: %s\n", policy)
-
-	config := m.(*ProviderConfiguration)
 
 	reClient := api.NewRulesEngineApiClient(config.APIClient)
 

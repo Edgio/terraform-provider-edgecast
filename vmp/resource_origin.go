@@ -39,19 +39,19 @@ func resourceOrigin() *schema.Resource {
 		DeleteContext: resourceOriginDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"directory_name": &schema.Schema{
+			"directory_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"host_header": &schema.Schema{
+			"host_header": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"media_type": &schema.Schema{
+			"media_type": {
 				Type:     schema.TypeString,
 				Required: true,
 			},

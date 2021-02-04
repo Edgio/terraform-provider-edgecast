@@ -1,21 +1,25 @@
 {
-    '@type': 'policy',
-    'name':'test policy-01272021-49',
-    'description':'This is a test policy of PolicyCreate.',
-    'state':'locked',
-    'platform':'3',
-    'rules': [
+    "@type": "policy",
+    "name": "test policy-01272021-66",
+    "description": "This is a test policy of PolicyCreate.",
+    "state": "locked",
+    "platform": "http_large",
+    "rules": [
         {
-            '@type':'rule',
-            'name':'rule1',
-            'description': 'This is a test rule20.',
-            'matches': [{
-                'type': 'match.always',
-                'features': [{
-                    'type': 'feature.comment',
-                    'value': 'test'
-                }]
-            }]
+            "@type": "rule",
+            "name": "rule1",
+            "description": "This is a test rule33.",
+            "matches": [
+                {
+                    "type": "match.always",
+                    "features": [
+                        {
+                            "type": "feature.comment",
+                            "value": "test"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

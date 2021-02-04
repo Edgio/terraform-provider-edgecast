@@ -33,23 +33,23 @@ func resourceCname() *schema.Resource {
 		DeleteContext: resourceCnameDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"name": &schema.Schema{
+			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"type": &schema.Schema{
+			"type": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"origin_id": &schema.Schema{
+			"origin_id": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},
-			"origin_type": &schema.Schema{
+			"origin_type": {
 				Type:     schema.TypeInt,
 				Required: true,
 			},

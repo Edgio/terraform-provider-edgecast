@@ -22,15 +22,10 @@ variable "provider_config" {
     ids_scope = string
   })
 }
-variable "httplarge_policy" {
-  type = object({
-    policy = string
-    deploy_to = string
-  })
-  default = {
-    policy=""
-    deploy_to=""
-  }
+
+variable "environment" {
+  type = string
+  default = "production"
 }
 
 variable "test_customer_info" {
@@ -59,10 +54,10 @@ provider "vmp" {
 }
 
 resource "vmp_rules_engine_policy" "httplarge_policy"{
-  policy = var.httplarge_policy.policy
-  deploy_to = var.httplarge_policy.deploy_to
+  policy = file("httplarge-policy.json")
+  deploy_to = var.environment
 
-  # optional - for internal testing
+  # optional
   account_number = var.test_customer_info.account_number
   customeruserid = var.test_customer_info.customeruserid
   portaltypeid = var.test_customer_info.portaltypeid
