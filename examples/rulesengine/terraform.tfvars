@@ -1,9 +1,6 @@
 #Please update data in <> in order to run your terraform
-provider_config = {
-    #for pointing to staging environment, leave null to default to production
-    api_address = "http://dev-api.edgecast.com"
-    # You must provide either an API Token or IDS credentials, but not both
-    api_token = ""
+credentials = {
+    api_token = "4SJdxOPq0B7KZf7IVPXIeofwPNnwKDyk"
     ids_client_secret = "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk"
     ids_client_id = "31ef8e8f-0120-4112-8554-3eb11e83d58b"
     ids_scope = "ec.rules ec.rules.admin ec.rules.deploy_dist"
@@ -15,8 +12,8 @@ test_customer_info = {
     portaltypeid = 1
 }
 
-# valid values are "production" and "staging"
-environment = "staging"
+#valid values are "production" and "staging"
+rulesEngineEnvironment = "staging"
 
 # example policy that can be referenced in main.tf
 # httplarge_policy = <<POLICYCREATE

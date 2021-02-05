@@ -5,6 +5,7 @@ package vmp
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"terraform-provider-vmp/vmp/api"
 
@@ -12,15 +13,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const (
+	apiURL string = "https://api.vdms.io"
+)
+
 // Provider creates a new instance of the Verizon Media Terraform Provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_address": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "https://api.vdms.io/",
-			},
 			"api_token": {
 				Type:     schema.TypeString,
 				Optional: true,
@@ -75,25 +75,18 @@ type ProviderConfiguration struct {
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-
 	var diags diag.Diagnostics
 
-	apiBaseURI := d.Get("api_address").(string)
 	apiToken := d.Get("api_token").(string)
 	accountNumber := d.Get("account_number").(string)
 	idsClientID := d.Get("ids_client_id").(string)
 	idsClientSecret := d.Get("ids_client_secret").(string)
 	idsScope := d.Get("ids_scope").(string)
 
-	apiClient, err := api.NewApiClient(apiBaseURI, apiToken, idsClientID, idsClientSecret, idsScope)
+	apiClient, err := api.NewApiClient(apiURL, apiToken, idsClientID, idsClientSecret, idsScope)
 
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Failed to create API Client",
-		})
-
-		return nil, diags
+		return nil, diag.FromErr(fmt.Errorf("Failed to create API Client: %v", err))
 	}
 
 	config := ProviderConfiguration{

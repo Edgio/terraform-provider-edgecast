@@ -99,8 +99,17 @@ func (c *ApiClient) BuildRequest(method, path string, body interface{}, isUsingI
 
 	req.Header.Set("Accept", "application/json")
 	if isUsingIdsToken {
-		idsToken, _ := c.GetIdsToken()
-		req.Header.Set("Authorization", "Bearer "+idsToken["access_token"].(string))
+		idsToken, err := c.GetIdsToken()
+
+		if err != nil {
+			return nil, err
+		}
+
+		if accessToken, ok := idsToken["access_token"].(string); ok {
+			req.Header.Set("Authorization", "Bearer "+accessToken)
+		} else {
+			return nil, fmt.Errorf("Failed to retrieve IDS Token! Please double check IDS credentials")
+		}
 	} else {
 		req.Header.Set("Authorization", "TOK:"+c.Token)
 	}

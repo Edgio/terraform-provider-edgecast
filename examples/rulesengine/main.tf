@@ -13,9 +13,8 @@ terraform {
 # Variables
 ##########################################
 
-variable "provider_config" {
+variable "credentials" {
   type = object ({
-    api_address = string
     api_token = string
     ids_client_secret = string
     ids_client_id = string
@@ -23,9 +22,8 @@ variable "provider_config" {
   })
 }
 
-variable "environment" {
+variable "rulesEngineEnvironment" {
   type = string
-  default = "production"
 }
 
 variable "test_customer_info" {
@@ -46,16 +44,18 @@ variable "test_customer_info" {
 ##########################################
 
 provider "vmp" {
-    api_address = var.provider_config.api_address
-    api_token = var.provider_config.api_token
-    ids_client_secret = var.provider_config.ids_client_secret
-    ids_client_id = var.provider_config.ids_client_id
-    ids_scope = var.provider_config.ids_scope
+    api_token = var.credentials.api_token
+    ids_client_secret = var.credentials.ids_client_secret
+    ids_client_id = var.credentials.ids_client_id
+    ids_scope = var.credentials.ids_scope
 }
 
+##########################################
+# Resources
+##########################################
 resource "vmp_rules_engine_policy" "httplarge_policy"{
   policy = file("httplarge-policy.json")
-  deploy_to = var.environment
+  deploy_to = var.rulesEngineEnvironment
 
   # optional
   account_number = var.test_customer_info.account_number
