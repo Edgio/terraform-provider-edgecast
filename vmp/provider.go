@@ -14,9 +14,8 @@ import (
 )
 
 const (
-	//apiURL string = "https://api.vdms.io"
-	apiURL string = "http://dev-api.edgecast.com"
-	idsURL string = "https://id-dev.vdms.io"
+	apiURLProd string = "https://api.edgecast.com"
+	idsURLProd string = "https://id.vdms.io"
 )
 
 // Provider creates a new instance of the Verizon Media Terraform Provider
@@ -53,6 +52,16 @@ func Provider() *schema.Provider {
 				Optional: true,
 				Default:  nil,
 			},
+			"api_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  apiURLProd,
+			},
+			"ids_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  idsURLProd,
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"vmp_origin":              resourceOrigin(),
@@ -84,6 +93,9 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	idsClientID := d.Get("ids_client_id").(string)
 	idsClientSecret := d.Get("ids_client_secret").(string)
 	idsScope := d.Get("ids_scope").(string)
+
+	apiURL := d.Get("api_address").(string)
+	idsURL := d.Get("ids_address").(string)
 
 	apiClient, err := api.NewApiClient(apiURL, idsURL, apiToken, idsClientID, idsClientSecret, idsScope)
 

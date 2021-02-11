@@ -19,6 +19,8 @@ variable "credentials" {
     ids_client_secret = string
     ids_client_id = string
     ids_scope = string
+    api_address = string
+    ids_address = string
   })
 }
 
@@ -92,6 +94,8 @@ provider "vmp" {
     ids_client_secret = var.credentials.ids_client_secret
     ids_client_id = var.credentials.ids_client_id
     ids_scope = var.credentials.ids_scope
+    api_address = var.credentials.api_address
+    ids_address = var.credentials.ids_address
 }
 
 ##########################################
