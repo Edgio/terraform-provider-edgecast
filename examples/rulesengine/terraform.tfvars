@@ -1,51 +1,52 @@
-#Please update data in <> in order to run your terraform
+# Provides values the variables used in main.tf
+
+# Use the credentials provided to you by Verizon Media
 credentials = {
-    api_token = "4SJdxOPq0B7KZf7IVPXIeofwPNnwKDyk"
-    ids_client_secret = "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk"
-    ids_client_id = "31ef8e8f-0120-4112-8554-3eb11e83d58b"
-    ids_scope = "ec.rules ec.rules.admin ec.rules.deploy_dist"
+    api_token = "<API Token>"
+    ids_client_secret = "<Client Secret>"
+    ids_client_id = "<Client ID>"
+    ids_scope = "<Scopes>"
 }
 
 test_customer_info = {
-    account_number = "5F534"
-    customeruserid = "349706"
+    account_number = "<Account Number>"
+    customeruserid = "<Customer User ID>"
     portaltypeid = 1
 }
 
-#valid values are "production" and "staging"
+# Valid values are "production" and "staging"
 rulesEngineEnvironment = "staging"
 
-# example policy that can be referenced in main.tf
-# httplarge_policy = <<POLICYCREATE
-#     {
-#     '@type': 'policy',
-#     'name':'test policy1182021-40',
-#     'description':'This is a test policy of PolicyCreate.',
-#     'state':'draft',
-#     'rules': [
-#         {
-#             '@type':'rule',
-#             'name':'test rule1',
-#             'description': 'This is a test rule1.',
-#             'matches': [{
-#                 'type': 'match.origin.customer-origin.literal',
-#                 'value': '/000000/Origin-X/',
-#                 'features': [{
-#                     'type': 'feature.caching.compress-file-types',
-#                     'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
-#                 }]
-#                 }, {
-#                     'type': 'match.request.request-header.wildcard',
-#                     'name': 'User-Agent',
-#                     'result': 'nomatch',
-#                     'value': '*MSIE\\ 5*Mac* *MSIE\\ 4* *Mozilla/4* *compatible;*',
-#                     'ignore-case': 'True',
-#                     'features': [{
-#                         'type': 'feature.caching.compress-file-types',
-#                         'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
-#                     }]
-#                 }]
-#         }
-#     ]
-# }
-# POLICYCREATE
+# Below is an example of a Rules Engine policy defined as a string in a .tfvars file
+# Note that main.tf in this directory reads directly from the file named "httplarge-policy.json"
+
+/* # httplarge_policy = <<POLICYCREATE
+    {
+    'name':'test policy YYYYMMDD',
+    'description':'This is a test policy.',
+    'rules': [
+        {
+            'name':'test rule',
+            'description': 'This is a test rule.',
+            'matches': [{
+                'type': 'match.origin.customer-origin.literal',
+                'value': '/000000/Origin-X/',
+                'features': [{
+                    'type': 'feature.caching.compress-file-types',
+                    'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+                }]
+                }, {
+                    'type': 'match.request.request-header.wildcard',
+                    'name': 'User-Agent',
+                    'result': 'nomatch',
+                    'value': '*MSIE\\ 5*Mac* *MSIE\\ 4* *Mozilla/4* *compatible;*',
+                    'ignore-case': 'True',
+                    'features': [{
+                        'type': 'feature.caching.compress-file-types',
+                        'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+                    }]
+                }]
+        }
+    ]
+}
+# POLICYCREATE */

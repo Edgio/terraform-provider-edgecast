@@ -70,7 +70,10 @@ func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (str
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)
-	InfoLogger.Printf("AddCustomer [POST] Url: %s\n", request.URL)
+
+	if err != nil {
+		return "", fmt.Errorf("AddCustomer: %v", err)
+	}
 
 	parsedResponse := &struct {
 		AccountNumber string
@@ -79,7 +82,7 @@ func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (str
 	_, err = apiClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("AddCustomer: %v", err)
 	}
 
 	return parsedResponse.AccountNumber, err
@@ -136,10 +139,9 @@ type GetCustomerResponse struct {
 func (apiClient *CustomerAPIClient) GetCustomer(accountNumber string) (*GetCustomerResponse, error) {
 	relURL := fmt.Sprintf("v2/pcc/customers/%s", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
-	InfoLogger.Printf("AddHttpLargeOrigin [POST] Url: %s\n", request.URL)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomer: %v", err)
 	}
 
 	parsedResponse := &GetCustomerResponse{}
@@ -147,7 +149,7 @@ func (apiClient *CustomerAPIClient) GetCustomer(accountNumber string) (*GetCusto
 	_, err = apiClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomer: %v", err)
 	}
 
 	return parsedResponse, nil
@@ -164,10 +166,9 @@ type AccessModule struct {
 func (apiClient *CustomerAPIClient) GetCustomerAccessModules(accountNumber string) (*[]AccessModule, error) {
 	relURL := fmt.Sprintf("v2/pcc/customers/%s/accessmodules", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
-	InfoLogger.Printf("GetCustomerAccessModules [GET] Url: %s\n", request.URL)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomerAccessModules: %v", err)
 	}
 
 	var accessModules []AccessModule
@@ -175,7 +176,7 @@ func (apiClient *CustomerAPIClient) GetCustomerAccessModules(accountNumber strin
 	_, err = apiClient.BaseAPIClient.SendRequest(request, &accessModules)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomerAccessModules: %v", err)
 	}
 
 	return &accessModules, nil
@@ -192,10 +193,9 @@ type Service struct {
 // GetAvailableCustomerServices gets all service information available for a partner to administor to thier customers
 func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, error) {
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", "v2/pcc/customers/services", nil, false)
-	InfoLogger.Printf("GetAvailableCustomerServices [GET] Url: %s\n", request.URL)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAvailableCustomerServices: %v", err)
 	}
 
 	var services []Service
@@ -203,7 +203,7 @@ func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, 
 	_, err = apiClient.BaseAPIClient.SendRequest(request, &services)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetAvailableCustomerServices: %v", err)
 	}
 
 	return &services, nil
@@ -213,10 +213,9 @@ func (apiClient *CustomerAPIClient) GetAvailableCustomerServices() (*[]Service, 
 func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) ([]Service, error) {
 	relURL := fmt.Sprintf("v2/pcc/customers/%s/services", accountNumber)
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
-	InfoLogger.Printf("GetCustomerServices [GET] Url: %s\n", request.URL)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomerServices: %v", err)
 	}
 
 	var services []Service
@@ -224,7 +223,7 @@ func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) ([
 	_, err = apiClient.BaseAPIClient.SendRequest(request, &services)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomerServices: %v", err)
 	}
 
 	return services, nil
@@ -243,10 +242,9 @@ func (apiClient *CustomerAPIClient) UpdateCustomerServices(accountNumber string,
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
-	InfoLogger.Printf("UpdateCustomerServicers [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomerServices: %v", err)
 	}
 
 	resp, err := apiClient.BaseAPIClient.SendRequest(request, nil)
@@ -256,7 +254,7 @@ func (apiClient *CustomerAPIClient) UpdateCustomerServices(accountNumber string,
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomerServices: %v", err)
 	}
 
 	return nil
@@ -267,10 +265,9 @@ func (apiClient *CustomerAPIClient) GetCustomerDeliveryRegion(accountNumber stri
 	relURL := fmt.Sprintf("v2/pcc/customers/%s/deliveryregions", accountNumber)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
-	InfoLogger.Printf("GetCustomerDeliveryRegion [GET] Url: %s\n", request.URL)
 
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("GetCustomerDeliveryRegion: %v", err)
 	}
 
 	parsedResponse := &struct {
@@ -282,7 +279,7 @@ func (apiClient *CustomerAPIClient) GetCustomerDeliveryRegion(accountNumber stri
 	_, err = apiClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("GetCustomerDeliveryRegion: %v", err)
 	}
 
 	return parsedResponse.DeliveryRegionID, nil
@@ -301,15 +298,18 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDomainURL(accountNumber string
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
-	InfoLogger.Printf("UpdateCustomerDomainURL [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomerDomainURL: %v", err)
 	}
 
 	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("UpdateCustomerDomainURL: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateCustomerDeliveryRegion -
@@ -325,15 +325,18 @@ func (apiClient *CustomerAPIClient) UpdateCustomerDeliveryRegion(accountNumber s
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
-	InfoLogger.Printf("UpdateCustomerDeliveryRegion [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomerDeliveryRegion: %v", err)
 	}
 
 	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("UpdateCustomerDeliveryRegion: %v", err)
+	}
+
+	return nil
 }
 
 // DeleteCustomer -
@@ -343,15 +346,18 @@ func (apiClient *CustomerAPIClient) DeleteCustomer(accountNumber string) error {
 	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil, false)
-	InfoLogger.Printf("DeleteCustomer [DELETE] Url: %s\n", request.URL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("DeleteCustomer: %v", err)
 	}
 
 	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("DeleteCustomer: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateCustomer -
@@ -361,15 +367,18 @@ func (apiClient *CustomerAPIClient) UpdateCustomer(accountNumber string, body *C
 	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
-	InfoLogger.Printf("UpdateCustomer [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomer: %v", err)
 	}
 
 	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("UpdateCustomer: %v", err)
+	}
+
+	return nil
 }
 
 // UpdateCustomerAccessModule -
@@ -380,13 +389,16 @@ func (apiClient *CustomerAPIClient) UpdateCustomerAccessModule(accountNumber str
 	body := &struct{ Status int8 }{Status: 1}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
-	InfoLogger.Printf("UpdateCustomerAccessModule [PUT] Url: %s\n", request.URL)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomerAccessModule: %v", err)
 	}
 
 	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("UpdateCustomerAccessModule: %v", err)
+	}
+
+	return nil
 }

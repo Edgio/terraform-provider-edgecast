@@ -14,7 +14,9 @@ import (
 )
 
 const (
-	apiURL string = "https://api.vdms.io"
+	//apiURL string = "https://api.vdms.io"
+	apiURL string = "http://dev-api.edgecast.com"
+	idsURL string = "https://id-dev.vdms.io"
 )
 
 // Provider creates a new instance of the Verizon Media Terraform Provider
@@ -83,7 +85,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 	idsClientSecret := d.Get("ids_client_secret").(string)
 	idsScope := d.Get("ids_scope").(string)
 
-	apiClient, err := api.NewApiClient(apiURL, apiToken, idsClientID, idsClientSecret, idsScope)
+	apiClient, err := api.NewApiClient(apiURL, idsURL, apiToken, idsClientID, idsClientSecret, idsScope)
 
 	if err != nil {
 		return nil, diag.FromErr(fmt.Errorf("Failed to create API Client: %v", err))

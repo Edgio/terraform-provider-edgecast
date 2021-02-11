@@ -1,21 +1,25 @@
 {
-    "@type": "policy",
-    "name": "test policy-01272021-66",
-    "description": "This is a test policy of PolicyCreate.",
-    "state": "locked",
+    "name": "test policy-YYYYMMDD-1",
+    "description": "This is a test policy",
     "platform": "http_large",
     "rules": [
         {
-            "@type": "rule",
             "name": "rule1",
-            "description": "This is a test rule33.",
+            "description": "This is a test rule42.",
             "matches": [
                 {
-                    "type": "match.always",
-                    "features": [
+                    "type": "match.device.is-tablet.boolean",
+                    "value": "true",
+                    "matches":[
                         {
-                            "type": "feature.comment",
-                            "value": "test"
+                            "type" : "match.device.is-android.boolean",
+                            "value": "true",
+                            "features": [
+                                {
+                                    "type": "feature.comment",
+                                    "value": "test"
+                                }
+                            ]
                         }
                     ]
                 }

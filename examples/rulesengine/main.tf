@@ -57,7 +57,7 @@ resource "vmp_rules_engine_policy" "httplarge_policy"{
   policy = file("httplarge-policy.json")
   deploy_to = var.rulesEngineEnvironment
 
-  # optional
+  # optional - only needed if using PCC API credentials
   account_number = var.test_customer_info.account_number
   customeruserid = var.test_customer_info.customeruserid
   portaltypeid = var.test_customer_info.portaltypeid
