@@ -29,28 +29,23 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 			"customeruserid": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"portaltypeid": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"policy": {
 				Type:             schema.TypeString,
 				Required:         true,
 				DiffSuppressFunc: compareOldAndNewPolicies,
-				ForceNew:         true,
 			},
 			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
-				ForceNew: true,
 			},
 			"deploy_to": {
 				Type:     schema.TypeString,
 				Required: true,
-				ForceNew: true,
 			},
 			"deploy_request_id": {
 				Type:     schema.TypeString,
@@ -135,27 +130,6 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	policyFromAPI := string(jsonBytes)
 
 	log.Printf("[INFO] Successfully retrieved policy %d: %s", policyID, policyFromAPI)
-
-	// If an update will be performed, the policy name must be changed
-	if d.HasChanges("customeruserid", "portaltypeid", "policy", "account_number", "deploy_to") {
-		// compare the name in the terraform config against what the API returned
-		// the terraform config policy is the new policy
-		newPolicy := d.Get("policy").(string)
-		newPolicyMap := make(map[string]interface{})
-		json.Unmarshal([]byte(newPolicy), &newPolicyMap)
-
-		oldPolicyName := policyFromAPIMap["name"].(string)
-		newPolicyName := newPolicyMap["name"].(string)
-
-		if oldPolicyName == newPolicyName {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Policy name is already in use",
-				Detail:   fmt.Sprintf("policy name '%s' is in use - if updating, please modify 'name' for poicy %s, then re-run terraform plan", newPolicyName, d.Id()),
-			})
-		}
-	}
-
 	d.Set("policy", policyFromAPI)
 
 	return diags
