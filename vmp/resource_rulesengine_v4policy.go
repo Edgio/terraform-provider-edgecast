@@ -23,7 +23,7 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: resourcePolicyCreate,
 		ReadContext:   resourcePolicyRead,
-		//UpdateContext: resourcePolicyUpdate,
+		UpdateContext: resourcePolicyUpdate,
 		DeleteContext: resourcePolicyDelete,
 		Schema: map[string]*schema.Schema{
 			"customeruserid": {
