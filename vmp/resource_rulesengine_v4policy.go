@@ -111,7 +111,7 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	log.Printf("[INFO] Retrieving policy %d", policyID)
 	rulesEngineAPIClient := api.NewRulesEngineApiClient(config.APIClient)
-	policyMap, err := rulesEngineAPIClient.GetPolicy(config.AccountNumber, customerUserID, portalTypeID, policyID)
+	policyFromAPIMap, err := rulesEngineAPIClient.GetPolicy(config.AccountNumber, customerUserID, portalTypeID, policyID)
 
 	if err != nil {
 		d.SetId("")
@@ -119,38 +119,44 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	// set id to policy id from body
-	d.SetId(policyMap["id"].(string))
+	d.SetId(policyFromAPIMap["id"].(string))
 
 	// Remove unneeded policy and rule  metadata - this metadata interferes with terraform diffs
-	cleanPolicy(policyMap)
+	cleanPolicy(policyFromAPIMap)
 
 	// convert to json
-	jsonBytes, err := json.Marshal(policyMap)
+	jsonBytes, err := json.Marshal(policyFromAPIMap)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	policy := string(jsonBytes)
+	policyFromAPI := string(jsonBytes)
 
-	log.Printf("[INFO] Successfully retrieved policy %d: %s", policyID, policy)
-	d.Set("policy", policy)
+	log.Printf("[INFO] Successfully retrieved policy %d: %s", policyID, policyFromAPI)
 
-	newPolicy := d.Get("policy").(string)
-	newPolicyMap := make(map[string]interface{})
-	json.Unmarshal([]byte(newPolicy), &newPolicyMap)
+	// If an update will be performed, the policy name must be changed
+	if d.HasChanges("customeruserid", "portaltypeid", "policy", "account_number", "deploy_to") {
+		// compare the name in the terraform config against what the API returned
+		// the terraform config policy is the new policy
+		newPolicy := d.Get("policy").(string)
+		newPolicyMap := make(map[string]interface{})
+		json.Unmarshal([]byte(newPolicy), &newPolicyMap)
 
-	oldPolicyName := policyMap["name"].(string)
-	newPolicyName := newPolicyMap["name"].(string)
+		oldPolicyName := policyFromAPIMap["name"].(string)
+		newPolicyName := newPolicyMap["name"].(string)
 
-	if oldPolicyName == newPolicyName {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Policy name is already in use",
-			Detail:   fmt.Sprintf("policy name '%s' is in use - please modify 'name' for poicy %s", newPolicyName, d.Id()),
-		})
+		if oldPolicyName == newPolicyName {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Policy name is already in use",
+				Detail:   fmt.Sprintf("policy name '%s' is in use - if updating, please modify 'name' for poicy %s, then re-run terraform plan", newPolicyName, d.Id()),
+			})
+		}
 	}
+
+	d.Set("policy", policyFromAPI)
 
 	return diags
 }
