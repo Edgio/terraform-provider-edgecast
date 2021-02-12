@@ -177,7 +177,6 @@ func (apiClient *ApiClient) GetIdsToken() (string, error) {
 		data.Add("client_secret", apiClient.IdsClientSecret)
 
 		idsTokenEndpoint := fmt.Sprintf("%s/connect/token", apiClient.IdsUrl.String())
-		log.Printf("IDS TOKEN ENDPOINDT: %s", idsTokenEndpoint)
 		newTokenRequest, err := http.NewRequest("POST", idsTokenEndpoint, bytes.NewBufferString(data.Encode()))
 
 		if err != nil {

@@ -1,25 +1,37 @@
 {
-    "name": "test policy-YYYYMMDD-1",
-    "description": "This is a test policy",
-    "platform": "http_large",
+    "name": "test policy-01272021-13",
+    "description": "This is a test policy of PolicyCreate.",
+    "platform": "adn",
     "rules": [
         {
             "name": "rule1",
-            "description": "This is a test rule42.",
+            "description": "This is a test rule25.",
             "matches": [
                 {
-                    "type": "match.device.is-tablet.boolean",
-                    "value": "true",
-                    "matches":[
+                    "type": "match.always",
+                    "features": [
                         {
-                            "type" : "match.device.is-android.boolean",
-                            "value": "true",
-                            "features": [
-                                {
-                                    "type": "feature.comment",
-                                    "value": "test"
-                                }
-                            ]
+                            "type": "feature.comment",
+                            "value": "test"
+                        },
+                        {
+                            "type": "feature.headers.modify-client-request-header",
+                            "action": "set",
+                            "name": "test",
+                            "value": "test"
+                        }
+                    ]
+                },
+                {
+                    "type": "match.url.url-path.wildcard",
+                    "result": "match",
+                    "value": "test",
+                    "ignore-case": "true",
+                    "relative-to": "origin",
+                    "features": [
+                        {
+                            "type": "feature.origin.proxy-special-headers",
+                            "names": "via x-forwarded-proto x-host x-midgress"
                         }
                     ]
                 }
