@@ -12,12 +12,10 @@
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
-/src/.terraform/plugins/windows_amd64/lock.json
-/src/crash.log
-/src/go.sum
 
 # Terraform generated files and folders
-/src/.terraform
-/src/terraform.log
-/src/terraform.tfstate
-/src/terraform.tfstate.backup
+examples/**/.terraform
+examples/**/*.log
+examples/**/*.tfstate*
+examples/**/*.plan
+examples/**/*.txt

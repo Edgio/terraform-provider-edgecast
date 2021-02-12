@@ -4,8 +4,6 @@ package vmp
 
 import (
 	"context"
-	"log"
-	"os"
 	"strconv"
 
 	"terraform-provider-vmp/vmp/api"
@@ -13,23 +11,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
-
-var (
-	WarningLogger *log.Logger
-	InfoLogger    *log.Logger
-	ErrorLogger   *log.Logger
-)
-
-func init() {
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	InfoLogger = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	WarningLogger = log.New(file, "WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	ErrorLogger = log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
-}
 
 func resourceOrigin() *schema.Resource {
 	return &schema.Resource{
@@ -39,19 +20,19 @@ func resourceOrigin() *schema.Resource {
 		DeleteContext: resourceOriginDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"directory_name": &schema.Schema{
+			"directory_name": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"host_header": &schema.Schema{
+			"host_header": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"media_type": &schema.Schema{
+			"media_type": {
 				Type:     schema.TypeString,
 				Required: true,
 			},
@@ -99,7 +80,6 @@ func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	httpHostnames := make([]api.AddOriginRequestHostname, len(rawHTTPHostnames))
 
 	for i := range rawHTTPHostnames {
-		InfoLogger.Printf("hostname:%s\n", rawHTTPHostnames[i].(string))
 		httpHostnames[i] = api.AddOriginRequestHostname{Name: rawHTTPHostnames[i].(string)}
 	}
 
@@ -169,7 +149,6 @@ func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	httpUpdateHostnames := make([]api.UpdateOriginRequestHostname, len(rawHTTPHostnames))
 
 	for i := range rawHTTPHostnames {
-		InfoLogger.Printf("hostname:%s\n", rawHTTPHostnames[i].(string))
 		httpUpdateHostnames[i] = api.UpdateOriginRequestHostname{Name: rawHTTPHostnames[i].(string)}
 	}
 
@@ -179,7 +158,6 @@ func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	mediaType := d.Get("media_type").(string)
 	originID, _ := strconv.Atoi(d.Id())
-	InfoLogger.Printf("updating originID:%d", originID)
 	parsedResponse, err := originAPIClient.UpdateOrigin(updateOriginRequest, originID, mediaType)
 
 	if err != nil {

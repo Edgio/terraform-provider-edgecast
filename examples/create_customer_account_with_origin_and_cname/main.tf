@@ -3,7 +3,7 @@
 terraform {
   required_providers {
     vmp = {
-      version = "0.0.7"
+      version = "0.0.8"
       source = "VerizonDigital/vmp"
     }
   }
@@ -13,13 +13,14 @@ terraform {
 # Variables
 ##########################################
 
-variable "partner_info" {
+variable "credentials" {
   type = object ({
-    api_address = string
     api_token = string
     ids_client_secret = string
     ids_client_id = string
     ids_scope = string
+    api_address = string
+    ids_address = string
   })
 }
 
@@ -89,11 +90,12 @@ variable "cname_info" {
 ##########################################
 
 provider "vmp" {
-    api_address = var.partner_info.api_address
-    api_token = var.partner_info.api_token
-    ids_client_secret = var.partner_info.ids_client_secret
-    ids_client_id = var.partner_info.ids_client_id
-    ids_scope = var.partner_info.ids_scope
+    api_token = var.credentials.api_token
+    ids_client_secret = var.credentials.ids_client_secret
+    ids_client_id = var.credentials.ids_client_id
+    ids_scope = var.credentials.ids_scope
+    api_address = var.credentials.api_address
+    ids_address = var.credentials.ids_address
 }
 
 ##########################################

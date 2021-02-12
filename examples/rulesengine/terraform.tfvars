@@ -1,45 +1,56 @@
-#Please update data in <> in order to run your terraform
-provider_config = {
-    #for pointing to staging environment, leave null to default to production
-    api_address = ""
-    # You must provide either an API Token or IDS credentials, but not both
-    api_token = ""
-    ids_client_secret = ""
-    ids_client_id = ""
-    ids_scope = ""
+# Provides values the variables used in main.tf
+
+# Use the credentials provided to you by Verizon Media
+credentials = {
+    api_token = "<API Token>"
+    ids_client_secret = "<Client Secret>"
+    ids_client_id = "<Client ID>"
+    ids_scope = "<Scopes>"
+
+    # for internal testing
+    api_address = null
+    ids_address = null
 }
 
 test_customer_info = {
-    # optional params - for internal testing
-    account_number = ""
-    customeruserid = ""
-    portaltypeid = ""
+    account_number = "<Account Number>"
+    customeruserid = "<Customer User ID>"
+    portaltypeid = 1
 }
 
-#deploy_to: Production or Staging
-httplarge_policy = {
-    deploy_to = "staging" 
-    policy = <<POLICYCREATE
-{
-    '@type': 'policy',
-    'name':'test policy-01272021-58',
-    'description':'This is a test policy of PolicyCreate.',
-    'state':'locked',
-    'platform':'3',
+# Valid values are "production" and "staging"
+rulesEngineEnvironment = "staging"
+
+# Below is an example of a Rules Engine policy defined as a string in a .tfvars file
+# Note that main.tf in this directory reads directly from the file named "httplarge-policy.json"
+
+/* # httplarge_policy = <<POLICYCREATE
+    {
+    'name':'test policy YYYYMMDD',
+    'description':'This is a test policy.',
     'rules': [
         {
-            '@type':'rule',
-            'name':'rule1',
-            'description': 'This is a test rule26.',
+            'name':'test rule',
+            'description': 'This is a test rule.',
             'matches': [{
-                'type': 'match.always',
+                'type': 'match.origin.customer-origin.literal',
+                'value': '/000000/Origin-X/',
                 'features': [{
-                    'type': 'feature.comment',
-                    'value': 'test'
+                    'type': 'feature.caching.compress-file-types',
+                    'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
                 }]
-            }]
+                }, {
+                    'type': 'match.request.request-header.wildcard',
+                    'name': 'User-Agent',
+                    'result': 'nomatch',
+                    'value': '*MSIE\\ 5*Mac* *MSIE\\ 4* *Mozilla/4* *compatible;*',
+                    'ignore-case': 'True',
+                    'features': [{
+                        'type': 'feature.caching.compress-file-types',
+                        'media-types': ['text/plain text/html', 'text/css application/x-javascript', 'text/javascript']
+                    }]
+                }]
         }
     ]
 }
-POLICYCREATE
-}
+# POLICYCREATE */

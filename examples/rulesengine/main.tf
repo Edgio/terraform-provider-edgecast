@@ -13,24 +13,19 @@ terraform {
 # Variables
 ##########################################
 
-variable "provider_config" {
+variable "credentials" {
   type = object ({
-    api_address = string
     api_token = string
     ids_client_secret = string
     ids_client_id = string
     ids_scope = string
+    api_address = string
+    ids_address = string
   })
 }
-variable "httplarge_policy" {
-  type = object({
-    policy = string
-    deploy_to = string
-  })
-  default = {
-    policy=""
-    deploy_to=""
-  }
+
+variable "rulesEngineEnvironment" {
+  type = string
 }
 
 variable "test_customer_info" {
@@ -51,18 +46,22 @@ variable "test_customer_info" {
 ##########################################
 
 provider "vmp" {
-    api_address = var.provider_config.api_address
-    api_token = var.provider_config.api_token
-    ids_client_secret = var.provider_config.ids_client_secret
-    ids_client_id = var.provider_config.ids_client_id
-    ids_scope = var.provider_config.ids_scope
+    api_token = var.credentials.api_token
+    ids_client_secret = var.credentials.ids_client_secret
+    ids_client_id = var.credentials.ids_client_id
+    ids_scope = var.credentials.ids_scope
+    api_address = var.credentials.api_address
+    ids_address = var.credentials.ids_address
 }
 
+##########################################
+# Resources
+##########################################
 resource "vmp_rules_engine_policy" "httplarge_policy"{
-  policy = var.httplarge_policy.policy
-  deploy_to = var.httplarge_policy.deploy_to
+  policy = file("httplarge-policy.json")
+  deploy_to = var.rulesEngineEnvironment
 
-  # optional - for internal testing
+  # optional - only needed if using PCC API credentials
   account_number = var.test_customer_info.account_number
   customeruserid = var.test_customer_info.customeruserid
   portaltypeid = var.test_customer_info.portaltypeid

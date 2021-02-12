@@ -16,7 +16,7 @@ func dataSourceCustomerServices() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceCustomerServicesRead,
 		Schema: map[string]*schema.Schema{
-			"services": &schema.Schema{
+			"services": {
 				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{

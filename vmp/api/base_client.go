@@ -11,20 +11,30 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 	"strconv"
+	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
 )
 
-var (
-	WarningLogger *log.Logger
-	InfoLogger    *log.Logger
-	ErrorLogger   *log.Logger
+const (
+	userAgent string = "verizonmedia/terraform:1.0.0"
 )
 
+var (
+	idsToken *IDSToken
+)
+
+// IDSToken holds the OAuth 2.0 token for calling Verizon Media APIs
+type IDSToken struct {
+	AccessToken    string
+	ExpirationTime time.Time
+}
+
+// ApiClient -
 type ApiClient struct {
 	BaseUrl         *url.URL
+	IdsUrl          *url.URL
 	UserAgent       string
 	Token           string
 	IdsClientId     string
@@ -34,24 +44,23 @@ type ApiClient struct {
 	HttpClient *retryablehttp.Client
 }
 
-func init() {
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	InfoLogger = log.New(file, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-}
-
-func NewApiClient(apiBaseUri string, apiToken string, idsClientId string, idsClientSecret string, idsScope string) (*ApiClient, error) {
+// NewApiClient
+func NewApiClient(apiBaseUri string, idsUri string, apiToken string, idsClientId string, idsClientSecret string, idsScope string) (*ApiClient, error) {
 	baseUrl, err := url.Parse(apiBaseUri)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("NewApiClient: Parse API Base URL: %v", err)
+	}
+
+	idsUrl, err := url.Parse(idsUri)
+
+	if err != nil {
+		return nil, fmt.Errorf("NewApiClient: Parse IDS URL: %v", err)
 	}
 
 	return &ApiClient{
 		BaseUrl:         baseUrl,
+		IdsUrl:          idsUrl,
 		Token:           apiToken,
 		IdsClientId:     idsClientId,
 		IdsClientSecret: idsClientSecret,
@@ -61,15 +70,15 @@ func NewApiClient(apiBaseUri string, apiToken string, idsClientId string, idsCli
 
 }
 
-func (c *ApiClient) BuildRequest(method, path string, body interface{}, isUsingIdsToken bool) (*retryablehttp.Request, error) {
+// BuildRequest creates a new Request for a Verizon Media API, adding appropriate headers
+func (apiClient *ApiClient) BuildRequest(method, path string, body interface{}, isUsingIdsToken bool) (*retryablehttp.Request, error) {
+	relativeURL, err := url.Parse(path)
 
-	rel, pathErr := url.Parse(path)
-
-	if pathErr != nil {
-		return nil, pathErr
+	if err != nil {
+		return nil, fmt.Errorf("BuildRequest: url.Parse: %v", err)
 	}
 
-	u := c.BaseUrl.ResolveReference(rel)
+	absoluteURL := apiClient.BaseUrl.ResolveReference(relativeURL)
 
 	var payload interface{}
 
@@ -87,10 +96,10 @@ func (c *ApiClient) BuildRequest(method, path string, body interface{}, isUsingI
 		}
 	}
 
-	req, err := retryablehttp.NewRequest(method, u.String(), payload)
+	req, err := retryablehttp.NewRequest(method, absoluteURL.String(), payload)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("BuildRequest: NewRequest: %v", err)
 	}
 
 	if body != nil {
@@ -98,74 +107,108 @@ func (c *ApiClient) BuildRequest(method, path string, body interface{}, isUsingI
 	}
 
 	req.Header.Set("Accept", "application/json")
+
 	if isUsingIdsToken {
-		idsToken, _ := c.GetIdsToken()
-		req.Header.Set("Authorization", "Bearer "+idsToken["access_token"].(string))
+		idsToken, err := apiClient.GetIdsToken()
+
+		if err != nil {
+			return nil, fmt.Errorf("BuildRequest: %v", err)
+		}
+
+		req.Header.Set("Authorization", "Bearer "+idsToken)
 	} else {
-		req.Header.Set("Authorization", "TOK:"+c.Token)
+		if len(apiClient.Token) == 0 {
+			return nil, errors.New("BuildRequest: API Token is required")
+		}
+
+		req.Header.Set("Authorization", "TOK:"+apiClient.Token)
 	}
 
-	req.Header.Set("User-Agent", "verizonmedia/terraform:1.0.0")
+	req.Header.Set("User-Agent", userAgent)
 
 	return req, nil
 }
 
-func (c *ApiClient) SendRequest(req *retryablehttp.Request, v interface{}) (*http.Response, error) {
-
-	resp, err := c.HttpClient.Do(req)
+// SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
+func (apiClient *ApiClient) SendRequest(req *retryablehttp.Request, parsedResponse interface{}) (*http.Response, error) {
+	log.Printf("[INFO] SendRequest >> [%s] %s", req.Method, req.URL.String())
+	resp, err := apiClient.HttpClient.Do(req)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("SendRequest: Do: %v", err)
 	}
 
 	defer resp.Body.Close()
+
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		body, err := ioutil.ReadAll(resp.Body)
 
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
 		}
 
 		bodyAsString := string(body)
-		return nil, errors.New(bodyAsString)
+		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
 	}
 
-	if v != nil {
-		err = json.NewDecoder(resp.Body).Decode(v)
+	if parsedResponse != nil {
+		err = json.NewDecoder(resp.Body).Decode(parsedResponse)
 
-	}
-	if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusAccepted {
-
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			log.Fatal(err)
+			return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
 		}
-		bodyString := string(bodyBytes)
-		InfoLogger.Printf("SendRequest >> Response Body:%s", bodyString)
 	}
-	return resp, err
+
+	return resp, nil
 }
 
-func (c *ApiClient) GetIdsToken() (map[string]interface{}, error) {
-	tokUrl := "https://id-dev.vdms.io/connect/token"
-	data := url.Values{}
-	data.Set("grant_type", "client_credentials")
-	data.Add("scope", c.IdsScope)
-	data.Add("client_id", c.IdsClientId)
-	data.Add("client_secret", c.IdsClientSecret)
+// GetIdsToken returns the cached token, refreshing it if it has expired
+func (apiClient *ApiClient) GetIdsToken() (string, error) {
 
-	r, _ := http.NewRequest("POST", tokUrl, bytes.NewBufferString(data.Encode()))
-	r.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	r.Header.Add("Cache-Control", "no-cache")
-	r.Header.Add("Content-Length", strconv.Itoa(len(data.Encode()))) //this does not matter, tried without
+	if len(apiClient.IdsClientId) == 0 || len(apiClient.IdsClientSecret) == 0 || len(apiClient.IdsScope) == 0 {
+		return "", errors.New("GetIdsToken: IDS Client ID, Secret, and Scope required")
+	}
 
-	var resp *http.Response
-	client := &http.Client{}
-	resp, err := client.Do(r)
+	if idsToken == nil || idsToken.ExpirationTime.Before(time.Now()) {
+		data := url.Values{}
+		data.Set("grant_type", "client_credentials")
+		data.Add("scope", apiClient.IdsScope)
+		data.Add("client_id", apiClient.IdsClientId)
+		data.Add("client_secret", apiClient.IdsClientSecret)
 
-	var result map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&result)
-	return result, err
+		idsTokenEndpoint := fmt.Sprintf("%s/connect/token", apiClient.IdsUrl.String())
+		newTokenRequest, err := http.NewRequest("POST", idsTokenEndpoint, bytes.NewBufferString(data.Encode()))
+
+		if err != nil {
+			return "", fmt.Errorf("GetIdsToken: NewRequest: %v", err)
+		}
+
+		newTokenRequest.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+		newTokenRequest.Header.Add("Cache-Control", "no-cache")
+		newTokenRequest.Header.Add("Content-Length", strconv.Itoa(len(data.Encode())))
+
+		log.Printf("[INFO] GetIdsToken: [POST] %s", idsTokenEndpoint)
+		httpClient := &http.Client{}
+		newTokenResponse, err := httpClient.Do(newTokenRequest)
+		if err != nil {
+			return "", fmt.Errorf("GetIdsToken: Do: %v", err)
+		}
+
+		var tokenMap map[string]interface{}
+		err = json.NewDecoder(newTokenResponse.Body).Decode(&tokenMap)
+		if err != nil {
+			return "", fmt.Errorf("GetIdsToken: Decode: %v", err)
+		}
+
+		expiresIn := time.Second * time.Duration((tokenMap["expires_in"].(float64)))
+
+		idsToken = &IDSToken{
+			AccessToken:    tokenMap["access_token"].(string),
+			ExpirationTime: time.Now().Add(expiresIn),
+		}
+	}
+
+	return idsToken.AccessToken, nil
 }
 
 // FormatURLAddPartnerID is a utility function for adding the optional partner ID query string param

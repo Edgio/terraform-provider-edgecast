@@ -1,21 +1,41 @@
 {
-    '@type': 'policy',
-    'name':'test policy-01272021-49',
-    'description':'This is a test policy of PolicyCreate.',
-    'state':'locked',
-    'platform':'3',
-    'rules': [
+    "name": "test policy-01272021-13",
+    "description": "This is a test policy of PolicyCreate.",
+    "platform": "adn",
+    "rules": [
         {
-            '@type':'rule',
-            'name':'rule1',
-            'description': 'This is a test rule20.',
-            'matches': [{
-                'type': 'match.always',
-                'features': [{
-                    'type': 'feature.comment',
-                    'value': 'test'
-                }]
-            }]
+            "name": "rule1",
+            "description": "This is a test rule25.",
+            "matches": [
+                {
+                    "type": "match.always",
+                    "features": [
+                        {
+                            "type": "feature.comment",
+                            "value": "test"
+                        },
+                        {
+                            "type": "feature.headers.modify-client-request-header",
+                            "action": "set",
+                            "name": "test",
+                            "value": "test"
+                        }
+                    ]
+                },
+                {
+                    "type": "match.url.url-path.wildcard",
+                    "result": "match",
+                    "value": "test",
+                    "ignore-case": "true",
+                    "relative-to": "origin",
+                    "features": [
+                        {
+                            "type": "feature.origin.proxy-special-headers",
+                            "names": "via x-forwarded-proto x-host x-midgress"
+                        }
+                    ]
+                }
+            ]
         }
     ]
 }

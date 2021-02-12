@@ -5,6 +5,7 @@ package vmp
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"terraform-provider-vmp/vmp/api"
 
@@ -12,44 +13,54 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const (
+	apiURLProd string = "https://api.edgecast.com"
+	idsURLProd string = "https://id.vdms.io"
+)
+
 // Provider creates a new instance of the Verizon Media Terraform Provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_address": &schema.Schema{
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  "https://api.vdms.io/",
-			},
-			"api_token": &schema.Schema{
+			"api_token": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ids_client_secret": &schema.Schema{
+			"ids_client_secret": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ids_client_id": &schema.Schema{
+			"ids_client_id": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"ids_scope": &schema.Schema{
+			"ids_scope": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"partner_user_id": &schema.Schema{
+			"partner_user_id": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  nil,
 			},
-			"partner_id": &schema.Schema{
+			"partner_id": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  nil,
+			},
+			"api_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  apiURLProd,
+			},
+			"ids_address": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  idsURLProd,
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -75,38 +86,21 @@ type ProviderConfiguration struct {
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
-
 	var diags diag.Diagnostics
 
-	apiBaseURI := d.Get("api_address").(string)
 	apiToken := d.Get("api_token").(string)
 	accountNumber := d.Get("account_number").(string)
 	idsClientID := d.Get("ids_client_id").(string)
 	idsClientSecret := d.Get("ids_client_secret").(string)
 	idsScope := d.Get("ids_scope").(string)
 
-	// Must use either API Token or IDS credentials, but not both
-	idsProvided := len(idsClientID) > 0 && len(idsClientSecret) > 0 && len(idsScope) > 0
-	apiTokenProvided := len(apiToken) > 0
+	apiURL := d.Get("api_address").(string)
+	idsURL := d.Get("ids_address").(string)
 
-	if (apiTokenProvided && idsProvided) || (!apiTokenProvided && !idsProvided) {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Please provide either an API Token or IDS credentials, but not both",
-		})
-
-		return nil, diags
-	}
-
-	apiClient, err := api.NewApiClient(apiBaseURI, apiToken, idsClientID, idsClientSecret, idsScope)
+	apiClient, err := api.NewApiClient(apiURL, idsURL, apiToken, idsClientID, idsClientSecret, idsScope)
 
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Failed to create API Client",
-		})
-
-		return nil, diags
+		return nil, diag.FromErr(fmt.Errorf("Failed to create API Client: %v", err))
 	}
 
 	config := ProviderConfiguration{
