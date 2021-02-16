@@ -19,3 +19,6 @@ examples/**/*.log
 examples/**/*.tfstate*
 examples/**/*.plan
 examples/**/*.txt
+examples/**/*.tf.copy
+examples/**/*.tfvars.copy
+/**/terraform.log

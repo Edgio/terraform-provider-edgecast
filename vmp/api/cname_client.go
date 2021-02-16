@@ -6,59 +6,69 @@ import (
 	"fmt"
 )
 
-type CnameApiClient struct {
-	BaseApiClient *ApiClient
+//CnameAPIClient -
+type CnameAPIClient struct {
+	Config        *ClientConfig
+	BaseAPIClient *BaseClient
 	AccountNumber string
 }
 
+//Cname -
 type Cname struct {
-	Id                  int
+	ID                  int
 	Name                string
 	DirPath             string
 	EnableCustomReports int
-	OriginId            int
+	OriginID            int
 	OriginString        string
 }
 
+//AddCnameRequest -
 type AddCnameRequest struct {
 	Name                string
 	DirPath             string
 	EnableCustomReports int
-	MediaTypeId         int
-	OriginId            int
+	MediaTypeID         int
+	OriginID            int
 	OriginType          int
 }
 
+//AddCnameResponse -
 type AddCnameResponse struct {
-	CnameId int
+	CnameID int
 }
 
+// UpdateCnameRequest -
 type UpdateCnameRequest struct {
 	Name                string
 	DirPath             string
 	EnableCustomReports int
-	MediaTypeId         int
-	OriginId            int
+	MediaTypeID         int
+	OriginID            int
 	OriginType          int
 }
 
+//UpdateCnameResponse -
 type UpdateCnameResponse struct {
-	CnameId int
+	CnameID int
 }
 
-func NewCnameApiClient(baseApiClient *ApiClient, accountNumber string) *CnameApiClient {
-	apiClient := &CnameApiClient{
-		BaseApiClient: baseApiClient,
-		AccountNumber: accountNumber,
+//NewCnameAPIClient -
+func NewCnameAPIClient(config *ClientConfig) *CnameAPIClient {
+	apiClient := &CnameAPIClient{
+		Config:        config,
+		BaseAPIClient: config.BaseClient,
+		AccountNumber: config.AccountNumber,
 	}
 
 	return apiClient
 }
 
-func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/cnames", c.AccountNumber), cname, false)
+//AddCname -
+func (c *CnameAPIClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/cnames", c.AccountNumber), cname, false)
 	parsedResponse := &AddCnameResponse{}
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("AddCname: %v", err)
@@ -67,10 +77,11 @@ func (c *CnameApiClient) AddCname(cname *AddCnameRequest) (*AddCnameResponse, er
 	return parsedResponse, nil
 }
 
-func (c *CnameApiClient) UpdateCname(cname *UpdateCnameRequest, cnameId int) (*UpdateCnameResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, cnameId), cname, false)
+//UpdateCname =
+func (c *CnameAPIClient) UpdateCname(cname *UpdateCnameRequest, cnameID int) (*UpdateCnameResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest("PUT", fmt.Sprintf("mcc/customers/%s/cnames/%d", c.AccountNumber, cnameID), cname, false)
 	parsedResponse := &UpdateCnameResponse{}
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("UpdateCname: %v", err)
@@ -79,10 +90,11 @@ func (c *CnameApiClient) UpdateCname(cname *UpdateCnameRequest, cnameId int) (*U
 	return parsedResponse, nil
 }
 
-func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("v2/mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
+//GetCname -
+func (c *CnameAPIClient) GetCname(id int) (*Cname, error) {
+	request, err := c.BaseAPIClient.BuildRequest("GET", fmt.Sprintf("v2/mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
 	parsedResponse := &Cname{}
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("GetCname: %v", err)
@@ -91,9 +103,10 @@ func (c *CnameApiClient) GetCname(id int) (*Cname, error) {
 	return parsedResponse, nil
 }
 
-func (c *CnameApiClient) DeleteCname(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("v2/mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
-	_, err = c.BaseApiClient.SendRequest(request, nil)
+// DeleteCname -
+func (c *CnameAPIClient) DeleteCname(id int) error {
+	request, err := c.BaseAPIClient.BuildRequest("DELETE", fmt.Sprintf("v2/mcc/customers/%s/cnames/%d", c.AccountNumber, id), nil, false)
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
 
 	if err != nil {
 		return fmt.Errorf("DeleteOrigin: %v", err)

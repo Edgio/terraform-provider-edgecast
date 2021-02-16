@@ -31,54 +31,82 @@ type IDSToken struct {
 	ExpirationTime time.Time
 }
 
-// ApiClient -
-type ApiClient struct {
-	BaseUrl         *url.URL
-	IdsUrl          *url.URL
-	UserAgent       string
-	Token           string
-	IdsClientId     string
+// ClientConfig a config needed for the provider to interact with VDMS APIs, reading data comes from terraform main.tf
+type ClientConfig struct {
+	APIToken        string
+	AccountNumber   string
+	IdsClientID     string
 	IdsClientSecret string
 	IdsScope        string
-
-	HttpClient *retryablehttp.Client
+	APIURL          *url.URL
+	IdsURL          *url.URL
+	PartnerID       int
+	PartnerUserID   int
+	BaseClient      *BaseClient
 }
 
-// NewApiClient
-func NewApiClient(apiBaseUri string, idsUri string, apiToken string, idsClientId string, idsClientSecret string, idsScope string) (*ApiClient, error) {
-	baseUrl, err := url.Parse(apiBaseUri)
-
-	if err != nil {
-		return nil, fmt.Errorf("NewApiClient: Parse API Base URL: %v", err)
-	}
-
-	idsUrl, err := url.Parse(idsUri)
-
-	if err != nil {
-		return nil, fmt.Errorf("NewApiClient: Parse IDS URL: %v", err)
-	}
-
-	return &ApiClient{
-		BaseUrl:         baseUrl,
-		IdsUrl:          idsUrl,
-		Token:           apiToken,
-		IdsClientId:     idsClientId,
+// NewClientConfig constructor of ClientConfig
+func NewClientConfig(apiToken string, accountNumber string, idsClientID string, idsClientSecret string, idsScope string, apiURL string, idsURL string) (*ClientConfig, error) {
+	config := ClientConfig{
+		APIToken:        apiToken,
+		AccountNumber:   accountNumber,
+		IdsClientID:     idsClientID,
 		IdsClientSecret: idsClientSecret,
 		IdsScope:        idsScope,
-		HttpClient:      retryablehttp.NewClient(),
-	}, nil
+		PartnerID:       0,
+		PartnerUserID:   0,
+		BaseClient:      nil,
+	}
+	var err error
+	log.Printf("idsaddress from main.tf: %s", idsURL)
+	config.IdsURL, err = url.Parse(idsURL)
+	if err != nil {
+		return nil, fmt.Errorf("NewClientConfig: Parse IDS URL: %v", err)
+	}
+	log.Printf("config.IdsURL: %s", config.IdsURL)
+	config.APIURL, err = url.Parse(apiURL)
+	if err != nil {
+		return nil, fmt.Errorf("NewClientConfig: Parse API URL: %v", err)
+	}
+	return &config, nil
+}
 
+// BaseClient -
+type BaseClient struct {
+	Config          *ClientConfig
+	BaseURL         *url.URL
+	IdsURL          *url.URL
+	UserAgent       string
+	Token           string
+	IdsClientID     string
+	IdsClientSecret string
+	IdsScope        string
+	HTTPClient      *retryablehttp.Client
+}
+
+// NewBaseClient -
+func NewBaseClient(config *ClientConfig) *BaseClient {
+	return &BaseClient{
+		Config:          config,
+		BaseURL:         config.APIURL,
+		IdsURL:          config.IdsURL,
+		Token:           config.APIToken,
+		IdsClientID:     config.IdsClientID,
+		IdsClientSecret: config.IdsClientSecret,
+		IdsScope:        config.IdsScope,
+		HTTPClient:      retryablehttp.NewClient(),
+	}
 }
 
 // BuildRequest creates a new Request for a Verizon Media API, adding appropriate headers
-func (apiClient *ApiClient) BuildRequest(method, path string, body interface{}, isUsingIdsToken bool) (*retryablehttp.Request, error) {
+func (BaseClient *BaseClient) BuildRequest(method, path string, body interface{}, isUsingIdsToken bool) (*retryablehttp.Request, error) {
 	relativeURL, err := url.Parse(path)
 
 	if err != nil {
 		return nil, fmt.Errorf("BuildRequest: url.Parse: %v", err)
 	}
 
-	absoluteURL := apiClient.BaseUrl.ResolveReference(relativeURL)
+	absoluteURL := BaseClient.BaseURL.ResolveReference(relativeURL)
 
 	var payload interface{}
 
@@ -109,7 +137,7 @@ func (apiClient *ApiClient) BuildRequest(method, path string, body interface{}, 
 	req.Header.Set("Accept", "application/json")
 
 	if isUsingIdsToken {
-		idsToken, err := apiClient.GetIdsToken()
+		idsToken, err := BaseClient.GetIdsToken()
 
 		if err != nil {
 			return nil, fmt.Errorf("BuildRequest: %v", err)
@@ -117,11 +145,11 @@ func (apiClient *ApiClient) BuildRequest(method, path string, body interface{}, 
 
 		req.Header.Set("Authorization", "Bearer "+idsToken)
 	} else {
-		if len(apiClient.Token) == 0 {
+		if len(BaseClient.Token) == 0 {
 			return nil, errors.New("BuildRequest: API Token is required")
 		}
 
-		req.Header.Set("Authorization", "TOK:"+apiClient.Token)
+		req.Header.Set("Authorization", "TOK:"+BaseClient.Token)
 	}
 
 	req.Header.Set("User-Agent", userAgent)
@@ -130,9 +158,9 @@ func (apiClient *ApiClient) BuildRequest(method, path string, body interface{}, 
 }
 
 // SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
-func (apiClient *ApiClient) SendRequest(req *retryablehttp.Request, parsedResponse interface{}) (*http.Response, error) {
+func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResponse interface{}) (*http.Response, error) {
 	log.Printf("[INFO] SendRequest >> [%s] %s", req.Method, req.URL.String())
-	resp, err := apiClient.HttpClient.Do(req)
+	resp, err := BaseClient.HTTPClient.Do(req)
 
 	if err != nil {
 		return nil, fmt.Errorf("SendRequest: Do: %v", err)
@@ -163,20 +191,20 @@ func (apiClient *ApiClient) SendRequest(req *retryablehttp.Request, parsedRespon
 }
 
 // GetIdsToken returns the cached token, refreshing it if it has expired
-func (apiClient *ApiClient) GetIdsToken() (string, error) {
+func (BaseClient *BaseClient) GetIdsToken() (string, error) {
 
-	if len(apiClient.IdsClientId) == 0 || len(apiClient.IdsClientSecret) == 0 || len(apiClient.IdsScope) == 0 {
+	if len(BaseClient.IdsClientID) == 0 || len(BaseClient.IdsClientSecret) == 0 || len(BaseClient.IdsScope) == 0 {
 		return "", errors.New("GetIdsToken: IDS Client ID, Secret, and Scope required")
 	}
 
 	if idsToken == nil || idsToken.ExpirationTime.Before(time.Now()) {
 		data := url.Values{}
 		data.Set("grant_type", "client_credentials")
-		data.Add("scope", apiClient.IdsScope)
-		data.Add("client_id", apiClient.IdsClientId)
-		data.Add("client_secret", apiClient.IdsClientSecret)
+		data.Add("scope", BaseClient.IdsScope)
+		data.Add("client_id", BaseClient.IdsClientID)
+		data.Add("client_secret", BaseClient.IdsClientSecret)
 
-		idsTokenEndpoint := fmt.Sprintf("%s/connect/token", apiClient.IdsUrl.String())
+		idsTokenEndpoint := fmt.Sprintf("%s/connect/token", BaseClient.IdsURL.String())
 		newTokenRequest, err := http.NewRequest("POST", idsTokenEndpoint, bytes.NewBufferString(data.Encode()))
 
 		if err != nil {
@@ -212,9 +240,9 @@ func (apiClient *ApiClient) GetIdsToken() (string, error) {
 }
 
 // FormatURLAddPartnerID is a utility function for adding the optional partner ID query string param
-func FormatURLAddPartnerID(originalURL string, partnerID *int) string {
-	if partnerID != nil {
-		return originalURL + fmt.Sprintf("&partnerid=%d", *partnerID)
+func FormatURLAddPartnerID(originalURL string, partnerID int) string {
+	if partnerID != 0 {
+		return originalURL + fmt.Sprintf("&partnerid=%d", partnerID)
 	}
 
 	return originalURL

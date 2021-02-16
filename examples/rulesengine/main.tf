@@ -4,7 +4,7 @@ terraform {
   required_providers {
     vmp = {
       version = "0.0.8"
-      source = "VerizonDigital/vmp"
+      source = "github.com/terraform-providers/vmp"
     }
   }
 }
@@ -50,8 +50,9 @@ provider "vmp" {
     ids_client_secret = var.credentials.ids_client_secret
     ids_client_id = var.credentials.ids_client_id
     ids_scope = var.credentials.ids_scope
-    api_address = var.credentials.api_address
     ids_address = var.credentials.ids_address
+    api_address = var.credentials.api_address
+    account_number = var.test_customer_info.account_number
 }
 
 ##########################################
@@ -61,7 +62,6 @@ resource "vmp_rules_engine_policy" "httplarge_policy"{
   policy = file("httplarge-policy.json")
   deploy_to = var.rulesEngineEnvironment
 
-  # optional - only needed if using PCC API credentials
   account_number = var.test_customer_info.account_number
   customeruserid = var.test_customer_info.customeruserid
   portaltypeid = var.test_customer_info.portaltypeid

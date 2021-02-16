@@ -61,18 +61,14 @@ func resourceOrigin() *schema.Resource {
 }
 
 func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	config := m.(**api.ClientConfig)
 
 	httpConfiguration := d.Get("http").(*schema.Set).List()[0].(map[string]interface{})
 
 	addOriginRequest := &api.AddOriginRequest{
 		DirectoryName:     d.Get("directory_name").(string),
 		HostHeader:        d.Get("host_header").(string),
-		HttpLoadBalancing: httpConfiguration["load_balancing"].(string),
+		HTTPLoadBalancing: httpConfiguration["load_balancing"].(string),
 	}
 
 	rawHTTPHostnames := httpConfiguration["hostnames"].([]interface{})
@@ -83,9 +79,9 @@ func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		httpHostnames[i] = api.AddOriginRequestHostname{Name: rawHTTPHostnames[i].(string)}
 	}
 
-	addOriginRequest.HttpHostnames = httpHostnames
+	addOriginRequest.HTTPHostnames = httpHostnames
 
-	originAPIClient := api.NewOriginApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	originAPIClient := api.NewOriginAPIClient(*config)
 
 	mediaType := d.Get("media_type").(string)
 
@@ -95,7 +91,7 @@ func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	d.SetId(strconv.Itoa(parsedResponse.CustomerOriginId))
+	d.SetId(strconv.Itoa(parsedResponse.CustomerOriginID))
 
 	return resourceOriginRead(ctx, d, m)
 }
@@ -103,13 +99,9 @@ func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+	config := m.(**api.ClientConfig)
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	originAPIClient := api.NewOriginApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	originAPIClient := api.NewOriginAPIClient(*config)
 
 	originID, _ := strconv.Atoi(d.Id())
 	mediaType := d.Get("media_type").(string)
@@ -123,25 +115,21 @@ func resourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.Set("directory_name", parsedResponse.DirectoryName)
 	d.Set("host_header", parsedResponse.HostHeader)
-	d.Set("http_load_balancing", parsedResponse.HttpLoadBalancing)
-	d.Set("http_hostnames", parsedResponse.HttpHostnames)
+	d.Set("http_load_balancing", parsedResponse.HTTPLoadBalancing)
+	d.Set("http_hostnames", parsedResponse.HTTPHostnames)
 
 	return diags
 }
 
 func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	config := m.(**api.ClientConfig)
 
 	httpConfiguration := d.Get("http").(*schema.Set).List()[0].(map[string]interface{})
 
 	updateOriginRequest := &api.UpdateOriginRequest{
 		DirectoryName:     d.Get("directory_name").(string),
 		HostHeader:        d.Get("host_header").(string),
-		HttpLoadBalancing: httpConfiguration["load_balancing"].(string),
+		HTTPLoadBalancing: httpConfiguration["load_balancing"].(string),
 	}
 
 	rawHTTPHostnames := httpConfiguration["hostnames"].([]interface{})
@@ -152,9 +140,9 @@ func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		httpUpdateHostnames[i] = api.UpdateOriginRequestHostname{Name: rawHTTPHostnames[i].(string)}
 	}
 
-	updateOriginRequest.HttpHostnames = httpUpdateHostnames
+	updateOriginRequest.HTTPHostnames = httpUpdateHostnames
 
-	originAPIClient := api.NewOriginApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	originAPIClient := api.NewOriginAPIClient(*config)
 
 	mediaType := d.Get("media_type").(string)
 	originID, _ := strconv.Atoi(d.Id())
@@ -164,23 +152,19 @@ func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	d.SetId(strconv.Itoa(parsedResponse.CustomerOriginId))
+	d.SetId(strconv.Itoa(parsedResponse.CustomerOriginID))
 	return resourceOriginRead(ctx, d, m)
 }
 
 func resourceOriginDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+	config := m.(**api.ClientConfig)
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	originAPIClient := api.NewOriginApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	originAPIClient := api.NewOriginAPIClient(*config)
 
 	originID, _ := strconv.Atoi(d.Id())
 
-	err = originAPIClient.DeleteOrigin(originID)
+	err := originAPIClient.DeleteOrigin(originID)
 
 	if err != nil {
 		return diag.FromErr(err)

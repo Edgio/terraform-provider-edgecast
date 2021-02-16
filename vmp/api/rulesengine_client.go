@@ -1,4 +1,3 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 package api
 
 import (
@@ -8,20 +7,23 @@ import (
 	"time"
 )
 
-const rulesEngineRelUrlFormat = "rules-engine/v1.1/%s"
+const rulesEngineRelURLFormat = "rules-engine/v1.1/%s"
 
-type RulesEngineApiClient struct {
-	BaseApiClient *ApiClient
+//RulesEngineAPIClient -
+type RulesEngineAPIClient struct {
+	Config        *ClientConfig
+	BaseAPIClient *BaseClient
 }
 
+//AddDeployPolicyResponse -
 type AddDeployPolicyResponse struct {
-	Id          string                   `json:"id,omitempty"`
-	AtId        string                   `json:"@id,omitempty"`
+	ID          string                   `json:"id,omitempty"`
+	AtID        string                   `json:"@id,omitempty"`
 	Type        string                   `json:"@type,omitempty"`
 	Links       []map[string]interface{} `json:"@links,omitempty"`
 	State       string                   `json:"state,omitempty"`
 	Environment string                   `json:"environment,omitempty"`
-	CustomerId  string                   `json:"customer_id"`
+	CustomerID  string                   `json:"customer_id"`
 	CreatedAt   time.Time                `json:"created_at,omitempty"`
 	UpdatedAt   time.Time                `json:"updated_at,omitempty"`
 	IsVisible   bool                     `json:"is_visible,omitempty"`
@@ -30,13 +32,15 @@ type AddDeployPolicyResponse struct {
 	User        User                     `json:"user,omitempty"`
 }
 
+//UpdateDeployPolicyStateResponse -
 type UpdateDeployPolicyStateResponse struct {
-	Id    string `json:"id,omitempty"`
+	ID    string `json:"id,omitempty"`
 	State string `json:"state,omitempty"`
 }
 
+//AddPolicyResponse -
 type AddPolicyResponse struct {
-	Id          string    `json:"id,omitempty"`
+	ID          string    `json:"id,omitempty"`
 	Type        string    `json:"@type,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
@@ -48,8 +52,9 @@ type AddPolicyResponse struct {
 	Rules       []Rule    `json:"rules,omitempty"`
 }
 
+//UpdatePolicyResponse -
 type UpdatePolicyResponse struct {
-	Id          string    `json:"id,omitempty"`
+	ID          string    `json:"id,omitempty"`
 	Type        string    `json:"@type,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Description string    `json:"description,omitempty"`
@@ -61,8 +66,9 @@ type UpdatePolicyResponse struct {
 	Rules       []Rule    `json:"rules,omitempty"`
 }
 
+//Rule -
 type Rule struct {
-	Id          string                   `json:"id,omitempty"`
+	ID          string                   `json:"id,omitempty"`
 	Name        string                   `json:"name,omitempty"`
 	Description string                   `json:"description,omitempty"`
 	Ordinal     int                      `json:"ordinal,omitempty"`
@@ -71,8 +77,9 @@ type Rule struct {
 	Matches     []map[string]interface{} `json:"matches,omitempty"`
 }
 
+//Match -
 type Match struct {
-	Id         int    `json:"id"`
+	ID         int    `json:"id"`
 	Type       string `json:"@type"`
 	Ordinal    int    `json:"ordinal,omitempty"`
 	Value      string `json:"value,omitempty"`
@@ -88,6 +95,7 @@ type Match struct {
 	Features   []map[string]interface{}
 }
 
+//Feature -
 type Feature struct {
 	Action          string   `json:"action,omitempty"`
 	Code            string   `json:"code,omitempty"`
@@ -121,50 +129,54 @@ type Feature struct {
 	Value           string   `json:"value,omitempty"`
 }
 
+//AddDeployRequest -
 type AddDeployRequest struct {
-	PolicyId    int    `json:"policy_id"`
+	PolicyID    int    `json:"policy_id"`
 	Environment string `json:"environment,omitempty"`
 	Message     string `json:"message"`
 }
 
+//User -
 type User struct {
-	Id        string `json:"id,omitempty"`
+	ID        string `json:"id,omitempty"`
 	FirstName string `json:"first_name,omitempty"`
 	LastName  string `json:"last_name,omitempty"`
 	Email     string `json:"email,omitempty"`
 }
 
-func NewRulesEngineApiClient(baseApiClient *ApiClient) *RulesEngineApiClient {
-	apiClient := &RulesEngineApiClient{
-		BaseApiClient: baseApiClient,
+//NewRulesEngineAPIClient -
+func NewRulesEngineAPIClient(config *ClientConfig) *RulesEngineAPIClient {
+	APIClient := &RulesEngineAPIClient{
+		Config:        config,
+		BaseAPIClient: config.BaseClient,
 	}
 
-	return apiClient
+	return APIClient
 }
 
 // GetPolicy -
-func (apiClient *RulesEngineApiClient) GetPolicy(accountNumber string, customerUserId string, portalTypeId string, policyId int) (map[string]interface{}, error) {
-	relURL := formatRulesEngineRelURL("policies/%d", policyId)
-	request, err := apiClient.BaseApiClient.BuildRequest("GET", relURL, nil, true)
+func (APIClient *RulesEngineAPIClient) GetPolicy(accountNumber string, customerUserID string, portalTypeID string, policyID int) (map[string]interface{}, error) {
+	relURL := formatRulesEngineRelURL("policies/%d", policyID)
+	request, err := APIClient.BaseAPIClient.BuildRequest("GET", relURL, nil, true)
 
 	if err != nil {
 		return nil, fmt.Errorf("GetPolicy: %v", err)
 	}
 
 	// account number hex string -> customer ID
-	customerId, err := strconv.ParseInt(accountNumber, 16, 64)
+	customerID, err := strconv.ParseInt(accountNumber, 16, 64)
 
 	if err != nil {
 		return nil, fmt.Errorf("GetPolicy: ParseInt: %v", err)
 	}
 
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
-	request.Header.Set("Portals_UserId", customerUserId)
-	request.Header.Set("Portals_PortalTypeId", portalTypeId)
+	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
+	request.Header.Set("Portals_UserId", customerUserID)
+	request.Header.Set("Portals_PortalTypeId", portalTypeID)
 
 	parsedResponse := make(map[string]interface{})
 
-	_, err = apiClient.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = APIClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("GetPolicy: %v", err)
@@ -173,26 +185,27 @@ func (apiClient *RulesEngineApiClient) GetPolicy(accountNumber string, customerU
 	return parsedResponse, nil
 }
 
-func (c *RulesEngineApiClient) AddPolicy(policy string, accountNumber string, portalTypeId string, customerUserId string) (*AddPolicyResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", "rules-engine/v1.1/policies", policy, true)
+//AddPolicy -
+func (c *RulesEngineAPIClient) AddPolicy(policy string, accountNumber string, portalTypeID string, customerUserID string) (*AddPolicyResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest("POST", "rules-engine/v1.1/policies", policy, true)
 
 	if err != nil {
 		return nil, fmt.Errorf("AddPolicy: %v", err)
 	}
 
 	// account number hex string -> customer ID
-	customerId, err := strconv.ParseInt(accountNumber, 16, 64)
+	customerID, err := strconv.ParseInt(accountNumber, 16, 64)
 
 	if err != nil {
 		return nil, fmt.Errorf("AddPolicy: ParseInt: %v", err)
 	}
 
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
-	request.Header.Set("Portals_UserId", customerUserId)
-	request.Header.Set("Portals_PortalTypeId", portalTypeId)
+	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
+	request.Header.Set("Portals_UserId", customerUserID)
+	request.Header.Set("Portals_PortalTypeId", portalTypeID)
 	parsedResponse := &AddPolicyResponse{}
 
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("AddPolicy: %v", err)
@@ -201,27 +214,28 @@ func (c *RulesEngineApiClient) AddPolicy(policy string, accountNumber string, po
 	return parsedResponse, nil
 }
 
-func (c *RulesEngineApiClient) DeployPolicy(body *AddDeployRequest, accountNumber string, portalTypeId string, customerUserId string) (*AddDeployPolicyResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", "rules-engine/v1.1/deploy-requests", body, true)
+//DeployPolicy -
+func (c *RulesEngineAPIClient) DeployPolicy(body *AddDeployRequest, accountNumber string, portalTypeID string, customerUserID string) (*AddDeployPolicyResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest("POST", "rules-engine/v1.1/deploy-requests", body, true)
 
 	if err != nil {
 		return nil, fmt.Errorf("DeployPolicy: %v", err)
 	}
 
 	// account number hex string -> customer ID
-	customerId, err := strconv.ParseInt(accountNumber, 16, 64)
+	customerID, err := strconv.ParseInt(accountNumber, 16, 64)
 
 	if err != nil {
 		return nil, fmt.Errorf("DeployPolicy: ParseInt: %v", err)
 	}
 
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerId, 10))
-	request.Header.Set("Portals_UserId", customerUserId)
-	request.Header.Set("Portals_PortalTypeId", portalTypeId)
+	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
+	request.Header.Set("Portals_UserId", customerUserID)
+	request.Header.Set("Portals_PortalTypeId", portalTypeID)
 
 	parsedResponse := &AddDeployPolicyResponse{}
 
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("DeployPolicy: %v", err)
@@ -239,5 +253,5 @@ func removeHexPrefix(hexaString string) string {
 
 func formatRulesEngineRelURL(subFormat string, params ...interface{}) string {
 	subPath := fmt.Sprintf(subFormat, params...)
-	return fmt.Sprintf(rulesEngineRelUrlFormat, subPath)
+	return fmt.Sprintf(rulesEngineRelURLFormat, subPath)
 }

@@ -27,14 +27,11 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		UpdateContext: resourcePolicyUpdate,
 		DeleteContext: resourcePolicyDelete,
 		Schema: map[string]*schema.Schema{
-			"customeruserid": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"portaltypeid": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
+			"customeruserid":    {Type: schema.TypeString, Optional: true},
+			"portaltypeid":      {Type: schema.TypeString, Optional: true},
+			"account_number":    {Type: schema.TypeString, Optional: true},
+			"deploy_to":         {Type: schema.TypeString, Required: true},
+			"deploy_request_id": {Type: schema.TypeString, Computed: true},
 			"policy": {
 				Type:     schema.TypeString,
 				Required: true,
@@ -50,18 +47,6 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 					return string(jsonBytes)
 				},
 			},
-			"account_number": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"deploy_to": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"deploy_request_id": {
-				Type:     schema.TypeString,
-				Computed: true,
-			},
 		},
 	}
 }
@@ -74,6 +59,7 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	policyMap := make(map[string]interface{})
 	json.Unmarshal([]byte(policy), &policyMap)
 	policyMap["state"] = "locked"
+
 	policyBytes, err := json.Marshal(policyMap)
 	if err != nil {
 		return diag.FromErr(err)
@@ -93,20 +79,15 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
-
-	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
+	config := m.(**api.ClientConfig)
 
 	portalTypeID := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
 	customerUserID := d.Get("customeruserid").(string)
 	policyID, _ := strconv.Atoi(d.Id())
 
 	log.Printf("[INFO] Retrieving policy %d", policyID)
-	rulesEngineAPIClient := api.NewRulesEngineApiClient(config.APIClient)
-	policyFromAPIMap, err := rulesEngineAPIClient.GetPolicy(config.AccountNumber, customerUserID, portalTypeID, policyID)
+	rulesEngineAPIClient := api.NewRulesEngineAPIClient(*config)
+	policyFromAPIMap, err := rulesEngineAPIClient.GetPolicy((**config).AccountNumber, customerUserID, portalTypeID, policyID)
 
 	if err != nil {
 		d.SetId("")
@@ -246,49 +227,39 @@ func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func getDeployRequestData(d *schema.ResourceData, policyId int) *api.AddDeployRequest {
+func getDeployRequestData(d *schema.ResourceData, policyID int) *api.AddDeployRequest {
 	return &api.AddDeployRequest{
 		Message:     "Auto-submitted policy",
-		PolicyId:    policyId,
+		PolicyID:    policyID,
 		Environment: d.Get("deploy_to").(string),
 	}
 }
 
 func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m interface{}) error {
-	config, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
-
-	if err != nil {
-		if !isEmptyPolicy {
-			d.SetId("")
-		}
-
-		return err
-	}
+	config := m.(**api.ClientConfig)
 
 	customerid := d.Get("account_number").(string)
 	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
 	customeruserid := d.Get("customeruserid").(string)
 
-	log.Printf("[INFO] Creating new policy for Account %s: %s", customerid, policy)
-
-	reClient := api.NewRulesEngineApiClient(config.APIClient)
+	reClient := api.NewRulesEngineAPIClient(*config)
 
 	parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
 	if err != nil {
 		return fmt.Errorf("addPolicy: %v", err)
 	}
 
-	policyId, err := strconv.Atoi(parsedResponse.Id)
+	policyID, err := strconv.Atoi(parsedResponse.ID)
 	if err != nil {
 		return fmt.Errorf("addPolicy: parsing policy ID: %v", err)
 	}
 
 	if !isEmptyPolicy {
-		d.SetId(parsedResponse.Id)
+		d.SetId(parsedResponse.ID)
 		d.Set("policy", policy)
 	}
 
-	deployRequest := getDeployRequestData(d, policyId)
+	deployRequest := getDeployRequestData(d, policyID)
 	log.Printf("[INFO] Deploying new policy for Account %s: %+v", customerid, deployRequest)
 
 	deployResponse, deployErr := reClient.DeployPolicy(deployRequest, customerid, portaltypeid, customeruserid)
@@ -303,7 +274,7 @@ func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m inte
 	if isEmptyPolicy {
 		d.SetId("") // indicates "delete" happened
 	} else {
-		d.Set("deploy_request_id", deployResponse.Id)
+		d.Set("deploy_request_id", deployResponse.ID)
 	}
 
 	return nil

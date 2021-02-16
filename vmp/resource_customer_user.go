@@ -58,7 +58,7 @@ func resourceCustomerUser() *schema.Resource {
 }
 
 func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
 	customerUser := getCustomerUserFromData(d)
 
@@ -66,7 +66,7 @@ func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 
 	log.Printf("[INFO] Creating user for Account %s", accountNumber)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
 	customerUserID, err := apiClient.AddCustomerUser(accountNumber, customerUser)
 
@@ -83,9 +83,9 @@ func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 }
 
 func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
 	customerUser := getCustomerUserFromData(d)
 	accountNumber := d.Get("account_number").(string)
@@ -111,9 +111,9 @@ func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
 	customerUserID, err := strconv.Atoi(d.Id())
 
@@ -166,9 +166,9 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
 	accountNumber := d.Get("account_number").(string)
 	customerUserID, err := strconv.Atoi(d.Id())

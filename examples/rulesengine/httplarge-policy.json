@@ -1,37 +1,18 @@
 {
-    "name": "test policy-01272021-13",
+    "name": "test policy-02152021-3",
     "description": "This is a test policy of PolicyCreate.",
     "platform": "adn",
     "rules": [
         {
             "name": "rule1",
-            "description": "This is a test rule25.",
+            "description": "This is a test rule3.",
             "matches": [
                 {
                     "type": "match.always",
                     "features": [
                         {
                             "type": "feature.comment",
-                            "value": "test"
-                        },
-                        {
-                            "type": "feature.headers.modify-client-request-header",
-                            "action": "set",
-                            "name": "test",
-                            "value": "test"
-                        }
-                    ]
-                },
-                {
-                    "type": "match.url.url-path.wildcard",
-                    "result": "match",
-                    "value": "test",
-                    "ignore-case": "true",
-                    "relative-to": "origin",
-                    "features": [
-                        {
-                            "type": "feature.origin.proxy-special-headers",
-                            "names": "via x-forwarded-proto x-host x-midgress"
+                            "value": "test1"
                         }
                     ]
                 }

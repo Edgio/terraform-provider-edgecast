@@ -144,7 +144,7 @@ func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate,
 }
 
 func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
 	payload, err := getCustomerCreateUpdate(d)
 
@@ -152,7 +152,7 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	accountNumber, err := customerAPIClient.AddCustomer(payload)
 
@@ -205,9 +205,9 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	accountNumber := d.Id()
 
@@ -320,9 +320,9 @@ func resourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	accountNumber := d.Id()
 	err := customerAPIClient.DeleteCustomer(accountNumber)

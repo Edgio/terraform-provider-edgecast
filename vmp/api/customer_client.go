@@ -8,9 +8,10 @@ import (
 
 // CustomerAPIClient interacts with the Verizon Media API
 type CustomerAPIClient struct {
-	BaseAPIClient *ApiClient
-	PartnerUserID *int
-	PartnerID     *int
+	Config        *ClientConfig
+	BaseAPIClient *BaseClient
+	PartnerUserID int
+	PartnerID     int
 }
 
 // CustomerCreateUpdate represents a request to add a new customer
@@ -54,19 +55,20 @@ type CustomerCreateUpdate struct {
 }
 
 // NewCustomerAPIClient -
-func NewCustomerAPIClient(baseAPIClient *ApiClient, partnerUserID *int, partnerID *int) *CustomerAPIClient {
+func NewCustomerAPIClient(config *ClientConfig) *CustomerAPIClient {
 	return &CustomerAPIClient{
-		BaseAPIClient: baseAPIClient,
-		PartnerUserID: partnerUserID,
-		PartnerID:     partnerID,
+		Config:        config,
+		BaseAPIClient: config.BaseClient,
+		PartnerUserID: config.PartnerUserID,
+		PartnerID:     config.PartnerID,
 	}
 }
 
 // AddCustomer -
 func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (string, error) {
 	relURL := "v2/pcc/customers"
-	if apiClient.PartnerUserID != nil {
-		relURL = relURL + fmt.Sprintf("?partneruserid=%d", *apiClient.PartnerUserID)
+	if apiClient.PartnerUserID != 0 {
+		relURL = relURL + fmt.Sprintf("?partneruserid=%d", apiClient.PartnerUserID)
 	}
 
 	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)

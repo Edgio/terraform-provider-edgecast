@@ -6,69 +6,81 @@ import (
 	"fmt"
 )
 
-type OriginApiClient struct {
-	BaseApiClient *ApiClient
+//OriginAPIClient -
+type OriginAPIClient struct {
+	Config        *ClientConfig
+	BaseAPIClient *BaseClient
 	AccountNumber string
 }
 
+//AddOriginRequest -
 type AddOriginRequest struct {
 	DirectoryName     string
 	HostHeader        string
-	HttpHostnames     []AddOriginRequestHostname
-	HttpsHostnames    []AddOriginRequestHostname
-	HttpLoadBalancing string
+	HTTPHostnames     []AddOriginRequestHostname
+	HTTPSHostnames    []AddOriginRequestHostname
+	HTTPLoadBalancing string
 }
 
+//AddOriginRequestHostname -
 type AddOriginRequestHostname struct {
 	Name string
 }
 
+//AddOriginResponse -
 type AddOriginResponse struct {
-	CustomerOriginId int
+	CustomerOriginID int
 }
 
+//UpdateOriginRequest -
 type UpdateOriginRequest struct {
 	DirectoryName     string
 	HostHeader        string
-	HttpHostnames     []UpdateOriginRequestHostname
-	HttpsHostnames    []UpdateOriginRequestHostname
-	HttpLoadBalancing string
+	HTTPHostnames     []UpdateOriginRequestHostname
+	HTTPSHostnames    []UpdateOriginRequestHostname
+	HTTPLoadBalancing string
 }
 
+//UpdateOriginRequestHostname -
 type UpdateOriginRequestHostname struct {
 	Name string
 }
 
+//UpdateOriginResponse -
 type UpdateOriginResponse struct {
-	CustomerOriginId int
+	CustomerOriginID int
 }
 
+//Origin -
 type Origin struct {
-	Id                int
+	ID                int
 	DirectoryName     string
 	HostHeader        string
-	HttpHostnames     []OriginHostname
-	HttpLoadBalancing string
+	HTTPHostnames     []OriginHostname
+	HTTPLoadBalancing string
 }
 
+//OriginHostname -
 type OriginHostname struct {
 	Name string
 }
 
-// NewOriginApiClient -
-func NewOriginApiClient(baseApiClient *ApiClient, accountNumber string) *OriginApiClient {
-	apiClient := &OriginApiClient{
-		BaseApiClient: baseApiClient,
-		AccountNumber: accountNumber,
+//NewOriginAPIClient -
+func NewOriginAPIClient(config *ClientConfig) *OriginAPIClient {
+	apiClient := &OriginAPIClient{
+		Config:        config,
+		BaseAPIClient: config.BaseClient,
+		AccountNumber: config.AccountNumber,
 	}
 
 	return apiClient
 }
 
-func (c *OriginApiClient) AddOrigin(origin *AddOriginRequest, mediaType string) (*AddOriginResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/origins/%s", c.AccountNumber, mediaType), origin, false)
+//AddOrigin -
+func (c *OriginAPIClient) AddOrigin(origin *AddOriginRequest, mediaType string) (*AddOriginResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/origins/%s", c.AccountNumber, mediaType), origin, false)
 	parsedResponse := &AddOriginResponse{}
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("AddOrigin: %v", err)
@@ -77,10 +89,11 @@ func (c *OriginApiClient) AddOrigin(origin *AddOriginRequest, mediaType string) 
 	return parsedResponse, nil
 }
 
-func (c *OriginApiClient) UpdateOrigin(origin *UpdateOriginRequest, originID int, mediaType string) (*UpdateOriginResponse, error) {
-	request, err := c.BaseApiClient.BuildRequest("PUT", fmt.Sprintf("v2/mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, originID), origin, false)
+//UpdateOrigin -
+func (c *OriginAPIClient) UpdateOrigin(origin *UpdateOriginRequest, originID int, mediaType string) (*UpdateOriginResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest("PUT", fmt.Sprintf("v2/mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, originID), origin, false)
 	parsedResponse := &UpdateOriginResponse{}
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("UpdateOrigin: %v", err)
@@ -89,10 +102,11 @@ func (c *OriginApiClient) UpdateOrigin(origin *UpdateOriginRequest, originID int
 	return parsedResponse, nil
 }
 
-func (c *OriginApiClient) GetOrigin(id int, mediaType string) (*Origin, error) {
-	request, err := c.BaseApiClient.BuildRequest("GET", fmt.Sprintf("v2/mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, id), nil, false)
+//GetOrigin -
+func (c *OriginAPIClient) GetOrigin(id int, mediaType string) (*Origin, error) {
+	request, err := c.BaseAPIClient.BuildRequest("GET", fmt.Sprintf("v2/mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, id), nil, false)
 	parsedResponse := &Origin{}
-	_, err = c.BaseApiClient.SendRequest(request, &parsedResponse)
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
 		return nil, fmt.Errorf("GetOrigin: %v", err)
@@ -101,9 +115,10 @@ func (c *OriginApiClient) GetOrigin(id int, mediaType string) (*Origin, error) {
 	return parsedResponse, nil
 }
 
-func (c *OriginApiClient) DeleteOrigin(id int) error {
-	request, err := c.BaseApiClient.BuildRequest("DELETE", fmt.Sprintf("v2/mcc/customers/%s/origins/%d", c.AccountNumber, id), nil, false)
-	_, err = c.BaseApiClient.SendRequest(request, nil)
+//DeleteOrigin -
+func (c *OriginAPIClient) DeleteOrigin(id int) error {
+	request, err := c.BaseAPIClient.BuildRequest("DELETE", fmt.Sprintf("v2/mcc/customers/%s/origins/%d", c.AccountNumber, id), nil, false)
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
 
 	if err != nil {
 		return fmt.Errorf("DeleteOrigin: %v", err)

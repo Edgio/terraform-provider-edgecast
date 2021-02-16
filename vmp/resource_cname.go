@@ -21,26 +21,11 @@ func resourceCname() *schema.Resource {
 		DeleteContext: resourceCnameDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": {
-				Type:     schema.TypeString,
-				Optional: true,
-			},
-			"name": {
-				Type:     schema.TypeString,
-				Required: true,
-			},
-			"type": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"origin_id": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
-			"origin_type": {
-				Type:     schema.TypeInt,
-				Required: true,
-			},
+			"account_number": {Type: schema.TypeString, Optional: true},
+			"name":           {Type: schema.TypeString, Required: true},
+			"type":           {Type: schema.TypeInt, Required: true},
+			"origin_id":      {Type: schema.TypeInt, Required: true},
+			"origin_type":    {Type: schema.TypeInt, Required: true},
 		},
 	}
 }
@@ -48,22 +33,18 @@ func resourceCname() *schema.Resource {
 func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
 
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(accountNumber)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	config := m.(**api.ClientConfig)
 
 	addCnameRequest := &api.AddCnameRequest{
 		Name:        d.Get("name").(string),
-		MediaTypeId: d.Get("type").(int),
-		OriginId:    d.Get("origin_id").(int),
+		MediaTypeID: d.Get("type").(int),
+		OriginID:    d.Get("origin_id").(int),
 		OriginType:  d.Get("origin_type").(int),
 	}
 
 	log.Printf("[INFO] Creating CNAME for Account '%s': %+v", accountNumber, addCnameRequest)
 
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	cnameAPIClient := api.NewCnameAPIClient(*config)
 
 	resp, err := cnameAPIClient.AddCname(addCnameRequest)
 
@@ -71,21 +52,17 @@ func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Create successful - New CNAME ID: %d", resp.CnameId)
-	d.SetId(strconv.Itoa(resp.CnameId))
+	log.Printf("[INFO] Create successful - New CNAME ID: %d", resp.CnameID)
+	d.SetId(strconv.Itoa(resp.CnameID))
 
 	return resourceCnameRead(ctx, d, m)
 }
 
 func resourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+	config := m.(**api.ClientConfig)
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	cnameAPIClient := api.NewCnameAPIClient(*config)
 
 	cnameID, _ := strconv.Atoi(d.Id())
 
@@ -101,33 +78,29 @@ func resourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{
 	log.Printf("[INFO] Retrieved CNAME: %+v", resp)
 
 	d.Set("name", resp.Name)
-	d.Set("origin_id", resp.OriginId)
+	d.Set("origin_id", resp.OriginID)
 	d.Set("origin_string", resp.OriginString)
 
 	return diags
 }
 
 func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	config := m.(**api.ClientConfig)
 
 	updateCnameRequest := &api.UpdateCnameRequest{
 		Name:        d.Get("name").(string),
-		MediaTypeId: d.Get("type").(int),
-		OriginId:    d.Get("origin_id").(int),
+		MediaTypeID: d.Get("type").(int),
+		OriginID:    d.Get("origin_id").(int),
 		OriginType:  d.Get("origin_type").(int),
 	}
 
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	cnameAPIClient := api.NewCnameAPIClient(*config)
 
 	cnameID, _ := strconv.Atoi(d.Id())
 
 	log.Printf("[INFO] Updating CNAME ID=%d: %+v", cnameID, updateCnameRequest)
 
-	_, err = cnameAPIClient.UpdateCname(updateCnameRequest, cnameID)
+	_, err := cnameAPIClient.UpdateCname(updateCnameRequest, cnameID)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -138,17 +111,13 @@ func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 
 func resourceCnameDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	providerConfiguration, err := m.(*ProviderConfiguration).ApplyAccountNumberOverride(d.Get("account_number").(string))
+	config := m.(**api.ClientConfig)
 
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	cnameAPIClient := api.NewCnameApiClient(providerConfiguration.APIClient, providerConfiguration.AccountNumber)
+	cnameAPIClient := api.NewCnameAPIClient(*config)
 
 	cnameID, _ := strconv.Atoi(d.Id())
 
-	err = cnameAPIClient.DeleteCname(cnameID)
+	err := cnameAPIClient.DeleteCname(cnameID)
 
 	if err != nil {
 		return diag.FromErr(err)

@@ -6,6 +6,7 @@ import (
 	"context"
 	"strconv"
 	"terraform-provider-vmp/vmp/api"
+
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -43,9 +44,9 @@ func dataSourceCustomerServices() *schema.Resource {
 func dataSourceCustomerServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	resp, err := customerAPIClient.GetAvailableCustomerServices()
 
