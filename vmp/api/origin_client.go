@@ -79,6 +79,10 @@ func NewOriginAPIClient(config *ClientConfig) *OriginAPIClient {
 //AddOrigin -
 func (c *OriginAPIClient) AddOrigin(origin *AddOriginRequest, mediaType string) (*AddOriginResponse, error) {
 	request, err := c.BaseAPIClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/origins/%s", c.AccountNumber, mediaType), origin, false)
+	if err != nil {
+		return nil, fmt.Errorf("AddOrigin: %v", err)
+	}
+
 	parsedResponse := &AddOriginResponse{}
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
@@ -92,6 +96,10 @@ func (c *OriginAPIClient) AddOrigin(origin *AddOriginRequest, mediaType string) 
 //UpdateOrigin -
 func (c *OriginAPIClient) UpdateOrigin(origin *UpdateOriginRequest, originID int, mediaType string) (*UpdateOriginResponse, error) {
 	request, err := c.BaseAPIClient.BuildRequest("PUT", fmt.Sprintf("v2/mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, originID), origin, false)
+	if err != nil {
+		return nil, fmt.Errorf("UpdateOrigin: %v", err)
+	}
+
 	parsedResponse := &UpdateOriginResponse{}
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
@@ -105,6 +113,10 @@ func (c *OriginAPIClient) UpdateOrigin(origin *UpdateOriginRequest, originID int
 //GetOrigin -
 func (c *OriginAPIClient) GetOrigin(id int, mediaType string) (*Origin, error) {
 	request, err := c.BaseAPIClient.BuildRequest("GET", fmt.Sprintf("v2/mcc/customers/%s/origins/%s/%d", c.AccountNumber, mediaType, id), nil, false)
+	if err != nil {
+		return nil, fmt.Errorf("GetOrigin: %v", err)
+	}
+
 	parsedResponse := &Origin{}
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
@@ -118,6 +130,10 @@ func (c *OriginAPIClient) GetOrigin(id int, mediaType string) (*Origin, error) {
 //DeleteOrigin -
 func (c *OriginAPIClient) DeleteOrigin(id int) error {
 	request, err := c.BaseAPIClient.BuildRequest("DELETE", fmt.Sprintf("v2/mcc/customers/%s/origins/%d", c.AccountNumber, id), nil, false)
+	if err != nil {
+		return fmt.Errorf("DeleteOrigin: %v", err)
+	}
+
 	_, err = c.BaseAPIClient.SendRequest(request, nil)
 
 	if err != nil {

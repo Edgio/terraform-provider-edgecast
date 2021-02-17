@@ -4,7 +4,6 @@ package vmp
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"strconv"
 	"terraform-provider-vmp/vmp/api"
@@ -35,14 +34,17 @@ func resourceCustomerUser() *schema.Resource {
 			"email":      {Type: schema.TypeString, Optional: true},
 			"fax":        {Type: schema.TypeString, Optional: true},
 			"first_name": {Type: schema.TypeString, Optional: true},
-			// IsAdmin is a write-only field, so always ignore the diff
 			"is_admin": {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				// IsAdmin is a write-only field, so always ignore changes
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					return true
+					if len(old) > 0 {
+						// IsAdmin is a write-only field, so suppress the diff if being changed
+						return true
+					}
+					// if the resource is new, do not suppress
+					return false
 				},
 			},
 			"last_name":       {Type: schema.TypeString, Optional: true},
@@ -132,8 +134,7 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 	if isAdminOld.(bool) != isAdminNew.(bool) {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "is_admin is a write-only property; change will be ignored",
-			Detail:   fmt.Sprintf("please set is_admin back to %t in your configuration for vmp_customer_user id=%s", isAdminOld, d.Id()),
+			Summary:  "note: is_admin is a write-only property; modifications will be ignored",
 		})
 	}
 
