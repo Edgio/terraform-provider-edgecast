@@ -22,54 +22,54 @@ func resourceCustomer() *schema.Resource {
 		DeleteContext: resourceCustomerDelete,
 
 		Schema: map[string]*schema.Schema{
-			"company_name":                 &schema.Schema{Type: schema.TypeString, Required: true},
-			"status":                       &schema.Schema{Type: schema.TypeInt, Computed: true},
-			"service_level_code":           &schema.Schema{Type: schema.TypeString, Required: true},
-			"bandwidth_usage_limit":        &schema.Schema{Type: schema.TypeString, Optional: true, Default: "0"},
-			"data_transferred_usage_limit": &schema.Schema{Type: schema.TypeString, Optional: true, Default: "0"},
-			"account_id":                   &schema.Schema{Type: schema.TypeString, Optional: true},
-			"address1":                     &schema.Schema{Type: schema.TypeString, Optional: true},
-			"address2":                     &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_account_tag":          &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_address1":             &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_address2":             &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_city":                 &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_email":        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_fax":          &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_first_name":   &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_last_name":    &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_mobile":       &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_phone":        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_contact_title":        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_country":              &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_rate_info":            &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_state":                &schema.Schema{Type: schema.TypeString, Optional: true},
-			"billing_zip":                  &schema.Schema{Type: schema.TypeString, Optional: true},
-			"city":                         &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_email":                &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_fax":                  &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_first_name":           &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_last_name":            &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_mobile":               &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_phone":                &schema.Schema{Type: schema.TypeString, Optional: true},
-			"contact_title":                &schema.Schema{Type: schema.TypeString, Optional: true},
-			"country":                      &schema.Schema{Type: schema.TypeString, Optional: true},
-			"notes":                        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"state":                        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"website":                      &schema.Schema{Type: schema.TypeString, Optional: true},
-			"zip":                          &schema.Schema{Type: schema.TypeString, Optional: true},
-			"usage_limit_update_date":      &schema.Schema{Type: schema.TypeString, Computed: true},
-			"partner_id":                   &schema.Schema{Type: schema.TypeInt, Computed: true},
-			"partner_name":                 &schema.Schema{Type: schema.TypeString, Computed: true},
-			"wholesale_id":                 &schema.Schema{Type: schema.TypeInt, Computed: true},
-			"wholesale_name":               &schema.Schema{Type: schema.TypeString, Computed: true},
-			"delivery_region":              &schema.Schema{Type: schema.TypeInt, Optional: true},
-			"services": &schema.Schema{
+			"company_name":                 {Type: schema.TypeString, Required: true},
+			"status":                       {Type: schema.TypeInt, Computed: true},
+			"service_level_code":           {Type: schema.TypeString, Required: true},
+			"bandwidth_usage_limit":        {Type: schema.TypeString, Optional: true, Default: "0"},
+			"data_transferred_usage_limit": {Type: schema.TypeString, Optional: true, Default: "0"},
+			"account_id":                   {Type: schema.TypeString, Optional: true},
+			"address1":                     {Type: schema.TypeString, Optional: true},
+			"address2":                     {Type: schema.TypeString, Optional: true},
+			"billing_account_tag":          {Type: schema.TypeString, Optional: true},
+			"billing_address1":             {Type: schema.TypeString, Optional: true},
+			"billing_address2":             {Type: schema.TypeString, Optional: true},
+			"billing_city":                 {Type: schema.TypeString, Optional: true},
+			"billing_contact_email":        {Type: schema.TypeString, Optional: true},
+			"billing_contact_fax":          {Type: schema.TypeString, Optional: true},
+			"billing_contact_first_name":   {Type: schema.TypeString, Optional: true},
+			"billing_contact_last_name":    {Type: schema.TypeString, Optional: true},
+			"billing_contact_mobile":       {Type: schema.TypeString, Optional: true},
+			"billing_contact_phone":        {Type: schema.TypeString, Optional: true},
+			"billing_contact_title":        {Type: schema.TypeString, Optional: true},
+			"billing_country":              {Type: schema.TypeString, Optional: true},
+			"billing_rate_info":            {Type: schema.TypeString, Optional: true},
+			"billing_state":                {Type: schema.TypeString, Optional: true},
+			"billing_zip":                  {Type: schema.TypeString, Optional: true},
+			"city":                         {Type: schema.TypeString, Optional: true},
+			"contact_email":                {Type: schema.TypeString, Optional: true},
+			"contact_fax":                  {Type: schema.TypeString, Optional: true},
+			"contact_first_name":           {Type: schema.TypeString, Optional: true},
+			"contact_last_name":            {Type: schema.TypeString, Optional: true},
+			"contact_mobile":               {Type: schema.TypeString, Optional: true},
+			"contact_phone":                {Type: schema.TypeString, Optional: true},
+			"contact_title":                {Type: schema.TypeString, Optional: true},
+			"country":                      {Type: schema.TypeString, Optional: true},
+			"notes":                        {Type: schema.TypeString, Optional: true},
+			"state":                        {Type: schema.TypeString, Optional: true},
+			"website":                      {Type: schema.TypeString, Optional: true},
+			"zip":                          {Type: schema.TypeString, Optional: true},
+			"usage_limit_update_date":      {Type: schema.TypeString, Computed: true},
+			"partner_id":                   {Type: schema.TypeInt, Computed: true},
+			"partner_name":                 {Type: schema.TypeString, Computed: true},
+			"wholesale_id":                 {Type: schema.TypeInt, Computed: true},
+			"wholesale_name":               {Type: schema.TypeString, Computed: true},
+			"delivery_region":              {Type: schema.TypeInt, Optional: true},
+			"services": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
 			},
-			"access_modules": &schema.Schema{
+			"access_modules": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
@@ -144,7 +144,7 @@ func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate,
 }
 
 func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
 	payload, err := getCustomerCreateUpdate(d)
 
@@ -152,7 +152,7 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	accountNumber, err := customerAPIClient.AddCustomer(payload)
 
@@ -205,9 +205,9 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	accountNumber := d.Id()
 
@@ -320,9 +320,9 @@ func resourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func resourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	customerAPIClient := api.NewCustomerAPIClient(config.APIClient, config.PartnerUserID, config.PartnerID)
+	customerAPIClient := api.NewCustomerAPIClient(*config)
 
 	accountNumber := d.Id()
 	err := customerAPIClient.DeleteCustomer(accountNumber)

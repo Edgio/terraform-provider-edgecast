@@ -8,15 +8,17 @@ import (
 
 // UserAPIClient interacts with the Verizon Media API
 type UserAPIClient struct {
-	BaseAPIClient *ApiClient
-	PartnerID     *int
+	Config        *ClientConfig
+	BaseAPIClient *BaseClient
+	PartnerID     int
 }
 
 // NewUserAPIClient -
-func NewUserAPIClient(baseAPIClient *ApiClient, partnerID *int) *UserAPIClient {
+func NewUserAPIClient(config *ClientConfig) *UserAPIClient {
 	return &UserAPIClient{
-		BaseAPIClient: baseAPIClient,
-		PartnerID:     partnerID,
+		Config:        config,
+		BaseAPIClient: config.BaseClient,
+		PartnerID:     config.PartnerID,
 	}
 }
 
@@ -43,83 +45,91 @@ type CustomerUser struct {
 }
 
 // GetCustomerUser -
-func (apiClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUserID int) (*CustomerUser, error) {
+func (APIClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUserID int) (*CustomerUser, error) {
 	// TODO: support custom id types, not just Hex ID ANs
-	baseURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s", customerUserID, accountNumber)
-	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("v2/pcc/customers/users/%d?idtype=an&id=%s", customerUserID, accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, APIClient.PartnerID)
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
-	InfoLogger.Printf("GetCustomerUser [GET] Url: %s\n", request.URL)
+	request, err := APIClient.BaseAPIClient.BuildRequest("GET", relURL, nil, false)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomerUser: %v", err)
 	}
 
 	parsedResponse := &CustomerUser{}
 
-	_, err = apiClient.BaseAPIClient.SendRequest(request, &parsedResponse)
+	_, err = APIClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("GetCustomerUser: %v", err)
 	}
 
 	return parsedResponse, nil
 }
 
 // AddCustomerUser -
-func (apiClient *UserAPIClient) AddCustomerUser(accountNumber string, body *CustomerUser) (int, error) {
+func (APIClient *UserAPIClient) AddCustomerUser(accountNumber string, body *CustomerUser) (int, error) {
 	// TODO: support custom id types, not just Hex ID ANs
-	baseURL := fmt.Sprintf("pcc/customers/users?idtype=an&id=%s", accountNumber)
-	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("v2/pcc/customers/users?idtype=an&id=%s", accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, APIClient.PartnerID)
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)
-	InfoLogger.Printf("AddCustomerUser [POST] Url: %s\n", request.URL)
+	request, err := APIClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)
+
+	if err != nil {
+		return 0, fmt.Errorf("AddCustomerUser: %v", err)
+	}
 
 	parsedResponse := &struct {
 		CustomerUserID int `json:"CustomerUserId"`
 	}{}
 
-	_, err = apiClient.BaseAPIClient.SendRequest(request, &parsedResponse)
+	_, err = APIClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("AddCustomerUser: %v", err)
 	}
 
-	return parsedResponse.CustomerUserID, err
+	return parsedResponse.CustomerUserID, nil
 }
 
 // UpdateCustomerUser -
-func (apiClient *UserAPIClient) UpdateCustomerUser(accountNumber string, customerUserID int, body *CustomerUser) error {
+func (APIClient *UserAPIClient) UpdateCustomerUser(accountNumber string, customerUserID int, body *CustomerUser) error {
 	// TODO: support custom ids for accounts
-	baseURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s", customerUserID, accountNumber)
-	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("v2/pcc/customers/users/%d?idtype=an&id=%s", customerUserID, accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, APIClient.PartnerID)
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
-	InfoLogger.Printf("UpdateCustomerUser [PUT] Url: %s\n", request.URL)
+	request, err := APIClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("UpdateCustomerUser: %v", err)
 	}
 
-	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
+	_, err = APIClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("UpdateCustomerUser: %v", err)
+	}
+
+	return nil
 }
 
 // DeleteCustomerUser -
-func (apiClient *UserAPIClient) DeleteCustomerUser(accountNumber string, customerUserID int) error {
+func (APIClient *UserAPIClient) DeleteCustomerUser(accountNumber string, customerUserID int) error {
 	// TODO: support custom ids for accounts
-	baseURL := fmt.Sprintf("pcc/customers/users/%d?idtype=an&id=%s", customerUserID, accountNumber)
-	relURL := FormatURLAddPartnerID(baseURL, apiClient.PartnerID)
+	baseURL := fmt.Sprintf("v2/pcc/customers/users/%d?idtype=an&id=%s", customerUserID, accountNumber)
+	relURL := FormatURLAddPartnerID(baseURL, APIClient.PartnerID)
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil, false)
-	InfoLogger.Printf("DeleteCustomerUser [DELETE] Url: %s\n", request.URL)
+	request, err := APIClient.BaseAPIClient.BuildRequest("DELETE", relURL, nil, false)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("DeleteCustomerUser: %v", err)
 	}
 
-	_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
+	_, err = APIClient.BaseAPIClient.SendRequest(request, nil)
 
-	return err
+	if err != nil {
+		return fmt.Errorf("DeleteCustomerUser: %v", err)
+	}
+
+	return nil
 }

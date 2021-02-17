@@ -4,7 +4,7 @@ package vmp
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"strconv"
 	"terraform-provider-vmp/vmp/api"
 
@@ -21,49 +21,63 @@ func resourceCustomerUser() *schema.Resource {
 		DeleteContext: resourceCustomerUserDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": &schema.Schema{
+			"account_number": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
-			"address1":        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"address2":        &schema.Schema{Type: schema.TypeString, Optional: true},
-			"city":            &schema.Schema{Type: schema.TypeString, Optional: true},
-			"country":         &schema.Schema{Type: schema.TypeString, Optional: true},
-			"custom_id":       &schema.Schema{Type: schema.TypeString, Computed: true},
-			"email":           &schema.Schema{Type: schema.TypeString, Optional: true},
-			"fax":             &schema.Schema{Type: schema.TypeString, Optional: true},
-			"first_name":      &schema.Schema{Type: schema.TypeString, Optional: true},
-			"is_admin":        &schema.Schema{Type: schema.TypeBool, Optional: true, Default: false},
-			"last_name":       &schema.Schema{Type: schema.TypeString, Optional: true},
-			"mobile":          &schema.Schema{Type: schema.TypeString, Optional: true},
-			"password":        &schema.Schema{Type: schema.TypeString, Optional: true, Sensitive: true},
-			"phone":           &schema.Schema{Type: schema.TypeString, Optional: true},
-			"state":           &schema.Schema{Type: schema.TypeString, Optional: true},
-			"time_zone_id":    &schema.Schema{Type: schema.TypeInt, Optional: true},
-			"title":           &schema.Schema{Type: schema.TypeString, Optional: true},
-			"zip":             &schema.Schema{Type: schema.TypeString, Optional: true},
-			"last_login_date": &schema.Schema{Type: schema.TypeString, Computed: true},
+			"address1":   {Type: schema.TypeString, Optional: true},
+			"address2":   {Type: schema.TypeString, Optional: true},
+			"city":       {Type: schema.TypeString, Optional: true},
+			"country":    {Type: schema.TypeString, Optional: true},
+			"custom_id":  {Type: schema.TypeString, Computed: true},
+			"email":      {Type: schema.TypeString, Optional: true},
+			"fax":        {Type: schema.TypeString, Optional: true},
+			"first_name": {Type: schema.TypeString, Optional: true},
+			"is_admin": {
+				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  false,
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if len(old) > 0 {
+						// IsAdmin is a write-only field, so suppress the diff if being changed
+						return true
+					}
+					// if the resource is new, do not suppress
+					return false
+				},
+			},
+			"last_name":       {Type: schema.TypeString, Optional: true},
+			"mobile":          {Type: schema.TypeString, Optional: true},
+			"phone":           {Type: schema.TypeString, Optional: true},
+			"state":           {Type: schema.TypeString, Optional: true},
+			"time_zone_id":    {Type: schema.TypeInt, Optional: true},
+			"title":           {Type: schema.TypeString, Optional: true},
+			"zip":             {Type: schema.TypeString, Optional: true},
+			"last_login_date": {Type: schema.TypeString, Computed: true},
 		},
 	}
 }
 
 func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	payload := getCustomerUserFromData(d)
+	customerUser := getCustomerUserFromData(d)
 
 	accountNumber := d.Get("account_number").(string)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	log.Printf("[INFO] Creating user for Account %s", accountNumber)
 
-	customerUserID, err := apiClient.AddCustomerUser(accountNumber, payload)
+	apiClient := api.NewUserAPIClient(*config)
+
+	customerUserID, err := apiClient.AddCustomerUser(accountNumber, customerUser)
 
 	if err != nil {
-		// Terraform requires an empty ID for failed creation
 		d.SetId("")
 		return diag.FromErr(err)
 	}
+
+	log.Printf("[INFO] Successfully created user, ID=%d", customerUserID)
 
 	d.SetId(strconv.Itoa(customerUserID))
 
@@ -71,20 +85,22 @@ func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 }
 
 func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
-	payload := getCustomerUserFromData(d)
+	customerUser := getCustomerUserFromData(d)
 	accountNumber := d.Get("account_number").(string)
 	customerUserID, err := strconv.Atoi(d.Id())
+
+	log.Printf("[INFO] Updating Customer User %d for Account %s", customerUserID, accountNumber)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	err = apiClient.UpdateCustomerUser(accountNumber, customerUserID, payload)
+	err = apiClient.UpdateCustomerUser(accountNumber, customerUserID, customerUser)
 
 	if err != nil {
 		d.SetId("")
@@ -97,9 +113,9 @@ func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
 	customerUserID, err := strconv.Atoi(d.Id())
 
@@ -110,6 +126,7 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 
 	accountNumber := d.Get("account_number").(string)
 
+	log.Printf("[INFO] Retreiving Customer User %d for Account %s", customerUserID, accountNumber)
 	resp, err := apiClient.GetCustomerUser(accountNumber, customerUserID)
 
 	isAdminOld, isAdminNew := d.GetChange("is_admin")
@@ -117,8 +134,7 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 	if isAdminOld.(bool) != isAdminNew.(bool) {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "is_admin is a write-only property",
-			Detail:   fmt.Sprintf("please set is_admin back to %t in your configuration for vmp_customer_user id=%s", isAdminOld, d.Id()),
+			Summary:  "note: is_admin is a write-only property; modifications will be ignored",
 		})
 	}
 
@@ -151,9 +167,9 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 
 func resourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(*ProviderConfiguration)
+	config := m.(**api.ClientConfig)
 
-	apiClient := api.NewUserAPIClient(config.APIClient, config.PartnerID)
+	apiClient := api.NewUserAPIClient(*config)
 
 	accountNumber := d.Get("account_number").(string)
 	customerUserID, err := strconv.Atoi(d.Id())
@@ -162,6 +178,7 @@ func resourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
+	log.Printf("[INFO] Deleting Customer User %d for Account %s", customerUserID, accountNumber)
 	err = apiClient.DeleteCustomerUser(accountNumber, customerUserID)
 
 	if err != nil {
@@ -182,14 +199,7 @@ func getCustomerUserFromData(d *schema.ResourceData) *api.CustomerUser {
 		}
 	}
 
-	// Go does not support nullable primitives, need to assign these as pointers
-	var password *string
 	var timeZoneID *int
-
-	if attr, ok := d.GetOk("password"); ok && len(attr.(string)) > 0 {
-		p := attr.(string)
-		password = &p
-	}
 
 	if attr, ok := d.GetOk("time_zone_id"); ok {
 		t := attr.(int)
@@ -207,7 +217,6 @@ func getCustomerUserFromData(d *schema.ResourceData) *api.CustomerUser {
 		IsAdmin:    isAdmin,
 		LastName:   d.Get("last_name").(string),
 		Mobile:     d.Get("mobile").(string),
-		Password:   password,
 		Phone:      d.Get("phone").(string),
 		State:      d.Get("state").(string),
 		TimeZoneID: timeZoneID,

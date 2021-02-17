@@ -33,3 +33,18 @@ func IntArrayDiff(set1 []int, set2 []int) []int {
 
 	return diff
 }
+
+// InterfaceArrayToStringArray converts []interface{} to []string. Note that this only works if the underlying items are strings.
+func InterfaceArrayToStringArray(interfaces []interface{}) ([]string, bool) {
+	strings := make([]string, len(interfaces))
+
+	for i, v := range interfaces {
+		if s, ok := v.(string); ok {
+			strings[i] = s
+		} else {
+			return nil, false
+		}
+	}
+
+	return strings, true
+}

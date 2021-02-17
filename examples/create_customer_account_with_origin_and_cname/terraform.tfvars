@@ -1,12 +1,15 @@
-#Please update data in <> in order to run your terraform
-partner_info = {
-    #for pointing to staging environment, leave null to default to production
+# Provides values the variables used in main.tf
+
+# Use the credentials provided to you by Verizon Media
+credentials = {
+    api_token = "<API Token>"
+    ids_client_secret = "<Client Secret>"
+    ids_client_id = "<Client ID>"
+    ids_scope = "<Scopes>"
+
+    # for internal testing
     api_address = null
-    # You must provide either an API Token or IDS credentials, but not both
-    api_token = null
-    ids_client_secret = null
-    ids_client_id = null
-    ids_scope = null
+    ids_address = null
 }
 
 new_customer_info = {
@@ -20,18 +23,18 @@ new_customer_info = {
 }
 
 new_admin_user = {
-    first_name = "<first_name>"
-    last_name = "<last_name>"
-    email = "<admin_email_address>"
+    first_name = "<Admin First Name>"
+    last_name = "<Admin Last Name>"
+    email = "<Admin Email>"
     is_admin = true
 }
 
 origin_info = {
-    origins = ["<comma separated origin URL"] #e.g. "http://dev-images-customer-origin30-1.mysite.com","http://dev-images-customer-origin31-1.mysite.com"]
+    origins = ["<comma separated origin URLs>"] #e.g. "http://dev-images-customer-origin30-1.mysite.com","http://dev-images-customer-origin31-1.mysite.com"
     load_balancing = "RR" #Round Robin
-    host_header = "<host_header_url>" #e.g. dev-images18.mysite.com
-    directory_name = "<directory_name>" #e.g. image18
-    media_type = "<media_type>" # available options: httplage, httpSmall, adn
+    host_header = "<host header url>" #e.g. dev-images18.mysite.com
+    directory_name = "<directory name>" #e.g. image18
+    media_type = "<media type>" # available options: httplarge, httpSmall, adn
 }
 
 cname_info =  {

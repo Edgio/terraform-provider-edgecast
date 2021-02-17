@@ -1,0 +1,22 @@
+{
+    "name": "test policy-02152021-3",
+    "description": "This is a test policy of PolicyCreate.",
+    "platform": "adn",
+    "rules": [
+        {
+            "name": "rule1",
+            "description": "This is a test rule3.",
+            "matches": [
+                {
+                    "type": "match.always",
+                    "features": [
+                        {
+                            "type": "feature.comment",
+                            "value": "test1"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

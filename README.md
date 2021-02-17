@@ -27,6 +27,10 @@ This provider is automatically installed when you run `terraform init` on a Terr
 ### Building The Provider
 Follow the instructions to [install it as a plugin.](https://`www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
 
+## Logging
+- export TF_LOG=TRACE
+- export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
+
 ## Usage
 Running `terraform init` will automatically download and install the plugin for your use as long as your terraform configuration references the provider like so:
 
@@ -37,7 +41,9 @@ provider "vmp" {
 	api_token = "xxx"
 	
 	# OR your IDS credentials provided by Verizon Media
-	ids_client_secret = "xxx"	ids_client_id = "xxx"	ids_scope = "scope1 scope2"
+	ids_client_secret = "xxx"
+	ids_client_id = "xxx"
+	ids_scope = "scope1 scope2"
 }
 ```
 **Note for Verizon Media internal users:** you must also specify `partner_id` and `partner_user_id` in addition to your credentials.
@@ -94,7 +100,15 @@ resource "vmp_cname" "images" {
 
 ### Variable File Usage
 ```terraform
-partner_info = {    #for pointing to staging environment, leave null to default to production    api_address = null    # You must provide either an API Token or IDS credentials, but not both    api_token = null    ids_client_secret = null    ids_client_id = null    ids_scope = null}
+partner_info = {
+    #for pointing to staging environment, leave null to default to production
+    api_address = null
+    # You must provide either an API Token or IDS credentials, but not both
+    api_token = null
+    ids_client_secret = null
+    ids_client_id = null
+    ids_scope = null
+}
 
 new_customer_info = {
     company_name = "Terraform test customer demo15" #Customer Name
