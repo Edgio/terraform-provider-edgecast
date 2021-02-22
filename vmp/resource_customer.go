@@ -206,10 +206,11 @@ func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
+	accountNumber := d.Id()
+	fmt.Printf("GetCustomer>>[CustomerID]:%s", accountNumber)
+	(*config).AccountNumber = accountNumber
 
 	customerAPIClient := api.NewCustomerAPIClient(*config)
-
-	accountNumber := d.Id()
 
 	resp, err := customerAPIClient.GetCustomer(accountNumber)
 
@@ -321,10 +322,11 @@ func resourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m inter
 func resourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
+	accountNumber := d.Id()
+	(*config).AccountNumber = accountNumber
 
 	customerAPIClient := api.NewCustomerAPIClient(*config)
 
-	accountNumber := d.Id()
 	err := customerAPIClient.DeleteCustomer(accountNumber)
 
 	if err != nil {

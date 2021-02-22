@@ -18,3 +18,4 @@ test_customer_info = {
 
 # Valid values are "production" and "staging"
 rulesEngineEnvironment = "staging"
+policy = null

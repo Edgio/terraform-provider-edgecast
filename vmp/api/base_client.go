@@ -38,6 +38,8 @@ type ClientConfig struct {
 	IdsClientID     string
 	IdsClientSecret string
 	IdsScope        string
+	IdsAddress      string
+	APIAddress      string
 	APIURL          *url.URL
 	IdsURL          *url.URL
 	PartnerID       int
@@ -56,6 +58,8 @@ func NewClientConfig(apiToken string, accountNumber string, idsClientID string, 
 		PartnerID:       0,
 		PartnerUserID:   0,
 		BaseClient:      nil,
+		IdsAddress:      idsURL,
+		APIAddress:      apiURL,
 	}
 	var err error
 	log.Printf("idsaddress from main.tf: %s", idsURL)

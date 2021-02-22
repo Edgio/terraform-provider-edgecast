@@ -13,7 +13,7 @@ terraform {
 # Variables
 ##########################################
 
-variable "credentials" {
+variable credentials {
   type = object ({
     api_token = string
     ids_client_secret = string
@@ -24,11 +24,11 @@ variable "credentials" {
   })
 }
 
-variable "rulesEngineEnvironment" {
+variable rulesEngineEnvironment {
   type = string
 }
 
-variable "test_customer_info" {
+variable test_customer_info {
   type = object({
     account_number = string
     customeruserid = string
@@ -40,7 +40,10 @@ variable "test_customer_info" {
     portaltypeid = "1"
   }
 }
-
+variable policy {
+  type = string
+  default = null
+}
 ##########################################
 # Providers
 ##########################################
@@ -52,14 +55,13 @@ provider "vmp" {
     ids_scope = var.credentials.ids_scope
     ids_address = var.credentials.ids_address
     api_address = var.credentials.api_address
-    account_number = var.test_customer_info.account_number
 }
 
 ##########################################
 # Resources
 ##########################################
 resource "vmp_rules_engine_policy" "httplarge_policy"{
-  policy = file("httplarge-policy.json")
+  policy = var.policy != null ? var.policy : file("httplarge-policy.json")
   deploy_to = var.rulesEngineEnvironment
 
   account_number = var.test_customer_info.account_number

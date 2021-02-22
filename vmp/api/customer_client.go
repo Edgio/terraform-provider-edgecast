@@ -16,7 +16,7 @@ type CustomerAPIClient struct {
 
 // CustomerCreateUpdate represents a request to add a new customer
 type CustomerCreateUpdate struct {
-	AccountID                 string // Ignored when Updating
+	AccountID                 string `json:"AccountId,omitempty"` // Ignored when Updating
 	Address1                  string
 	Address2                  string
 	BandwidthUsageLimit       int64
@@ -92,8 +92,8 @@ func (apiClient *CustomerAPIClient) AddCustomer(body *CustomerCreateUpdate) (str
 
 // GetCustomerResponse -
 type GetCustomerResponse struct {
-	ID                        int32
-	CustomID                  string
+	ID                        int32  `json:"Id,omitempty"`
+	CustomID                  string `json:"CustomerId,omitempty"`
 	HexID                     string
 	Address1                  string
 	Address2                  string
@@ -131,9 +131,9 @@ type GetCustomerResponse struct {
 	Status                    int8
 	Website                   string
 	ZIP                       string
-	PartnerID                 int
+	PartnerID                 int `json:"PartnerId,omitempty"`
 	PartnerName               string
-	WholesaleID               int
+	WholesaleID               int `json:"WholesaleId,omitempty"`
 	WholesaleName             string
 }
 
@@ -186,9 +186,9 @@ func (apiClient *CustomerAPIClient) GetCustomerAccessModules(accountNumber strin
 
 // Service -
 type Service struct {
-	ID       int
+	ID       int `json:"Id,omitempty"`
 	Name     string
-	ParentID int
+	ParentID int `json:"parentId,omitempty"`
 	Status   int8
 }
 

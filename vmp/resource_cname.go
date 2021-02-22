@@ -32,8 +32,8 @@ func resourceCname() *schema.Resource {
 
 func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
-
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
 
 	addCnameRequest := &api.AddCnameRequest{
 		Name:        d.Get("name").(string),
@@ -60,7 +60,9 @@ func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interfac
 
 func resourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
 
 	cnameAPIClient := api.NewCnameAPIClient(*config)
 
@@ -85,7 +87,9 @@ func resourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{
 }
 
 func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
 
 	updateCnameRequest := &api.UpdateCnameRequest{
 		Name:        d.Get("name").(string),
@@ -111,7 +115,9 @@ func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 
 func resourceCnameDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
 
 	cnameAPIClient := api.NewCnameAPIClient(*config)
 

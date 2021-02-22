@@ -80,7 +80,7 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
-
+	(*config).AccountNumber = d.Get("account_number").(string)
 	portalTypeID := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
 	customerUserID := d.Get("customeruserid").(string)
 	policyID, _ := strconv.Atoi(d.Id())
