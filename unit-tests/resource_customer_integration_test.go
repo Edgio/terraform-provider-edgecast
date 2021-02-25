@@ -18,12 +18,12 @@ var tcCustomer = map[string]ResourceNewCustomer{
 			accessmodules:    []int{1, 4, 5, 7, 8, 21, 22, 25, 26, 27, 29, 30, 32, 40, 46, 53, 56, 71, 72, 73, 74, 75, 76, 77, 78, 79, 81, 138, 139, 140, 144, 145, 146, 149, 153, 157, 159, 160, 161, 162, 163, 164, 166, 168, 169, 170, 171, 172, 174, 175, 176, 177, 178, 179, 180, 182, 183, 184, 185, 186, 187, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 204, 386, 387, 409, 410, 411, 412, 413, 414, 415, 416, 479, 501, 502},
 		},
 		credential: Credentials{
-			apitoken:        "AULdReDoB3gb0D7LNTx857NQvrcIKyvL",
-			idsclientsecret: "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk",
-			idsclientID:     "31ef8e8f-0120-4112-8554-3eb11e83d58b",
-			idsscope:        "ec.rules",
-			apiaddress:      "http://dev-api.edgecast.com",
-			idsaddress:      "https://id-dev.vdms.io",
+			apitoken:        "<apitoken>",
+			idsclientsecret: "<idsclientsecret>",
+			idsclientID:     "<idssclientID>",
+			idsscope:        "<scope>",
+			apiaddress:      "<apiUrl>",
+			idsaddress:      "<idsaddress>",
 		},
 	},
 }

@@ -9,13 +9,12 @@ import (
 )
 
 func TestClientConfig(t *testing.T) {
-	apiToken := "<apiToken>"
-	accountNumber := "C1B6"
-	idsClientID := "<idsClientID>"
-	idsClientSecret := "<idsClientSecret>"
-	idsScope := "<idsScope>"
-	apiURL := "http://dev-api.edgecast.com"
-	idsURL := "id-dev.vdms.io"
+	apitoken:        "<apitoken>",
+	idsclientsecret: "<idsclientsecret>",
+	idsclientID:     "<idssclientID>",
+	idsscope:        "<scope>",
+	apiaddress:      "<apiUrl>",
+	idsaddress:      "<idsaddress>",
 
 	myConfig, err := api.NewClientConfig(apiToken, accountNumber, idsClientID, idsClientSecret, idsScope, apiURL, idsURL)
 
