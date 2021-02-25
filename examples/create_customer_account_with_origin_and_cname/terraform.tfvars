@@ -2,18 +2,18 @@
 
 # Use the credentials provided to you by Verizon Media
 credentials = {
-    api_token = "AULdReDoB3gb0D7LNTx857NQvrcIKyvL"
-    ids_client_secret = "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk"
-    ids_client_id = "31ef8e8f-0120-4112-8554-3eb11e83d58b"
-    ids_scope = "ec.rules"
+    api_token = "<API Token>"
+    ids_client_secret = "<Client Secret>"
+    ids_client_id = "<Client ID>"
+    ids_scope = "<Scopes>"
 
     # for internal testing
-    api_address = "http://dev-api.edgecast.com"
-    ids_address = "https://id-dev.vdms.io"
+    api_address = null
+    ids_address = null
 }
 
 new_customer_info = {
-    company_name = "Terraform test customer02192021-4"
+    company_name = "<Customer Name>"
     service_level_code = "STND"
     #all available services=> 1:HTTP Large Object,2:HTTPS Large Object,3:HTTP Small Object,4:HTTPS Small Object,6:Windows,7:Advanced Reports,8:Real-Time Stats,9:Token Auth,10:Edge Performance Analytics,15:Origin Storage,16:RSYNC,19:ADN,20:Download Manager,21:ADNS,22:Dedicated Hosting,23:Edge Optimizer,25:DNS Route,26:DNS Zones,29:DNS Health Checks,31:Bandwidth By Report Code,32:DNS-Standard,33:DNS-Adaptive,34:DNS-APR,38:WAF,39:Analysis Engine,40:HTTP Rate Limiting,41:Basic Rules v4.0,42:Advanced Rules v4.0,43:Mobile Device Detection Rules v4.0,44:Rules Engine v4.0,47:Translate,48:Dynamic Cloud Packaging,49:Encrypted HLS,50:Origin Shield,51:Reports and Logs,52:Log Delivery,54:SSA,56:Encrypted Key Rotation,57:Real-Time Log Delivery,58:Report Builder,59:Dynamic Imaging,60:China Delivery,61:WAF Essential,62:Report Builder Users,63:Report Builder Rows,64:Report Builder Reports,65:Edge Functions,66:Certificate Provisioning,67:Edge-Insights,68:Edge Image Optimizer,69:Url Redirects,70:Azure Cloud Storage
     services = [1,9,15,19]
@@ -23,22 +23,22 @@ new_customer_info = {
 }
 
 new_admin_user = {
-    first_name = "FirstAdmin1"
-    last_name = "LastAdmin1"
-    email = "admin.email02192021-4@test.com"
+    first_name = "<Admin First Name>"
+    last_name = "<Admin Last Name>"
+    email = "<Admin Email>"
     is_admin = true
 }
 
 origin_info = {
-    origins = ["http://dev-images-customer-origin02192021-5.mysite.com","http://dev-images-customer-origin02192021-6.mysite.com"] #e.g. "http://dev-images-customer-origin30-1.mysite.com","http://dev-images-customer-origin31-1.mysite.com"
+    origins = ["<comma separated origin URLs>"] #e.g. "http://dev-images-customer-origin30-1.mysite.com","http://dev-images-customer-origin31-1.mysite.com"
     load_balancing = "RR" #Round Robin
-    host_header = "dev-images02192021-4.mysite.com" #e.g. dev-images18.mysite.com
-    directory_name = "image02192021-4" #e.g. image18
-    media_type = "httplarge" # available options: httplarge, httpSmall, adn
+    host_header = "<host header url>" #e.g. dev-images18.mysite.com
+    directory_name = "<directory name>" #e.g. image18
+    media_type = "<media type>" # available options: httplarge, httpSmall, adn
 }
 
 cname_info =  {
-    cname = "dev-images-customer-origin002192021-4-update.edgec4tz.com" #e.g. dev-images-customer-origin18-update.edgec4tz.com
+    cname = "<cname_url>" #e.g. dev-images-customer-origin18-update.edgec4tz.com
     type = 3
     origin_type = 80
 }
