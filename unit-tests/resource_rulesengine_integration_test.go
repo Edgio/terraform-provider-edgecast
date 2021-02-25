@@ -40,12 +40,12 @@ var tsRulesEngine = map[string]ResourceREV4{
                 `,
 		rulesEngineEnvironment: "staging",
 		credentials: Credentials{
-			apitoken:        "",
-			idsclientsecret: "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk",
-			idsclientID:     "31ef8e8f-0120-4112-8554-3eb11e83d58b",
-			idsscope:        "ec.rules",
-			apiaddress:      "http://dev-api.edgecast.com",
-			idsaddress:      "https://id-dev.vdms.io",
+			apitoken:        "<apitoken>",
+			idsclientsecret: "<idsclientsecret>",
+			idsclientID:     "<idssclientID>",
+			idsscope:        "<scope>",
+			apiaddress:      "<apiUrl>",
+			idsaddress:      "<idsaddress>",
 		},
 		testcustomerinfo: CustomerInfo{
 			accountnumber:  "C1B6",
