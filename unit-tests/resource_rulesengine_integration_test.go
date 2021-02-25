@@ -11,28 +11,8 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-type ResourceREV4 struct {
-	policy                 string
-	rulesEngineEnvironment string
-	credentials            Credentials
-	testcustomerinfo       TestCustomerInfo
-}
-type Credentials struct {
-	apitoken        string
-	idsclientsecret string
-	idsclientID     string
-	idsscope        string
-	apiaddress      string
-	idsaddress      string
-}
-type TestCustomerInfo struct {
-	accountnumber  string
-	customeruserID string
-	portaltypeID   int
-}
-
 // Test cases for storage account name conversion logic
-var testCases = map[string]ResourceREV4{
+var tsRulesEngine = map[string]ResourceREV4{
 	"terratest.testing.vmp.rulesengine": {
 		policy: `
 		        {
@@ -67,7 +47,7 @@ var testCases = map[string]ResourceREV4{
 			apiaddress:      "http://dev-api.edgecast.com",
 			idsaddress:      "https://id-dev.vdms.io",
 		},
-		testcustomerinfo: TestCustomerInfo{
+		testcustomerinfo: CustomerInfo{
 			accountnumber:  "C1B6",
 			customeruserID: "133172",
 			portaltypeID:   1,
@@ -78,10 +58,10 @@ var testCases = map[string]ResourceREV4{
 func TestUT_RulesEngine_basic(t *testing.T) {
 	t.Parallel()
 
-	for expected, input := range testCases {
+	for expected, input := range tsRulesEngine {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/rulesengine",
+			TerraformDir: "../examples/resource_rulesengine",
 			Vars: map[string]interface{}{
 				"policy": strings.Replace(input.policy, "$UUID$", uuid.New().String(), -1),
 				"test_customer_info": map[string]interface{}{
