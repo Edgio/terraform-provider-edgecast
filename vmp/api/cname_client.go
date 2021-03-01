@@ -19,7 +19,7 @@ type Cname struct {
 	Name                string
 	DirPath             string
 	EnableCustomReports int
-	OriginID            int
+	OriginID            int `json:"OriginId,omitempty"`
 	OriginString        string
 }
 
@@ -28,8 +28,8 @@ type AddCnameRequest struct {
 	Name                string
 	DirPath             string
 	EnableCustomReports int
-	MediaTypeID         int
-	OriginID            int
+	MediaTypeID         int `json:"MediaTypeId,omitempty"`
+	OriginID            int `json:"OriginId,omitempty"`
 	OriginType          int
 }
 
@@ -43,14 +43,14 @@ type UpdateCnameRequest struct {
 	Name                string
 	DirPath             string
 	EnableCustomReports int
-	MediaTypeID         int
-	OriginID            int
+	MediaTypeID         int `json:"MediaTypeId,omitempty"`
+	OriginID            int `json:"OriginId,omitempty"`
 	OriginType          int
 }
 
 //UpdateCnameResponse -
 type UpdateCnameResponse struct {
-	CnameID int
+	CnameID int `json:"CnameId,omitempty"`
 }
 
 //NewCnameAPIClient -

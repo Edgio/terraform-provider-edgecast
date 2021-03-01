@@ -71,6 +71,9 @@ func (APIClient *UserAPIClient) GetCustomerUser(accountNumber string, customerUs
 func (APIClient *UserAPIClient) AddCustomerUser(accountNumber string, body *CustomerUser) (int, error) {
 	// TODO: support custom id types, not just Hex ID ANs
 	baseURL := fmt.Sprintf("v2/pcc/customers/users?idtype=an&id=%s", accountNumber)
+	if APIClient.PartnerID == 0 {
+		return 0, fmt.Errorf("partner_id was not provided.")
+	}
 	relURL := FormatURLAddPartnerID(baseURL, APIClient.PartnerID)
 
 	request, err := APIClient.BaseAPIClient.BuildRequest("POST", relURL, body, false)

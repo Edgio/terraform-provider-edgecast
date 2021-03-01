@@ -61,12 +61,11 @@ func resourceCustomerUser() *schema.Resource {
 
 func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
+	accountNumber := d.Get("account_number").(string)
+	(*config).AccountNumber = accountNumber
+	log.Printf("[INFO] Creating user for Account>> [AccountNumber]: %s", accountNumber)
 
 	customerUser := getCustomerUserFromData(d)
-
-	accountNumber := d.Get("account_number").(string)
-
-	log.Printf("[INFO] Creating user for Account %s", accountNumber)
 
 	apiClient := api.NewUserAPIClient(*config)
 
@@ -86,11 +85,11 @@ func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 
 func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
-
+	accountNumber := d.Get("account_number").(string)
+	(*config).AccountNumber = accountNumber
 	apiClient := api.NewUserAPIClient(*config)
 
 	customerUser := getCustomerUserFromData(d)
-	accountNumber := d.Get("account_number").(string)
 	customerUserID, err := strconv.Atoi(d.Id())
 
 	log.Printf("[INFO] Updating Customer User %d for Account %s", customerUserID, accountNumber)
@@ -114,7 +113,8 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
-
+	accountNumber := d.Get("account_number").(string)
+	(*config).AccountNumber = accountNumber
 	apiClient := api.NewUserAPIClient(*config)
 
 	customerUserID, err := strconv.Atoi(d.Id())
@@ -123,8 +123,6 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 		d.SetId("")
 		return diag.FromErr(err)
 	}
-
-	accountNumber := d.Get("account_number").(string)
 
 	log.Printf("[INFO] Retreiving Customer User %d for Account %s", customerUserID, accountNumber)
 	resp, err := apiClient.GetCustomerUser(accountNumber, customerUserID)
@@ -168,10 +166,10 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 func resourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
-
+	accountNumber := d.Get("account_number").(string)
+	(*config).AccountNumber = accountNumber
 	apiClient := api.NewUserAPIClient(*config)
 
-	accountNumber := d.Get("account_number").(string)
 	customerUserID, err := strconv.Atoi(d.Id())
 
 	if err != nil {

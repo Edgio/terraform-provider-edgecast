@@ -1,5 +1,4 @@
 # Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
-
 terraform {
   required_providers {
     vmp = {
@@ -8,11 +7,9 @@ terraform {
     }
   }
 }
-
 ##########################################
 # Variables
 ##########################################
-
 variable "credentials" {
   type = object ({
     api_token = string
@@ -24,45 +21,43 @@ variable "credentials" {
   })
 }
 
-variable "rulesEngineEnvironment" {
-  type = string
-}
-
-variable "test_customer_info" {
+variable "new_admin_user" {
   type = object({
-    account_number = string
-    customeruserid = string
-    portaltypeid = string
+    customer_account_number = string
+    first_name = string
+    last_name = string
+    email = string
+    is_admin = bool
   })
   default = {
-    account_number = ""
-    customeruserid = ""
-    portaltypeid = "1"
+    customer_account_number = ""
+    first_name = "admin"
+    last_name = "user"
+    email = ""
+    is_admin = true
   }
 }
 
 ##########################################
 # Providers
 ##########################################
-
 provider "vmp" {
     api_token = var.credentials.api_token
     ids_client_secret = var.credentials.ids_client_secret
     ids_client_id = var.credentials.ids_client_id
     ids_scope = var.credentials.ids_scope
-    ids_address = var.credentials.ids_address
     api_address = var.credentials.api_address
-    account_number = var.test_customer_info.account_number
+    ids_address = var.credentials.ids_address
+    partner_id = 3249
+    partner_user_id = 7613
 }
-
 ##########################################
 # Resources
 ##########################################
-resource "vmp_rules_engine_policy" "httplarge_policy"{
-  policy = file("httplarge-policy.json")
-  deploy_to = var.rulesEngineEnvironment
-
-  account_number = var.test_customer_info.account_number
-  customeruserid = var.test_customer_info.customeruserid
-  portaltypeid = var.test_customer_info.portaltypeid
+resource "vmp_customer_user" "test_customer_noadmin1" {
+  account_number = "D9127"
+  first_name = var.new_admin_user.first_name
+  last_name = var.new_admin_user.last_name
+  email = "admin+1@test20252021-3.com"
+  is_admin = false
 }

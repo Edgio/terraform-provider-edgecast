@@ -4,6 +4,8 @@ package vmp
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"strconv"
 
 	"terraform-provider-vmp/vmp/api"
@@ -62,9 +64,10 @@ func resourceOrigin() *schema.Resource {
 
 func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = d.Get("account_number").(string)
 
 	httpConfiguration := d.Get("http").(*schema.Set).List()[0].(map[string]interface{})
-
+	log.Printf("resourceOriginCreate>>httpConfiguration: %v", httpConfiguration)
 	addOriginRequest := &api.AddOriginRequest{
 		DirectoryName:     d.Get("directory_name").(string),
 		HostHeader:        d.Get("host_header").(string),
@@ -80,7 +83,7 @@ func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	addOriginRequest.HTTPHostnames = httpHostnames
-
+	log.Printf("resourceOriginCreate>>addOriginRequest: %v", addOriginRequest)
 	originAPIClient := api.NewOriginAPIClient(*config)
 
 	mediaType := d.Get("media_type").(string)
@@ -100,6 +103,7 @@ func resourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = d.Get("account_number").(string)
 
 	originAPIClient := api.NewOriginAPIClient(*config)
 
@@ -115,17 +119,17 @@ func resourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	d.Set("directory_name", parsedResponse.DirectoryName)
 	d.Set("host_header", parsedResponse.HostHeader)
-	d.Set("http_load_balancing", parsedResponse.HTTPLoadBalancing)
-	d.Set("http_hostnames", parsedResponse.HTTPHostnames)
+	d.Set("http_load_balancing", parsedResponse.HttpLoadBalancing)
+	d.Set("http_hostnames", parsedResponse.HttpHostnames)
 
 	return diags
 }
 
 func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
-
+	(*config).AccountNumber = d.Get("account_number").(string)
 	httpConfiguration := d.Get("http").(*schema.Set).List()[0].(map[string]interface{})
-
+	fmt.Printf("Origin>>Update[load_balancing]:%s", httpConfiguration["load_balancing"])
 	updateOriginRequest := &api.UpdateOriginRequest{
 		DirectoryName:     d.Get("directory_name").(string),
 		HostHeader:        d.Get("host_header").(string),
@@ -159,7 +163,7 @@ func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 func resourceOriginDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
-
+	(*config).AccountNumber = d.Get("account_number").(string)
 	originAPIClient := api.NewOriginAPIClient(*config)
 
 	originID, _ := strconv.Atoi(d.Id())

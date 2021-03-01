@@ -4,6 +4,7 @@ package api
 
 import (
 	"fmt"
+	"log"
 )
 
 //OriginAPIClient -
@@ -13,13 +14,14 @@ type OriginAPIClient struct {
 	AccountNumber string
 }
 
-//AddOriginRequest -
+//AddOriginRequest - Don't change variable names, otherwise API call to api server will get an error message as response.
 type AddOriginRequest struct {
-	DirectoryName     string
-	HostHeader        string
-	HTTPHostnames     []AddOriginRequestHostname
-	HTTPSHostnames    []AddOriginRequestHostname
-	HTTPLoadBalancing string
+	DirectoryName      string
+	HostHeader         string
+	HTTPLoadBalancing  string                     `json:"HttpLoadBalancing,omitempty"`
+	HTTPSLoadBalancing string                     `json:"HttpsLoadBalancing,omitempty"`
+	HTTPHostnames      []AddOriginRequestHostname `json:"HttpHostnames,omitempty"`
+	HTTPSHostnames     []AddOriginRequestHostname `json:"HttpsHostnames,omitempty"`
 }
 
 //AddOriginRequestHostname -
@@ -32,13 +34,14 @@ type AddOriginResponse struct {
 	CustomerOriginID int
 }
 
-//UpdateOriginRequest -
+//UpdateOriginRequest - Don't change variable names, otherwise API call to api server will get an error message as response.
 type UpdateOriginRequest struct {
-	DirectoryName     string
-	HostHeader        string
-	HTTPHostnames     []UpdateOriginRequestHostname
-	HTTPSHostnames    []UpdateOriginRequestHostname
-	HTTPLoadBalancing string
+	DirectoryName      string
+	HostHeader         string
+	HTTPHostnames      []UpdateOriginRequestHostname `json:"HttpHostnames,omitempty"`
+	HTTPSHostnames     []UpdateOriginRequestHostname `json:"HttpsHostnames,omitempty"`
+	HTTPLoadBalancing  string                        `json:"HttpLoadBalancing,omitempty"`
+	HTTPSLoadBalancing string                        `json:"HttpsLoadBalancing,omitempty"`
 }
 
 //UpdateOriginRequestHostname -
@@ -51,13 +54,13 @@ type UpdateOriginResponse struct {
 	CustomerOriginID int
 }
 
-//Origin -
+//Origin - Don't change variable names, otherwise API call to api server will get an error message as response.
 type Origin struct {
 	ID                int
 	DirectoryName     string
 	HostHeader        string
-	HTTPHostnames     []OriginHostname
-	HTTPLoadBalancing string
+	HttpHostnames     []OriginHostname
+	HttpLoadBalancing string
 }
 
 //OriginHostname -
@@ -78,6 +81,7 @@ func NewOriginAPIClient(config *ClientConfig) *OriginAPIClient {
 
 //AddOrigin -
 func (c *OriginAPIClient) AddOrigin(origin *AddOriginRequest, mediaType string) (*AddOriginResponse, error) {
+	log.Printf("AddOrigin>>origin:%v mediaType:%s", origin, mediaType)
 	request, err := c.BaseAPIClient.BuildRequest("POST", fmt.Sprintf("v2/mcc/customers/%s/origins/%s", c.AccountNumber, mediaType), origin, false)
 	if err != nil {
 		return nil, fmt.Errorf("AddOrigin: %v", err)

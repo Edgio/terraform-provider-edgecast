@@ -1,5 +1,4 @@
 # Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
-
 terraform {
   required_providers {
     vmp = {
@@ -8,11 +7,9 @@ terraform {
     }
   }
 }
-
 ##########################################
 # Variables
 ##########################################
-
 variable "credentials" {
   type = object ({
     api_token = string
@@ -23,7 +20,6 @@ variable "credentials" {
     ids_address = string
   })
 }
-
 variable "new_customer_info" {
   type = object({
     company_name = string
@@ -40,7 +36,6 @@ variable "new_customer_info" {
     delivery_region = 1
   }
 }
-
 variable "new_admin_user" {
   type = object({
     first_name = string
@@ -55,7 +50,6 @@ variable "new_admin_user" {
     is_admin = true
   }
 }
-
 variable "origin_info" {
   type = object({
     origins = list(string)
@@ -72,7 +66,6 @@ variable "origin_info" {
     media_type = "httplarge"
   }
 }
-
 variable "cname_info" {
   type = object({
     cname = string
@@ -88,7 +81,6 @@ variable "cname_info" {
 ##########################################
 # Providers
 ##########################################
-
 provider "vmp" {
     api_token = var.credentials.api_token
     ids_client_secret = var.credentials.ids_client_secret
@@ -97,25 +89,27 @@ provider "vmp" {
     api_address = var.credentials.api_address
     ids_address = var.credentials.ids_address
 }
-
 ##########################################
 # Resources
 ##########################################
-
 resource "vmp_customer" "test_customer" {
   company_name = var.new_customer_info.company_name
   service_level_code = var.new_customer_info.service_level_code
   services = var.new_customer_info.services
   delivery_region =  var.new_customer_info.delivery_region
-
+  access_modules = var.new_customer_info.access_modules
+}
+resource "vmp_customer" "test_customer1" {
+  company_name = "ramirotestcompany1"
+  service_level_code = var.new_customer_info.service_level_code
+  services = var.new_customer_info.services
+  delivery_region =  var.new_customer_info.delivery_region
+  access_modules = var.new_customer_info.access_modules
+}
   #################################################################################
   # Optional Params
   #################################################################################
-
   # TODO use data source to get ID (need a new endpoint for this)
-  access_modules = var.new_customer_info.access_modules
-}
-
 resource "vmp_customer_user" "test_customer_admin" {
   account_number = vmp_customer.test_customer.id
   first_name = var.new_admin_user.first_name
@@ -123,7 +117,13 @@ resource "vmp_customer_user" "test_customer_admin" {
   email = var.new_admin_user.email != "" ? var.new_admin_user.email : "admin@${vmp_customer.test_customer.id}.com"
   is_admin = var.new_admin_user.is_admin
 }
-
+resource "vmp_customer_user" "test_customer_admin1" {
+  account_number = vmp_customer.test_customer1.id
+  first_name = var.new_admin_user.first_name
+  last_name = var.new_admin_user.last_name
+  email = "admin@${vmp_customer.test_customer1.id}.com"
+  is_admin = var.new_admin_user.is_admin
+}
 resource "vmp_origin" "origin_images" {
     account_number = vmp_customer.test_customer.id
     directory_name = var.origin_info.directory_name
@@ -134,11 +134,27 @@ resource "vmp_origin" "origin_images" {
         hostnames = var.origin_info.origins
     }
 }
-
+resource "vmp_origin" "origin_images1" {
+    account_number = vmp_customer.test_customer1.id
+    directory_name = var.origin_info.directory_name
+    media_type = var.origin_info.media_type
+    host_header = var.origin_info.host_header
+    http {
+        load_balancing = var.origin_info.load_balancing
+        hostnames = var.origin_info.origins
+    }
+}
 resource "vmp_cname" "cname_images" {
     account_number = vmp_customer.test_customer.id
     name = var.cname_info.cname
     type = var.cname_info.type
     origin_id = vmp_origin.origin_images.id
+    origin_type = var.cname_info.origin_type
+}
+resource "vmp_cname" "cname_images1" {
+    account_number = vmp_customer.test_customer1.id
+    name = var.cname_info.cname
+    type = var.cname_info.type
+    origin_id = vmp_origin.origin_images1.id
     origin_type = var.cname_info.origin_type
 }
