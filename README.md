@@ -28,77 +28,20 @@ This provider is automatically installed when you run `terraform init` on a Terr
 Follow the instructions to [install it as a plugin.](https://`www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
 
 ## Logging
+You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
+
+For example, on MAC OS, running the following two commands will enable logging **for your current terminal session**:
 - export TF_LOG=TRACE
 - export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 
 ## Usage
-Running `terraform init` will automatically download and install the plugin for your use as long as your terraform configuration references the provider like so:
-
-```terraform
-# You must provide either an API Token or IDS Credentials, but not both!
-provider "vmp" {
-	# your API token provided by Verizon Media
-	api_token = "xxx"
-	
-	# OR your IDS credentials provided by Verizon Media
-	ids_client_secret = "xxx"
-	ids_client_id = "xxx"
-	ids_scope = "scope1 scope2"
-}
-```
-**Note for Verizon Media internal users:** you must also specify `partner_id` and `partner_user_id` in addition to your credentials.
-
-There are two ways to set your data. One is to set your configuration data directly in the main.tf file.
-For local testing, this works fine. **However, if you have multi-environments, we would recommend to use terraform.tfvars file.
-This file contains all variables that you need in order to run the terraform. Please refer to the [Using Variable Files](#Using%20Variable%20Files) section.** 
-
-### Provision MCC Accounts
-Please use the Verizon Media API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
-A future version of this provider may provide Terraform data sources for these.
-
-```terraform
-resource "vmp_customer" "my_customer" {
-  company_name = "My Company Name"
-  service_level_code = "STND"
-  services = [1,2,3]
-  delivery_region =  1
-  access_modules = [1,2,3]
-}
-```
-
-### Provision MCC Users
-```terraform
-resource "vmp_customer_user" "test_customer_admin" {
-  account_number = vmp_customer.my_customer.id
-  first_name = "Admin"
-  last_name = "User"
-  email = "admin@mycompany.com"
-  is_admin = true
-}
-```
-
-### Configure Origins
-```terraform
-resource "vmp_origin" "images" {
-    directory_name = "images3"
-    host_header = "dev-images.mysite.com"
-    http {
-        load_balancing = "RR"
-        hostnames = ["http://dev-images-customer-origin.mysite.com", "http://dev-images-customer-origin2.mysite.com"]
-    }
-}
-```
-### Configure CNAMEs
-```terraform
-resource "vmp_cname" "images" {
-    name ="dev-images-customer-origin.mysite.com"
-    type = 3
-    origin_id = "${vmp_origin.images.id}"
-    origin_type = 80
-}
-```
+The detailed documentation for the provider and specific resources can be found on the [Terraform provider registry](https://registry.terraform.io/providers/VerizonDigital/vmp/latest/docs).
 
 ### Variable File Usage
+There are two ways to set your data. One is to set your configuration data directly in a `main.tf` file.
+For local testing, this works fine. **However, if you plant to use the provider for multiple environments, we recommend terraform.tfvars files.**
+The example variable file below contains variables that can be used for the Verizon Media Platform Terraform Provider.
+
 ```terraform
 partner_info = {
     #for pointing to staging environment, leave null to default to production
@@ -140,7 +83,6 @@ cname_info =  {
     origin_type = 80 #origin type
 }
 ```
-
 
 ## Security
 
