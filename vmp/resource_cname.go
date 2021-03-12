@@ -21,11 +21,39 @@ func resourceCname() *schema.Resource {
 		DeleteContext: resourceCnameDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": {Type: schema.TypeString, Optional: true},
-			"name":           {Type: schema.TypeString, Required: true},
-			"type":           {Type: schema.TypeInt, Required: true},
-			"origin_id":      {Type: schema.TypeInt, Required: true},
-			"origin_type":    {Type: schema.TypeInt, Required: true},
+			"account_number": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Account Number for the customer if not already specified in the provider configuration."},
+			"name": {
+				Type:     schema.TypeString,
+				Required: true,
+				Description: "Sets the name that will be assigned to the edge CNAME. It should only contain lower-case " +
+					"alphanumeric characters, dashes, and periods. The name specified for this parameter should also be " +
+					"defined as a CNAME record on a DNS server. The CNAME record defined on the DNS server should point " +
+					"to the CDN hostname (e.g., wpc.0001.edgecastcdn.net) for the platform identified by the `platform` " +
+					"parameter"},
+			// TODO: 'type' parameter should be changed to 'media_type' to be consistent with resource_origin
+			"type": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: "Identifies the Delivery Platform on which the edge CNAME will be created. 3:Http Large, 8:HTTP Small, 14: ADN",
+			},
+			"origin_id": {
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: "Identifies whether an edge CNAME will be created for a CDN origin server " +
+					"or a customer origin server. Valid values: -1: Indicates that you would like to create " +
+					"an edge CNAME for our CDN storage service, CustomerOriginID: Specifying an ID for an " +
+					"existing customer origin configuration indicates that you would like to create an " +
+					"edge CNAME for that customer origin",
+			},
+			"origin_type": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     80,
+				Description: "Indicates the type of origin server the CNAME is created on. Default: `80` to indicate a Customer Origin",
+			},
 		},
 	}
 }

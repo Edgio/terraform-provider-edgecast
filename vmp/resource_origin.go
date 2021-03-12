@@ -23,20 +23,29 @@ func resourceOrigin() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Account Number for the customer if not already specified in the provider configuration.",
 			},
 			"directory_name": {
 				Type:     schema.TypeString,
 				Required: true,
+				Description: "Identifies the directory name that will be assigned to the customer origin configuration. " +
+					"This alphanumeric value is appended to the end of the base CDN URL that points to the customer origin " +
+					"server. Note: A protocol should not be specified when setting this parameter. " +
+					"Examples: `www.example.com:80`,`10.10.10.255:80`,`[1:2:3:4:5:6:7:8]:80`",
 			},
 			"host_header": {
 				Type:     schema.TypeString,
 				Required: true,
+				Description: "Defines the value that will be assigned to the Host header for all requests to this " +
+					"customer origin configuration. A host header is especially useful when there are multiple virtual " +
+					"hostnames hosted on a single physical server or load-balanced set of servers.",
 			},
 			"media_type": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Identifies the Delivery Platform to use. Valid values are `httplarge`,`httpsmall`, and `adn`",
 			},
 			"http": {
 				Type:     schema.TypeSet,
@@ -47,10 +56,14 @@ func resourceOrigin() *schema.Resource {
 						"load_balancing": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: "Determines how HTTP requests will be load balanced across the specified " +
+								"hostnames/IP addresses. Valid values: `RR` for Round Robin and `PF` for Primary and Failover.",
 						},
 						"hostnames": {
 							Type:     schema.TypeList,
 							Required: true,
+							Description: "This request parameter contains the set of hostnames/IP addresses to which " +
+								"HTTP requests for this customer origin configuration may be fulfilled. ",
 							Elem: &schema.Schema{
 								Type: schema.TypeString,
 							},
