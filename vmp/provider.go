@@ -17,19 +17,58 @@ const (
 	idsURLProd string = "https://id.vdms.io"
 )
 
+// TODO Platforms should be a data source retrieved via an API call, not a local collection
+var (
+	// Platforms specifies the corresponding Media Type IDs for EdgeCast CDN Delivery Platforms
+	Platforms = map[string]int{
+		"httplarge": 3,
+		"httpsmall": 8,
+		"adn":       14,
+	}
+)
+
 // Provider creates a new instance of the Verizon Media Terraform Provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_token":         {Type: schema.TypeString, Optional: true},
-			"ids_client_secret": {Type: schema.TypeString, Optional: true},
-			"ids_client_id":     {Type: schema.TypeString, Optional: true},
-			"ids_scope":         {Type: schema.TypeString, Optional: true},
-			"account_number":    {Type: schema.TypeString, Optional: true},
-			"partner_user_id":   {Type: schema.TypeInt, Optional: true},
-			"partner_id":        {Type: schema.TypeInt, Optional: true},
-			"api_address":       {Type: schema.TypeString, Optional: true},
-			"ids_address":       {Type: schema.TypeString, Optional: true},
+			"api_token": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "API Token for managing the following resources: Origin, CNAME, Customer, Customer User"},
+			"ids_client_secret": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "OAuth 2.0 Client Secret for managing the following resources: Rules Engine Policy",
+			},
+			"ids_client_id": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "OAuth 2.0 Client ID for managing the following resources: Rules Engine Policy"},
+			"ids_scope": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "OAuth 2.0 Scopes for managing the following resources: Rules Engine Policy"},
+			"account_number": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Account Number to use when only managing a single customer's resources. If managing multiple customers, this parameter should be omitted.",
+			},
+			"partner_user_id": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Partner User ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored."},
+			"partner_id": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "Partner ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored."},
+			"api_address": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The base url of Verizon Media resource APIs. Omit to use the default url. For internal testing."},
+			"ids_address": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing."},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"vmp_origin":              resourceOrigin(),

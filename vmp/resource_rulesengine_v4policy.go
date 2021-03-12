@@ -27,14 +27,30 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 		UpdateContext: resourcePolicyUpdate,
 		DeleteContext: resourcePolicyDelete,
 		Schema: map[string]*schema.Schema{
-			"customeruserid":    {Type: schema.TypeString, Optional: true},
-			"portaltypeid":      {Type: schema.TypeString, Optional: true},
-			"account_number":    {Type: schema.TypeString, Optional: true},
-			"deploy_to":         {Type: schema.TypeString, Required: true},
-			"deploy_request_id": {Type: schema.TypeString, Computed: true},
-			"policy": {
+			"customeruserid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "User ID to impersonate. If using MCC credentials, this parameter will be ignored"},
+			"portaltypeid": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Portal Type ID to impersonate. If using MCC credentials, this parameter will be ignored."},
+			"account_number": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Account to impersonate. If using MCC credentials, this parameter will be ignored.",
+			},
+			"deploy_to": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "The desired environment for the provided policy. Valid values are `production` and `staging`"},
+			"deploy_request_id": {
 				Type:     schema.TypeString,
-				Required: true,
+				Computed: true},
+			"policy": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "A Rules Engine Policy in JSON format",
 				StateFunc: func(val interface{}) string {
 					policyMap := make(map[string]interface{})
 					json.Unmarshal([]byte(val.(string)), &policyMap)
