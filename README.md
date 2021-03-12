@@ -31,8 +31,10 @@ Follow the instructions to [install it as a plugin.](https://`www.terraform.io/d
 You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
 
 For example, on MAC OS, running the following two commands will enable logging **for your current terminal session**:
-- export TF_LOG=TRACE
-- export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
+```
+export TF_LOG=TRACE
+export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
+```
 
 ## Usage
 The detailed documentation for the provider and specific resources can be found on the [Terraform provider registry](https://registry.terraform.io/providers/VerizonDigital/vmp/latest/docs).

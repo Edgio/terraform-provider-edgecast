@@ -13,6 +13,15 @@ A Terraform provider for the Verizon Media Platform. Follow the table of content
 
 For those users who have been granted specific permission(s) by an account administrator to use the Verizon Media Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
 
+## Logging
+You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
+
+For example, on MAC OS, running the following two commands will enable logging **for your current terminal session**:
+```
+export TF_LOG=TRACE
+export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
+```
+
 ## Example Usage
 
 ```terraform
