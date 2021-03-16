@@ -5,4 +5,5 @@ provider "vmp" {
     ids_scope = var.ids_scope
     ids_address = var.ids_address
     api_address = var.api_address
+    api_address_legacy = var.api_address_legacy
 }

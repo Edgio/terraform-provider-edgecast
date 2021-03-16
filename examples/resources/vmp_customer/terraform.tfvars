@@ -9,6 +9,7 @@ credentials = {
 
     # for internal testing
     api_address = null
+    api_address_legacy = null
     ids_address = null
 }
 

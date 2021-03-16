@@ -58,7 +58,7 @@ type CustomerCreateUpdate struct {
 func NewCustomerAPIClient(config *ClientConfig) *CustomerAPIClient {
 	return &CustomerAPIClient{
 		Config:        config,
-		BaseAPIClient: config.BaseClient,
+		BaseAPIClient: config.BaseClientLegacy,
 		PartnerUserID: config.PartnerUserID,
 		PartnerID:     config.PartnerID,
 	}

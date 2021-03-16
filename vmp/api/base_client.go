@@ -33,33 +33,37 @@ type IDSToken struct {
 
 // ClientConfig a config needed for the provider to interact with VDMS APIs, reading data comes from terraform main.tf
 type ClientConfig struct {
-	APIToken        string
-	AccountNumber   string
-	IdsClientID     string
-	IdsClientSecret string
-	IdsScope        string
-	IdsAddress      string
-	APIAddress      string
-	APIURL          *url.URL
-	IdsURL          *url.URL
-	PartnerID       int
-	PartnerUserID   int
-	BaseClient      *BaseClient
+	APIToken         string
+	AccountNumber    string
+	IdsClientID      string
+	IdsClientSecret  string
+	IdsScope         string
+	IdsAddress       string
+	APIAddress       string
+	APIAddressLegacy string
+	APIURL           *url.URL
+	IdsURL           *url.URL
+	APIURLLegacy     *url.URL
+	PartnerID        int
+	PartnerUserID    int
+	BaseClient       *BaseClient
+	BaseClientLegacy *BaseClient
 }
 
 // NewClientConfig constructor of ClientConfig
-func NewClientConfig(apiToken string, accountNumber string, idsClientID string, idsClientSecret string, idsScope string, apiURL string, idsURL string) (*ClientConfig, error) {
+func NewClientConfig(apiToken string, accountNumber string, idsClientID string, idsClientSecret string, idsScope string, apiURL string, idsURL string, apiURLLegacy string) (*ClientConfig, error) {
 	config := ClientConfig{
-		APIToken:        apiToken,
-		AccountNumber:   accountNumber,
-		IdsClientID:     idsClientID,
-		IdsClientSecret: idsClientSecret,
-		IdsScope:        idsScope,
-		PartnerID:       0,
-		PartnerUserID:   0,
-		BaseClient:      nil,
-		IdsAddress:      idsURL,
-		APIAddress:      apiURL,
+		APIToken:         apiToken,
+		AccountNumber:    accountNumber,
+		IdsClientID:      idsClientID,
+		IdsClientSecret:  idsClientSecret,
+		IdsScope:         idsScope,
+		PartnerID:        0,
+		PartnerUserID:    0,
+		BaseClient:       nil,
+		IdsAddress:       idsURL,
+		APIAddress:       apiURL,
+		APIAddressLegacy: apiURLLegacy,
 	}
 	var err error
 	log.Printf("idsaddress from main.tf: %s", idsURL)
@@ -71,6 +75,10 @@ func NewClientConfig(apiToken string, accountNumber string, idsClientID string, 
 	config.APIURL, err = url.Parse(apiURL)
 	if err != nil {
 		return nil, fmt.Errorf("NewClientConfig: Parse API URL: %v", err)
+	}
+	config.APIURLLegacy, err = url.Parse(apiURLLegacy)
+	if err != nil {
+		return nil, fmt.Errorf("NewClientConfig: Parse Legacy API URL: %v", err)
 	}
 	return &config, nil
 }
@@ -90,9 +98,25 @@ type BaseClient struct {
 
 // NewBaseClient -
 func NewBaseClient(config *ClientConfig) *BaseClient {
+	return newClient(config, false)
+}
+
+// NewLegacyBaseClient -
+func NewLegacyBaseClient(config *ClientConfig) *BaseClient {
+	return newClient(config, true)
+}
+
+func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
+	var baseURL *url.URL
+
+	if isLegacy {
+		baseURL = config.APIURLLegacy
+	} else {
+		baseURL = config.APIURL
+	}
 	return &BaseClient{
 		Config:          config,
-		BaseURL:         config.APIURL,
+		BaseURL:         baseURL,
 		IdsURL:          config.IdsURL,
 		Token:           config.APIToken,
 		IdsClientID:     config.IdsClientID,

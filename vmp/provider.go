@@ -13,8 +13,9 @@ import (
 )
 
 const (
-	apiURLProd string = "https://api.edgecast.com"
-	idsURLProd string = "https://id.vdms.io"
+	apiURLProd       string = "https://api.vdms.io"
+	apiURLProdLegacy string = "https://api.edgecast.com"
+	idsURLProd       string = "https://id.vdms.io"
 )
 
 // TODO Platforms should be a data source retrieved via an API call, not a local collection
@@ -71,6 +72,11 @@ func Provider() *schema.Provider {
 				Optional:    true,
 				Description: "The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing.",
 				Default:     idsURLProd},
+			"api_address_legacy": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "The base url of legacy Verizon Media resource APIs. Omit to use the default url. For internal testing.",
+				Default:     apiURLProdLegacy},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"vmp_origin":              resourceOrigin(),
@@ -97,20 +103,25 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		d.Get("ids_scope").(string),
 		d.Get("api_address").(string),
 		d.Get("ids_address").(string),
+		d.Get("api_address_legacy").(string),
 	)
 	if err != nil {
 		return nil, diag.FromErr(fmt.Errorf("Failed to read vmp Provider configuration data: %v", err))
 	}
 
 	config.BaseClient = api.NewBaseClient(config)
+	config.BaseClientLegacy = api.NewLegacyBaseClient(config)
+
 	log.Printf("config[api_token]:%s", config.APIToken)
 	log.Printf("config[ids_client_id]:%s", config.IdsClientID)
 	log.Printf("config[ids_client_secret]:%s", config.IdsClientSecret)
 	log.Printf("config[ids_scope]:%s", config.IdsScope)
 	log.Printf("config[api_address]:%s", config.APIURL)
 	log.Printf("config[ids_address]:%s", config.IdsURL)
+	log.Printf("config[api_address_legacy]:%s", config.APIURLLegacy)
 	log.Printf("config[account_number]:%s", config.AccountNumber)
 	log.Printf("config[BaseClient]:%v", config.BaseClient)
+	log.Printf("config[BaseClientLegacy]:%v", config.BaseClientLegacy)
 
 	if partnerUserIDValue, ok := d.GetOk("partner_user_id"); ok {
 		partnerUserID := partnerUserIDValue.(int)

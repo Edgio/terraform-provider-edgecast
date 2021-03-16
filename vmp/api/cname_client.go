@@ -57,7 +57,7 @@ type UpdateCnameResponse struct {
 func NewCnameAPIClient(config *ClientConfig) *CnameAPIClient {
 	apiClient := &CnameAPIClient{
 		Config:        config,
-		BaseAPIClient: config.BaseClient,
+		BaseAPIClient: config.BaseClientLegacy,
 		AccountNumber: config.AccountNumber,
 	}
 
