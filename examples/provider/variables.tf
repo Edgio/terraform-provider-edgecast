@@ -15,3 +15,6 @@ variable "ids_address" {
 
 variable "api_address" {
 }
+
+variable "api_address_legacy" {
+}

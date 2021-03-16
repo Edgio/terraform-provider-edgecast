@@ -17,7 +17,7 @@ type UserAPIClient struct {
 func NewUserAPIClient(config *ClientConfig) *UserAPIClient {
 	return &UserAPIClient{
 		Config:        config,
-		BaseAPIClient: config.BaseClient,
+		BaseAPIClient: config.BaseClientLegacy,
 		PartnerID:     config.PartnerID,
 	}
 }

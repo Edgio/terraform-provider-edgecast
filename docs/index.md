@@ -32,6 +32,7 @@ provider "vmp" {
     ids_scope = var.ids_scope
     ids_address = var.ids_address
     api_address = var.api_address
+    api_address_legacy = var.api_address_legacy
 }
 ```
 
@@ -42,6 +43,7 @@ provider "vmp" {
 
 - **account_number** (String) Account Number to use when only managing a single customer's resources. If managing multiple customers, this parameter should be omitted.
 - **api_address** (String) The base url of Verizon Media resource APIs. Omit to use the default url. For internal testing.
+- **api_address_legacy** (String) The base url of legacy Verizon Media resource APIs. Omit to use the default url. For internal testing.
 - **api_token** (String) API Token for managing the following resources: Origin, CNAME, Customer, Customer User
 - **ids_address** (String) The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing.
 - **ids_client_id** (String) OAuth 2.0 Client ID for managing the following resources: Rules Engine Policy

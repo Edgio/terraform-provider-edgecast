@@ -2,8 +2,8 @@
 terraform {
   required_providers {
     vmp = {
-      version = "0.0.8"
-      source = "github.com/terraform-providers/vmp"
+      version = "0.1.1"
+      source = "VerizonDigital/vmp"
     }
   }
 }
@@ -17,6 +17,7 @@ variable "credentials" {
     ids_client_id = string
     ids_scope = string
     api_address = string
+    api_address_legacy = string
     ids_address = string
   })
 }
@@ -46,6 +47,7 @@ provider "vmp" {
     ids_client_id = var.credentials.ids_client_id
     ids_scope = var.credentials.ids_scope
     api_address = var.credentials.api_address
+    api_address_legacy = var.credentials.api_address_legacy
     ids_address = var.credentials.ids_address
 }
 

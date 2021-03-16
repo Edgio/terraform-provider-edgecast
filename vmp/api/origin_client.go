@@ -72,7 +72,7 @@ type OriginHostname struct {
 func NewOriginAPIClient(config *ClientConfig) *OriginAPIClient {
 	apiClient := &OriginAPIClient{
 		Config:        config,
-		BaseAPIClient: config.BaseClient,
+		BaseAPIClient: config.BaseClientLegacy,
 		AccountNumber: config.AccountNumber,
 	}
 
