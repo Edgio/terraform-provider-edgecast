@@ -99,7 +99,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		d.Get("ids_address").(string),
 	)
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf("failed to read vmp Provider configuration data: %v", err))
+		return nil, diag.FromErr(fmt.Errorf("Failed to read vmp Provider configuration data: %v", err))
 	}
 
 	config.BaseClient = api.NewBaseClient(config)
