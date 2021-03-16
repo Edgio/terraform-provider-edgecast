@@ -174,6 +174,10 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 
 		err = customerAPIClient.UpdateCustomerServices(accountNumber, providedServiceIDs, 1)
+
+		if err != nil {
+			return diag.FromErr(err)
+		}
 	}
 
 	if attr, ok := d.GetOk("delivery_region"); ok {
@@ -336,14 +340,4 @@ func resourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m inter
 	d.SetId("")
 
 	return diags
-}
-
-func selectServiceIDs(arr []api.Service) []int {
-	serviceIDs := make([]int, len(arr))
-
-	for i := range arr {
-		serviceIDs[i] = arr[i].ID
-	}
-
-	return serviceIDs
 }

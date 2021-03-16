@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	apiURLProd string = "https://api.vdms.io"
+	apiURLProd string = "https://api.edgecast.com"
 	idsURLProd string = "https://id.vdms.io"
 )
 
@@ -64,11 +64,13 @@ func Provider() *schema.Provider {
 			"api_address": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The base url of Verizon Media resource APIs. Omit to use the default url. For internal testing."},
+				Description: "The base url of Verizon Media resource APIs. Omit to use the default url. For internal testing.",
+				Default:     apiURLProd},
 			"ids_address": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing."},
+				Description: "The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing.",
+				Default:     idsURLProd},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"vmp_origin":              resourceOrigin(),
@@ -97,7 +99,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		d.Get("ids_address").(string),
 	)
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf("Failed to read vmp Provider configuration data: %v", err))
+		return nil, diag.FromErr(fmt.Errorf("failed to read vmp Provider configuration data: %v", err))
 	}
 
 	config.BaseClient = api.NewBaseClient(config)

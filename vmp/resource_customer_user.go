@@ -39,12 +39,9 @@ func resourceCustomerUser() *schema.Resource {
 				Optional: true,
 				Default:  false,
 				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					if len(old) > 0 {
-						// IsAdmin is a write-only field, so suppress the diff if being changed
-						return true
-					}
+					// IsAdmin is a write-only field, so suppress the diff if being changed
 					// if the resource is new, do not suppress
-					return false
+					return len(old) > 0
 				},
 			},
 			"last_name":       {Type: schema.TypeString, Optional: true},
