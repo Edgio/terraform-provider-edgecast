@@ -2,28 +2,29 @@
 package test
 
 import (
+	"terraform-provider-vmp/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
 // Test cases for storage account name conversion logic
-var tcCustomerUser = map[string]ResourceNewCustomerUser{
+var tcCustomerUser = map[string]model.ResourceNewCustomerUser{
 	"terratest.testing.vmp.customer": {
-		customerUserInfo: NewCustomerUserInfo{
-			accountnumber: "D9127",
-			firstname:     "John",
-			lastname:      "Doe",
-			email:         "admin+1@test20252021-7.com",
-			isadmin:       false,
+		CustomerUserInfo: model.NewCustomerUserInfo{
+			AccountNumber: "D9127",
+			FirstName:     "John",
+			LastName:      "Doe",
+			Email:         "admin+1@test20252021-7.com",
+			IsAdmin:       false,
 		},
-		credential: Credentials{
-			apitoken:        "<apitoken>",
-			idsclientsecret: "<idsclientsecret>",
-			idsclientID:     "<idssclientID>",
-			idsscope:        "<scope>",
-			apiaddress:      "<apiUrl>",
-			idsaddress:      "<idsaddress>",
+		Credential: model.Credentials{
+			ApiToken:        "AULdReDoB3gb0D7LNTx857NQvrcIKyvL",
+			IdsClientSecret: "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk",
+			IdsClientID:     "31ef8e8f-0120-4112-8554-3eb11e83d58b",
+			IdsScope:        "ec.rules",
+			ApiAddress:      "http://dev-api.edgecast.com",
+			IdsAddress:      "https://id-dev.vdms.io",
 		},
 	},
 }
@@ -37,19 +38,19 @@ func TestUT_CustomerUser_basic(t *testing.T) {
 			TerraformDir: "../examples/resource_customer_user",
 			Vars: map[string]interface{}{
 				"new_admin_user": map[string]interface{}{
-					"customer_account_number": input.customerUserInfo.accountnumber,
-					"first_name":              input.customerUserInfo.firstname,
-					"last_name":               input.customerUserInfo.lastname,
-					"email":                   input.customerUserInfo.email,
-					"is_admin":                input.customerUserInfo.isadmin,
+					"customer_account_number": input.CustomerUserInfo.AccountNumber,
+					"first_name":              input.CustomerUserInfo.FirstName,
+					"last_name":               input.CustomerUserInfo.LastName,
+					"Email":                   input.CustomerUserInfo.Email,
+					"is_admin":                input.CustomerUserInfo.IsAdmin,
 				},
 				"credentials": map[string]interface{}{
-					"api_token":         input.credential.apitoken,
-					"ids_client_secret": input.credential.idsclientsecret,
-					"ids_client_id":     input.credential.idsclientID,
-					"ids_scope":         input.credential.idsscope,
-					"api_address":       input.credential.apiaddress,
-					"ids_address":       input.credential.idsaddress,
+					"api_token":         input.Credential.ApiAddress,
+					"ids_client_secret": input.Credential.IdsClientSecret,
+					"ids_client_id":     input.Credential.IdsClientID,
+					"ids_scope":         input.Credential.IdsScope,
+					"api_address":       input.Credential.ApiAddress,
+					"ids_address":       input.Credential.IdsAddress,
 				},
 			},
 		}

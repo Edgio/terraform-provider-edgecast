@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"terraform-provider-vmp/unit-tests/model"
 	"testing"
 
 	"github.com/google/uuid"
@@ -12,9 +13,9 @@ import (
 )
 
 // Test cases for storage account name conversion logic
-var tsRulesEngine = map[string]ResourceREV4{
+var tsRulesEngine = map[string]model.ResourceREV4{
 	"terratest.testing.vmp.rulesengine": {
-		policy: `
+		Policy: `
 		        {
 		            "name": "test policy-$UUID$",
 		            "description": "This is a test policy of PolicyCreate.",
@@ -38,19 +39,19 @@ var tsRulesEngine = map[string]ResourceREV4{
 		            ]
 		        }  
                 `,
-		rulesEngineEnvironment: "staging",
-		credentials: Credentials{
-			apitoken:        "<apitoken>",
-			idsclientsecret: "<idsclientsecret>",
-			idsclientID:     "<idssclientID>",
-			idsscope:        "<scope>",
-			apiaddress:      "<apiUrl>",
-			idsaddress:      "<idsaddress>",
+		RulesEngineEnvironment: "staging",
+		Credentials: model.Credentials{
+			ApiToken:        "<apitoken>",
+			IdsClientSecret: "<idsclientsecret>",
+			IdsClientID:     "<idssclientID>",
+			IdsScope:        "<scope>",
+			ApiAddress:      "<apiUrl>",
+			IdsAddress:      "<idsaddress>",
 		},
-		testcustomerinfo: CustomerInfo{
-			accountnumber:  "C1B6",
-			customeruserID: "133172",
-			portaltypeID:   1,
+		TestCustomerInfo: model.CustomerInfo{
+			AccountNumber:  "C1B6",
+			CustomerUserID: "133172",
+			PortalTypeID:   1,
 		},
 	},
 }
@@ -63,21 +64,21 @@ func TestUT_RulesEngine_basic(t *testing.T) {
 		tfOptions := &terraform.Options{
 			TerraformDir: "../examples/resource_rulesengine",
 			Vars: map[string]interface{}{
-				"policy": strings.Replace(input.policy, "$UUID$", uuid.New().String(), -1),
+				"policy": strings.Replace(input.Policy, "$UUID$", uuid.New().String(), -1),
 				"test_customer_info": map[string]interface{}{
-					"account_number": input.testcustomerinfo.accountnumber,
-					"customeruserid": input.testcustomerinfo.customeruserID,
-					"portaltypeid":   input.testcustomerinfo.portaltypeID,
+					"account_number": input.TestCustomerInfo.AccountNumber,
+					"customeruserid": input.TestCustomerInfo.CustomerUserID,
+					"portaltypeid":   input.TestCustomerInfo.PortalTypeID,
 				},
 				"credentials": map[string]interface{}{
-					"api_token":         input.credentials.apitoken,
-					"ids_client_secret": input.credentials.idsclientsecret,
-					"ids_client_id":     input.credentials.idsclientID,
-					"ids_scope":         input.credentials.idsscope,
-					"api_address":       input.credentials.apiaddress,
-					"ids_address":       input.credentials.idsaddress,
+					"api_token":         input.Credentials.ApiToken,
+					"ids_client_secret": input.Credentials.IdsClientSecret,
+					"ids_client_id":     input.Credentials.IdsClientID,
+					"ids_scope":         input.Credentials.IdsScope,
+					"api_address":       input.Credentials.ApiAddress,
+					"ids_address":       input.Credentials.IdsAddress,
 				},
-				"rulesEngineEnvironment": input.rulesEngineEnvironment,
+				"rulesEngineEnvironment": input.RulesEngineEnvironment,
 			},
 		}
 

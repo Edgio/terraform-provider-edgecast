@@ -1,6 +1,6 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
-package vmp
+package customer
 
 import (
 	"context"
@@ -13,9 +13,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func dataSourceCustomerServices() *schema.Resource {
+func DataSourceCustomerServices() *schema.Resource {
 	return &schema.Resource{
-		ReadContext: dataSourceCustomerServicesRead,
+		ReadContext: DataSourceCustomerServicesRead,
 		Schema: map[string]*schema.Schema{
 			"services": {
 				Type:     schema.TypeList,
@@ -41,7 +41,7 @@ func dataSourceCustomerServices() *schema.Resource {
 	}
 }
 
-func dataSourceCustomerServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func DataSourceCustomerServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)

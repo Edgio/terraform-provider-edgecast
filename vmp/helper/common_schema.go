@@ -24,3 +24,12 @@ func dataSourceFiltersSchema() *schema.Schema {
 		},
 	}
 }
+
+func IsJsonArray(input interface{}) bool {
+	switch input.(type) {
+	case []interface{}:
+		return true
+	default:
+		return false
+	}
+}

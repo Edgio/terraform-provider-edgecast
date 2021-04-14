@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"terraform-provider-vmp/vmp/helper"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -195,10 +196,9 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	}
 
 	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
-		body, err := ioutil.ReadAll(resp.Body)
-
 		if err != nil {
 			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
 		}
@@ -206,12 +206,26 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 		bodyAsString := string(body)
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
 	}
+	// Do not delete this.
+	log.Printf("[DEBUG] Raw Response Body:base_client>>SendRequest:%s", body)
 
-	if parsedResponse != nil {
-		err = json.NewDecoder(resp.Body).Decode(parsedResponse)
+	var f interface{}
+	if jsonUnmarshalErr := json.Unmarshal(body, &f); err != nil {
+		return nil, fmt.Errorf("Malformed Json response:%v", jsonUnmarshalErr)
+	}
 
-		if err != nil {
-			return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
+	if helper.IsJsonArray(f) {
+		if jsonArryErr := json.Unmarshal([]byte(body), parsedResponse); jsonArryErr != nil {
+			return nil, fmt.Errorf("Malformed Json Array response:%v", jsonArryErr)
+		}
+	} else {
+		if parsedResponse != nil {
+
+			err = json.NewDecoder(resp.Body).Decode(parsedResponse)
+
+			if err != nil {
+				return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
+			}
 		}
 	}
 
