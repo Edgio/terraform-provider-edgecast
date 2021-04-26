@@ -1,11 +1,10 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 package test
 
 import (
 	"net/url"
 	"terraform-provider-vmp/vmp/api"
 	"testing"
-	//tfPlan "github.com/hashicorp/terraform/plans/planfile"
 )
 
 func TestClientConfig(t *testing.T) {

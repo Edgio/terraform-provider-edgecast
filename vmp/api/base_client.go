@@ -197,13 +197,13 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	bodyAsString := string(body)
 
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		if err != nil {
 			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
 		}
 
-		bodyAsString := string(body)
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
 	}
 	// Do not delete this.
@@ -221,15 +221,58 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	} else {
 		if parsedResponse != nil {
 
-			err = json.NewDecoder(resp.Body).Decode(parsedResponse)
+			if helper.IsJSONString(bodyAsString) {
+				err = json.NewDecoder(resp.Body).Decode(parsedResponse)
 
-			if err != nil {
-				return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
+				if err != nil {
+					return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
+				}
+			} else {
+				// if response is not json string
+				switch v := parsedResponse.(type) {
+				case LiteralResponse:
+					rs, ok := parsedResponse.(LiteralResponse)
+					if ok {
+						rs.Value = bodyAsString
+						parsedResponse = rs
+					}
+				case float64:
+					fmt.Println("float64:", v)
+				default:
+					fmt.Println("unknown")
+				}
+
 			}
 		}
 	}
 
 	return resp, nil
+}
+
+// SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
+func (BaseClient *BaseClient) SendRequestWithStringResponse(req *retryablehttp.Request) (*string, error) {
+	log.Printf("[INFO] SendRequest >> [%s] %s", req.Method, req.URL.String())
+	resp, err := BaseClient.HTTPClient.Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf("SendRequest: Do: %v", err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	bodyAsString := string(body)
+
+	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
+		if err != nil {
+			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
+		}
+
+		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
+	}
+	// Do not delete this.
+	log.Printf("[DEBUG] Raw Response Body:base_client>>SendRequest:%s", body)
+
+	return &bodyAsString, nil
 }
 
 // GetIdsToken returns the cached token, refreshing it if it has expired

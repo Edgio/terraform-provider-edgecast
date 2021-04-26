@@ -2,13 +2,13 @@
 
 # Use the credentials provided to you by Verizon Media
 credentials = {
-    api_token = "AULdReDoB3gb0D7LNTx857NQvrcIKyvL"
-    ids_client_secret = "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk"
-    ids_client_id = "31ef8e8f-0120-4112-8554-3eb11e83d58b"
-    ids_scope = "ec.rules"
-    api_address = "http://dev-api.edgecast.com"
-    ids_address = "https://id-dev.vdms.io"
-    api_address_legacy = "http://dev-api.edgecast.com"
+    api_token = "<API Token>"
+    ids_client_secret = "<Client Secret>"
+    ids_client_id = "<Client ID>"
+    ids_scope = "<Scopes>"
+    api_address = ""
+    ids_address = ""
+    api_address_legacy = ""
 }
 
 new_customer_info = {

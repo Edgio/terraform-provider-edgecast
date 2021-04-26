@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"log"
+	"strconv"
 )
 
 //DNSRouteAPIClient -
@@ -64,6 +65,68 @@ type MasterServer struct {
 	IPAddress string `json:"IPAddress"`
 }
 
+//ZoneRequest -
+type ZoneRequest struct {
+	FixedZoneID     int        `json:"FixedZoneId,omitempty"`
+	ZoneID          int        `json:"ZoneId,omitempty"`
+	DomainName      string     `json:"DomainName,omitempty"`
+	Status          int        `json:"Status,omitempty"`
+	ZoneType        int        `json:"ZoneType,omitempty"`
+	IsCustomerOwned int        `json:"IsCustomerOwned,omitempty"`
+	Comment         string     `json:"Comment,omitempty"`
+	Records         DNSRecords `json:"Records"`
+}
+
+// ZoneResponse -
+type ZoneResponse struct {
+	FixedZoneID         int            `json:"FixedZoneId,omitempty"`
+	ZoneID              int            `json:"ZoneId,omitempty"`
+	DomainName          string         `json:"DomainName,omitempty"`
+	Status              int            `json:"Status,omitempty"`
+	ZoneType            int            `json:"ZoneType,omitempty"`
+	IsCustomerOwned     int            `json:"IsCustomerOwned,omitempty"`
+	Comment             string         `json:"Comment,omitempty"`
+	Version             string         `json:"Version,omitempty"`
+	Records             DNSRecords     `json:"Records"`
+	FailoverGroups      []MasterServer `json:"FailoverGroups:omitempty"`
+	LoadBalancingGroups []MasterServer `json:"LoadBalancingGroups:omitempty"`
+}
+
+// DNSRecords -
+type DNSRecords struct {
+	A          []DNSRecord `json:"A,omitempty"`
+	AAAA       []DNSRecord `json:"AAAA,omitempty"`
+	CName      []DNSRecord `json:"CName,omitempty"`
+	MX         []DNSRecord `json:"MX,omitempty"`
+	NS         []DNSRecord `json:"NS,omitempty"`
+	PTR        []DNSRecord `json:"PTR,omitempty"`
+	SOA        []DNSRecord `json:"SOA,omitempty"`
+	SPF        []DNSRecord `json:"SPF,omitempty"`
+	SRV        []DNSRecord `json:"SRV,omitempty"`
+	TXT        []DNSRecord `json:"TXT,omitempty"`
+	DNSKEY     []DNSRecord `json:"DNSKEY,omitempty"`
+	RRSIG      []DNSRecord `json:"RRSIG,omitempty"`
+	DS         []DNSRecord `json:"DS,omitempty"`
+	NSEC       []DNSRecord `json:"NSEC,omitempty"`
+	NSEC3      []DNSRecord `json:"NSEC3,omitempty"`
+	NSEC3PARAM []DNSRecord `json:"NSEC3PARAM,omitempty"`
+	DLV        []DNSRecord `json:"DLV,omitempty"`
+	CAA        []DNSRecord `json:"CAA,omitempty"`
+}
+
+// DNSRecord -
+type DNSRecord struct {
+	Name     string `json:"Name,omitempty"`
+	TTL      string `json:"TTL,omitempty"`
+	Rdata    string `json:"Rdata,omitempty"`
+	VerifyID int    `json:"VerifyId,omitemtpy"`
+}
+
+// LiteralResponse -
+type LiteralResponse struct {
+	Value interface{}
+}
+
 //NewRDNSRouteAPIClient -
 func NewDNSRouteAPIClient(config *ClientConfig) *DNSRouteAPIClient {
 	APIClient := &DNSRouteAPIClient{
@@ -96,6 +159,7 @@ func (c *DNSRouteAPIClient) GetMasterServerGroup(id int) ([]*MasterServerGroupRe
 	return parsedResponse, nil
 }
 
+// AddMasterServerGroup -
 func (c *DNSRouteAPIClient) AddMasterServerGroup(svg *MasterServerGroupRequest) ([]*MasterServerGroupResponse, error) {
 	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/mastergroup", c.Config.AccountNumber)
 	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, svg, false)
@@ -113,6 +177,7 @@ func (c *DNSRouteAPIClient) AddMasterServerGroup(svg *MasterServerGroupRequest) 
 	return parsedResponse, nil
 }
 
+// UpdateMasterServerGroup -
 func (c *DNSRouteAPIClient) UpdateMasterServerGroup(svg *MasterServerGroupUpdateRequest) error {
 	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/mastergroup", c.Config.AccountNumber)
 	request, err := c.BaseAPIClient.BuildRequest("PUT", apiURL, svg, false)
@@ -129,6 +194,7 @@ func (c *DNSRouteAPIClient) UpdateMasterServerGroup(svg *MasterServerGroupUpdate
 	return nil
 }
 
+// DeleteMasterServerGroup -
 func (c *DNSRouteAPIClient) DeleteMasterServerGroup(msgID int) error {
 	// TODO: support custom ids for accounts
 	apiURL := fmt.Sprintf("v2/mcc/customers/%s/dns/mastergroup/%d", c.Config.AccountNumber, msgID)
@@ -143,6 +209,84 @@ func (c *DNSRouteAPIClient) DeleteMasterServerGroup(msgID int) error {
 
 	if err != nil {
 		return fmt.Errorf("DeleteMasterServerGroup: %v", err)
+	}
+
+	return nil
+}
+
+// GetZone - Get Zone information of the provided ZoneID which include all dns records, failover servers, and loadbalancing servers if any exists.
+func (c *DNSRouteAPIClient) GetZone(id int) (*ZoneResponse, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/routezone?id=%d", c.Config.AccountNumber, id)
+	log.Printf("apiURL:%s", apiURL)
+	request, err := c.BaseAPIClient.BuildRequest("GET", apiURL, nil, false)
+
+	if err != nil {
+		return nil, fmt.Errorf("GetZone: %v", err)
+	}
+
+	parsedResponse := ZoneResponse{}
+	log.Printf("dnsroute_client>>GetZone>>parsedResponse:%v", parsedResponse)
+
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
+
+	if err != nil {
+		return nil, fmt.Errorf("GetOrigin: %v", err)
+	}
+
+	return &parsedResponse, nil
+}
+
+// AddZone -
+func (c *DNSRouteAPIClient) AddZone(zone *ZoneRequest) (int, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/zone", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, zone, false)
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddZone: %v", err)
+	}
+	resp, err := c.BaseAPIClient.SendRequestWithStringResponse(request)
+
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddZone: %v", err)
+	}
+
+	zoneID, err := strconv.Atoi(*resp)
+	if err != nil {
+		return -1, fmt.Errorf("dnsroute_client>>AddZone->API Response Error: %v", err)
+	}
+	return zoneID, nil
+}
+
+// UpdateZone -
+func (c *DNSRouteAPIClient) UpdateZone(zone *ZoneRequest) error {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/zone", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, zone, false)
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateZone: %v", err)
+	}
+	_, err = c.BaseAPIClient.SendRequestWithStringResponse(request)
+
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateZone: %v", err)
+	}
+
+	return nil
+}
+
+// DeleteZone -
+func (c *DNSRouteAPIClient) DeleteZone(zoneID int) error {
+	// TODO: support custom ids for accounts
+	apiURL := fmt.Sprintf("v2/mcc/customers/%s/dns/routezone/%d", c.Config.AccountNumber, zoneID)
+
+	request, err := c.BaseAPIClient.BuildRequest("DELETE", apiURL, nil, false)
+
+	if err != nil {
+		return fmt.Errorf("DeleteZone: %v", err)
+	}
+
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
+
+	if err != nil {
+		return fmt.Errorf("DeleteZone: %v", err)
 	}
 
 	return nil

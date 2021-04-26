@@ -34,6 +34,9 @@ var (
 
 // Provider creates a new instance of the Verizon Media Terraform Provider
 func Provider() *schema.Provider {
+	// For debugging purpose
+	//time.Sleep(50 * time.Second)
+
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"api_token": {
@@ -89,6 +92,7 @@ func Provider() *schema.Provider {
 			"vmp_customer_user":         customer.ResourceCustomerUser(),
 			"vmp_rules_engine_policy":   rulesengine.ResourceRulesEngineV4Policy(),
 			"vmp_dns_masterservergroup": dnsroute.ResourceMasterServerGroup(),
+			"vmp_dns_zone":              dnsroute.ResourceZone(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": customer.DataSourceCustomerServices(),
