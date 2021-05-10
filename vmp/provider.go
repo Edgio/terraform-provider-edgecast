@@ -34,8 +34,6 @@ var (
 
 // Provider creates a new instance of the Verizon Media Terraform Provider
 func Provider() *schema.Provider {
-	// For debugging purpose
-	//time.Sleep(50 * time.Second)
 
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{

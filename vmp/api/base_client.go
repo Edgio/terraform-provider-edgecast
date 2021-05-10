@@ -149,7 +149,9 @@ func (BaseClient *BaseClient) BuildRequest(method, path string, body interface{}
 			if err != nil {
 				return nil, err
 			}
+			helper.LogRequestBody(method, absoluteURL.String(), body)
 			payload = buf
+
 		}
 	}
 
@@ -188,7 +190,6 @@ func (BaseClient *BaseClient) BuildRequest(method, path string, body interface{}
 
 // SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
 func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResponse interface{}) (*http.Response, error) {
-	log.Printf("[INFO] SendRequest >> [%s] %s", req.Method, req.URL.String())
 	resp, err := BaseClient.HTTPClient.Do(req)
 
 	if err != nil {
@@ -206,8 +207,6 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
 	}
-	// Do not delete this.
-	log.Printf("[DEBUG] Raw Response Body:base_client>>SendRequest:%s", body)
 
 	var f interface{}
 	if jsonUnmarshalErr := json.Unmarshal(body, &f); err != nil {
@@ -215,34 +214,35 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	}
 
 	if helper.IsJsonArray(f) {
+
 		if jsonArryErr := json.Unmarshal([]byte(body), parsedResponse); jsonArryErr != nil {
 			return nil, fmt.Errorf("Malformed Json Array response:%v", jsonArryErr)
 		}
 	} else {
-		if parsedResponse != nil {
+		if helper.IsJSONString(bodyAsString) {
 
-			if helper.IsJSONString(bodyAsString) {
-				err = json.NewDecoder(resp.Body).Decode(parsedResponse)
-
-				if err != nil {
-					return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
-				}
-			} else {
-				// if response is not json string
-				switch v := parsedResponse.(type) {
-				case LiteralResponse:
-					rs, ok := parsedResponse.(LiteralResponse)
-					if ok {
-						rs.Value = bodyAsString
-						parsedResponse = rs
-					}
-				case float64:
-					fmt.Println("float64:", v)
-				default:
-					fmt.Println("unknown")
-				}
-
+			//err = json.NewDecoder(resp.Body).Decode(parsedResponse)
+			err = json.Unmarshal([]byte(bodyAsString), &parsedResponse)
+			if err != nil {
+				return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
 			}
+			helper.LogPrettyJson("RESPONSE", bodyAsString)
+		} else {
+
+			// if response is not json string
+			switch v := parsedResponse.(type) {
+			case LiteralResponse:
+				rs, ok := parsedResponse.(LiteralResponse)
+				if ok {
+					rs.Value = bodyAsString
+					parsedResponse = rs
+				}
+			case float64:
+				fmt.Println("float64:", v)
+			default:
+				fmt.Println("unknown")
+			}
+
 		}
 	}
 
@@ -251,7 +251,6 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 
 // SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
 func (BaseClient *BaseClient) SendRequestWithStringResponse(req *retryablehttp.Request) (*string, error) {
-	log.Printf("[INFO] SendRequest >> [%s] %s", req.Method, req.URL.String())
 	resp, err := BaseClient.HTTPClient.Do(req)
 
 	if err != nil {

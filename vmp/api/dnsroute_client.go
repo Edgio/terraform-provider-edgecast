@@ -66,30 +66,18 @@ type MasterServer struct {
 }
 
 //ZoneRequest -
-type ZoneRequest struct {
-	FixedZoneID     int        `json:"FixedZoneId,omitempty"`
-	ZoneID          int        `json:"ZoneId,omitempty"`
-	DomainName      string     `json:"DomainName,omitempty"`
-	Status          int        `json:"Status,omitempty"`
-	ZoneType        int        `json:"ZoneType,omitempty"`
-	IsCustomerOwned int        `json:"IsCustomerOwned,omitempty"`
-	Comment         string     `json:"Comment,omitempty"`
-	Records         DNSRecords `json:"Records"`
-}
-
-// ZoneResponse -
-type ZoneResponse struct {
-	FixedZoneID         int            `json:"FixedZoneId,omitempty"`
-	ZoneID              int            `json:"ZoneId,omitempty"`
-	DomainName          string         `json:"DomainName,omitempty"`
-	Status              int            `json:"Status,omitempty"`
-	ZoneType            int            `json:"ZoneType,omitempty"`
-	IsCustomerOwned     int            `json:"IsCustomerOwned,omitempty"`
-	Comment             string         `json:"Comment,omitempty"`
-	Version             string         `json:"Version,omitempty"`
-	Records             DNSRecords     `json:"Records"`
-	FailoverGroups      []MasterServer `json:"FailoverGroups:omitempty"`
-	LoadBalancingGroups []MasterServer `json:"LoadBalancingGroups:omitempty"`
+type Zone struct {
+	FixedZoneID     int             `json:"FixedZoneId,omitempty"`
+	ZoneID          int             `json:"ZoneId,omitempty"`
+	DomainName      string          `json:"DomainName,omitempty"`
+	Status          int             `json:"Status,omitempty"`
+	StatusName      string          `json:"StatusName,omitempty"`
+	ZoneType        int             `json:"ZoneType,omitempty"`
+	IsCustomerOwned bool            `json:"IsCustomerOwned,omitempty"`
+	Comment         string          `json:"Comment,omitempty"`
+	Records         DNSRecords      `json:"Records"`
+	Serial          int             `json:"Serial,omitempty"`
+	Groups          []DnsRouteGroup `json:"groups"`
 }
 
 // DNSRecords -
@@ -116,15 +104,184 @@ type DNSRecords struct {
 
 // DNSRecord -
 type DNSRecord struct {
-	Name     string `json:"Name,omitempty"`
-	TTL      string `json:"TTL,omitempty"`
-	Rdata    string `json:"Rdata,omitempty"`
-	VerifyID int    `json:"VerifyId,omitemtpy"`
+	RecordID       int    `json:"RecordId,omitempty"`
+	FixedRecordID  int    `json:"FixedRecordId,omitempty"`
+	FixedGroupID   int    `json:"FixedGroupId,omitempty"`
+	GroupID        int    `json:"GroupId,omitempty"`
+	IsDeleted      bool   `json:"IsDelete,omitempty"`
+	Name           string `json:"Name,omitempty"`
+	TTL            int    `json:"TTL,omitempty"`
+	Rdata          string `json:"Rdata,omitempty"`
+	VerifyID       int    `json:"VerifyId,omitemtpy"`
+	Weight         int    `json:"Weight,omitempty"`
+	RecordTypeID   int    `json:"RecordTypeID,omitempty"`
+	RecordTypeName string `json:"RecordTypeName,omitempty"`
+}
+
+// const for GroupProductTypeId
+const (
+	GroupProductType_LoadBalancing = iota + 1
+	GroupProductType_Failover
+	GroupProductType_NoGroup
+)
+
+// const for GroupTypeId
+const (
+	GroupType_CName = iota + 1
+	GroupType_SubDomain
+	GroupType_Zone
+)
+
+type DnsRouteGroup struct {
+	ID                 string          `json:"Id,omitempty"`
+	GroupID            int             `json:"GroupId,omitempty"`
+	FixedGroupID       int             `json:"FixedGroupId,omitempty"`
+	Name               string          `json:"Name,omitempty"`
+	GroupTypeID        int             `json:"GroupTypeId,omitempty"`
+	ZoneId             int             `json:"ZoneId,omitempty"`
+	FixedZoneID        int             `json:"FixedZoneId,omitempty"`
+	GroupProductTypeID int             `json:"GroupProductTypeId,omitempty"`
+	GroupComposition   DNSGroupRecords `json:"GroupComposition,omitempty"`
+}
+
+// DNSGroupRecords -
+type DNSGroupRecords struct {
+	RA          []DnsRouteGroupRecord `json:"_A,omitempty"`
+	RAAAA       []DnsRouteGroupRecord `json:"_AAAA,omitempty"`
+	RCName      []DnsRouteGroupRecord `json:"_CName,omitempty"`
+	RMX         []DnsRouteGroupRecord `json:"_MX,omitempty"`
+	RNS         []DnsRouteGroupRecord `json:"_NS,omitempty"`
+	RPTR        []DnsRouteGroupRecord `json:"_PTR,omitempty"`
+	RSOA        []DnsRouteGroupRecord `json:"_SOA,omitempty"`
+	RSPF        []DnsRouteGroupRecord `json:"_SPF,omitempty"`
+	RSRV        []DnsRouteGroupRecord `json:"_SRV,omitempty"`
+	RTXT        []DnsRouteGroupRecord `json:"_TXT,omitempty"`
+	RDNSKEY     []DnsRouteGroupRecord `json:"_DNSKEY,omitempty"`
+	RRRSIG      []DnsRouteGroupRecord `json:"_RRSIG,omitempty"`
+	RDS         []DnsRouteGroupRecord `json:"_DS,omitempty"`
+	RNSEC       []DnsRouteGroupRecord `json:"_NSEC,omitempty"`
+	RNSEC3      []DnsRouteGroupRecord `json:"_NSEC3,omitempty"`
+	RNSEC3PARAM []DnsRouteGroupRecord `json:"_NSEC3PARAM,omitempty"`
+	RDLV        []DnsRouteGroupRecord `json:"_DLV,omitempty"`
+	RCAA        []DnsRouteGroupRecord `json:"_CAA,omitempty"`
+	A           []DnsRouteGroupRecord `json:"A,omitempty"`
+	AAAA        []DnsRouteGroupRecord `json:"AAAA,omitempty"`
+	CName       []DnsRouteGroupRecord `json:"CName,omitempty"`
+	MX          []DnsRouteGroupRecord `json:"MX,omitempty"`
+	NS          []DnsRouteGroupRecord `json:"NS,omitempty"`
+	PTR         []DnsRouteGroupRecord `json:"PTR,omitempty"`
+	SOA         []DnsRouteGroupRecord `json:"SOA,omitempty"`
+	SPF         []DnsRouteGroupRecord `json:"SPF,omitempty"`
+	SRV         []DnsRouteGroupRecord `json:"SRV,omitempty"`
+	TXT         []DnsRouteGroupRecord `json:"TXT,omitempty"`
+	DNSKEY      []DnsRouteGroupRecord `json:"DNSKEY,omitempty"`
+	RRSIG       []DnsRouteGroupRecord `json:"RRSIG,omitempty"`
+	DS          []DnsRouteGroupRecord `json:"DS,omitempty"`
+	NSEC        []DnsRouteGroupRecord `json:"NSEC,omitempty"`
+	NSEC3       []DnsRouteGroupRecord `json:"NSEC3,omitempty"`
+	NSEC3PARAM  []DnsRouteGroupRecord `json:"NSEC3PARAM,omitempty"`
+	DLV         []DnsRouteGroupRecord `json:"DLV,omitempty"`
+	CAA         []DnsRouteGroupRecord `json:"CAA,omitempty"`
+}
+
+// DNSGroupRecord -
+type DnsRouteGroupRecord struct {
+	//ID          string       `json:"Id,omitempty"`
+	Record      DNSRecord    `json:"Record,omitempty"`
+	HealthCheck *HealthCheck `json:"HealthCheck"`
+	Weight      int          `json:"Weight"`
+}
+
+// RecordTypeID
+const (
+	RecordType_A = iota + 1
+	RecordType_AAAA
+	RecordType_CNAME
+	RecordType_MX
+	RecordType_NS
+	RecordType_PTR
+	RecordType_SOA
+	RecordType_SPF
+	RecordType_SRV
+	RecordType_TXT
+	RecordType_DNSKEY
+	RecordType_RRSIG
+	RecordType_DS
+	RecordType_NSEC
+	RecordType_NSEC3
+	RecordType_NSEC3PARAM
+	RecordType_DLV
+	RecordType_CAA
+)
+
+// HealthCheck -
+type HealthCheck struct {
+	ID                       int    `json:"Id,omitempty"`
+	FixedID                  int    `json:"FixedId,omitempty"`
+	CheckInterval            int    `json:"CheckInterval,omitempty"`
+	CheckTypeID              int    `json:"CheckTypeId,omitempty"`
+	ContentVerification      string `json:"ContentVerification,omitempty"`
+	EmailNotificationAddress string `json:"EmailNotificationAddress,omitempty"`
+	FailedCheckThreshold     int    `json:"FailedCheckThreshold,omitempty"`
+	HTTPMethodID             int    `json:"HTTPMethodId,omitempty"`
+	RecordID                 int    `json:"RecordId,omitempty"`
+	FixedRecordID            int    `json:"FixedRecordId,omitempty"`
+	GroupID                  int    `json:"GroupId,omitempty"`
+	FixedGroupID             int    `json:"GroupFixedId,omitempty"`
+	IPAddress                string `json:"IPAddress,omitempty"`
+	IPVersion                int    `json:"IPVersion,omitempty"`
+	PortNumber               string `json:"PortNumber,omitempty"`
+	ReintegrationMethodID    int    `json:"ReintegrationMethodId,omitempty"`
+	Status                   int    `json:"Status,omitempty"`
+	UserID                   int    `json:"UserId,omitempty"`
+	TimeOut                  int    `json:"Timeout,omitempty"`
+	StatusName               string `json:"StatusName,omitempty"`
+	Uri                      string `json:"Uri,omitempty"`
+	WhiteListedHc            int    `json:"WhiteListedHc,omitempty"`
 }
 
 // LiteralResponse -
 type LiteralResponse struct {
 	Value interface{}
+}
+
+// FOGroup - child element of FailoverGroups in a zone
+type FOGroup struct {
+	Group FOGWrapper `json:"Group,omitempty"`
+}
+
+// FOGWrapper - child of FailoverGroup
+type FOGWrapper struct {
+	GroupTypeID int              `json:"GroupTypeId,omitempty"`
+	Name        string           `json:"Name,omitempty"`
+	A           []FailoverRecord `json:"A,omitempty"`
+	AAAA        []FailoverRecord `json:"AAAA,omitempty"`
+	CName       []FailoverRecord `json:"CNAME,omitempty"`
+}
+
+// FailoverRecord -
+type FailoverRecord struct {
+	HealthCheck HealthCheck `json:"HealthCheck,omitempty"`
+	IsPrimary   bool        `json:"IsPrimary,omitempty"`
+	Record      DNSRecord   `json:"Record,omitempty"`
+}
+
+type LBGroup struct {
+	Group LBGroupWrapper `json:"Group,omitempty"`
+}
+
+type LBGroupWrapper struct {
+	GroupTypeID int        `json:"GroupTypeId,omitempty"`
+	Name        string     `json:"Name,omitempty"`
+	A           []LBRecord `json:"A,omitempty"`
+	AAAA        []LBRecord `json:"AAAA,omitempty"`
+	CName       []LBRecord `json:"CNAME,omitempty"`
+}
+
+type LBRecord struct {
+	HealthCheck HealthCheck `json:"HealthCheck,omitempty"`
+	Weight      int         `json:"Weight,omitempty"`
+	Record      DNSRecord   `json:"Record,omitempty"`
 }
 
 //NewRDNSRouteAPIClient -
@@ -215,8 +372,8 @@ func (c *DNSRouteAPIClient) DeleteMasterServerGroup(msgID int) error {
 }
 
 // GetZone - Get Zone information of the provided ZoneID which include all dns records, failover servers, and loadbalancing servers if any exists.
-func (c *DNSRouteAPIClient) GetZone(id int) (*ZoneResponse, error) {
-	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/routezone?id=%d", c.Config.AccountNumber, id)
+func (c *DNSRouteAPIClient) GetZone(id int) (*Zone, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/zone/%d", c.Config.AccountNumber, id)
 	log.Printf("apiURL:%s", apiURL)
 	request, err := c.BaseAPIClient.BuildRequest("GET", apiURL, nil, false)
 
@@ -224,29 +381,30 @@ func (c *DNSRouteAPIClient) GetZone(id int) (*ZoneResponse, error) {
 		return nil, fmt.Errorf("GetZone: %v", err)
 	}
 
-	parsedResponse := ZoneResponse{}
-	log.Printf("dnsroute_client>>GetZone>>parsedResponse:%v", parsedResponse)
+	parsedResponse := Zone{}
 
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return nil, fmt.Errorf("GetOrigin: %v", err)
+		return nil, fmt.Errorf("GetZone: %v", err)
 	}
+	log.Printf("dnsroute_client>>GetZone>>parsedResponse:%v", parsedResponse)
 
 	return &parsedResponse, nil
 }
 
 // AddZone -
-func (c *DNSRouteAPIClient) AddZone(zone *ZoneRequest) (int, error) {
+func (c *DNSRouteAPIClient) AddZone(zone *Zone) (int, error) {
 	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/zone", c.Config.AccountNumber)
-	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, zone, false)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, *zone, false)
 	if err != nil {
-		return -1, fmt.Errorf("api>>dnsroute_client>>AddZone: %v", err)
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddZone->BuildRequest: %v", err)
 	}
+
 	resp, err := c.BaseAPIClient.SendRequestWithStringResponse(request)
 
 	if err != nil {
-		return -1, fmt.Errorf("api>>dnsroute_client>>AddZone: %v", err)
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddZone->SendRequestWithStringResponse: %v", err)
 	}
 
 	zoneID, err := strconv.Atoi(*resp)
@@ -257,9 +415,9 @@ func (c *DNSRouteAPIClient) AddZone(zone *ZoneRequest) (int, error) {
 }
 
 // UpdateZone -
-func (c *DNSRouteAPIClient) UpdateZone(zone *ZoneRequest) error {
+func (c *DNSRouteAPIClient) UpdateZone(zone *Zone) error {
 	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/zone", c.Config.AccountNumber)
-	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, zone, false)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, *zone, false)
 	if err != nil {
 		return fmt.Errorf("api>>dnsroute_client>>UpdateZone: %v", err)
 	}

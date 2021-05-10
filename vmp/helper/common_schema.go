@@ -38,6 +38,6 @@ func IsJsonArray(input interface{}) bool {
 
 func IsJSONString(s string) bool {
 	var js string
-	return json.Unmarshal([]byte(s), &js) == nil
+	return json.Unmarshal([]byte(s), &js) != nil
 
 }
