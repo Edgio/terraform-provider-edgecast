@@ -6,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"strconv"
-	"time"
 
 	"terraform-provider-vmp/vmp/api"
 	"terraform-provider-vmp/vmp/helper"
@@ -18,7 +17,7 @@ import (
 // DNS Master Server Group
 func ResourceZone() *schema.Resource {
 	// For debugging purpose
-	time.Sleep(10 * time.Second)
+	//time.Sleep(10 * time.Second)
 
 	return &schema.Resource{
 		CreateContext: ResourceZoneCreate,
@@ -1813,82 +1812,82 @@ func ResourceZoneCreate(ctx context.Context, d *schema.ResourceData, m interface
 		Comment:         comment,
 	}
 
-	aRecords := toDNSRecords("A", recordA)
+	aRecords := toDNSRecords("A", &recordA)
 	if len(*aRecords) > 0 {
 		zoneRequest.Records.A = *aRecords
 	}
-	aaaaRecords := toDNSRecords("AAAA", recordAAAA)
+	aaaaRecords := toDNSRecords("AAAA", &recordAAAA)
 	if len(*aaaaRecords) > 0 {
 		zoneRequest.Records.AAAA = *aaaaRecords
 	}
-	cnameRecords := toDNSRecords("Cname", recordCNAME)
+	cnameRecords := toDNSRecords("Cname", &recordCNAME)
 	if len(*cnameRecords) > 0 {
 		zoneRequest.Records.CName = *cnameRecords
 	}
-	mxRecords := toDNSRecords("MX", recordMX)
+	mxRecords := toDNSRecords("MX", &recordMX)
 	if len(*mxRecords) > 0 {
 		zoneRequest.Records.MX = *mxRecords
 	}
-	nsRecords := toDNSRecords("NS", recordNS)
+	nsRecords := toDNSRecords("NS", &recordNS)
 	if len(*nsRecords) > 0 {
 		zoneRequest.Records.NS = *nsRecords
 	}
-	ptrRecords := toDNSRecords("PTR", recordPTR)
+	ptrRecords := toDNSRecords("PTR", &recordPTR)
 	if len(*ptrRecords) > 0 {
 		zoneRequest.Records.PTR = *ptrRecords
 	}
-	soaRecords := toDNSRecords("SOA", recordSOA)
+	soaRecords := toDNSRecords("SOA", &recordSOA)
 	if len(*soaRecords) > 0 {
 		zoneRequest.Records.SOA = *soaRecords
 	}
-	spfRecords := toDNSRecords("SPF", recordSPF)
+	spfRecords := toDNSRecords("SPF", &recordSPF)
 	if len(*spfRecords) > 0 {
 		zoneRequest.Records.SPF = *spfRecords
 	}
-	srvRecords := toDNSRecords("SRV", recordSRV)
+	srvRecords := toDNSRecords("SRV", &recordSRV)
 	if len(*srvRecords) > 0 {
 		zoneRequest.Records.SRV = *srvRecords
 	}
-	txtRecords := toDNSRecords("TXT", recordTXT)
+	txtRecords := toDNSRecords("TXT", &recordTXT)
 	if len(*txtRecords) > 0 {
 		zoneRequest.Records.TXT = *txtRecords
 	}
-	dnsKeyRecords := toDNSRecords("DNSKEY", recordDNSKEY)
+	dnsKeyRecords := toDNSRecords("DNSKEY", &recordDNSKEY)
 	if len(*dnsKeyRecords) > 0 {
 		zoneRequest.Records.DNSKEY = *dnsKeyRecords
 	}
-	rrsigRecords := toDNSRecords("RRSIG", recordRRSIG)
+	rrsigRecords := toDNSRecords("RRSIG", &recordRRSIG)
 	if len(*rrsigRecords) > 0 {
 		zoneRequest.Records.RRSIG = *rrsigRecords
 	}
-	dsRecords := toDNSRecords("DS", recordDS)
+	dsRecords := toDNSRecords("DS", &recordDS)
 	if len(*dsRecords) > 0 {
 		zoneRequest.Records.DS = *dsRecords
 	}
-	nsecRecords := toDNSRecords("NSEC", recordNSEC)
+	nsecRecords := toDNSRecords("NSEC", &recordNSEC)
 	if len(*nsecRecords) > 0 {
 		zoneRequest.Records.NSEC = *nsecRecords
 	}
-	nsec3Records := toDNSRecords("NSEC3", recordNSEC3)
+	nsec3Records := toDNSRecords("NSEC3", &recordNSEC3)
 	if len(*nsec3Records) > 0 {
 		zoneRequest.Records.NSEC3 = *nsec3Records
 	}
-	nsec3paramRecords := toDNSRecords("NSEC3PARAM", recordNSEC3PARAM)
+	nsec3paramRecords := toDNSRecords("NSEC3PARAM", &recordNSEC3PARAM)
 	if len(*nsec3paramRecords) > 0 {
 		zoneRequest.Records.NSEC3PARAM = *nsec3paramRecords
 	}
-	dlvRecords := toDNSRecords("DLV", recordDLV)
+	dlvRecords := toDNSRecords("DLV", &recordDLV)
 	if len(*dlvRecords) > 0 {
 		zoneRequest.Records.DLV = *dlvRecords
 	}
-	caaRecords := toDNSRecords("CAA", recordCAA)
+	caaRecords := toDNSRecords("CAA", &recordCAA)
 	if len(*caaRecords) > 0 {
 		zoneRequest.Records.CAA = *caaRecords
 	}
 
 	dnsGroups := d.Get("dnsroute_group").([]interface{})
 
-	groups, err := toDNSRouteGroups(dnsGroups)
+	groups, err := toDNSRouteGroups(&dnsGroups)
 	if err != nil {
 		diag.FromErr(err)
 	}
@@ -1897,7 +1896,7 @@ func ResourceZoneCreate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
 
-	helper.LogInstanceToPrettyJson("Zone Create Request body", zoneRequest)
+	//helper.LogInstanceToPrettyJson("Zone Create Request body", zoneRequest)
 	newZoneID, err := dnsrouteClient.AddZone(&zoneRequest)
 
 	if err != nil {
@@ -1920,7 +1919,8 @@ func ResourceZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
 	resp, err := dnsRouteClient.GetZone(zoneID)
 
-	helper.LogInstanceToPrettyJson("ZoneRead Response body", resp)
+	helper.LogInstanceToPrettyJson("ZoneRead", resp)
+	//helper.LogInstanceToPrettyJson("ZoneRead Response body", resp)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -2064,97 +2064,335 @@ func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	zoneRequest.FixedZoneID = zoneID
 
-	aRecords := toDNSRecords("A", recordA)
+	aRecords := toDNSRecords("A", &recordA)
 	if len(*aRecords) > 0 {
 		zoneRequest.Records.A = *aRecords
 	}
-	aaaaRecords := toDNSRecords("AAAA", recordAAAA)
+	aaaaRecords := toDNSRecords("AAAA", &recordAAAA)
 	if len(*aaaaRecords) > 0 {
 		zoneRequest.Records.AAAA = *aaaaRecords
 	}
-	cnameRecords := toDNSRecords("Cname", recordCNAME)
+	cnameRecords := toDNSRecords("Cname", &recordCNAME)
 	if len(*cnameRecords) > 0 {
 		zoneRequest.Records.CName = *cnameRecords
 	}
-	mxRecords := toDNSRecords("MX", recordMX)
+	mxRecords := toDNSRecords("MX", &recordMX)
 	if len(*mxRecords) > 0 {
 		zoneRequest.Records.MX = *mxRecords
 	}
-	nsRecords := toDNSRecords("NS", recordNS)
+	nsRecords := toDNSRecords("NS", &recordNS)
 	if len(*nsRecords) > 0 {
 		zoneRequest.Records.NS = *nsRecords
 	}
-	ptrRecords := toDNSRecords("PTR", recordPTR)
+	ptrRecords := toDNSRecords("PTR", &recordPTR)
 	if len(*ptrRecords) > 0 {
 		zoneRequest.Records.PTR = *ptrRecords
 	}
-	soaRecords := toDNSRecords("SOA", recordSOA)
+	soaRecords := toDNSRecords("SOA", &recordSOA)
 	if len(*soaRecords) > 0 {
 		zoneRequest.Records.SOA = *soaRecords
 	}
-	spfRecords := toDNSRecords("SPF", recordSPF)
+	spfRecords := toDNSRecords("SPF", &recordSPF)
 	if len(*spfRecords) > 0 {
 		zoneRequest.Records.SPF = *spfRecords
 	}
-	srvRecords := toDNSRecords("SRV", recordSRV)
+	srvRecords := toDNSRecords("SRV", &recordSRV)
 	if len(*srvRecords) > 0 {
 		zoneRequest.Records.SRV = *srvRecords
 	}
-	txtRecords := toDNSRecords("TXT", recordTXT)
+	txtRecords := toDNSRecords("TXT", &recordTXT)
 	if len(*txtRecords) > 0 {
 		zoneRequest.Records.TXT = *txtRecords
 	}
-	dnsKeyRecords := toDNSRecords("DNSKEY", recordDNSKEY)
+	dnsKeyRecords := toDNSRecords("DNSKEY", &recordDNSKEY)
 	if len(*dnsKeyRecords) > 0 {
 		zoneRequest.Records.DNSKEY = *dnsKeyRecords
 	}
-	rrsigRecords := toDNSRecords("RRSIG", recordRRSIG)
+	rrsigRecords := toDNSRecords("RRSIG", &recordRRSIG)
 	if len(*rrsigRecords) > 0 {
 		zoneRequest.Records.RRSIG = *rrsigRecords
 	}
-	dsRecords := toDNSRecords("DS", recordDS)
+	dsRecords := toDNSRecords("DS", &recordDS)
 	if len(*dsRecords) > 0 {
 		zoneRequest.Records.DS = *dsRecords
 	}
-	nsecRecords := toDNSRecords("NSEC", recordNSEC)
+	nsecRecords := toDNSRecords("NSEC", &recordNSEC)
 	if len(*nsecRecords) > 0 {
 		zoneRequest.Records.NSEC = *nsecRecords
 	}
-	nsec3Records := toDNSRecords("NSEC3", recordNSEC3)
+	nsec3Records := toDNSRecords("NSEC3", &recordNSEC3)
 	if len(*nsec3Records) > 0 {
 		zoneRequest.Records.NSEC3 = *nsec3Records
 	}
-	nsec3paramRecords := toDNSRecords("NSEC3PARAM", recordNSEC3PARAM)
+	nsec3paramRecords := toDNSRecords("NSEC3PARAM", &recordNSEC3PARAM)
 	if len(*nsec3paramRecords) > 0 {
 		zoneRequest.Records.NSEC3PARAM = *nsec3paramRecords
 	}
-	dlvRecords := toDNSRecords("DLV", recordDLV)
+	dlvRecords := toDNSRecords("DLV", &recordDLV)
 	if len(*dlvRecords) > 0 {
 		zoneRequest.Records.DLV = *dlvRecords
 	}
-	caaRecords := toDNSRecords("CAA", recordCAA)
+	caaRecords := toDNSRecords("CAA", &recordCAA)
 	if len(*caaRecords) > 0 {
 		zoneRequest.Records.CAA = *caaRecords
 	}
 
 	dnsGroups := d.Get("dnsroute_group").([]interface{})
 
-	groups, err := toDNSRouteGroups(dnsGroups)
+	groups, err := toDNSRouteGroups(&dnsGroups)
 	if err != nil {
 		diag.FromErr(err)
 	}
 	if groups != nil && len(*groups) > 0 {
 		zoneRequest.Groups = *groups
 	}
-	helper.LogInstanceToPrettyJson("Update request body:", zoneRequest)
+
 	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
-	err = dnsrouteClient.UpdateZone(&zoneRequest)
+	resp, err := dnsrouteClient.GetZone(zoneID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	updateIds(&zoneRequest, resp)
+
+	//helper.LogInstanceToPrettyJson("Update request body2:", resp)
+	err = dnsrouteClient.UpdateZone(resp)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	return ResourceZoneRead(ctx, d, m)
+}
+func updateIds(local *api.Zone, remote *api.Zone) {
+	if local == nil || remote == nil {
+		return
+	}
+	local.StatusName = remote.StatusName
+	records := applyDnsReordChanges(local.Records.A, remote.Records.A)
+	//helper.LogInstanceToPrettyJson("records a", records)
+	remote.Records.A = records
+	records = applyDnsReordChanges(local.Records.AAAA, remote.Records.AAAA)
+	remote.Records.AAAA = records
+	records = applyDnsReordChanges(local.Records.CName, remote.Records.CName)
+	remote.Records.CName = records
+	records = applyDnsReordChanges(local.Records.CAA, remote.Records.CAA)
+	remote.Records.CAA = records
+	records = applyDnsReordChanges(local.Records.DLV, remote.Records.DLV)
+	remote.Records.DLV = records
+	records = applyDnsReordChanges(local.Records.DNSKEY, remote.Records.DNSKEY)
+	remote.Records.DNSKEY = records
+	records = applyDnsReordChanges(local.Records.DS, remote.Records.DS)
+	remote.Records.DS = records
+	records = applyDnsReordChanges(local.Records.MX, remote.Records.MX)
+	remote.Records.MX = records
+	records = applyDnsReordChanges(local.Records.NS, remote.Records.NS)
+	remote.Records.NS = records
+	records = applyDnsReordChanges(local.Records.NSEC, remote.Records.NSEC)
+	remote.Records.NSEC = records
+	records = applyDnsReordChanges(local.Records.NSEC3, remote.Records.NSEC3)
+	remote.Records.NSEC3 = records
+	records = applyDnsReordChanges(local.Records.NSEC3PARAM, remote.Records.NSEC3PARAM)
+	remote.Records.NSEC3PARAM = records
+	records = applyDnsReordChanges(local.Records.PTR, remote.Records.PTR)
+	remote.Records.PTR = records
+	records = applyDnsReordChanges(local.Records.RRSIG, remote.Records.RRSIG)
+	remote.Records.RRSIG = records
+	records = applyDnsReordChanges(local.Records.SOA, remote.Records.SOA)
+	remote.Records.SOA = records
+	records = applyDnsReordChanges(local.Records.SPF, remote.Records.SPF)
+	remote.Records.SPF = records
+	records = applyDnsReordChanges(local.Records.SRV, remote.Records.SRV)
+	remote.Records.SRV = records
+	records = applyDnsReordChanges(local.Records.TXT, remote.Records.TXT)
+	remote.Records.TXT = records
+
+	//GROUP-------------------------------------------------------
+	helper.LogInstanceToPrettyJson("Local", local.Groups)
+	helper.LogInstanceToPrettyJson("Remote", remote.Groups)
+	if local.Groups == nil || len(local.Groups) == 0 {
+		// if db has records but update one has empty, delete db records
+		for i := 0; i < len(remote.Groups); i++ {
+			markItAsDeleted(remote.Groups[i].GroupComposition.A)
+			markItAsDeleted(remote.Groups[i].GroupComposition.AAAA)
+			markItAsDeleted(remote.Groups[i].GroupComposition.CName)
+		}
+	} else if remote.Groups == nil || len(remote.Groups) == 0 {
+		// if db doesn't have anything...
+		remote.Groups = append(remote.Groups, local.Groups...)
+	} else {
+		// else both local and remote has groups.
+		// 1. if found the same group, copy content from update-ones to db values
+		helper.LogInstanceToPrettyJson("before", remote.Groups)
+		for i := 0; i < len(remote.Groups); i++ {
+			for j := 0; j < len(local.Groups); j++ {
+				if remote.Groups[i].FixedGroupID == local.Groups[j].FixedGroupID {
+					copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.A, remote.Groups[j].GroupComposition.A)
+					copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.AAAA, remote.Groups[j].GroupComposition.AAAA)
+					copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.CName, remote.Groups[j].GroupComposition.CName)
+				}
+			}
+		}
+		helper.LogInstanceToPrettyJson("after", remote.Groups)
+		// 2. if update-ones has new record
+		for i := 0; i < len(local.Groups); i++ {
+			isNew := true
+			for j := 0; j < len(remote.Groups); j++ {
+				if local.Groups[i].FixedGroupID == remote.Groups[j].FixedGroupID {
+					isNew = false
+				}
+			}
+			if isNew {
+				remote.Groups = append(remote.Groups, local.Groups[i])
+			}
+		}
+		helper.LogInstanceToPrettyJson("after2", remote.Groups)
+		// 3. if existing record in db was deleted in updated-ones
+
+		for i := 0; i < len(remote.Groups); i++ {
+			isDelete := true
+			for j := 0; j < len(local.Groups); j++ {
+				helper.LogIntComarison(remote.Groups[i].FixedGroupID, local.Groups[j].FixedGroupID)
+				if remote.Groups[i].FixedGroupID == local.Groups[j].FixedGroupID {
+					helper.LogIntComarison(remote.Groups[i].FixedGroupID*1000, local.Groups[j].FixedGroupID)
+
+					isDelete = false
+					break
+				}
+			}
+			if isDelete {
+				helper.LogInstanceToPrettyJson("deletedGroup", remote.Groups[i])
+				helper.LogInstanceToPrettyJson("deletedGroup A", remote.Groups[i].GroupComposition.A)
+				markItAsDeleted(remote.Groups[i].GroupComposition.A)
+				markItAsDeleted(remote.Groups[i].GroupComposition.AAAA)
+				markItAsDeleted(remote.Groups[i].GroupComposition.CName)
+			}
+		}
+	}
+	helper.LogInstanceToPrettyJson("after3", remote.Groups)
+}
+
+func markItAsDeleted(dnsArr []api.DnsRouteGroupRecord) {
+	if dnsArr != nil && len(dnsArr) > 0 {
+		for i := 0; i < len(dnsArr); i++ {
+			dnsArr[i].Record.IsDeleted = true
+		}
+	}
+}
+
+func applyDnsReordChanges(local []api.DNSRecord, remote []api.DNSRecord) []api.DNSRecord {
+
+	// modify
+	for i := 0; i < len(remote); i++ {
+
+	}
+	for i, a1 := range remote {
+		for j, a2 := range local {
+			if a1.Name == a2.Name {
+				a1 = copyDnsRecordContent(&remote[i], &local[j])
+				break
+			}
+		}
+	}
+
+	// delete
+	for i, _ := range remote {
+		isDeleted := true
+		for j, _ := range local {
+			if remote[i].Name == local[j].Name {
+
+				isDeleted = false
+				remote[i].IsDeleted = false
+				break
+			}
+		}
+		if isDeleted {
+			remote[i].IsDeleted = true
+		}
+	}
+
+	// add
+	addList := make([]api.DNSRecord, len(local))
+	i := 0
+	for _, a1 := range local {
+		isFound := false
+		for _, a2 := range remote {
+			if a1.Name == a2.Name {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			addList[i] = a1
+			i++
+		}
+	}
+	if i > 0 {
+		addList = addList[:i]
+		remote = append(remote, addList...)
+	}
+	return remote
+}
+
+func copyDnsRecordContent(a1 *api.DNSRecord, a2 *api.DNSRecord) api.DNSRecord {
+	a1.Weight = a2.Weight
+	a1.Rdata = a2.Rdata
+	a1.TTL = a2.TTL
+	a1.Name = a2.Name
+	return *a1
+}
+
+func copyDnsRouteGroupRecordAllIDs(from []api.DnsRouteGroupRecord, to []api.DnsRouteGroupRecord) []api.DnsRouteGroupRecord {
+	// modify
+	for i := 0; i < len(to); i++ {
+		for j := 0; j < len(from); j++ {
+			if to[i].Record.RecordID == from[j].Record.RecordID {
+				to[i].Record = copyDnsRecordContent(&to[i].Record, &from[j].Record)
+				if to[i].HealthCheck != nil && to[j].HealthCheck != nil {
+					copyHealthCheckIDs(to[i].HealthCheck, from[j].HealthCheck)
+				}
+				break
+			}
+		}
+	}
+	// delete
+	for i := 0; i < len(to); i++ {
+		isDelete := true
+		for j := 0; j < len(from); j++ {
+			if to[i].Record.RecordID == from[j].Record.RecordID {
+				to[i].Record.IsDeleted = false
+				isDelete = false
+				break
+			}
+		}
+		if isDelete {
+			to[i].Record.IsDeleted = true
+		}
+	}
+
+	// add
+	for _, a1 := range from {
+		isFound := false
+		for _, a2 := range to {
+			if a1.Record.RecordID == a2.Record.RecordID {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			to = append(to, a1)
+		}
+	}
+
+	return to
+}
+func copyHealthCheckIDs(hc1 *api.HealthCheck, hc2 *api.HealthCheck) {
+	if hc1 == nil {
+		hc1 = hc2
+	} else if hc1 != nil && hc2 != nil {
+		hc1.PortNumber = hc2.PortNumber
+		hc1.TimeOut = hc2.TimeOut
+	}
 }
 
 func ResourceZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -2179,16 +2417,11 @@ func ResourceZoneDelete(ctx context.Context, d *schema.ResourceData, m interface
 }
 
 func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
-	if recordItems != nil {
+	if *recordItems != nil && len(*recordItems) > 0 {
 		dnsRecords := make([]interface{}, len(*recordItems), len(*recordItems))
 
 		for i, dns := range *recordItems {
 			item := make(map[string]interface{})
-
-			item["name"] = dns.Name
-			item["ttl"] = dns.TTL
-			item["rdata"] = dns.Rdata
-			item["verify_id"] = dns.VerifyID
 			item["fixed_record_id"] = dns.FixedRecordID
 			item["fixed_group_id"] = dns.FixedGroupID
 			item["weight"] = dns.Weight
@@ -2196,16 +2429,20 @@ func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
 			item["record_type_name"] = dns.RecordTypeName
 			item["group_id"] = dns.GroupID
 			item["is_delete"] = dns.IsDeleted
+			item["name"] = dns.Name
+			item["ttl"] = dns.TTL
+			item["rdata"] = dns.Rdata
+			item["verify_id"] = dns.VerifyID
 
 			dnsRecords[i] = item
 		}
 		return dnsRecords
 	}
-	return make([]interface{}, 0)
+	return nil
 }
 
 func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
-	if groupItems != nil && len(*groupItems) > 0 {
+	if *groupItems != nil && len(*groupItems) > 0 {
 		groupArr := make([]interface{}, len(*groupItems), len(*groupItems))
 
 		for i, group := range *groupItems {
@@ -2228,9 +2465,9 @@ func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
 			item["name"] = group.Name
 			item["zone_id"] = group.ZoneId
 
-			item["a"] = flattenGroupDNSs(&group.GroupComposition.RA)
-			item["aaaa"] = flattenGroupDNSs(&group.GroupComposition.RAAAA)
-			item["cname"] = flattenGroupDNSs(&group.GroupComposition.RCName)
+			item["a"] = flattenGroupDNSs(&group.GroupComposition.A)
+			item["aaaa"] = flattenGroupDNSs(&group.GroupComposition.AAAA)
+			item["cname"] = flattenGroupDNSs(&group.GroupComposition.CName)
 
 			groupArr[i] = item
 		}
@@ -2240,7 +2477,7 @@ func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
 }
 
 func flattenGroupDNSs(dnsItems *[]api.DnsRouteGroupRecord) []interface{} {
-	if dnsItems != nil && len(*dnsItems) > 0 {
+	if *dnsItems != nil && len(*dnsItems) > 0 {
 
 		dnsArr := make([]interface{}, len(*dnsItems), len(*dnsItems))
 
@@ -2265,7 +2502,7 @@ func flattenGroupDNSs(dnsItems *[]api.DnsRouteGroupRecord) []interface{} {
 		}
 		return dnsArr
 	}
-	return make([]interface{}, 0)
+	return nil
 }
 
 func flattenGroupDnsRecord(dns *api.DNSRecord) []interface{} {
@@ -2324,11 +2561,11 @@ func flattenHealthCheck(hc *api.HealthCheck) []interface{} {
 	return nil
 }
 
-func toDNSRecords(recodeType string, input []interface{}) *[]api.DNSRecord {
+func toDNSRecords(recodeType string, input *[]interface{}) *[]api.DNSRecord {
 
 	records := make([]api.DNSRecord, 0)
 
-	for _, item := range input {
+	for _, item := range *input {
 		curr := item.(map[string]interface{})
 
 		name := curr["name"].(string)
@@ -2363,13 +2600,13 @@ func toDNSRecords(recodeType string, input []interface{}) *[]api.DNSRecord {
 	return &records
 }
 
-func toDNSRouteGroups(input []interface{}) (*[]api.DnsRouteGroup, error) {
-	if input == nil || len(input) == 0 {
+func toDNSRouteGroups(input *[]interface{}) (*[]api.DnsRouteGroup, error) {
+	if *input == nil || len(*input) == 0 {
 		return nil, nil
 	}
 	groups := make([]api.DnsRouteGroup, 0)
 
-	for _, item := range input {
+	for _, item := range *input {
 		curr := item.(map[string]interface{})
 
 		name := curr["name"].(string)
@@ -2404,17 +2641,17 @@ func toDNSRouteGroups(input []interface{}) (*[]api.DnsRouteGroup, error) {
 		}
 
 		dnsAs := curr["a"].([]interface{})
-		arrayAs, err := toGroupRecords(dnsAs)
+		arrayAs, err := toGroupRecords(&dnsAs)
 		if err != nil {
 			return nil, err
 		}
 		dnsAAAAs := curr["aaaa"].([]interface{})
-		arrayAAAAs, err := toGroupRecords(dnsAAAAs)
+		arrayAAAAs, err := toGroupRecords(&dnsAAAAs)
 		if err != nil {
 			return nil, err
 		}
 		dnsCnames := curr["cname"].([]interface{})
-		arrayCnames, err := toGroupRecords(dnsCnames)
+		arrayCnames, err := toGroupRecords(&dnsCnames)
 		if err != nil {
 			return nil, err
 		}
@@ -2440,17 +2677,17 @@ func toDNSRouteGroups(input []interface{}) (*[]api.DnsRouteGroup, error) {
 	return &groups, nil
 }
 
-func toGroupRecords(input []interface{}) (*[]api.DnsRouteGroupRecord, error) {
+func toGroupRecords(input *[]interface{}) (*[]api.DnsRouteGroupRecord, error) {
 	records := make([]api.DnsRouteGroupRecord, 0)
 
-	for _, item := range input {
+	for _, item := range *input {
 		curr := item.(map[string]interface{})
 		var healthCheck *api.HealthCheck = nil
 		var err error
 		if val, ok := curr["health_check"]; ok {
 
 			hc := val.([]interface{})
-			healthCheck, err = toHealthCheck(hc)
+			healthCheck, err = toHealthCheck(&hc)
 			if err != nil {
 				return nil, err
 			}
@@ -2465,7 +2702,7 @@ func toGroupRecords(input []interface{}) (*[]api.DnsRouteGroupRecord, error) {
 
 		if val, ok := curr["record"]; ok {
 			rc := val.([]interface{})
-			dnsRecord, err = toDNSRouteZoneRecord(rc, weight)
+			dnsRecord, err = toDNSRouteZoneRecord(&rc, weight)
 			if err != nil {
 				return nil, err
 			}
@@ -2484,9 +2721,9 @@ func toGroupRecords(input []interface{}) (*[]api.DnsRouteGroupRecord, error) {
 	return &records, nil
 }
 
-func toHealthCheck(input []interface{}) (*api.HealthCheck, error) {
-	if input != nil && len(input) > 0 {
-		for _, element := range input {
+func toHealthCheck(input *[]interface{}) (*api.HealthCheck, error) {
+	if *input != nil && len(*input) > 0 {
+		for _, element := range *input {
 			item := element.(map[string]interface{})
 			healthCheck := api.HealthCheck{}
 			if item["check_interval"] != nil {
@@ -2535,9 +2772,9 @@ func toHealthCheck(input []interface{}) (*api.HealthCheck, error) {
 	return nil, nil
 }
 
-func toDNSRouteZoneRecord(items []interface{}, weight int) (*api.DNSRecord, error) {
-	if items != nil && len(items) > 0 {
-		for _, element := range items {
+func toDNSRouteZoneRecord(items *[]interface{}, weight int) (*api.DNSRecord, error) {
+	if *items != nil && len(*items) > 0 {
+		for _, element := range *items {
 			item := element.(map[string]interface{})
 			record := api.DNSRecord{
 				FixedRecordID:  item["fixed_record_id"].(int),

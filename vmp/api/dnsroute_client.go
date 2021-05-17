@@ -146,47 +146,29 @@ type DnsRouteGroup struct {
 
 // DNSGroupRecords -
 type DNSGroupRecords struct {
-	RA          []DnsRouteGroupRecord `json:"_A,omitempty"`
-	RAAAA       []DnsRouteGroupRecord `json:"_AAAA,omitempty"`
-	RCName      []DnsRouteGroupRecord `json:"_CName,omitempty"`
-	RMX         []DnsRouteGroupRecord `json:"_MX,omitempty"`
-	RNS         []DnsRouteGroupRecord `json:"_NS,omitempty"`
-	RPTR        []DnsRouteGroupRecord `json:"_PTR,omitempty"`
-	RSOA        []DnsRouteGroupRecord `json:"_SOA,omitempty"`
-	RSPF        []DnsRouteGroupRecord `json:"_SPF,omitempty"`
-	RSRV        []DnsRouteGroupRecord `json:"_SRV,omitempty"`
-	RTXT        []DnsRouteGroupRecord `json:"_TXT,omitempty"`
-	RDNSKEY     []DnsRouteGroupRecord `json:"_DNSKEY,omitempty"`
-	RRRSIG      []DnsRouteGroupRecord `json:"_RRSIG,omitempty"`
-	RDS         []DnsRouteGroupRecord `json:"_DS,omitempty"`
-	RNSEC       []DnsRouteGroupRecord `json:"_NSEC,omitempty"`
-	RNSEC3      []DnsRouteGroupRecord `json:"_NSEC3,omitempty"`
-	RNSEC3PARAM []DnsRouteGroupRecord `json:"_NSEC3PARAM,omitempty"`
-	RDLV        []DnsRouteGroupRecord `json:"_DLV,omitempty"`
-	RCAA        []DnsRouteGroupRecord `json:"_CAA,omitempty"`
-	A           []DnsRouteGroupRecord `json:"A,omitempty"`
-	AAAA        []DnsRouteGroupRecord `json:"AAAA,omitempty"`
-	CName       []DnsRouteGroupRecord `json:"CName,omitempty"`
-	MX          []DnsRouteGroupRecord `json:"MX,omitempty"`
-	NS          []DnsRouteGroupRecord `json:"NS,omitempty"`
-	PTR         []DnsRouteGroupRecord `json:"PTR,omitempty"`
-	SOA         []DnsRouteGroupRecord `json:"SOA,omitempty"`
-	SPF         []DnsRouteGroupRecord `json:"SPF,omitempty"`
-	SRV         []DnsRouteGroupRecord `json:"SRV,omitempty"`
-	TXT         []DnsRouteGroupRecord `json:"TXT,omitempty"`
-	DNSKEY      []DnsRouteGroupRecord `json:"DNSKEY,omitempty"`
-	RRSIG       []DnsRouteGroupRecord `json:"RRSIG,omitempty"`
-	DS          []DnsRouteGroupRecord `json:"DS,omitempty"`
-	NSEC        []DnsRouteGroupRecord `json:"NSEC,omitempty"`
-	NSEC3       []DnsRouteGroupRecord `json:"NSEC3,omitempty"`
-	NSEC3PARAM  []DnsRouteGroupRecord `json:"NSEC3PARAM,omitempty"`
-	DLV         []DnsRouteGroupRecord `json:"DLV,omitempty"`
-	CAA         []DnsRouteGroupRecord `json:"CAA,omitempty"`
+	A          []DnsRouteGroupRecord `json:"A,omitempty"`
+	AAAA       []DnsRouteGroupRecord `json:"AAAA,omitempty"`
+	CName      []DnsRouteGroupRecord `json:"CName,omitempty"`
+	MX         []DnsRouteGroupRecord `json:"MX,omitempty"`
+	NS         []DnsRouteGroupRecord `json:"NS,omitempty"`
+	PTR        []DnsRouteGroupRecord `json:"PTR,omitempty"`
+	SOA        []DnsRouteGroupRecord `json:"SOA,omitempty"`
+	SPF        []DnsRouteGroupRecord `json:"SPF,omitempty"`
+	SRV        []DnsRouteGroupRecord `json:"SRV,omitempty"`
+	TXT        []DnsRouteGroupRecord `json:"TXT,omitempty"`
+	DNSKEY     []DnsRouteGroupRecord `json:"DNSKEY,omitempty"`
+	RRSIG      []DnsRouteGroupRecord `json:"RRSIG,omitempty"`
+	DS         []DnsRouteGroupRecord `json:"DS,omitempty"`
+	NSEC       []DnsRouteGroupRecord `json:"NSEC,omitempty"`
+	NSEC3      []DnsRouteGroupRecord `json:"NSEC3,omitempty"`
+	NSEC3PARAM []DnsRouteGroupRecord `json:"NSEC3PARAM,omitempty"`
+	DLV        []DnsRouteGroupRecord `json:"DLV,omitempty"`
+	CAA        []DnsRouteGroupRecord `json:"CAA,omitempty"`
 }
 
 // DNSGroupRecord -
 type DnsRouteGroupRecord struct {
-	//ID          string       `json:"Id,omitempty"`
+	ID          string       `json:"Id,omitempty"`
 	Record      DNSRecord    `json:"Record,omitempty"`
 	HealthCheck *HealthCheck `json:"HealthCheck"`
 	Weight      int          `json:"Weight"`

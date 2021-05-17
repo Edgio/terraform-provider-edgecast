@@ -1,6 +1,6 @@
-resource "vmp_dns_zone" "middlem" {
+resource "vmp_dns_zone" "anyj" {
   account_number = "DE0B"
-	domain_name = "middlem.com."
+	domain_name = "anyj.com."
   status = 1
 	zone_type = 1
 	is_customer_owned = true
@@ -8,17 +8,22 @@ resource "vmp_dns_zone" "middlem" {
 	record_a {
     name="mail"
     ttl=3600
-    rdata="10.10.10.13"
+    rdata="10.10.10.45"
   }
   record_a {
 			name="www"
       ttl=3600
-      rdata="10.10.10.24"
+      rdata="10.10.10.114"
+  }
+  record_a {
+			name="news"
+      ttl=3600
+      rdata="10.10.10.200"
   }
   record_aaaa {
 			name="www"
       ttl="3600"
-      rdata="10:0:1::0:2"
+      rdata="10:0:1::0:3"
   }
   record_cname {
 			name="www"
@@ -30,24 +35,24 @@ resource "vmp_dns_zone" "middlem" {
     ttl=3600
     rdata="10 mail.cooler.com"
   }
-  dnsroute_group {
+    dnsroute_group {
     group_type="zone"
     group_product_type="failover"
     name="fo1"
     a {
       weight=100
       record {
-        name="fo1"
+        name="hot1"
         ttl=300
-        rdata="10.10.10.2"
+        rdata="10.10.1.1"
       }
     }
     a {
       weight=0
       record {
-        name="fo1"
+        name="cold1"
         ttl=300
-        rdata="10.10.10.123"
+        rdata="10.10.1.2"
       }
     }
   }
@@ -57,39 +62,22 @@ resource "vmp_dns_zone" "middlem" {
     name="fo2"
     a {
       weight=100
-      health_check {
-        check_interval=300
-        check_type_id=1
-        content_verification="10"
-        email_notification_address="notice@glory1.com"
-        failed_check_threshold=10
-        http_method_id=1
-        ip_address=""
-        ip_version=1
-        port_number="80"
-        reintegration_method_id=1
-        status= 4
-        status_name="Unknown"
-        uri="www.yahoo.com"
-      }
       record {
-        name="fo2"
+        name="hot3"
         ttl=300
-        rdata="10.10.10.6"
+        rdata="10.10.1.3"
       }
     }
     a {
       weight=0
       record {
-        fixed_group_id=-1
-        group_id=-1
-        fixed_record_id=-1
-        name="fo2"
+        name="cold4"
         ttl=300
-        rdata="10.10.10.9"
+        rdata="10.10.1.4"
       }
     }
   }
+
   dnsroute_group {
     group_type="zone"
     group_product_type="loadbalancing"
@@ -113,12 +101,9 @@ resource "vmp_dns_zone" "middlem" {
         timeout=100
       }
       record {
-        fixed_group_id=-1
-        group_id=-1
-        fixed_record_id=-1
         name="lbg1"
         ttl=300
-        rdata="10.10.10.12"
+        rdata="10.10.3.1"
       }
     }
     a {
@@ -126,7 +111,7 @@ resource "vmp_dns_zone" "middlem" {
       record {
         name="lbg2"
         ttl=300
-        rdata="10.10.10.13"
+        rdata="10.10.3.2"
       }
     }
   }
