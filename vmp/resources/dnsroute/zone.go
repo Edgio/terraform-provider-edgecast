@@ -2224,52 +2224,56 @@ func updateIds(local *api.Zone, remote *api.Zone) {
 		// else both local and remote has groups.
 		// 1. if found the same group, copy content from update-ones to db values
 		helper.LogInstanceToPrettyJson("before", remote.Groups)
-		for i := 0; i < len(remote.Groups); i++ {
-			for j := 0; j < len(local.Groups); j++ {
-				if remote.Groups[i].FixedGroupID == local.Groups[j].FixedGroupID {
-					copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.A, remote.Groups[j].GroupComposition.A)
-					copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.AAAA, remote.Groups[j].GroupComposition.AAAA)
-					copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.CName, remote.Groups[j].GroupComposition.CName)
-				}
+		swapGroupsFromLocalToRemote(remote, local)
+	}
+	helper.LogInstanceToPrettyJson("after3", remote.Groups)
+}
+func swapGroupsFromLocalToRemote(remote *api.Zone, local *api.Zone) {
+	for i := 0; i < len(remote.Groups); i++ {
+		if len(remote.Groups[i].GroupComposition.A) > 0 {
+			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
+				remote.Groups[i].GroupComposition.A[j].Record.IsDeleted = true
 			}
 		}
-		helper.LogInstanceToPrettyJson("after", remote.Groups)
-		// 2. if update-ones has new record
-		for i := 0; i < len(local.Groups); i++ {
-			isNew := true
-			for j := 0; j < len(remote.Groups); j++ {
-				if local.Groups[i].FixedGroupID == remote.Groups[j].FixedGroupID {
-					isNew = false
-				}
-			}
-			if isNew {
-				remote.Groups = append(remote.Groups, local.Groups[i])
+		if len(remote.Groups[i].GroupComposition.AAAA) > 0 {
+			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
+				remote.Groups[i].GroupComposition.AAAA[j].Record.IsDeleted = true
 			}
 		}
-		helper.LogInstanceToPrettyJson("after2", remote.Groups)
-		// 3. if existing record in db was deleted in updated-ones
-
-		for i := 0; i < len(remote.Groups); i++ {
-			isDelete := true
-			for j := 0; j < len(local.Groups); j++ {
-				helper.LogIntComarison(remote.Groups[i].FixedGroupID, local.Groups[j].FixedGroupID)
-				if remote.Groups[i].FixedGroupID == local.Groups[j].FixedGroupID {
-					helper.LogIntComarison(remote.Groups[i].FixedGroupID*1000, local.Groups[j].FixedGroupID)
-
-					isDelete = false
-					break
-				}
-			}
-			if isDelete {
-				helper.LogInstanceToPrettyJson("deletedGroup", remote.Groups[i])
-				helper.LogInstanceToPrettyJson("deletedGroup A", remote.Groups[i].GroupComposition.A)
-				markItAsDeleted(remote.Groups[i].GroupComposition.A)
-				markItAsDeleted(remote.Groups[i].GroupComposition.AAAA)
-				markItAsDeleted(remote.Groups[i].GroupComposition.CName)
+		if len(remote.Groups[i].GroupComposition.CName) > 0 {
+			for j := 0; j < len(remote.Groups[i].GroupComposition.CName); j++ {
+				remote.Groups[i].GroupComposition.CName[j].Record.IsDeleted = true
 			}
 		}
 	}
-	helper.LogInstanceToPrettyJson("after3", remote.Groups)
+
+	for i := 0; i < len(local.Groups); i++ {
+		local.Groups[i].FixedGroupID = 0
+		local.Groups[i].FixedZoneID = 0
+		local.Groups[i].GroupID = 0
+		if len(local.Groups[i].GroupComposition.A) > 0 {
+			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
+				local.Groups[i].GroupComposition.A[j].Record.FixedGroupID = 0
+				local.Groups[i].GroupComposition.A[j].Record.FixedRecordID = 0
+				local.Groups[i].GroupComposition.A[j].Record.RecordID = 0
+			}
+		}
+		if len(local.Groups[i].GroupComposition.AAAA) > 0 {
+			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
+				local.Groups[i].GroupComposition.AAAA[j].Record.FixedGroupID = 0
+				local.Groups[i].GroupComposition.AAAA[j].Record.FixedRecordID = 0
+				local.Groups[i].GroupComposition.AAAA[j].Record.RecordID = 0
+			}
+		}
+		if len(local.Groups[i].GroupComposition.CName) > 0 {
+			for j := 0; j < len(local.Groups[i].GroupComposition.CName); j++ {
+				local.Groups[i].GroupComposition.CName[j].Record.FixedGroupID = 0
+				local.Groups[i].GroupComposition.CName[j].Record.FixedRecordID = 0
+				local.Groups[i].GroupComposition.CName[j].Record.RecordID = 0
+			}
+		}
+	}
+	remote.Groups = append(remote.Groups, local.Groups...)
 }
 
 func markItAsDeleted(dnsArr []api.DnsRouteGroupRecord) {

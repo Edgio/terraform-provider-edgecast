@@ -1,6 +1,6 @@
-resource "vmp_dns_zone" "anyj" {
+resource "vmp_dns_zone" "anyk" {
   account_number = "DE0B"
-	domain_name = "anyj.com."
+	domain_name = "anyk.com."
   status = 1
 	zone_type = 1
 	is_customer_owned = true
@@ -35,7 +35,7 @@ resource "vmp_dns_zone" "anyj" {
     ttl=3600
     rdata="10 mail.cooler.com"
   }
-    dnsroute_group {
+  dnsroute_group {
     group_type="zone"
     group_product_type="failover"
     name="fo1"
@@ -78,41 +78,4 @@ resource "vmp_dns_zone" "anyj" {
     }
   }
 
-  dnsroute_group {
-    group_type="zone"
-    group_product_type="loadbalancing"
-    name="lbg"
-    a {
-      weight=33
-      health_check {
-        check_interval=300
-        check_type_id=1
-        content_verification="10"
-        email_notification_address="notice@glory1.com"
-        failed_check_threshold=10
-        http_method_id=1
-        ip_address=""
-        ip_version=1
-        port_number="80"
-        reintegration_method_id=1
-        status= 4
-        status_name="Unknown"
-        uri="www.yahoo.com"
-        timeout=100
-      }
-      record {
-        name="lbg1"
-        ttl=300
-        rdata="10.10.3.1"
-      }
-    }
-    a {
-      weight=33
-      record {
-        name="lbg2"
-        ttl=300
-        rdata="10.10.3.2"
-      }
-    }
-  }
 }
