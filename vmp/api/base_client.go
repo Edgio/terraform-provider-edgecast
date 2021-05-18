@@ -226,7 +226,6 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 			if err != nil {
 				return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
 			}
-			//helper.LogPrettyJson("RESPONSE", bodyAsString)
 		} else {
 
 			// if response is not json string

@@ -44,7 +44,7 @@ resource "vmp_dns_zone" "anyk" {
       record {
         name="hot1"
         ttl=300
-        rdata="10.10.1.1"
+        rdata="10.10.1.11"
       }
     }
     a {
@@ -52,7 +52,7 @@ resource "vmp_dns_zone" "anyk" {
       record {
         name="cold1"
         ttl=300
-        rdata="10.10.1.2"
+        rdata="10.10.1.22"
       }
     }
   }
@@ -65,7 +65,7 @@ resource "vmp_dns_zone" "anyk" {
       record {
         name="hot3"
         ttl=300
-        rdata="10.10.1.3"
+        rdata="10.10.2.3"
       }
     }
     a {
@@ -73,9 +73,45 @@ resource "vmp_dns_zone" "anyk" {
       record {
         name="cold4"
         ttl=300
-        rdata="10.10.1.4"
+        rdata="10.10.2.4"
       }
     }
   }
-
+  dnsroute_group {
+    group_type="zone"
+    group_product_type="loadbalancing"
+    name="lbg"
+    a {
+      weight=33
+      health_check {
+        check_interval=300
+        check_type_id=1
+        content_verification="10"
+        email_notification_address="notice@glory1.com"
+        failed_check_threshold=10
+        http_method_id=1
+        ip_address=""
+        ip_version=1
+        port_number="80"
+        reintegration_method_id=1
+        status= 4
+        status_name="Unknown"
+        uri="www.yahoo.com"
+        timeout=100
+      }
+      record {
+        name="lbg1"
+        ttl=300
+        rdata="10.10.3.5"
+      }
+    }
+    a {
+      weight=33
+      record {
+        name="lbg2"
+        ttl=300
+        rdata="10.10.3.6"
+      }
+    }
+  }
 }

@@ -48,3 +48,22 @@ func InterfaceArrayToStringArray(interfaces []interface{}) ([]string, bool) {
 
 	return strings, true
 }
+
+// Check if slice contains item
+// first arg: slice
+// second arg: item in the int slice
+func Contains(s []int, e int) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+// Remove item from int slice
+// first arg: slice
+// second arg: 0 based index to be removed
+func Remove(slice []int, index int) []int {
+	return append(slice[:index], slice[index+1:]...)
+}

@@ -8,7 +8,6 @@ import (
 	"strconv"
 
 	"terraform-provider-vmp/vmp/api"
-	"terraform-provider-vmp/vmp/helper"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -1896,7 +1895,6 @@ func ResourceZoneCreate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
 
-	//helper.LogInstanceToPrettyJson("Zone Create Request body", zoneRequest)
 	newZoneID, err := dnsrouteClient.AddZone(&zoneRequest)
 
 	if err != nil {
@@ -1919,8 +1917,6 @@ func ResourceZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
 	resp, err := dnsRouteClient.GetZone(zoneID)
 
-	helper.LogInstanceToPrettyJson("ZoneRead", resp)
-	//helper.LogInstanceToPrettyJson("ZoneRead Response body", resp)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -2155,7 +2151,6 @@ func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface
 
 	updateIds(&zoneRequest, resp)
 
-	//helper.LogInstanceToPrettyJson("Update request body2:", resp)
 	err = dnsrouteClient.UpdateZone(resp)
 
 	if err != nil {
@@ -2163,240 +2158,6 @@ func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	return ResourceZoneRead(ctx, d, m)
-}
-func updateIds(local *api.Zone, remote *api.Zone) {
-	if local == nil || remote == nil {
-		return
-	}
-	local.StatusName = remote.StatusName
-	records := applyDnsReordChanges(local.Records.A, remote.Records.A)
-	//helper.LogInstanceToPrettyJson("records a", records)
-	remote.Records.A = records
-	records = applyDnsReordChanges(local.Records.AAAA, remote.Records.AAAA)
-	remote.Records.AAAA = records
-	records = applyDnsReordChanges(local.Records.CName, remote.Records.CName)
-	remote.Records.CName = records
-	records = applyDnsReordChanges(local.Records.CAA, remote.Records.CAA)
-	remote.Records.CAA = records
-	records = applyDnsReordChanges(local.Records.DLV, remote.Records.DLV)
-	remote.Records.DLV = records
-	records = applyDnsReordChanges(local.Records.DNSKEY, remote.Records.DNSKEY)
-	remote.Records.DNSKEY = records
-	records = applyDnsReordChanges(local.Records.DS, remote.Records.DS)
-	remote.Records.DS = records
-	records = applyDnsReordChanges(local.Records.MX, remote.Records.MX)
-	remote.Records.MX = records
-	records = applyDnsReordChanges(local.Records.NS, remote.Records.NS)
-	remote.Records.NS = records
-	records = applyDnsReordChanges(local.Records.NSEC, remote.Records.NSEC)
-	remote.Records.NSEC = records
-	records = applyDnsReordChanges(local.Records.NSEC3, remote.Records.NSEC3)
-	remote.Records.NSEC3 = records
-	records = applyDnsReordChanges(local.Records.NSEC3PARAM, remote.Records.NSEC3PARAM)
-	remote.Records.NSEC3PARAM = records
-	records = applyDnsReordChanges(local.Records.PTR, remote.Records.PTR)
-	remote.Records.PTR = records
-	records = applyDnsReordChanges(local.Records.RRSIG, remote.Records.RRSIG)
-	remote.Records.RRSIG = records
-	records = applyDnsReordChanges(local.Records.SOA, remote.Records.SOA)
-	remote.Records.SOA = records
-	records = applyDnsReordChanges(local.Records.SPF, remote.Records.SPF)
-	remote.Records.SPF = records
-	records = applyDnsReordChanges(local.Records.SRV, remote.Records.SRV)
-	remote.Records.SRV = records
-	records = applyDnsReordChanges(local.Records.TXT, remote.Records.TXT)
-	remote.Records.TXT = records
-
-	//GROUP-------------------------------------------------------
-	helper.LogInstanceToPrettyJson("Local", local.Groups)
-	helper.LogInstanceToPrettyJson("Remote", remote.Groups)
-	if local.Groups == nil || len(local.Groups) == 0 {
-		// if db has records but update one has empty, delete db records
-		for i := 0; i < len(remote.Groups); i++ {
-			markItAsDeleted(remote.Groups[i].GroupComposition.A)
-			markItAsDeleted(remote.Groups[i].GroupComposition.AAAA)
-			markItAsDeleted(remote.Groups[i].GroupComposition.CName)
-		}
-	} else if remote.Groups == nil || len(remote.Groups) == 0 {
-		// if db doesn't have anything...
-		remote.Groups = append(remote.Groups, local.Groups...)
-	} else {
-		// else both local and remote has groups.
-		// 1. if found the same group, copy content from update-ones to db values
-		helper.LogInstanceToPrettyJson("before", remote.Groups)
-		swapGroupsFromLocalToRemote(remote, local)
-	}
-	helper.LogInstanceToPrettyJson("after3", remote.Groups)
-}
-func swapGroupsFromLocalToRemote(remote *api.Zone, local *api.Zone) {
-	for i := 0; i < len(remote.Groups); i++ {
-		if len(remote.Groups[i].GroupComposition.A) > 0 {
-			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
-				remote.Groups[i].GroupComposition.A[j].Record.IsDeleted = true
-			}
-		}
-		if len(remote.Groups[i].GroupComposition.AAAA) > 0 {
-			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
-				remote.Groups[i].GroupComposition.AAAA[j].Record.IsDeleted = true
-			}
-		}
-		if len(remote.Groups[i].GroupComposition.CName) > 0 {
-			for j := 0; j < len(remote.Groups[i].GroupComposition.CName); j++ {
-				remote.Groups[i].GroupComposition.CName[j].Record.IsDeleted = true
-			}
-		}
-	}
-
-	for i := 0; i < len(local.Groups); i++ {
-		local.Groups[i].FixedGroupID = 0
-		local.Groups[i].FixedZoneID = 0
-		local.Groups[i].GroupID = 0
-		if len(local.Groups[i].GroupComposition.A) > 0 {
-			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
-				local.Groups[i].GroupComposition.A[j].Record.FixedGroupID = 0
-				local.Groups[i].GroupComposition.A[j].Record.FixedRecordID = 0
-				local.Groups[i].GroupComposition.A[j].Record.RecordID = 0
-			}
-		}
-		if len(local.Groups[i].GroupComposition.AAAA) > 0 {
-			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
-				local.Groups[i].GroupComposition.AAAA[j].Record.FixedGroupID = 0
-				local.Groups[i].GroupComposition.AAAA[j].Record.FixedRecordID = 0
-				local.Groups[i].GroupComposition.AAAA[j].Record.RecordID = 0
-			}
-		}
-		if len(local.Groups[i].GroupComposition.CName) > 0 {
-			for j := 0; j < len(local.Groups[i].GroupComposition.CName); j++ {
-				local.Groups[i].GroupComposition.CName[j].Record.FixedGroupID = 0
-				local.Groups[i].GroupComposition.CName[j].Record.FixedRecordID = 0
-				local.Groups[i].GroupComposition.CName[j].Record.RecordID = 0
-			}
-		}
-	}
-	remote.Groups = append(remote.Groups, local.Groups...)
-}
-
-func markItAsDeleted(dnsArr []api.DnsRouteGroupRecord) {
-	if dnsArr != nil && len(dnsArr) > 0 {
-		for i := 0; i < len(dnsArr); i++ {
-			dnsArr[i].Record.IsDeleted = true
-		}
-	}
-}
-
-func applyDnsReordChanges(local []api.DNSRecord, remote []api.DNSRecord) []api.DNSRecord {
-
-	// modify
-	for i := 0; i < len(remote); i++ {
-
-	}
-	for i, a1 := range remote {
-		for j, a2 := range local {
-			if a1.Name == a2.Name {
-				a1 = copyDnsRecordContent(&remote[i], &local[j])
-				break
-			}
-		}
-	}
-
-	// delete
-	for i, _ := range remote {
-		isDeleted := true
-		for j, _ := range local {
-			if remote[i].Name == local[j].Name {
-
-				isDeleted = false
-				remote[i].IsDeleted = false
-				break
-			}
-		}
-		if isDeleted {
-			remote[i].IsDeleted = true
-		}
-	}
-
-	// add
-	addList := make([]api.DNSRecord, len(local))
-	i := 0
-	for _, a1 := range local {
-		isFound := false
-		for _, a2 := range remote {
-			if a1.Name == a2.Name {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			addList[i] = a1
-			i++
-		}
-	}
-	if i > 0 {
-		addList = addList[:i]
-		remote = append(remote, addList...)
-	}
-	return remote
-}
-
-func copyDnsRecordContent(a1 *api.DNSRecord, a2 *api.DNSRecord) api.DNSRecord {
-	a1.Weight = a2.Weight
-	a1.Rdata = a2.Rdata
-	a1.TTL = a2.TTL
-	a1.Name = a2.Name
-	return *a1
-}
-
-func copyDnsRouteGroupRecordAllIDs(from []api.DnsRouteGroupRecord, to []api.DnsRouteGroupRecord) []api.DnsRouteGroupRecord {
-	// modify
-	for i := 0; i < len(to); i++ {
-		for j := 0; j < len(from); j++ {
-			if to[i].Record.RecordID == from[j].Record.RecordID {
-				to[i].Record = copyDnsRecordContent(&to[i].Record, &from[j].Record)
-				if to[i].HealthCheck != nil && to[j].HealthCheck != nil {
-					copyHealthCheckIDs(to[i].HealthCheck, from[j].HealthCheck)
-				}
-				break
-			}
-		}
-	}
-	// delete
-	for i := 0; i < len(to); i++ {
-		isDelete := true
-		for j := 0; j < len(from); j++ {
-			if to[i].Record.RecordID == from[j].Record.RecordID {
-				to[i].Record.IsDeleted = false
-				isDelete = false
-				break
-			}
-		}
-		if isDelete {
-			to[i].Record.IsDeleted = true
-		}
-	}
-
-	// add
-	for _, a1 := range from {
-		isFound := false
-		for _, a2 := range to {
-			if a1.Record.RecordID == a2.Record.RecordID {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			to = append(to, a1)
-		}
-	}
-
-	return to
-}
-func copyHealthCheckIDs(hc1 *api.HealthCheck, hc2 *api.HealthCheck) {
-	if hc1 == nil {
-		hc1 = hc2
-	} else if hc1 != nil && hc2 != nil {
-		hc1.PortNumber = hc2.PortNumber
-		hc1.TimeOut = hc2.TimeOut
-	}
 }
 
 func ResourceZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -2420,151 +2181,7 @@ func ResourceZoneDelete(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
-func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
-	if *recordItems != nil && len(*recordItems) > 0 {
-		dnsRecords := make([]interface{}, len(*recordItems), len(*recordItems))
-
-		for i, dns := range *recordItems {
-			item := make(map[string]interface{})
-			item["fixed_record_id"] = dns.FixedRecordID
-			item["fixed_group_id"] = dns.FixedGroupID
-			item["weight"] = dns.Weight
-			item["record_type_id"] = dns.RecordTypeID
-			item["record_type_name"] = dns.RecordTypeName
-			item["group_id"] = dns.GroupID
-			item["is_delete"] = dns.IsDeleted
-			item["name"] = dns.Name
-			item["ttl"] = dns.TTL
-			item["rdata"] = dns.Rdata
-			item["verify_id"] = dns.VerifyID
-
-			dnsRecords[i] = item
-		}
-		return dnsRecords
-	}
-	return nil
-}
-
-func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
-	if *groupItems != nil && len(*groupItems) > 0 {
-		groupArr := make([]interface{}, len(*groupItems), len(*groupItems))
-
-		for i, group := range *groupItems {
-			item := make(map[string]interface{})
-
-			item["group_id"] = group.GroupID
-			item["id"] = group.ID
-			item["fixed_group_id"] = group.FixedGroupID
-			item["fixed_zone_id"] = group.FixedZoneID
-			item["group_product_type_id"] = group.GroupProductTypeID
-			if group.GroupProductTypeID == api.GroupProductType_Failover {
-				item["group_product_type"] = "failover"
-			} else if group.GroupProductTypeID == api.GroupProductType_LoadBalancing {
-				item["group_product_type"] = "loadbalancing"
-			}
-			item["group_type_id"] = group.GroupTypeID
-			if group.GroupTypeID == api.GroupType_Zone {
-				item["group_type"] = "zone"
-			}
-			item["name"] = group.Name
-			item["zone_id"] = group.ZoneId
-
-			item["a"] = flattenGroupDNSs(&group.GroupComposition.A)
-			item["aaaa"] = flattenGroupDNSs(&group.GroupComposition.AAAA)
-			item["cname"] = flattenGroupDNSs(&group.GroupComposition.CName)
-
-			groupArr[i] = item
-		}
-		return groupArr
-	}
-	return nil
-}
-
-func flattenGroupDNSs(dnsItems *[]api.DnsRouteGroupRecord) []interface{} {
-	if *dnsItems != nil && len(*dnsItems) > 0 {
-
-		dnsArr := make([]interface{}, len(*dnsItems), len(*dnsItems))
-
-		for i, dns := range *dnsItems {
-			item := make(map[string]interface{})
-
-			item["weight"] = dns.Record.Weight
-			//item["id"] = dns.ID
-			record := flattenGroupDnsRecord(&dns.Record)
-
-			if record != nil {
-				item["record"] = record
-			}
-
-			healthCheck := flattenHealthCheck(dns.HealthCheck)
-
-			if healthCheck != nil {
-				item["health_check"] = healthCheck
-			}
-
-			dnsArr[i] = item
-		}
-		return dnsArr
-	}
-	return nil
-}
-
-func flattenGroupDnsRecord(dns *api.DNSRecord) []interface{} {
-	if dns != nil && (*dns != api.DNSRecord{}) {
-		record := make([]interface{}, 1, 1)
-		m := make(map[string]interface{})
-		m["fixed_record_id"] = dns.FixedRecordID
-		m["fixed_group_id"] = dns.FixedGroupID
-		m["group_id"] = dns.GroupID
-		m["is_delete"] = dns.IsDeleted
-		m["name"] = dns.Name
-		m["rdata"] = dns.Rdata
-		m["record_id"] = dns.RecordID
-		m["record_type_id"] = dns.RecordTypeID
-		m["record_type_name"] = dns.RecordTypeName
-		m["ttl"] = dns.TTL
-		m["verify_id"] = dns.VerifyID
-		m["weight"] = dns.Weight
-		record[0] = m
-		return record
-	}
-	return nil
-}
-
-func flattenHealthCheck(hc *api.HealthCheck) []interface{} {
-	if hc != nil && (*hc != api.HealthCheck{}) {
-		record := make([]interface{}, 1, 1)
-		healthCheck := make(map[string]interface{})
-
-		healthCheck["check_interval"] = hc.CheckInterval
-		healthCheck["check_type_id"] = hc.CheckTypeID
-		healthCheck["content_verification"] = hc.ContentVerification
-		healthCheck["email_notification_address"] = hc.EmailNotificationAddress
-		healthCheck["failed_check_threshold"] = hc.FailedCheckThreshold
-		healthCheck["fixed_id"] = hc.FixedID
-		//healthCheck["fixed_group_id"] = hc.FixedGroupID
-		healthCheck["fixed_record_id"] = hc.FixedRecordID
-		healthCheck["group_id"] = hc.GroupID
-		healthCheck["id"] = hc.ID
-		healthCheck["http_method_id"] = hc.HTTPMethodID
-		healthCheck["ip_address"] = hc.IPAddress
-		healthCheck["ip_version"] = hc.IPVersion
-		healthCheck["port_number"] = hc.PortNumber
-		healthCheck["record_id"] = hc.RecordID
-		healthCheck["reintegration_method_id"] = hc.ReintegrationMethodID
-		healthCheck["status"] = hc.Status
-		healthCheck["status_name"] = hc.StatusName
-		healthCheck["timeout"] = hc.TimeOut
-		healthCheck["uri"] = hc.Uri
-		//healthCheck["user_id"] = hc.UserID
-		//healthCheck[""] = hc.WhiteListedHc
-
-		record[0] = healthCheck
-		return record
-	}
-	return nil
-}
-
+//1. to[Func]s: These functions are used to generate Zone request body
 func toDNSRecords(recodeType string, input *[]interface{}) *[]api.DNSRecord {
 
 	records := make([]api.DNSRecord, 0)
@@ -2799,4 +2416,419 @@ func toDNSRouteZoneRecord(items *[]interface{}, weight int) (*api.DNSRecord, err
 		}
 	}
 	return nil, nil
+}
+
+//end 1.____________________________________________________________________________________
+
+//2. flatten[func]s are used to save Zone State from API READ API reponse
+func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
+	if *recordItems != nil && len(*recordItems) > 0 {
+		dnsRecords := make([]interface{}, len(*recordItems), len(*recordItems))
+
+		for i, dns := range *recordItems {
+			item := make(map[string]interface{})
+			item["fixed_record_id"] = dns.FixedRecordID
+			item["fixed_group_id"] = dns.FixedGroupID
+			item["weight"] = dns.Weight
+			item["record_type_id"] = dns.RecordTypeID
+			item["record_type_name"] = dns.RecordTypeName
+			item["group_id"] = dns.GroupID
+			item["is_delete"] = dns.IsDeleted
+			item["name"] = dns.Name
+			item["ttl"] = dns.TTL
+			item["rdata"] = dns.Rdata
+			item["verify_id"] = dns.VerifyID
+
+			dnsRecords[i] = item
+		}
+		return dnsRecords
+	}
+	return nil
+}
+
+func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
+	if *groupItems != nil && len(*groupItems) > 0 {
+		groupArr := make([]interface{}, len(*groupItems), len(*groupItems))
+
+		for i, group := range *groupItems {
+			item := make(map[string]interface{})
+
+			item["group_id"] = group.GroupID
+			item["id"] = group.ID
+			item["fixed_group_id"] = group.FixedGroupID
+			item["fixed_zone_id"] = group.FixedZoneID
+			item["group_product_type_id"] = group.GroupProductTypeID
+			if group.GroupProductTypeID == api.GroupProductType_Failover {
+				item["group_product_type"] = "failover"
+			} else if group.GroupProductTypeID == api.GroupProductType_LoadBalancing {
+				item["group_product_type"] = "loadbalancing"
+			}
+			item["group_type_id"] = group.GroupTypeID
+			if group.GroupTypeID == api.GroupType_Zone {
+				item["group_type"] = "zone"
+			}
+			item["name"] = group.Name
+			item["zone_id"] = group.ZoneId
+
+			item["a"] = flattenGroupDNSs(&group.GroupComposition.A)
+			item["aaaa"] = flattenGroupDNSs(&group.GroupComposition.AAAA)
+			item["cname"] = flattenGroupDNSs(&group.GroupComposition.CName)
+
+			groupArr[i] = item
+		}
+		return groupArr
+	}
+	return nil
+}
+
+func flattenGroupDNSs(dnsItems *[]api.DnsRouteGroupRecord) []interface{} {
+	if *dnsItems != nil && len(*dnsItems) > 0 {
+
+		dnsArr := make([]interface{}, len(*dnsItems), len(*dnsItems))
+
+		for i, dns := range *dnsItems {
+			item := make(map[string]interface{})
+
+			item["weight"] = dns.Record.Weight
+			//item["id"] = dns.ID
+			record := flattenGroupDnsRecord(&dns.Record)
+
+			if record != nil {
+				item["record"] = record
+			}
+
+			healthCheck := flattenHealthCheck(dns.HealthCheck)
+
+			if healthCheck != nil {
+				item["health_check"] = healthCheck
+			}
+
+			dnsArr[i] = item
+		}
+		return dnsArr
+	}
+	return nil
+}
+
+func flattenGroupDnsRecord(dns *api.DNSRecord) []interface{} {
+	if dns != nil && (*dns != api.DNSRecord{}) {
+		record := make([]interface{}, 1, 1)
+		m := make(map[string]interface{})
+		m["fixed_record_id"] = dns.FixedRecordID
+		m["fixed_group_id"] = dns.FixedGroupID
+		m["group_id"] = dns.GroupID
+		m["is_delete"] = dns.IsDeleted
+		m["name"] = dns.Name
+		m["rdata"] = dns.Rdata
+		m["record_id"] = dns.RecordID
+		m["record_type_id"] = dns.RecordTypeID
+		m["record_type_name"] = dns.RecordTypeName
+		m["ttl"] = dns.TTL
+		m["verify_id"] = dns.VerifyID
+		m["weight"] = dns.Weight
+		record[0] = m
+		return record
+	}
+	return nil
+}
+
+func flattenHealthCheck(hc *api.HealthCheck) []interface{} {
+	if hc != nil && (*hc != api.HealthCheck{}) {
+		record := make([]interface{}, 1, 1)
+		healthCheck := make(map[string]interface{})
+
+		healthCheck["check_interval"] = hc.CheckInterval
+		healthCheck["check_type_id"] = hc.CheckTypeID
+		healthCheck["content_verification"] = hc.ContentVerification
+		healthCheck["email_notification_address"] = hc.EmailNotificationAddress
+		healthCheck["failed_check_threshold"] = hc.FailedCheckThreshold
+		healthCheck["fixed_id"] = hc.FixedID
+		//healthCheck["fixed_group_id"] = hc.FixedGroupID
+		healthCheck["fixed_record_id"] = hc.FixedRecordID
+		healthCheck["group_id"] = hc.GroupID
+		healthCheck["id"] = hc.ID
+		healthCheck["http_method_id"] = hc.HTTPMethodID
+		healthCheck["ip_address"] = hc.IPAddress
+		healthCheck["ip_version"] = hc.IPVersion
+		healthCheck["port_number"] = hc.PortNumber
+		healthCheck["record_id"] = hc.RecordID
+		healthCheck["reintegration_method_id"] = hc.ReintegrationMethodID
+		healthCheck["status"] = hc.Status
+		healthCheck["status_name"] = hc.StatusName
+		healthCheck["timeout"] = hc.TimeOut
+		healthCheck["uri"] = hc.Uri
+		//healthCheck["user_id"] = hc.UserID
+		//healthCheck[""] = hc.WhiteListedHc
+
+		record[0] = healthCheck
+		return record
+	}
+	return nil
+}
+
+//end 2.____________________________________________________________________________________
+
+/*
+	When terraform tracks state of zone, following bug exists:
+	Scenario: two failover groups and a loadbalancing group
+	Initial state:
+	fo1: id=1 A[{firstA[id=1], content{computedid=1, dataFromResource=1}}, {secondA[id=2],content{computedid=2, dataFromResource=2}}]
+	fo2: id=2 A[{firstA[id=3], content{computedid=3, dataFromResource=3}}, {secondA[id=4],content{computedid=4, dataFromResource=4}}]
+	lb1: id=3 A[{firstA[id=5], content{computedid=5, dataFromResource=5}}, {secondA[id=6],content{computedid=6, dataFromResource=6}}]
+	When fo2 group was removed, following unexpected result was recorded in tfstate.
+	TFState:
+	fo1: id=1 A[{firstA[id=1], content{computedid=1, dataFromResource=1}}, {secondA[id=2],content{computedid=2, dataFromResource=2}}]
+	fo2: id=2 A[{firstA[id=3], content{computedid=3, dataFromResource=5}}, {secondA[id=4],content{computedid=4, dataFromResource=6}}]
+
+	Note that even though fo2 was deleted, lb1 was gone but its dataFromResource exists in fo2.
+
+	So,
+	1. if the number of groups in the resource file  == the number of groups from API
+	   => normal update operation
+	2. otherwise,
+	   => delete all existing groups in db and create new groups from resource file
+*/
+func updateIds(local *api.Zone, remote *api.Zone) {
+	if local == nil || remote == nil {
+		return
+	}
+	local.StatusName = remote.StatusName
+	records := applyDnsReordChanges(local.Records.A, remote.Records.A)
+	remote.Records.A = records
+	records = applyDnsReordChanges(local.Records.AAAA, remote.Records.AAAA)
+	remote.Records.AAAA = records
+	records = applyDnsReordChanges(local.Records.CName, remote.Records.CName)
+	remote.Records.CName = records
+	records = applyDnsReordChanges(local.Records.CAA, remote.Records.CAA)
+	remote.Records.CAA = records
+	records = applyDnsReordChanges(local.Records.DLV, remote.Records.DLV)
+	remote.Records.DLV = records
+	records = applyDnsReordChanges(local.Records.DNSKEY, remote.Records.DNSKEY)
+	remote.Records.DNSKEY = records
+	records = applyDnsReordChanges(local.Records.DS, remote.Records.DS)
+	remote.Records.DS = records
+	records = applyDnsReordChanges(local.Records.MX, remote.Records.MX)
+	remote.Records.MX = records
+	records = applyDnsReordChanges(local.Records.NS, remote.Records.NS)
+	remote.Records.NS = records
+	records = applyDnsReordChanges(local.Records.NSEC, remote.Records.NSEC)
+	remote.Records.NSEC = records
+	records = applyDnsReordChanges(local.Records.NSEC3, remote.Records.NSEC3)
+	remote.Records.NSEC3 = records
+	records = applyDnsReordChanges(local.Records.NSEC3PARAM, remote.Records.NSEC3PARAM)
+	remote.Records.NSEC3PARAM = records
+	records = applyDnsReordChanges(local.Records.PTR, remote.Records.PTR)
+	remote.Records.PTR = records
+	records = applyDnsReordChanges(local.Records.RRSIG, remote.Records.RRSIG)
+	remote.Records.RRSIG = records
+	records = applyDnsReordChanges(local.Records.SOA, remote.Records.SOA)
+	remote.Records.SOA = records
+	records = applyDnsReordChanges(local.Records.SPF, remote.Records.SPF)
+	remote.Records.SPF = records
+	records = applyDnsReordChanges(local.Records.SRV, remote.Records.SRV)
+	remote.Records.SRV = records
+	records = applyDnsReordChanges(local.Records.TXT, remote.Records.TXT)
+	remote.Records.TXT = records
+
+	//GROUP-------------------------------------------------------
+	if local.Groups == nil || len(local.Groups) == 0 {
+		// if db has records but update one has empty, delete db records
+		for i := 0; i < len(remote.Groups); i++ {
+			markItAsDeleted(remote.Groups[i].GroupComposition.A)
+			markItAsDeleted(remote.Groups[i].GroupComposition.AAAA)
+			markItAsDeleted(remote.Groups[i].GroupComposition.CName)
+		}
+	} else if remote.Groups == nil || len(remote.Groups) == 0 {
+		// if db doesn't have anything...
+		remote.Groups = append(remote.Groups, local.Groups...)
+	} else {
+		// else both local and remote has groups.
+		// 1. if found the same group, copy content from update-ones to db values
+		if len(local.Groups) != len(remote.Groups) {
+			swapGroupsFromLocalToRemote(remote, local)
+		} else {
+			for i := 0; i < len(local.Groups); i++ {
+				for j := 0; j < len(remote.Groups); j++ {
+					if local.Groups[i].FixedGroupID == remote.Groups[j].FixedGroupID {
+						copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.A, remote.Groups[j].GroupComposition.A)
+						copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.AAAA, remote.Groups[j].GroupComposition.AAAA)
+						copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.CName, remote.Groups[j].GroupComposition.CName)
+						break
+					}
+				}
+			}
+		}
+	}
+}
+
+func applyDnsReordChanges(local []api.DNSRecord, remote []api.DNSRecord) []api.DNSRecord {
+
+	// modify
+	for i := 0; i < len(remote); i++ {
+
+	}
+	for i, a1 := range remote {
+		for j, a2 := range local {
+			if a1.Name == a2.Name {
+				a1 = copyDnsRecordContent(&remote[i], &local[j])
+				break
+			}
+		}
+	}
+
+	// delete
+	for i, _ := range remote {
+		isDeleted := true
+		for j, _ := range local {
+			if remote[i].Name == local[j].Name {
+
+				isDeleted = false
+				remote[i].IsDeleted = false
+				break
+			}
+		}
+		if isDeleted {
+			remote[i].IsDeleted = true
+		}
+	}
+
+	// add
+	addList := make([]api.DNSRecord, len(local))
+	i := 0
+	for _, a1 := range local {
+		isFound := false
+		for _, a2 := range remote {
+			if a1.Name == a2.Name {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			addList[i] = a1
+			i++
+		}
+	}
+	if i > 0 {
+		addList = addList[:i]
+		remote = append(remote, addList...)
+	}
+	return remote
+}
+
+func markItAsDeleted(dnsArr []api.DnsRouteGroupRecord) {
+	if dnsArr != nil && len(dnsArr) > 0 {
+		for i := 0; i < len(dnsArr); i++ {
+			dnsArr[i].Record.IsDeleted = true
+		}
+	}
+}
+
+func swapGroupsFromLocalToRemote(remote *api.Zone, local *api.Zone) {
+	for i := 0; i < len(remote.Groups); i++ {
+		if len(remote.Groups[i].GroupComposition.A) > 0 {
+			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
+				remote.Groups[i].GroupComposition.A[j].Record.IsDeleted = true
+			}
+		}
+		if len(remote.Groups[i].GroupComposition.AAAA) > 0 {
+			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
+				remote.Groups[i].GroupComposition.AAAA[j].Record.IsDeleted = true
+			}
+		}
+		if len(remote.Groups[i].GroupComposition.CName) > 0 {
+			for j := 0; j < len(remote.Groups[i].GroupComposition.CName); j++ {
+				remote.Groups[i].GroupComposition.CName[j].Record.IsDeleted = true
+			}
+		}
+	}
+
+	for i := 0; i < len(local.Groups); i++ {
+		local.Groups[i].FixedGroupID = 0
+		local.Groups[i].FixedZoneID = 0
+		local.Groups[i].GroupID = 0
+		if len(local.Groups[i].GroupComposition.A) > 0 {
+			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
+				local.Groups[i].GroupComposition.A[j].Record.FixedGroupID = 0
+				local.Groups[i].GroupComposition.A[j].Record.FixedRecordID = 0
+				local.Groups[i].GroupComposition.A[j].Record.RecordID = 0
+			}
+		}
+		if len(local.Groups[i].GroupComposition.AAAA) > 0 {
+			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
+				local.Groups[i].GroupComposition.AAAA[j].Record.FixedGroupID = 0
+				local.Groups[i].GroupComposition.AAAA[j].Record.FixedRecordID = 0
+				local.Groups[i].GroupComposition.AAAA[j].Record.RecordID = 0
+			}
+		}
+		if len(local.Groups[i].GroupComposition.CName) > 0 {
+			for j := 0; j < len(local.Groups[i].GroupComposition.CName); j++ {
+				local.Groups[i].GroupComposition.CName[j].Record.FixedGroupID = 0
+				local.Groups[i].GroupComposition.CName[j].Record.FixedRecordID = 0
+				local.Groups[i].GroupComposition.CName[j].Record.RecordID = 0
+			}
+		}
+	}
+	remote.Groups = append(remote.Groups, local.Groups...)
+}
+
+func copyDnsRouteGroupRecordAllIDs(from []api.DnsRouteGroupRecord, to []api.DnsRouteGroupRecord) []api.DnsRouteGroupRecord {
+	// modify
+	for i := 0; i < len(to); i++ {
+		for j := 0; j < len(from); j++ {
+			if to[i].Record.RecordID == from[j].Record.RecordID {
+				to[i].Record = copyDnsRecordContent(&to[i].Record, &from[j].Record)
+				if to[i].HealthCheck != nil && to[j].HealthCheck != nil {
+					copyHealthCheckIDs(to[i].HealthCheck, from[j].HealthCheck)
+				}
+				break
+			}
+		}
+	}
+	// delete
+	for i := 0; i < len(to); i++ {
+		isDelete := true
+		for j := 0; j < len(from); j++ {
+			if to[i].Record.RecordID == from[j].Record.RecordID {
+				to[i].Record.IsDeleted = false
+				isDelete = false
+				break
+			}
+		}
+		if isDelete {
+			to[i].Record.IsDeleted = true
+		}
+	}
+
+	// add
+	for _, a1 := range from {
+		isFound := false
+		for _, a2 := range to {
+			if a1.Record.RecordID == a2.Record.RecordID {
+				isFound = true
+				break
+			}
+		}
+		if !isFound {
+			to = append(to, a1)
+		}
+	}
+
+	return to
+}
+
+func copyDnsRecordContent(a1 *api.DNSRecord, a2 *api.DNSRecord) api.DNSRecord {
+	a1.Weight = a2.Weight
+	a1.Rdata = a2.Rdata
+	a1.TTL = a2.TTL
+	a1.Name = a2.Name
+	return *a1
+}
+
+func copyHealthCheckIDs(hc1 *api.HealthCheck, hc2 *api.HealthCheck) {
+	if hc1 == nil {
+		hc1 = hc2
+	} else if hc1 != nil && hc2 != nil {
+		hc1.PortNumber = hc2.PortNumber
+		hc1.TimeOut = hc2.TimeOut
+	}
 }
