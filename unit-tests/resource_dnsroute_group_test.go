@@ -9,11 +9,11 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestUT_MasterServerGroup_basic(t *testing.T) {
+func TestUT_Group_basic(t *testing.T) {
 	t.Parallel()
 
 	// // Test cases for storage account name conversion logic
-	tc, err := getMSGTestCases()
+	tc, err := getGroupTestCases()
 	if err != nil {
 		t.Errorf("Reading credential_ucc.json file error:%s", err)
 	}
@@ -21,7 +21,7 @@ func TestUT_MasterServerGroup_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/dns_route",
+			TerraformDir: "../examples/resources/dns_route/group",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":         input.ApiToken,
@@ -46,7 +46,7 @@ func TestUT_MasterServerGroup_basic(t *testing.T) {
 	}
 }
 
-func getMSGTestCases() (*map[string]model.Credentials, error) {
+func getGroupTestCases() (*map[string]model.Credentials, error) {
 	tc := make(map[string]model.Credentials)
 	credential := model.Credentials{}
 	err := helper.ReadCredentialJsonfile("credential_ucc.json", &credential)

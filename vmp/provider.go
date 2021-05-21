@@ -91,6 +91,7 @@ func Provider() *schema.Provider {
 			"vmp_rules_engine_policy":   rulesengine.ResourceRulesEngineV4Policy(),
 			"vmp_dns_masterservergroup": dnsroute.ResourceMasterServerGroup(),
 			"vmp_dns_zone":              dnsroute.ResourceZone(),
+			"vmp_dns_group":             dnsroute.ResourceGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": customer.DataSourceCustomerServices(),

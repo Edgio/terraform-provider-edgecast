@@ -9,11 +9,11 @@ import (
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestUT_MasterServerGroup_basic(t *testing.T) {
+func TestUT_Zone_basic(t *testing.T) {
 	t.Parallel()
 
 	// // Test cases for storage account name conversion logic
-	tc, err := getMSGTestCases()
+	tc, err := getZoneTestCases()
 	if err != nil {
 		t.Errorf("Reading credential_ucc.json file error:%s", err)
 	}
@@ -46,7 +46,7 @@ func TestUT_MasterServerGroup_basic(t *testing.T) {
 	}
 }
 
-func getMSGTestCases() (*map[string]model.Credentials, error) {
+func getZoneTestCases() (*map[string]model.Credentials, error) {
 	tc := make(map[string]model.Credentials)
 	credential := model.Credentials{}
 	err := helper.ReadCredentialJsonfile("credential_ucc.json", &credential)

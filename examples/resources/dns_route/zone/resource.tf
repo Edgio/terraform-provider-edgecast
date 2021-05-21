@@ -1,6 +1,6 @@
-resource "vmp_dns_zone" "anyk" {
+resource "vmp_dns_zone" "anyl" {
   account_number = "DE0B"
-	domain_name = "anyk.com."
+	domain_name = "anyl.com."
   status = 1
 	zone_type = 1
 	is_customer_owned = true

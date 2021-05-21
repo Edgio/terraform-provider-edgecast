@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"terraform-provider-vmp/vmp/helper"
 )
 
 //DNSRouteAPIClient -
@@ -427,6 +428,87 @@ func (c *DNSRouteAPIClient) DeleteZone(zoneID int) error {
 
 	if err != nil {
 		return fmt.Errorf("DeleteZone: %v", err)
+	}
+
+	return nil
+}
+
+// GetGroup - Get Group information of the provided groupID.
+// groupID is a groupID not FixedGroupID
+func (c *DNSRouteAPIClient) GetGroup(groupID int, groupProductType string) (*DnsRouteGroup, error) {
+
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/group?id=%d&groupType=%s", c.Config.AccountNumber, groupID, groupProductType)
+	log.Printf("apiURL:%s", apiURL)
+	request, err := c.BaseAPIClient.BuildRequest("GET", apiURL, nil, false)
+
+	if err != nil {
+		return nil, fmt.Errorf("GetZone: %v", err)
+	}
+
+	parsedResponse := DnsRouteGroup{}
+
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
+	helper.LogInstanceToPrettyJson("GET: "+apiURL, parsedResponse, "GetGroup.log")
+	if err != nil {
+		return nil, fmt.Errorf("GetGroup: %v", err)
+	}
+	log.Printf("dnsroute_client>>GetGroup>>parsedResponse:%v", parsedResponse)
+
+	return &parsedResponse, nil
+}
+
+// AddGroup -
+func (c *DNSRouteAPIClient) AddGroup(group *DnsRouteGroup) (int, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/group", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, *group, false)
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddGroup->BuildRequest: %v", err)
+	}
+
+	resp, err := c.BaseAPIClient.SendRequestWithStringResponse(request)
+
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddGroup->SendRequestWithStringResponse: %v", err)
+	}
+
+	groupID, err := strconv.Atoi(*resp)
+	if err != nil {
+		return -1, fmt.Errorf("dnsroute_client>>AddGroup->API Response Error: %v", err)
+	}
+	return groupID, nil
+}
+
+// UpdateGroup -
+func (c *DNSRouteAPIClient) UpdateGroup(group *DnsRouteGroup) error {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/group", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, *group, false)
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateGroup: %v", err)
+	}
+	_, err = c.BaseAPIClient.SendRequestWithStringResponse(request)
+
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateGroup: %v", err)
+	}
+
+	return nil
+}
+
+// DeleteGroup -
+func (c *DNSRouteAPIClient) DeleteGroup(groupID int, groupType string) error {
+	// TODO: support custom ids for accounts
+	apiURL := fmt.Sprintf("v2/mcc/customers/%s/dns/group?id=%d&groupType=%s", c.Config.AccountNumber, groupID, groupType)
+
+	request, err := c.BaseAPIClient.BuildRequest("DELETE", apiURL, nil, false)
+
+	if err != nil {
+		return fmt.Errorf("DeleteGroup: %v", err)
+	}
+
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
+
+	if err != nil {
+		return fmt.Errorf("DeleteGroup: %v", err)
 	}
 
 	return nil
