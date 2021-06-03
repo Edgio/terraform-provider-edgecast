@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"terraform-provider-vmp/vmp/api"
-	"terraform-provider-vmp/vmp/helper"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -602,7 +601,6 @@ func ResourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interfac
 	}
 
 	groupType := d.Get("group_type").(string)
-	helper.Log("groupType is "+groupType, "group.log")
 	groupTypeID := api.GroupType_Zone
 	if strings.ToLower(groupType) == "cname" {
 		groupTypeID = api.GroupType_CName
@@ -626,11 +624,9 @@ func ResourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interfac
 		GroupProductTypeID: groupProductTypeID,
 		GroupComposition:   groupComposition,
 	}
-	helper.LogInstanceToPrettyJson("CreateGroup", group, "group.log")
 	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
 
 	newGroupID, err := dnsrouteClient.AddGroup(&group)
-	helper.Log(fmt.Sprintf("newGroupID:%d", newGroupID), "group.log")
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -658,7 +654,6 @@ func ResourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{
 	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
 	resp, err := dnsRouteClient.GetGroup(groupID, gType)
 
-	helper.LogInstanceToPrettyJson("GroupRead", resp, "group.log")
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -716,7 +711,6 @@ func ResourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		fixedZoneID = -1
 	}
 	groupType := d.Get("group_type").(string)
-	helper.Log("groupType is "+groupType, "group.log")
 	groupTypeID := api.GroupType_Zone
 	if strings.ToLower(groupType) == "cname" {
 		groupTypeID = api.GroupType_CName
@@ -766,7 +760,6 @@ func ResourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		GroupComposition:   groupComposition,
 	}
 
-	helper.LogInstanceToPrettyJson("CreateGroup", group, "group.log")
 	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
 
 	err = dnsrouteClient.UpdateGroup(&group)

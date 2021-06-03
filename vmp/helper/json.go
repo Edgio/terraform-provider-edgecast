@@ -95,7 +95,7 @@ func LogInstanceToPrettyJson(message string, instance interface{}, file string) 
 	logger.Print("=====================================================================")
 }
 
-// Make json string formatted
+// Make json string formatted in terraform.log
 func jsonPrettyPrint(in string) string {
 	var out bytes.Buffer
 	err := json.Indent(&out, []byte(in), "", "\t")

@@ -62,7 +62,7 @@ func TestUT_RulesEngine_basic(t *testing.T) {
 	for expected, input := range tsRulesEngine {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resource_rulesengine",
+			TerraformDir: "../examples/resources/rulesengine_policy",
 			Vars: map[string]interface{}{
 				"policy": strings.Replace(input.Policy, "$UUID$", uuid.New().String(), -1),
 				"test_customer_info": map[string]interface{}{

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"terraform-provider-vmp/vmp/helper"
 )
 
 //DNSRouteAPIClient -
@@ -62,11 +61,11 @@ type MasterServerWithGroupIDResponse struct {
 // MasterServer
 type MasterServer struct {
 	ID        int    `json:"Id,omitempty"`
-	Name      string `json:"Name"`
-	IPAddress string `json:"IPAddress"`
+	Name      string `json:"Name,omitempty"`
+	IPAddress string `json:"IPAddress,omitempty"`
 }
 
-//ZoneRequest -
+//Zone -
 type Zone struct {
 	FixedZoneID     int             `json:"FixedZoneId,omitempty"`
 	ZoneID          int             `json:"ZoneId,omitempty"`
@@ -228,43 +227,113 @@ type LiteralResponse struct {
 	Value interface{}
 }
 
-// FOGroup - child element of FailoverGroups in a zone
-type FOGroup struct {
-	Group FOGWrapper `json:"Group,omitempty"`
+// Tsig Algoirthm Ids
+const (
+	TsigAlgorithm_HMAC_MD5 = iota + 1
+	TsigAlgorithm_HMAC_SHA1
+	TsigAlgorithm_HMAC_SHA256
+	TsigAlgorithm_HMAC_SHA384
+	TsigAlgorithm_HMAC_SHA224
+	TsigAlgorithm_HMAC_SHA512
+)
+
+// DnsRouteTsig -
+type DnsRouteTsig struct {
+	ID            int    `json:"Id,omitempty"`
+	Alias         string `json:"Alias,omitempty"`
+	KeyName       string `json:"KeyName,omitempty"`
+	KeyValue      string `json:"KeyValue,omitempty"`
+	AlgorithmID   int    `json:"AlgorithmId,omitempty"`
+	AlgorithmName string `json:"AlgorithmName,omitempty"`
 }
 
-// FOGWrapper - child of FailoverGroup
-type FOGWrapper struct {
-	GroupTypeID int              `json:"GroupTypeId,omitempty"`
-	Name        string           `json:"Name,omitempty"`
-	A           []FailoverRecord `json:"A,omitempty"`
-	AAAA        []FailoverRecord `json:"AAAA,omitempty"`
-	CName       []FailoverRecord `json:"CNAME,omitempty"`
+// DnsRouteSecondaryGroupRequest -
+type DnsRouteSecondaryZoneGroupRequest struct {
+	ID              int                       `json:"Id,omitempty"`
+	Name            string                    `json:"Name,omitempty"`
+	CustomerID      int                       `json:"CustomerId,omitempty"`
+	ZoneComposition DnsZoneCompositionRequest `json:"ZoneComposition,omitempty"`
 }
 
-// FailoverRecord -
-type FailoverRecord struct {
-	HealthCheck HealthCheck `json:"HealthCheck,omitempty"`
-	IsPrimary   bool        `json:"IsPrimary,omitempty"`
-	Record      DNSRecord   `json:"Record,omitempty"`
+//DnsZoneCompositionRequest -
+type DnsZoneCompositionRequest struct {
+	MasterGroupID     int                       `json:"MasterGroupId,omitempty"`
+	Zones             []SecondaryZoneRequest    `json:"Zones,omitempty"`
+	MasterServerTsigs []MasterServerTsigRequest `json:"MasterServerTsigs,omitempty"`
 }
 
-type LBGroup struct {
-	Group LBGroupWrapper `json:"Group,omitempty"`
+//SecondaryZoneRequest -
+type SecondaryZoneRequest struct {
+	DomainName      string `json:"DomainName,omitempty"`
+	Status          int    `json:"Status,omitempty"`
+	ZoneType        int    `json:"ZoneType,omitempty"`
+	Comment         string `json:"Comment,omitempty"`
+	IsCustomerOwned bool   `json:"IsCustomerOwned,omitempty"`
 }
 
-type LBGroupWrapper struct {
-	GroupTypeID int        `json:"GroupTypeId,omitempty"`
-	Name        string     `json:"Name,omitempty"`
-	A           []LBRecord `json:"A,omitempty"`
-	AAAA        []LBRecord `json:"AAAA,omitempty"`
-	CName       []LBRecord `json:"CNAME,omitempty"`
+//MasterServerTsigRequest -
+type MasterServerTsigRequest struct {
+	MasterServer MasterServerRequest `json:"MasterServer,omitempty"`
+	Tsig         TsigRequest         `json:"Tsig,omitempty"`
 }
 
-type LBRecord struct {
-	HealthCheck HealthCheck `json:"HealthCheck,omitempty"`
-	Weight      int         `json:"Weight,omitempty"`
-	Record      DNSRecord   `json:"Record,omitempty"`
+//MasterServerRequest -
+type MasterServerRequest struct {
+	ID int `json:"Id,omitempty"`
+}
+
+//TsigRequest -
+type TsigRequest struct {
+	ID int `json:"Id,omitempty"`
+}
+
+// SecondaryGroupResponse -
+type SecondaryGroupResponse struct {
+	ID              int                `json:"Id,omitempty"`
+	Name            string             `json:"Name,omitempty"`
+	ZoneComposition DnsZoneComposition `json:"ZoneComposition,omitempty"`
+}
+
+//DnsZoneComposition -
+type DnsZoneComposition struct {
+	MasterGroupID     int                `json:"MasterGroupId,omitempty"`
+	Zones             []ZoneForSZG       `json:"Zones,omitempty"`
+	MasterServerTsigs []MasterServerTsig `json:"MasterServerTsigs,omitempty"`
+}
+
+//ZoneForSZG -
+type ZoneForSZG struct {
+	FixedZoneID     int    `json:"FixedZoneId,omitempty"`
+	ZoneID          int    `json:"ZoneId,omitempty"`
+	DomainName      string `json:"DomainName,omitempty"`
+	Status          int    `json:"Status,omitempty"`
+	StatusName      string `json:"StatusName,omitempty"`
+	ZoneType        int    `json:"ZoneType,omitempty"`
+	IsCustomerOwned bool   `json:"IsCustomerOwned,omitempty"`
+	Comment         string `json:"Comment,omitempty"`
+}
+
+//MasterServerTsig -
+type MasterServerTsig struct {
+	MasterServer MasterServerForSZG `json:"MasterServer,omitempty"`
+	Tsig         Tsig               `json:"Tsig,omitempty"`
+}
+
+// MasterServerForSZG
+type MasterServerForSZG struct {
+	ID        int    `json:"Id,omitempty"`
+	Name      string `json:"Name,omitempty"`
+	IPAddress string `json:"IpAddress,omitempty"`
+}
+
+//Tsig -
+type Tsig struct {
+	ID            int    `json:"Id,omitempty"`
+	Alias         string `json:"Alias,omitempty"`
+	KeyName       string `json:"KeyName,omitempty"`
+	KeyValue      string `json:"KeyValue,omitempty"`
+	AlgorithmID   int    `json:"AlgorithmId,omitempty"`
+	AlgorithmName string `json:"AlgorithmName,omitempty"`
 }
 
 //NewRDNSRouteAPIClient -
@@ -280,7 +349,7 @@ func NewDNSRouteAPIClient(config *ClientConfig) *DNSRouteAPIClient {
 // GetMasterServerGroup -
 func (c *DNSRouteAPIClient) GetMasterServerGroup(id int) ([]*MasterServerGroupResponse, error) {
 	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/mastergroups?id=%d", c.Config.AccountNumber, id)
-	log.Printf("apiURL:%s", apiURL)
+
 	request, err := c.BaseAPIClient.BuildRequest("GET", apiURL, nil, false)
 
 	if err != nil {
@@ -288,12 +357,10 @@ func (c *DNSRouteAPIClient) GetMasterServerGroup(id int) ([]*MasterServerGroupRe
 	}
 
 	parsedResponse := []*MasterServerGroupResponse{}
-	log.Printf("dnsroute_client>>GetMasterServerGroup>>parsedResponse:%v", parsedResponse)
 
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
-
 	if err != nil {
-		return nil, fmt.Errorf("GetOrigin: %v", err)
+		return nil, fmt.Errorf("GetMasterServerGroup: %v", err)
 	}
 
 	return parsedResponse, nil
@@ -371,8 +438,6 @@ func (c *DNSRouteAPIClient) GetZone(id int) (*Zone, error) {
 	if err != nil {
 		return nil, fmt.Errorf("GetZone: %v", err)
 	}
-	log.Printf("dnsroute_client>>GetZone>>parsedResponse:%v", parsedResponse)
-
 	return &parsedResponse, nil
 }
 
@@ -448,7 +513,6 @@ func (c *DNSRouteAPIClient) GetGroup(groupID int, groupProductType string) (*Dns
 	parsedResponse := DnsRouteGroup{}
 
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
-	helper.LogInstanceToPrettyJson("GET: "+apiURL, parsedResponse, "GetGroup.log")
 	if err != nil {
 		return nil, fmt.Errorf("GetGroup: %v", err)
 	}
@@ -509,6 +573,158 @@ func (c *DNSRouteAPIClient) DeleteGroup(groupID int, groupType string) error {
 
 	if err != nil {
 		return fmt.Errorf("DeleteGroup: %v", err)
+	}
+
+	return nil
+}
+
+// GetTsig -
+func (c *DNSRouteAPIClient) GetTsig(id int) (*DnsRouteTsig, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/tsigs/%d", c.Config.AccountNumber, id)
+	log.Printf("apiURL:%s", apiURL)
+	request, err := c.BaseAPIClient.BuildRequest("GET", apiURL, nil, false)
+
+	if err != nil {
+		return nil, fmt.Errorf("GetTsig: %v", err)
+	}
+
+	parsedResponse := &DnsRouteTsig{}
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
+
+	if err != nil {
+		return nil, fmt.Errorf("GetTsig: %v", err)
+	}
+
+	return parsedResponse, nil
+}
+
+// AddTsig -
+func (c *DNSRouteAPIClient) AddTsig(tsig *DnsRouteTsig) (int, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/tsig", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, tsig, false)
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddTsig->BuildRequest: %v", err)
+	}
+
+	resp, err := c.BaseAPIClient.SendRequestWithStringResponse(request)
+
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddTsig->SendRequestWithStringResponse: %v", err)
+	}
+
+	tsigID, err := strconv.Atoi(*resp)
+	if err != nil {
+		return -1, fmt.Errorf("dnsroute_client>>AddTsig->API Response Error: %v", err)
+	}
+	return tsigID, nil
+}
+
+// UpdateTsig -
+func (c *DNSRouteAPIClient) UpdateTsig(tsig *DnsRouteTsig) error {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/tsigs/%d", c.Config.AccountNumber, tsig.ID)
+	request, err := c.BaseAPIClient.BuildRequest("PUT", apiURL, tsig, false)
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateTsig: %v", err)
+	}
+
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
+
+	if err != nil {
+		return fmt.Errorf("dnsroute_client>>UpdateTsig->API Response Error: %v", err)
+	}
+
+	return nil
+}
+
+// DeleteTsig -
+func (c *DNSRouteAPIClient) DeleteTsig(tsigID int) error {
+	// TODO: support custom ids for accounts
+	apiURL := fmt.Sprintf("v2/mcc/customers/%s/dns/tsigs/%d", c.Config.AccountNumber, tsigID)
+
+	request, err := c.BaseAPIClient.BuildRequest("DELETE", apiURL, nil, false)
+
+	if err != nil {
+		return fmt.Errorf("DeleteTsig: %v", err)
+	}
+
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
+
+	if err != nil {
+		return fmt.Errorf("DeleteTsig: %v", err)
+	}
+
+	return nil
+}
+
+// GetSecondaryZoneGroup -
+func (c *DNSRouteAPIClient) GetSecondaryZoneGroup(id int) (*SecondaryGroupResponse, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/secondarygroup?id=%d", c.Config.AccountNumber, id)
+	log.Printf("apiURL:%s", apiURL)
+	request, err := c.BaseAPIClient.BuildRequest("GET", apiURL, nil, false)
+
+	if err != nil {
+		return nil, fmt.Errorf("GetSecondaryZoneGroup: %v", err)
+	}
+
+	parsedResponse := []*SecondaryGroupResponse{}
+	resp, err := c.BaseAPIClient.SendRequest(request, &parsedResponse)
+	log.Printf("GetSecondaryZoneGroup:%v", resp)
+	if err != nil {
+		return nil, fmt.Errorf("GetSecondaryZoneGroup: %v", err)
+	}
+
+	return parsedResponse[0], nil
+}
+
+// AddSecondaryZoneGroup -
+func (c *DNSRouteAPIClient) AddSecondaryZoneGroup(secondaryGroup *DnsRouteSecondaryZoneGroupRequest) (int, error) {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/secondarygroup", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("POST", apiURL, *secondaryGroup, false)
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddSecondaryZone->BuildRequest: %v", err)
+	}
+
+	parsedResponse := SecondaryGroupResponse{}
+	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
+
+	if err != nil {
+		return -1, fmt.Errorf("api>>dnsroute_client>>AddSecondaryZoneGroup->SendRequest: %v", err)
+	}
+
+	return parsedResponse.ID, nil
+}
+
+// UpdateZone -
+func (c *DNSRouteAPIClient) UpdateSecondaryZoneGroup(secondaryGroup *DnsRouteSecondaryZoneGroupRequest) error {
+	apiURL := fmt.Sprintf("/v2/mcc/customers/%s/dns/secondarygroup", c.Config.AccountNumber)
+	request, err := c.BaseAPIClient.BuildRequest("PUT", apiURL, *secondaryGroup, false)
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateSecondaryZoneGroup: %v", err)
+	}
+	_, err = c.BaseAPIClient.SendRequestWithStringResponse(request)
+
+	if err != nil {
+		return fmt.Errorf("api>>dnsroute_client>>UpdateSecondaryZoneGroup: %v", err)
+	}
+
+	return nil
+}
+
+// DeleteZone -
+func (c *DNSRouteAPIClient) DeleteSecondaryZoneGroup(zoneID int) error {
+	// TODO: support custom ids for accounts
+	apiURL := fmt.Sprintf("v2/mcc/customers/%s/dns/secondarygroup?id=%d", c.Config.AccountNumber, zoneID)
+
+	request, err := c.BaseAPIClient.BuildRequest("DELETE", apiURL, nil, false)
+
+	if err != nil {
+		return fmt.Errorf("DeleteSecondaryZoneGroup: %v", err)
+	}
+
+	_, err = c.BaseAPIClient.SendRequest(request, nil)
+
+	if err != nil {
+		return fmt.Errorf("DeleteSecondaryZoneGroup: %v", err)
 	}
 
 	return nil

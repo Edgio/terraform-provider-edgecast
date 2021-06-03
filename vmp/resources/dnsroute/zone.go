@@ -2142,7 +2142,6 @@ func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	if groups != nil && len(*groups) > 0 {
 		zoneRequest.Groups = *groups
 	}
-
 	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
 	resp, err := dnsrouteClient.GetZone(zoneID)
 	if err != nil {
@@ -2150,7 +2149,6 @@ func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	updateIds(&zoneRequest, resp)
-
 	err = dnsrouteClient.UpdateZone(resp)
 
 	if err != nil {
@@ -2777,9 +2775,12 @@ func copyDnsRouteGroupRecordAllIDs(from []api.DnsRouteGroupRecord, to []api.DnsR
 		for j := 0; j < len(from); j++ {
 			if to[i].Record.RecordID == from[j].Record.RecordID {
 				to[i].Record = copyDnsRecordContent(&to[i].Record, &from[j].Record)
-				if to[i].HealthCheck != nil && to[j].HealthCheck != nil {
+				if to[i].HealthCheck != nil && from[j].HealthCheck != nil {
 					copyHealthCheckIDs(to[i].HealthCheck, from[j].HealthCheck)
+				} else if from[i].HealthCheck != nil {
+					to[i].HealthCheck = from[j].HealthCheck
 				}
+
 				break
 			}
 		}

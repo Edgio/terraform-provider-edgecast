@@ -17,17 +17,9 @@ type Users struct {
 // User struct which contains a name
 // a type and a list of social links
 type User struct {
-	Name   string `json:"name"`
-	Type   string `json:"type"`
-	Age    int    `json:"Age"`
-	Social Social `json:"social"`
-}
-
-// Social struct which contains a
-// list of links
-type Social struct {
-	Facebook string `json:"facebook"`
-	Twitter  string `json:"twitter"`
+	Name string `json:"name"`
+	Type string `json:"type"`
+	Age  int    `json:"Age"`
 }
 
 func ReadCredentialJsonfile(path string, credential *model.Credentials) error {

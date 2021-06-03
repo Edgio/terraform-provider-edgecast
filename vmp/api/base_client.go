@@ -199,13 +199,16 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	bodyAsString := string(body)
-
+	helper.LogPrettyJson("Response", bodyAsString)
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		if err != nil {
 			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
 		}
 
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
+	}
+	if parsedResponse == nil {
+		return nil, nil
 	}
 
 	var f interface{}
@@ -214,15 +217,16 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	}
 
 	if helper.IsJsonArray(f) {
-
+		log.Print("isJsonArray")
 		if jsonArryErr := json.Unmarshal([]byte(body), parsedResponse); jsonArryErr != nil {
 			return nil, fmt.Errorf("Malformed Json Array response:%v", jsonArryErr)
 		}
 	} else {
 		if helper.IsJSONString(bodyAsString) {
+			log.Print("Is Not JsonArray")
 
-			//err = json.NewDecoder(resp.Body).Decode(parsedResponse)
-			err = json.Unmarshal([]byte(bodyAsString), &parsedResponse)
+			err = json.Unmarshal([]byte(bodyAsString), parsedResponse)
+
 			if err != nil {
 				return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
 			}
@@ -244,7 +248,6 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 
 		}
 	}
-
 	return resp, nil
 }
 

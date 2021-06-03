@@ -84,14 +84,16 @@ func Provider() *schema.Provider {
 				Default:     apiURLProdLegacy},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"vmp_origin":                cname_origin.ResourceOrigin(),
-			"vmp_cname":                 cname_origin.ResourceCname(),
-			"vmp_customer":              customer.ResourceCustomer(),
-			"vmp_customer_user":         customer.ResourceCustomerUser(),
-			"vmp_rules_engine_policy":   rulesengine.ResourceRulesEngineV4Policy(),
-			"vmp_dns_masterservergroup": dnsroute.ResourceMasterServerGroup(),
-			"vmp_dns_zone":              dnsroute.ResourceZone(),
-			"vmp_dns_group":             dnsroute.ResourceGroup(),
+			"vmp_origin":                 cname_origin.ResourceOrigin(),
+			"vmp_cname":                  cname_origin.ResourceCname(),
+			"vmp_customer":               customer.ResourceCustomer(),
+			"vmp_customer_user":          customer.ResourceCustomerUser(),
+			"vmp_rules_engine_policy":    rulesengine.ResourceRulesEngineV4Policy(),
+			"vmp_dns_masterservergroup":  dnsroute.ResourceMasterServerGroup(),
+			"vmp_dns_zone":               dnsroute.ResourceZone(),
+			"vmp_dns_group":              dnsroute.ResourceGroup(),
+			"vmp_dns_tsig":               dnsroute.ResourceTsig(),
+			"vmp_dns_secondaryzonegroup": dnsroute.ResourceSecondaryZoneGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": customer.DataSourceCustomerServices(),
@@ -101,6 +103,9 @@ func Provider() *schema.Provider {
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	// For debugging purpose
+	//time.Sleep(10 * time.Second)
+
 	var diags diag.Diagnostics
 	var err error
 	config, err := api.NewClientConfig(
