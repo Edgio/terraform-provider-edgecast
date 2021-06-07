@@ -3,8 +3,8 @@
 terraform {
   required_providers {
     vmp = {
-      version = "0.1.1"
-      source = "VerizonDigital/vmp"
+      version = "0.0.8"
+      source = "github.com/terraform-providers/vmp"
     }
   }
 }

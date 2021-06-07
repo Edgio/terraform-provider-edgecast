@@ -14,13 +14,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// "Id": 144,
-// "Alias": "test",
-// "KeyName": "kn",
-// "KeyValue": "0c94515c15e5095b8a87a50ba0df3bf38ed05fe6",
-// "AlgorithmId": 1,
-// "AlgorithmName": "HMAC-MD5"
-// DNS Master Server Group
 func ResourceTsig() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceTsigCreate,
@@ -128,7 +121,6 @@ func ResourceTsigRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	newId := strconv.Itoa(resp.ID)
 
 	d.SetId(newId)
-	//d.Set("algorithm_id", resp.AlgorithmID)
 	return diags
 }
 

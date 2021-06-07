@@ -142,7 +142,6 @@ func ResourceMSGRead(ctx context.Context, d *schema.ResourceData, m interface{})
 }
 
 func ResourceMSGUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	//var diags diag.Diagnostic
 	groupID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return diag.FromErr(err)

@@ -16,8 +16,6 @@ import (
 
 // DNS Master Server Group
 func ResourceGroup() *schema.Resource {
-	// For debugging purpose
-	//time.Sleep(10 * time.Second)
 
 	return &schema.Resource{
 		CreateContext: ResourceGroupCreate,

@@ -35,7 +35,7 @@ func TestUT_CustomerUser_basic(t *testing.T) {
 	for _, input := range tcCustomerUser {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/customer_user",
+			TerraformDir: "../examples/resources/vmp_customer_user",
 			Vars: map[string]interface{}{
 				"new_admin_user": map[string]interface{}{
 					"customer_account_number": input.CustomerUserInfo.AccountNumber,
