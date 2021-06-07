@@ -62,7 +62,7 @@ func LogComarison(a string, b string, file string) {
 // message: message
 // instance: any data structure, like map, slice, instance of struct
 // file: file name. file is created in the folder that tf.exe exeduted
-func LogIntComarison(a int, b int, file string) {
+func LogIntComparison(a int, b int, file string) {
 	f, err := os.OpenFile(file,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
