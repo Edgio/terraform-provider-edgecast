@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"log"
 	"terraform-provider-vmp/vmp/api"
+	cname_origin "terraform-provider-vmp/vmp/resources/cname-origin"
+	"terraform-provider-vmp/vmp/resources/customer"
+	"terraform-provider-vmp/vmp/resources/dnsroute"
+	"terraform-provider-vmp/vmp/resources/rulesengine"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -30,6 +34,7 @@ var (
 
 // Provider creates a new instance of the Verizon Media Terraform Provider
 func Provider() *schema.Provider {
+
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"api_token": {
@@ -79,20 +84,28 @@ func Provider() *schema.Provider {
 				Default:     apiURLProdLegacy},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"vmp_origin":              resourceOrigin(),
-			"vmp_cname":               resourceCname(),
-			"vmp_customer":            resourceCustomer(),
-			"vmp_customer_user":       resourceCustomerUser(),
-			"vmp_rules_engine_policy": resourceRulesEngineV4Policy(),
+			"vmp_origin":                 cname_origin.ResourceOrigin(),
+			"vmp_cname":                  cname_origin.ResourceCname(),
+			"vmp_customer":               customer.ResourceCustomer(),
+			"vmp_customer_user":          customer.ResourceCustomerUser(),
+			"vmp_rules_engine_policy":    rulesengine.ResourceRulesEngineV4Policy(),
+			"vmp_dns_masterservergroup":  dnsroute.ResourceMasterServerGroup(),
+			"vmp_dns_zone":               dnsroute.ResourceZone(),
+			"vmp_dns_group":              dnsroute.ResourceGroup(),
+			"vmp_dns_tsig":               dnsroute.ResourceTsig(),
+			"vmp_dns_secondaryzonegroup": dnsroute.ResourceSecondaryZoneGroup(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"vmp_customer_services": dataSourceCustomerServices(),
+			"vmp_customer_services": customer.DataSourceCustomerServices(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}
 }
 
 func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	// For debugging purpose
+	//time.Sleep(10 * time.Second)
+
 	var diags diag.Diagnostics
 	var err error
 	config, err := api.NewClientConfig(

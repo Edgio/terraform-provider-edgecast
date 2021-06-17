@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"terraform-provider-vmp/vmp/helper"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"
@@ -148,7 +149,9 @@ func (BaseClient *BaseClient) BuildRequest(method, path string, body interface{}
 			if err != nil {
 				return nil, err
 			}
+			//helper.LogRequestBody(method, absoluteURL.String(), body)
 			payload = buf
+
 		}
 	}
 
@@ -187,7 +190,6 @@ func (BaseClient *BaseClient) BuildRequest(method, path string, body interface{}
 
 // SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
 func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResponse interface{}) (*http.Response, error) {
-	log.Printf("[INFO] SendRequest >> [%s] %s", req.Method, req.URL.String())
 	resp, err := BaseClient.HTTPClient.Do(req)
 
 	if err != nil {
@@ -195,27 +197,83 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	}
 
 	defer resp.Body.Close()
-
+	body, err := ioutil.ReadAll(resp.Body)
+	bodyAsString := string(body)
+	helper.LogPrettyJson("Response", bodyAsString)
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
-		body, err := ioutil.ReadAll(resp.Body)
-
 		if err != nil {
 			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
 		}
 
-		bodyAsString := string(body)
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
 	}
-
-	if parsedResponse != nil {
-		err = json.NewDecoder(resp.Body).Decode(parsedResponse)
-
-		if err != nil {
-			return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
-		}
+	if parsedResponse == nil {
+		return nil, nil
 	}
 
+	var f interface{}
+	if jsonUnmarshalErr := json.Unmarshal(body, &f); err != nil {
+		return nil, fmt.Errorf("Malformed Json response:%v", jsonUnmarshalErr)
+	}
+
+	if helper.IsJsonArray(f) {
+		log.Print("isJsonArray")
+		if jsonArryErr := json.Unmarshal([]byte(body), parsedResponse); jsonArryErr != nil {
+			return nil, fmt.Errorf("Malformed Json Array response:%v", jsonArryErr)
+		}
+	} else {
+		if helper.IsJSONString(bodyAsString) {
+			log.Print("Is Not JsonArray")
+
+			err = json.Unmarshal([]byte(bodyAsString), parsedResponse)
+
+			if err != nil {
+				return nil, fmt.Errorf("SendRequest: Decode error: %v", err)
+			}
+		} else {
+
+			// if response is not json string
+			switch v := parsedResponse.(type) {
+			case LiteralResponse:
+				rs, ok := parsedResponse.(LiteralResponse)
+				if ok {
+					rs.Value = bodyAsString
+					parsedResponse = rs
+				}
+			case float64:
+				fmt.Println("float64:", v)
+			default:
+				fmt.Println("unknown")
+			}
+
+		}
+	}
 	return resp, nil
+}
+
+// SendRequest sends an HTTP request and, if applicable, sets the response to parsedResponse
+func (BaseClient *BaseClient) SendRequestWithStringResponse(req *retryablehttp.Request) (*string, error) {
+	resp, err := BaseClient.HTTPClient.Do(req)
+
+	if err != nil {
+		return nil, fmt.Errorf("SendRequest: Do: %v", err)
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	bodyAsString := string(body)
+
+	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
+		if err != nil {
+			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
+		}
+
+		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
+	}
+	// Do not delete this.
+	log.Printf("[DEBUG] Raw Response Body:base_client>>SendRequest:%s", body)
+
+	return &bodyAsString, nil
 }
 
 // GetIdsToken returns the cached token, refreshing it if it has expired

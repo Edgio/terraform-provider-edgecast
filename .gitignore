@@ -22,3 +22,5 @@ examples/**/*.txt
 examples/**/*.tf.copy
 examples/**/*.tfvars.copy
 /**/terraform.log
+unit-tests/**/credential_ucc.json
+.vscode/

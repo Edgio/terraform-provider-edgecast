@@ -1,6 +1,6 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
-package vmp
+package cname_origin
 
 import (
 	"context"
@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceOrigin() *schema.Resource {
+func ResourceOrigin() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceOriginCreate,
-		ReadContext:   resourceOriginRead,
-		UpdateContext: resourceOriginUpdate,
-		DeleteContext: resourceOriginDelete,
+		CreateContext: ResourceOriginCreate,
+		ReadContext:   ResourceOriginRead,
+		UpdateContext: ResourceOriginUpdate,
+		DeleteContext: ResourceOriginDelete,
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
@@ -75,7 +75,7 @@ func resourceOrigin() *schema.Resource {
 	}
 }
 
-func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = d.Get("account_number").(string)
 
@@ -109,10 +109,10 @@ func resourceOriginCreate(ctx context.Context, d *schema.ResourceData, m interfa
 
 	d.SetId(strconv.Itoa(parsedResponse.CustomerOriginID))
 
-	return resourceOriginRead(ctx, d, m)
+	return ResourceOriginRead(ctx, d, m)
 }
 
-func resourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
@@ -138,7 +138,7 @@ func resourceOriginRead(ctx context.Context, d *schema.ResourceData, m interface
 	return diags
 }
 
-func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = d.Get("account_number").(string)
 	httpConfiguration := d.Get("http").(*schema.Set).List()[0].(map[string]interface{})
@@ -170,10 +170,10 @@ func resourceOriginUpdate(ctx context.Context, d *schema.ResourceData, m interfa
 	}
 
 	d.SetId(strconv.Itoa(parsedResponse.CustomerOriginID))
-	return resourceOriginRead(ctx, d, m)
+	return ResourceOriginRead(ctx, d, m)
 }
 
-func resourceOriginDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceOriginDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = d.Get("account_number").(string)

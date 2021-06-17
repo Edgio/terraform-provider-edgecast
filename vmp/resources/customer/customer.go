@@ -1,6 +1,6 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
-package vmp
+package customer
 
 import (
 	"context"
@@ -14,12 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCustomer() *schema.Resource {
+func ResourceCustomer() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCustomerCreate,
-		ReadContext:   resourceCustomerRead,
-		UpdateContext: resourceCustomerUpdate,
-		DeleteContext: resourceCustomerDelete,
+		CreateContext: ResourceCustomerCreate,
+		ReadContext:   ResourceCustomerRead,
+		UpdateContext: ResourceCustomerUpdate,
+		DeleteContext: ResourceCustomerDelete,
 
 		Schema: map[string]*schema.Schema{
 			"company_name":                 {Type: schema.TypeString, Required: true},
@@ -78,72 +78,7 @@ func resourceCustomer() *schema.Resource {
 	}
 }
 
-func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate, error) {
-	var bandwidthUsageLimit int64
-	var dataTransferredUsageLimit int64
-
-	// Terraform schemas only support Int32, so gotta do a little more heavy lifting for int64 and int8
-	if attr, ok := d.GetOk("bandwidth_usage_limit"); ok && len(attr.(string)) > 0 {
-		parsed, err := strconv.ParseInt(attr.(string), 10, 64)
-
-		if err != nil {
-			return nil, fmt.Errorf("bandwidth_usage_limit should be a 64-bit integer")
-		}
-
-		bandwidthUsageLimit = parsed
-	}
-
-	if attr, ok := d.GetOk("data_transferred_usage_limit"); ok && len(attr.(string)) > 0 {
-		parsed, err := strconv.ParseInt(attr.(string), 10, 64)
-
-		if err != nil {
-			return nil, fmt.Errorf("data_transferred_usage_limit should be a 64-bit integer")
-		}
-
-		dataTransferredUsageLimit = parsed
-	}
-
-	return &api.CustomerCreateUpdate{
-		CompanyName:               d.Get("company_name").(string),
-		Status:                    1, // not user configurable
-		AccountID:                 d.Get("account_id").(string),
-		Address1:                  d.Get("address1").(string),
-		Address2:                  d.Get("address2").(string),
-		BandwidthUsageLimit:       bandwidthUsageLimit,
-		BillingAccountTag:         d.Get("billing_account_tag").(string),
-		BillingAddress1:           d.Get("billing_address1").(string),
-		BillingAddress2:           d.Get("billing_address2").(string),
-		BillingCity:               d.Get("billing_city").(string),
-		BillingContactEmail:       d.Get("billing_contact_email").(string),
-		BillingContactFax:         d.Get("billing_contact_fax").(string),
-		BillingContactFirstName:   d.Get("billing_contact_first_name").(string),
-		BillingContactLastName:    d.Get("billing_contact_last_name").(string),
-		BillingContactMobile:      d.Get("billing_contact_mobile").(string),
-		BillingContactPhone:       d.Get("billing_contact_phone").(string),
-		BillingContactTitle:       d.Get("billing_contact_title").(string),
-		BillingCountry:            d.Get("billing_country").(string),
-		BillingRateInfo:           d.Get("billing_rate_info").(string),
-		BillingState:              d.Get("billing_state").(string),
-		BillingZIP:                d.Get("billing_zip").(string),
-		City:                      d.Get("city").(string),
-		ContactEmail:              d.Get("contact_email").(string),
-		ContactFax:                d.Get("contact_fax").(string),
-		ContactFirstName:          d.Get("contact_first_name").(string),
-		ContactLastName:           d.Get("contact_last_name").(string),
-		ContactMobile:             d.Get("contact_mobile").(string),
-		ContactPhone:              d.Get("contact_phone").(string),
-		ContactTitle:              d.Get("contact_title").(string),
-		Country:                   d.Get("country").(string),
-		DataTransferredUsageLimit: dataTransferredUsageLimit,
-		Notes:                     d.Get("notes").(string),
-		ServiceLevelCode:          d.Get("service_level_code").(string),
-		State:                     d.Get("state").(string),
-		Website:                   d.Get("website").(string),
-		ZIP:                       d.Get("zip").(string),
-	}, nil
-}
-
-func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
 
 	payload, err := getCustomerCreateUpdate(d)
@@ -203,10 +138,10 @@ func resourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		}
 	}
 
-	return resourceCustomerRead(ctx, d, m)
+	return ResourceCustomerRead(ctx, d, m)
 }
 
-func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
@@ -318,12 +253,12 @@ func resourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func resourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	// Not Yet Implemented
-	return resourceCustomerRead(ctx, d, m)
+	return ResourceCustomerRead(ctx, d, m)
 }
 
-func resourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
 	accountNumber := d.Id()
@@ -340,4 +275,69 @@ func resourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m inter
 	d.SetId("")
 
 	return diags
+}
+
+func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate, error) {
+	var bandwidthUsageLimit int64
+	var dataTransferredUsageLimit int64
+
+	// Terraform schemas only support Int32, so gotta do a little more heavy lifting for int64 and int8
+	if attr, ok := d.GetOk("bandwidth_usage_limit"); ok && len(attr.(string)) > 0 {
+		parsed, err := strconv.ParseInt(attr.(string), 10, 64)
+
+		if err != nil {
+			return nil, fmt.Errorf("bandwidth_usage_limit should be a 64-bit integer")
+		}
+
+		bandwidthUsageLimit = parsed
+	}
+
+	if attr, ok := d.GetOk("data_transferred_usage_limit"); ok && len(attr.(string)) > 0 {
+		parsed, err := strconv.ParseInt(attr.(string), 10, 64)
+
+		if err != nil {
+			return nil, fmt.Errorf("data_transferred_usage_limit should be a 64-bit integer")
+		}
+
+		dataTransferredUsageLimit = parsed
+	}
+
+	return &api.CustomerCreateUpdate{
+		CompanyName:               d.Get("company_name").(string),
+		Status:                    1, // not user configurable
+		AccountID:                 d.Get("account_id").(string),
+		Address1:                  d.Get("address1").(string),
+		Address2:                  d.Get("address2").(string),
+		BandwidthUsageLimit:       bandwidthUsageLimit,
+		BillingAccountTag:         d.Get("billing_account_tag").(string),
+		BillingAddress1:           d.Get("billing_address1").(string),
+		BillingAddress2:           d.Get("billing_address2").(string),
+		BillingCity:               d.Get("billing_city").(string),
+		BillingContactEmail:       d.Get("billing_contact_email").(string),
+		BillingContactFax:         d.Get("billing_contact_fax").(string),
+		BillingContactFirstName:   d.Get("billing_contact_first_name").(string),
+		BillingContactLastName:    d.Get("billing_contact_last_name").(string),
+		BillingContactMobile:      d.Get("billing_contact_mobile").(string),
+		BillingContactPhone:       d.Get("billing_contact_phone").(string),
+		BillingContactTitle:       d.Get("billing_contact_title").(string),
+		BillingCountry:            d.Get("billing_country").(string),
+		BillingRateInfo:           d.Get("billing_rate_info").(string),
+		BillingState:              d.Get("billing_state").(string),
+		BillingZIP:                d.Get("billing_zip").(string),
+		City:                      d.Get("city").(string),
+		ContactEmail:              d.Get("contact_email").(string),
+		ContactFax:                d.Get("contact_fax").(string),
+		ContactFirstName:          d.Get("contact_first_name").(string),
+		ContactLastName:           d.Get("contact_last_name").(string),
+		ContactMobile:             d.Get("contact_mobile").(string),
+		ContactPhone:              d.Get("contact_phone").(string),
+		ContactTitle:              d.Get("contact_title").(string),
+		Country:                   d.Get("country").(string),
+		DataTransferredUsageLimit: dataTransferredUsageLimit,
+		Notes:                     d.Get("notes").(string),
+		ServiceLevelCode:          d.Get("service_level_code").(string),
+		State:                     d.Get("state").(string),
+		Website:                   d.Get("website").(string),
+		ZIP:                       d.Get("zip").(string),
+	}, nil
 }

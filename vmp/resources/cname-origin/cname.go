@@ -1,6 +1,6 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
-package vmp
+package cname_origin
 
 import (
 	"context"
@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func resourceCname() *schema.Resource {
+func ResourceCname() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCnameCreate,
-		ReadContext:   resourceCnameRead,
-		UpdateContext: resourceCnameUpdate,
-		DeleteContext: resourceCnameDelete,
+		CreateContext: ResourceCnameCreate,
+		ReadContext:   ResourceCnameRead,
+		UpdateContext: ResourceCnameUpdate,
+		DeleteContext: ResourceCnameDelete,
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
@@ -58,7 +58,7 @@ func resourceCname() *schema.Resource {
 	}
 }
 
-func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = accountNumber
@@ -83,10 +83,10 @@ func resourceCnameCreate(ctx context.Context, d *schema.ResourceData, m interfac
 	log.Printf("[INFO] Create successful - New CNAME ID: %d", resp.CnameID)
 	d.SetId(strconv.Itoa(resp.CnameID))
 
-	return resourceCnameRead(ctx, d, m)
+	return ResourceCnameRead(ctx, d, m)
 }
 
-func resourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
@@ -114,7 +114,7 @@ func resourceCnameRead(ctx context.Context, d *schema.ResourceData, m interface{
 	return diags
 }
 
-func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = accountNumber
@@ -138,10 +138,10 @@ func resourceCnameUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	return resourceCnameRead(ctx, d, m)
+	return ResourceCnameRead(ctx, d, m)
 }
 
-func resourceCnameDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCnameDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)

@@ -1,6 +1,6 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
-package vmp
+package rulesengine
 
 import (
 	"context"
@@ -20,12 +20,12 @@ import (
 
 const emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"Placeholder rule created by the Verizon Media Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"Empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"Placeholder Rule\"}],\"state\":\"locked\"}"
 
-func resourceRulesEngineV4Policy() *schema.Resource {
+func ResourceRulesEngineV4Policy() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourcePolicyCreate,
-		ReadContext:   resourcePolicyRead,
-		UpdateContext: resourcePolicyUpdate,
-		DeleteContext: resourcePolicyDelete,
+		CreateContext: ResourcePolicyCreate,
+		ReadContext:   ResourcePolicyRead,
+		UpdateContext: ResourcePolicyUpdate,
+		DeleteContext: ResourcePolicyDelete,
 		Schema: map[string]*schema.Schema{
 			"customeruserid": {
 				Type:        schema.TypeString,
@@ -67,7 +67,8 @@ func resourceRulesEngineV4Policy() *schema.Resource {
 	}
 }
 
-func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+// ResourcePolicyCreate - Create a new policy and deploy it to a target platform
+func ResourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	policy := d.Get("policy").(string)
 
 	// messy - needs improvement - unmarshalling json, modifying, then marshalling back to string
@@ -89,10 +90,11 @@ func resourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interfa
 		return diag.FromErr(err)
 	}
 
-	return resourcePolicyRead(ctx, d, m)
+	return ResourcePolicyRead(ctx, d, m)
 }
 
-func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+// ResourcePolicyRead - Read the current policy
+func ResourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
@@ -128,6 +130,37 @@ func resourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 
 	log.Printf("[INFO] Successfully retrieved policy %d: %s", policyID, policyFromAPI)
 	d.Set("policy", policyFromAPI)
+
+	return diags
+}
+
+// ResourcePolicyUpdate - Add/Delete/Update rules in the current policy and deploy it to a target platform
+func ResourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	return ResourcePolicyCreate(ctx, d, m)
+}
+
+// ResourcePolicyDelete - Create a new empty placeholder policy and deploy it to a target platform instead of actual deletion.
+func ResourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	policy := d.Get("policy").(string)
+
+	// pull out platform from existing policy
+	policyMap := make(map[string]interface{})
+	json.Unmarshal([]byte(policy), &policyMap)
+
+	platform := policyMap["platform"].(string)
+
+	// You can't actually delete policies, so we will instead
+	// create a placeholder empty policy for the customer for the given platform and policy type
+	timestamp := time.Now().Format(time.RFC3339)
+	emptyPolicyJSON := fmt.Sprintf(emptyPolicyFormat, timestamp, platform, timestamp)
+
+	err := addPolicy(emptyPolicyJSON, true, d, m)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diags
 }
@@ -212,35 +245,6 @@ func standardizeMatchFeature(matchFeatureMap map[string]interface{}) {
 		}
 		matchFeatureMap[strings.Replace(k, "-", "_", -1)] = v
 	}
-}
-
-func resourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	return resourcePolicyCreate(ctx, d, m)
-}
-
-func resourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	policy := d.Get("policy").(string)
-
-	// pull out platform from existing policy
-	policyMap := make(map[string]interface{})
-	json.Unmarshal([]byte(policy), &policyMap)
-
-	platform := policyMap["platform"].(string)
-
-	// You can't actually delete policies, so we will instead
-	// create a placeholder empty policy for the customer for the given platform and policy type
-	timestamp := time.Now().Format(time.RFC3339)
-	emptyPolicyJSON := fmt.Sprintf(emptyPolicyFormat, timestamp, platform, timestamp)
-
-	err := addPolicy(emptyPolicyJSON, true, d, m)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	return diags
 }
 
 func getDeployRequestData(d *schema.ResourceData, policyID int) *api.AddDeployRequest {

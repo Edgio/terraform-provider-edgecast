@@ -1,6 +1,6 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
-package vmp
+package customer
 
 import (
 	"context"
@@ -13,12 +13,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-func resourceCustomerUser() *schema.Resource {
+func ResourceCustomerUser() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: resourceCustomerUserCreate,
-		ReadContext:   resourceCustomerUserRead,
-		UpdateContext: resourceCustomerUserUpdate,
-		DeleteContext: resourceCustomerUserDelete,
+		CreateContext: ResourceCustomerUserCreate,
+		ReadContext:   ResourceCustomerUserRead,
+		UpdateContext: ResourceCustomerUserUpdate,
+		DeleteContext: ResourceCustomerUserDelete,
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
@@ -56,7 +56,7 @@ func resourceCustomerUser() *schema.Resource {
 	}
 }
 
-func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("account_number").(string)
 	(*config).AccountNumber = accountNumber
@@ -77,10 +77,10 @@ func resourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 
 	d.SetId(strconv.Itoa(customerUserID))
 
-	return resourceCustomerUserRead(ctx, d, m)
+	return ResourceCustomerUserRead(ctx, d, m)
 }
 
-func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("account_number").(string)
 	(*config).AccountNumber = accountNumber
@@ -103,10 +103,10 @@ func resourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	return resourceCustomerUserRead(ctx, d, m)
+	return ResourceCustomerUserRead(ctx, d, m)
 }
 
-func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
@@ -160,7 +160,7 @@ func resourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func resourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("account_number").(string)

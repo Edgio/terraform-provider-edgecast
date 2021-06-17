@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"encoding/json"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -23,4 +25,19 @@ func dataSourceFiltersSchema() *schema.Schema {
 			},
 		},
 	}
+}
+
+func IsJsonArray(input interface{}) bool {
+	switch input.(type) {
+	case []interface{}:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsJSONString(s string) bool {
+	var js string
+	return json.Unmarshal([]byte(s), &js) != nil
+
 }
