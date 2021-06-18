@@ -2,7 +2,10 @@
 
 package api
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 // WAFAPIClient interacts with the Verizon Media API
 type WAFAPIClient struct {
@@ -21,20 +24,20 @@ func NewWAFAPIClient(config *ClientConfig) *WAFAPIClient {
 type AccessRule struct {
 	AllowedHTTPMethods         []string
 	AllowedRequestContentTypes []string
-	ASNAccessControls          *AcessControls `json:"asn"`
-	CookieAccessControls       *AcessControls `json:"cookie"`
-	CountryAccessControls      *AcessControls `json:"country"`
+	ASNAccessControls          AccessControls `json:"asn"`
+	CookieAccessControls       AccessControls `json:"cookie"`
+	CountryAccessControls      AccessControls `json:"country"`
 	CustomerID                 string
 	DisallowedExtensions       []string
 	DisallowedHeaders          []string
-	IPAccessControls           *AcessControls `json:"ip"`
+	IPAccessControls           AccessControls `json:"ip"`
 	Name                       string
-	RefererAccessControls      *AcessControls `json:"referer"`
+	RefererAccessControls      AccessControls `json:"referer"`
 	ResponseHeaderName         string
-	URLAccessControls          *AcessControls `json:"url"`
+	URLAccessControls          AccessControls `json:"url"`
 }
 
-type AcessControls struct {
+type AccessControls struct {
 	AccessList []interface{}
 	Blacklist  []interface{}
 	Whitelist  []interface{}
@@ -48,17 +51,17 @@ type WAFError struct {
 type AddAccessRuleResponse struct {
 	Id      int
 	Status  string
-	Success string
+	Success bool
 	Errors  []WAFError
 }
 
-func (APIClient *WAFAPIClient) AddAccessRule(accessRule *AccessRule) (*AddAccessRuleResponse, error) {
+func (APIClient *WAFAPIClient) AddAccessRule(accessRule AccessRule) (int, error) {
 	url := fmt.Sprintf("/v2/mcc/customers/%s/waf/v1.0/acl", accessRule.CustomerID)
 
 	request, err := APIClient.BaseAPIClient.BuildRequest("POST", url, accessRule, false)
 
 	if err != nil {
-		return nil, fmt.Errorf("AddAccessRule: %v", err)
+		return 0, fmt.Errorf("AddAccessRule: %v", err)
 	}
 
 	parsedResponse := &AddAccessRuleResponse{}
@@ -66,8 +69,26 @@ func (APIClient *WAFAPIClient) AddAccessRule(accessRule *AccessRule) (*AddAccess
 	_, err = APIClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return nil, fmt.Errorf("AddAccessRule: %v", err)
+		return 0, fmt.Errorf("AddAccessRule: %v", err)
 	}
 
-	return parsedResponse, nil
+	if !parsedResponse.Success || len(parsedResponse.Errors) > 0 {
+		return 0, fmt.Errorf("AddAccessRule: Errors: %v", flattenWAFErrors(parsedResponse.Errors))
+	}
+
+	return parsedResponse.Id, nil
+}
+
+func flattenWAFErrors(errors []WAFError) string {
+	error := ""
+
+	for i, v := range errors {
+		if i > 0 {
+			error += ","
+		}
+
+		error += strconv.Itoa(v.Code) + ":" + v.Message
+	}
+
+	return error
 }

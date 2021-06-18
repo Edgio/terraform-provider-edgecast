@@ -157,7 +157,21 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	(*config).AccountNumber = accountNumber
 	log.Printf("[INFO] Creating WAF Access Rule for Account >> [AccountNumber]: %s", accountNumber)
 
-	accessRule := getAccessRuleFromData(d)
+	accessRule := api.AccessRule{
+		AllowedHTTPMethods:         d.Get("allowed_http_methods").([]string),
+		AllowedRequestContentTypes: d.Get("allowed_request_content_types").([]string),
+		ASNAccessControls:          getAccessControls(d, "asn"),
+		CookieAccessControls:       getAccessControls(d, "cookie"),
+		CountryAccessControls:      getAccessControls(d, "country"),
+		CustomerID:                 accountNumber,
+		DisallowedExtensions:       d.Get("disallowed_exensions").([]string),
+		DisallowedHeaders:          d.Get("disallowed_headers").([]string),
+		IPAccessControls:           getAccessControls(d, "ip"),
+		Name:                       d.Get("name").(string),
+		RefererAccessControls:      getAccessControls(d, "referer"),
+		ResponseHeaderName:         d.Get("response_header_name").(string),
+		URLAccessControls:          getAccessControls(d, "url"),
+	}
 
 	apiClient := api.NewWAFAPIClient(*config)
 
@@ -168,9 +182,9 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully created user, ID=%d", customerUserID)
+	log.Printf("[INFO] Successfully created WAF Access Rule, ID=%d", accessRuleId)
 
-	d.SetId(strconv.Itoa(customerUserID))
+	d.SetId(strconv.Itoa(accessRuleId))
 
 	return diags
 }
@@ -190,37 +204,16 @@ func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func getAccessRuleFromData(d *schema.ResourceData) *api.AccessRule {
-	var isAdmin int8 = 0
+func getAccessControls(d *schema.ResourceData, key string) api.AccessControls {
+	var accessControls api.AccessControls
 
-	if attr, ok := d.GetOk("is_admin"); ok {
-		if attr.(bool) {
-			isAdmin = 1
+	if attr, getOk := d.GetOk(key); getOk {
+		if m, mapCastOk := attr.(map[string]interface{}); mapCastOk {
+			accessControls.AccessList = m["accesslist"].([]interface{})
+			accessControls.Blacklist = m["blacklist"].([]interface{})
+			accessControls.Whitelist = m["whitelist"].([]interface{})
 		}
 	}
 
-	var timeZoneID *int
-
-	if attr, ok := d.GetOk("time_zone_id"); ok {
-		t := attr.(int)
-		timeZoneID = &t
-	}
-
-	return &api.AccessRule{
-		Address1:   d.Get("address1").(string),
-		Address2:   d.Get("address2").(string),
-		City:       d.Get("city").(string),
-		Country:    d.Get("country").(string),
-		Email:      d.Get("email").(string),
-		Fax:        d.Get("fax").(string),
-		FirstName:  d.Get("first_name").(string),
-		IsAdmin:    isAdmin,
-		LastName:   d.Get("last_name").(string),
-		Mobile:     d.Get("mobile").(string),
-		Phone:      d.Get("phone").(string),
-		State:      d.Get("state").(string),
-		TimeZoneID: timeZoneID,
-		Title:      d.Get("title").(string),
-		ZIP:        d.Get("zip").(string),
-	}
+	return accessControls
 }
