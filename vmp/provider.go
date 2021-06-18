@@ -11,15 +11,16 @@ import (
 	"terraform-provider-vmp/vmp/resources/customer"
 	"terraform-provider-vmp/vmp/resources/dnsroute"
 	"terraform-provider-vmp/vmp/resources/rulesengine"
+	"terraform-provider-vmp/vmp/resources/waf"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
-	apiURLProd       string = "https://api.vdms.io"
-	apiURLProdLegacy string = "https://api.edgecast.com"
-	idsURLProd       string = "https://id.vdms.io"
+	apiURLProd       string = "http://dev-api.edgecast.com"
+	apiURLProdLegacy string = "http://dev-api.edgecast.com"
+	idsURLProd       string = "https://id-dev.vdms.io"
 )
 
 // TODO Platforms should be a data source retrieved via an API call, not a local collection
@@ -94,6 +95,7 @@ func Provider() *schema.Provider {
 			"vmp_dns_group":              dnsroute.ResourceGroup(),
 			"vmp_dns_tsig":               dnsroute.ResourceTsig(),
 			"vmp_dns_secondaryzonegroup": dnsroute.ResourceSecondaryZoneGroup(),
+			"vmp_waf_access_rule":        waf.ResourceAccessRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": customer.DataSourceCustomerServices(),
@@ -119,7 +121,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		d.Get("api_address_legacy").(string),
 	)
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf("Failed to read vmp Provider configuration data: %v", err))
+		return nil, diag.FromErr(fmt.Errorf("failed to read vmp Provider configuration data: %v", err))
 	}
 
 	config.BaseClient = api.NewBaseClient(config)

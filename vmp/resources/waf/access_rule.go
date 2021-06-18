@@ -5,7 +5,6 @@ package waf
 import (
 	"context"
 	"log"
-	"strconv"
 	"terraform-provider-vmp/vmp/api"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
@@ -13,7 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func ResourceGroup() *schema.Resource {
+func ResourceAccessRule() *schema.Resource {
 
 	return &schema.Resource{
 		CreateContext: ResourceAccessRuleCreate,
@@ -173,18 +172,20 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 		URLAccessControls:          getAccessControls(d, "url"),
 	}
 
-	apiClient := api.NewWAFAPIClient(*config)
+	log.Printf("[DEBUG] Access Rule %+v\n", accessRule)
 
-	accessRuleId, err := apiClient.AddAccessRule(accessRule)
+	// apiClient := api.NewWAFAPIClient(*config)
 
-	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
+	// accessRuleId, err := apiClient.AddAccessRule(accessRule)
 
-	log.Printf("[INFO] Successfully created WAF Access Rule, ID=%d", accessRuleId)
+	// if err != nil {
+	// 	d.SetId("")
+	// 	return diag.FromErr(err)
+	// }
 
-	d.SetId(strconv.Itoa(accessRuleId))
+	// log.Printf("[INFO] Successfully created WAF Access Rule, ID=%d", accessRuleId)
+
+	// d.SetId(strconv.Itoa(accessRuleId))
 
 	return diags
 }
@@ -208,7 +209,11 @@ func getAccessControls(d *schema.ResourceData, key string) api.AccessControls {
 	var accessControls api.AccessControls
 
 	if attr, getOk := d.GetOk(key); getOk {
+		log.Printf("[DEBUG] %s Access Controls raw: %+v\n", key, attr)
+
 		if m, mapCastOk := attr.(map[string]interface{}); mapCastOk {
+			log.Printf("[DEBUG] %s Access Controls map: %+v\n", key, m)
+
 			accessControls.AccessList = m["accesslist"].([]interface{})
 			accessControls.Blacklist = m["blacklist"].([]interface{})
 			accessControls.Whitelist = m["whitelist"].([]interface{})
