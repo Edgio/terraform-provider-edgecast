@@ -54,10 +54,10 @@ provider "vmp" {
 ##########################################
 # Resources
 ##########################################
-// resource "vmp_customer" "test_customer" {
-//   company_name = var.new_customer_info.company_name
-//   service_level_code = var.new_customer_info.service_level_code
-//   services = var.new_customer_info.services
-//   delivery_region =  var.new_customer_info.delivery_region
-//   access_modules = var.new_customer_info.access_modules
-// }
+resource "vmp_customer" "test_customer" {
+  company_name = var.new_customer_info.company_name
+  service_level_code = var.new_customer_info.service_level_code
+  services = var.new_customer_info.services
+  delivery_region =  var.new_customer_info.delivery_region
+  access_modules = var.new_customer_info.access_modules
+}
