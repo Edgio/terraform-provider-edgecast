@@ -18,9 +18,9 @@ import (
 )
 
 const (
-	apiURLProd       string = "http://dev-api.edgecast.com"
-	apiURLProdLegacy string = "http://dev-api.edgecast.com"
-	idsURLProd       string = "https://id-dev.vdms.io"
+	apiURLProd       string = "https://api.vdms.io"
+	apiURLProdLegacy string = "https://api.edgecast.com"
+	idsURLProd       string = "https://id.vdms.io"
 )
 
 // TODO Platforms should be a data source retrieved via an API call, not a local collection

@@ -115,6 +115,10 @@ func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
 	} else {
 		baseURL = config.APIURL
 	}
+
+	httpClient := retryablehttp.NewClient()
+	httpClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
+
 	return &BaseClient{
 		Config:          config,
 		BaseURL:         baseURL,
@@ -123,7 +127,7 @@ func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
 		IdsClientID:     config.IdsClientID,
 		IdsClientSecret: config.IdsClientSecret,
 		IdsScope:        config.IdsScope,
-		HTTPClient:      retryablehttp.NewClient(),
+		HTTPClient:      httpClient,
 	}
 }
 

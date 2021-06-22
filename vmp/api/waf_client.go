@@ -4,7 +4,6 @@ package api
 
 import (
 	"fmt"
-	"strconv"
 )
 
 // WAFAPIClient interacts with the Verizon Media API
@@ -22,25 +21,27 @@ func NewWAFAPIClient(config *ClientConfig) *WAFAPIClient {
 }
 
 type AccessRule struct {
-	AllowedHTTPMethods         []string
-	AllowedRequestContentTypes []string
-	ASNAccessControls          AccessControls `json:"asn"`
-	CookieAccessControls       AccessControls `json:"cookie"`
-	CountryAccessControls      AccessControls `json:"country"`
-	CustomerID                 string
-	DisallowedExtensions       []string
-	DisallowedHeaders          []string
-	IPAccessControls           AccessControls `json:"ip"`
-	Name                       string
-	RefererAccessControls      AccessControls `json:"referer"`
-	ResponseHeaderName         string
-	URLAccessControls          AccessControls `json:"url"`
+	AllowedHTTPMethods         []string        `json:"allowed_http_methods"`
+	AllowedRequestContentTypes []string        `json:"allowed_request_content_types"`
+	ASNAccessControls          *AccessControls `json:"asn"`
+	CookieAccessControls       *AccessControls `json:"cookie"`
+	CountryAccessControls      *AccessControls `json:"country"`
+	CustomerID                 string          `json:"customer_id"`
+	DisallowedExtensions       []string        `json:"disallowed_extensions"`
+	DisallowedHeaders          []string        `json:"disallowed_headers"`
+	IPAccessControls           *AccessControls `json:"ip"`
+	Name                       string          `json:"name"`
+	RefererAccessControls      *AccessControls `json:"referer"`
+	ResponseHeaderName         string          `json:"response_header_name"`
+	URLAccessControls          *AccessControls `json:"url"`
+	UserAgentAccessControls    *AccessControls `json:"user_agent"`
 }
 
+// AccessControls contains entries that identify traffic. Note: ASN Access Controls must be integers, all other types are strings.
 type AccessControls struct {
-	AccessList []interface{}
-	Blacklist  []interface{}
-	Whitelist  []interface{}
+	Accesslist []interface{} `json:"accesslist"`
+	Blacklist  []interface{} `json:"blacklist"`
+	Whitelist  []interface{} `json:"whitelist"`
 }
 
 type WAFError struct {
@@ -49,19 +50,16 @@ type WAFError struct {
 }
 
 type AddAccessRuleResponse struct {
-	Id      int
-	Status  string
-	Success bool
-	Errors  []WAFError
+	Id string
 }
 
-func (APIClient *WAFAPIClient) AddAccessRule(accessRule AccessRule) (int, error) {
+func (APIClient *WAFAPIClient) AddAccessRule(accessRule AccessRule) (string, error) {
 	url := fmt.Sprintf("/v2/mcc/customers/%s/waf/v1.0/acl", accessRule.CustomerID)
 
 	request, err := APIClient.BaseAPIClient.BuildRequest("POST", url, accessRule, false)
 
 	if err != nil {
-		return 0, fmt.Errorf("AddAccessRule: %v", err)
+		return "", fmt.Errorf("AddAccessRule: %v", err)
 	}
 
 	parsedResponse := &AddAccessRuleResponse{}
@@ -69,26 +67,8 @@ func (APIClient *WAFAPIClient) AddAccessRule(accessRule AccessRule) (int, error)
 	_, err = APIClient.BaseAPIClient.SendRequest(request, &parsedResponse)
 
 	if err != nil {
-		return 0, fmt.Errorf("AddAccessRule: %v", err)
-	}
-
-	if !parsedResponse.Success || len(parsedResponse.Errors) > 0 {
-		return 0, fmt.Errorf("AddAccessRule: Errors: %v", flattenWAFErrors(parsedResponse.Errors))
+		return "", fmt.Errorf("AddAccessRule: %v", err)
 	}
 
 	return parsedResponse.Id, nil
-}
-
-func flattenWAFErrors(errors []WAFError) string {
-	error := ""
-
-	for i, v := range errors {
-		if i > 0 {
-			error += ","
-		}
-
-		error += strconv.Itoa(v.Code) + ":" + v.Message
-	}
-
-	return error
 }

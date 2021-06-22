@@ -5,9 +5,9 @@ module terraform-provider-vmp
 go 1.15
 
 require (
-	github.com/google/uuid v1.1.2
-	github.com/gruntwork-io/terratest v0.32.7
-	github.com/hashicorp/go-retryablehttp v0.6.4
-	github.com/hashicorp/terraform-plugin-sdk v1.17.2
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.0.3
+	github.com/google/uuid v1.2.0
+	github.com/gruntwork-io/terratest v0.35.7
+	github.com/hashicorp/go-retryablehttp v0.7.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.6.1
+	google.golang.org/genproto v0.0.0-20200904004341-0bd0a958aa1d // indirect
 )
