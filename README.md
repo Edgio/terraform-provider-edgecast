@@ -25,7 +25,7 @@ This provider is automatically installed when you run `terraform init` on a Terr
 -    [Go](https://golang.org/) 1.15 (also set up a GOPATH, as well as add $GOPATH/bin to your $PATH)
 
 ### Building The Provider
-Follow the instructions to [install it as a plugin.](https://`www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
+Follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
 
 ## Logging
 You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
