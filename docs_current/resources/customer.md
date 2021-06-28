@@ -10,6 +10,7 @@ description: |-
 Please use the Verizon Media API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
 A future version of this provider may provide Terraform data sources for these.
 
+
 ## Example Usage
 
 ```terraform
@@ -113,3 +114,5 @@ resource "vmp_customer" "test_customer" {
 - **usage_limit_update_date** (String)
 - **wholesale_id** (Number)
 - **wholesale_name** (String)
+
+
