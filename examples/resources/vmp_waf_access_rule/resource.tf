@@ -1,6 +1,6 @@
 resource "vmp_waf_access_rule" "access_rule_1" {
-  account_number                = var.test_customer_info.account_number
-  name                          = "Access Rule #2"
+  account_number                = "885CB"
+  name                          = "Access Rule #1"
   response_header_name          = "my-response-header-name"
   allowed_http_methods          = ["GET", "POST"]
   allowed_request_content_types = ["application/json","text/html"]

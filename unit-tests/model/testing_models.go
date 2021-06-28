@@ -16,12 +16,13 @@ type ResourceNewCustomer struct {
 
 // Credentials - credential for API
 type Credentials struct {
-	ApiToken        string
-	IdsClientSecret string
-	IdsClientID     string
-	IdsScope        string
-	ApiAddress      string
-	IdsAddress      string
+	ApiToken         string
+	IdsClientSecret  string
+	IdsClientID      string
+	IdsScope         string
+	ApiAddress       string
+	ApiAddressLegacy string
+	IdsAddress       string
 }
 
 // CustomerInfo - target customer for testing

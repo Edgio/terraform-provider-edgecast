@@ -6,6 +6,6 @@ credentials = {
     ids_client_secret = "<Client Secret>"
     ids_client_id = "<Client ID>"
     ids_scope = "<Scopes>"
-    api_address = 
+    api_address = ""
     ids_address = ""
 }

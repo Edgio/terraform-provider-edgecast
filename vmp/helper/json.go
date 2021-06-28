@@ -95,6 +95,12 @@ func LogInstanceToPrettyJson(message string, instance interface{}, file string) 
 	logger.Print("=====================================================================")
 }
 
+// IsJSONString -
+func IsJSONString(s string) bool {
+	var js string
+	return json.Unmarshal([]byte(s), &js) != nil
+}
+
 // Make json string formatted in terraform.log
 func jsonPrettyPrint(in string) string {
 	var out bytes.Buffer

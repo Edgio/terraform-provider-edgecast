@@ -290,20 +290,20 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("[INFO] Creating WAF Access Rule for Account >> %s", accountNumber)
 
 	accessRule := api.AccessRule{
-		AllowedHTTPMethods:         getStringArray(d, "allowed_http_methods"),
-		AllowedRequestContentTypes: getStringArray(d, "allowed_request_content_types"),
-		ASNAccessControls:          getAccessControls(d, "asn"),
-		CookieAccessControls:       getAccessControls(d, "cookie"),
-		CountryAccessControls:      getAccessControls(d, "country"),
+		AllowedHTTPMethods:         helper.InterfaceToStringArray(d.Get("allowed_http_methods")),
+		AllowedRequestContentTypes: helper.InterfaceToStringArray(d.Get("allowed_request_content_types")),
+		ASNAccessControls:          InterfaceToAccessControls(d.Get("asn")),
+		CookieAccessControls:       InterfaceToAccessControls(d.Get("cookie")),
+		CountryAccessControls:      InterfaceToAccessControls(d.Get("country")),
 		CustomerID:                 accountNumber,
-		DisallowedHeaders:          getStringArray(d, "disallowed_headers"),
-		DisallowedExtensions:       getStringArray(d, "disallowed_extensions"),
-		IPAccessControls:           getAccessControls(d, "ip"),
+		DisallowedHeaders:          helper.InterfaceToStringArray(d.Get("disallowed_headers")),
+		DisallowedExtensions:       helper.InterfaceToStringArray(d.Get("disallowed_extensions")),
+		IPAccessControls:           InterfaceToAccessControls(d.Get("ip")),
 		Name:                       d.Get("name").(string),
-		RefererAccessControls:      getAccessControls(d, "referer"),
+		RefererAccessControls:      InterfaceToAccessControls(d.Get("referer")),
 		ResponseHeaderName:         d.Get("response_header_name").(string),
-		URLAccessControls:          getAccessControls(d, "url"),
-		UserAgentAccessControls:    getAccessControls(d, "user_agent"),
+		URLAccessControls:          InterfaceToAccessControls(d.Get("url")),
+		UserAgentAccessControls:    InterfaceToAccessControls(d.Get("user_agent")),
 	}
 
 	log.Printf("[DEBUG] Allowed HTTP Methods: %+v\n", accessRule.AllowedHTTPMethods)
@@ -349,26 +349,18 @@ func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func getStringArray(d *schema.ResourceData, key string) []string {
-	var values []string
-
-	if attr, ok := d.GetOk(key); ok {
-		interfaceArray := attr.([]interface{})
-		values, _ = helper.InterfaceArrayToStringArray(interfaceArray)
+func InterfaceToAccessControls(attr interface{}) *api.AccessControls {
+	if attr == nil {
+		return nil
 	}
 
-	return values
-}
-
-func getAccessControls(d *schema.ResourceData, key string) *api.AccessControls {
 	var accessControls *api.AccessControls
 
-	if attr, ok := d.GetOk(key); ok {
-		// Must convert the set to a slice/array to work with the values
-		set := attr.(*schema.Set)
+	// Must convert the set to a slice/array to work with the values
+	if set, ok := attr.(*schema.Set); ok {
 		arr := set.List()
 
-		// The single item in the list a map[string][]interface{}
+		// The single item in the list is a map[string][]interface{}
 		entryMap := arr[0].(map[string]interface{})
 
 		// Each interface{} in the map is a []interface{}

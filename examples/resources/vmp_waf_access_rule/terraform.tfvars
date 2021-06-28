@@ -8,11 +8,7 @@ credentials = {
     ids_scope = "<Scopes>"
 
     # for internal testing
-    api_address = null
-    api_address_legacy = null
-    ids_address = null
-}
-
-test_customer_info = {
-    account_number = "C1B6"
+    api_address = ""
+    ids_address = ""
+    api_address_legacy = ""
 }

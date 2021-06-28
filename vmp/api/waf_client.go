@@ -44,11 +44,6 @@ type AccessControls struct {
 	Whitelist  []interface{} `json:"whitelist"`
 }
 
-type WAFError struct {
-	Code    int
-	Message string
-}
-
 type AddAccessRuleResponse struct {
 	Id string
 }
