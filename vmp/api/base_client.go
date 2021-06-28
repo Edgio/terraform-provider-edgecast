@@ -116,6 +116,7 @@ func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
 		baseURL = config.APIURL
 	}
 
+	// Use PassthroughErrorHandler so that retryablehttp.Client does not obscure API errors
 	httpClient := retryablehttp.NewClient()
 	httpClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
 
