@@ -8,7 +8,7 @@ set HOSTNAME=github.com
 set NAMESPACE=terraform-providers
 set NAME=vmp
 set BINARY=terraform-provider-%NAME%.exe
-set VERSION=0.1
+set VERSION=0.3.0
 set OS_ARCH=windows_amd64
 
 go build

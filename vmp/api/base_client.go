@@ -115,6 +115,11 @@ func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
 	} else {
 		baseURL = config.APIURL
 	}
+
+	// Use PassthroughErrorHandler so that retryablehttp.Client does not obscure API errors
+	httpClient := retryablehttp.NewClient()
+	httpClient.ErrorHandler = retryablehttp.PassthroughErrorHandler
+
 	return &BaseClient{
 		Config:          config,
 		BaseURL:         baseURL,
@@ -123,7 +128,7 @@ func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
 		IdsClientID:     config.IdsClientID,
 		IdsClientSecret: config.IdsClientSecret,
 		IdsScope:        config.IdsScope,
-		HTTPClient:      retryablehttp.NewClient(),
+		HTTPClient:      httpClient,
 	}
 }
 
@@ -216,7 +221,7 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 		return nil, fmt.Errorf("Malformed Json response:%v", jsonUnmarshalErr)
 	}
 
-	if helper.IsJsonArray(f) {
+	if helper.IsInterfaceArray(f) {
 		log.Print("isJsonArray")
 		if jsonArryErr := json.Unmarshal([]byte(body), parsedResponse); jsonArryErr != nil {
 			return nil, fmt.Errorf("Malformed Json Array response:%v", jsonArryErr)

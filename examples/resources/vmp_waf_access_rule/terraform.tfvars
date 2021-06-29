@@ -6,6 +6,9 @@ credentials = {
     ids_client_secret = "<Client Secret>"
     ids_client_id = "<Client ID>"
     ids_scope = "<Scopes>"
+
+    # for internal testing
     api_address = ""
     ids_address = ""
+    api_address_legacy = ""
 }

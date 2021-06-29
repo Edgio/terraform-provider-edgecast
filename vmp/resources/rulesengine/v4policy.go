@@ -239,7 +239,7 @@ func standardizeMatchFeature(matchFeatureMap map[string]interface{}) {
 		// the json library unmarshals all arrays into []interface{}
 		// so we have to do this roundabout way of converting to []string
 		if valArray, ok := v.([]interface{}); ok {
-			if stringArray, ok := helper.InterfaceArrayToStringArray(valArray); ok {
+			if stringArray, ok := helper.ConvertInterfaceArrayToStringArray(valArray); ok {
 				v = strings.Join(stringArray, " ")
 			}
 		}
