@@ -5,34 +5,34 @@ import (
 	"testing"
 )
 
-func TestInterfaceSliceEqual(t *testing.T) {
+func TestIsInterfaceSliceEqual(t *testing.T) {
 	cases := []struct {
-		input    InterfaceSliceEqualInput
+		input    IsInterfaceSliceEqualInput
 		expected bool
 	}{
 		{
-			input: InterfaceSliceEqualInput{
+			input: IsInterfaceSliceEqualInput{
 				A: []interface{}{"val1", "val2", 1},
 				B: []interface{}{"val1", "val2", 1},
 			},
 			expected: true,
 		},
 		{
-			input: InterfaceSliceEqualInput{
+			input: IsInterfaceSliceEqualInput{
 				A: []interface{}{"val1", "val2", 1},
 				B: []interface{}{"val1", "val2", "val3"},
 			},
 			expected: false,
 		},
 		{
-			input: InterfaceSliceEqualInput{
+			input: IsInterfaceSliceEqualInput{
 				A: []interface{}{"val1", "val2", 1, 2},
 				B: []interface{}{"val1", "val2", 1},
 			},
 			expected: false,
 		},
 		{
-			input: InterfaceSliceEqualInput{
+			input: IsInterfaceSliceEqualInput{
 				A: make([]interface{}, 0),
 				B: make([]interface{}, 0),
 			},
@@ -41,7 +41,7 @@ func TestInterfaceSliceEqual(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := helper.InterfaceSliceEqual(v.input.A, v.input.B)
+		actual := helper.IsInterfaceSliceEqual(v.input.A, v.input.B)
 
 		if v.expected != actual {
 			t.Fatalf("Failed for case: %+v. Expected %t but got %t", v.input, v.expected, actual)
@@ -49,35 +49,35 @@ func TestInterfaceSliceEqual(t *testing.T) {
 	}
 }
 
-func TestStringSliceEqual(t *testing.T) {
+func TestIsStringSliceEqual(t *testing.T) {
 
 	cases := []struct {
-		input    StringSliceEqualInput
+		input    IsStringSliceEqualInput
 		expected bool
 	}{
 		{
-			input: StringSliceEqualInput{
+			input: IsStringSliceEqualInput{
 				A: []string{"val1", "val2"},
 				B: []string{"val1", "val2"},
 			},
 			expected: true,
 		},
 		{
-			input: StringSliceEqualInput{
+			input: IsStringSliceEqualInput{
 				A: []string{"val1", "val2"},
 				B: []string{"val1", "val2", "val3"},
 			},
 			expected: false,
 		},
 		{
-			input: StringSliceEqualInput{
+			input: IsStringSliceEqualInput{
 				A: []string{"val1", "val2"},
 				B: []string{"val1", "val3"},
 			},
 			expected: false,
 		},
 		{
-			input: StringSliceEqualInput{
+			input: IsStringSliceEqualInput{
 				A: make([]string, 0),
 				B: make([]string, 0),
 			},
@@ -86,7 +86,7 @@ func TestStringSliceEqual(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := helper.StringSliceEqual(v.input.A, v.input.B)
+		actual := helper.IsStringSliceEqual(v.input.A, v.input.B)
 
 		if v.expected != actual {
 			t.Fatalf("Failed for case: %+v. Expected %t but got %t", v.input, v.expected, actual)
@@ -134,12 +134,12 @@ func TestIsInterfaceArray(t *testing.T) {
 	}
 }
 
-type InterfaceSliceEqualInput struct {
+type IsInterfaceSliceEqualInput struct {
 	A []interface{}
 	B []interface{}
 }
 
-type StringSliceEqualInput struct {
+type IsStringSliceEqualInput struct {
 	A []string
 	B []string
 }

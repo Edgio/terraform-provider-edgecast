@@ -4,6 +4,8 @@ package waf
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"terraform-provider-vmp/vmp/api"
 	"terraform-provider-vmp/vmp/helper"
@@ -290,20 +292,83 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("[INFO] Creating WAF Access Rule for Account >> %s", accountNumber)
 
 	accessRule := api.AccessRule{
-		AllowedHTTPMethods:         helper.InterfaceToStringArray(d.Get("allowed_http_methods")),
-		AllowedRequestContentTypes: helper.InterfaceToStringArray(d.Get("allowed_request_content_types")),
-		ASNAccessControls:          InterfaceToAccessControls(d.Get("asn")),
-		CookieAccessControls:       InterfaceToAccessControls(d.Get("cookie")),
-		CountryAccessControls:      InterfaceToAccessControls(d.Get("country")),
+		AllowedHTTPMethods:         helper.ConvertInterfaceToStringArray(d.Get("allowed_http_methods")),
+		AllowedRequestContentTypes: helper.ConvertInterfaceToStringArray(d.Get("allowed_request_content_types")),
 		CustomerID:                 accountNumber,
-		DisallowedHeaders:          helper.InterfaceToStringArray(d.Get("disallowed_headers")),
-		DisallowedExtensions:       helper.InterfaceToStringArray(d.Get("disallowed_extensions")),
-		IPAccessControls:           InterfaceToAccessControls(d.Get("ip")),
+		DisallowedHeaders:          helper.ConvertInterfaceToStringArray(d.Get("disallowed_headers")),
+		DisallowedExtensions:       helper.ConvertInterfaceToStringArray(d.Get("disallowed_extensions")),
 		Name:                       d.Get("name").(string),
-		RefererAccessControls:      InterfaceToAccessControls(d.Get("referer")),
 		ResponseHeaderName:         d.Get("response_header_name").(string),
-		URLAccessControls:          InterfaceToAccessControls(d.Get("url")),
-		UserAgentAccessControls:    InterfaceToAccessControls(d.Get("user_agent")),
+	}
+
+	if asnAccessControls, err := ConvertInterfaceToAccessControls(d.Get("asn")); err == nil {
+		accessRule.ASNAccessControls = asnAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading ASN Access Controls",
+			Detail:   err.Error(),
+		})
+	}
+
+	if cookieAccessControls, err := ConvertInterfaceToAccessControls(d.Get("cookie")); err == nil {
+		accessRule.CookieAccessControls = cookieAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading Cookie Access Controls",
+			Detail:   err.Error(),
+		})
+	}
+
+	if countryAccessControls, err := ConvertInterfaceToAccessControls(d.Get("country")); err == nil {
+		accessRule.CountryAccessControls = countryAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading Country Access Controls",
+			Detail:   err.Error(),
+		})
+	}
+
+	if ipAccessControls, err := ConvertInterfaceToAccessControls(d.Get("ip")); err == nil {
+		accessRule.IPAccessControls = ipAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading IP Access Controls",
+			Detail:   err.Error(),
+		})
+	}
+
+	if refererAccessControls, err := ConvertInterfaceToAccessControls(d.Get("referer")); err == nil {
+		accessRule.RefererAccessControls = refererAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading Referer Access Controls",
+			Detail:   err.Error(),
+		})
+	}
+
+	if urlAccessControls, err := ConvertInterfaceToAccessControls(d.Get("url")); err == nil {
+		accessRule.URLAccessControls = urlAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading URL Access Controls",
+			Detail:   err.Error(),
+		})
+	}
+
+	if userAgentAccessControls, err := ConvertInterfaceToAccessControls(d.Get("user_agent")); err == nil {
+		accessRule.UserAgentAccessControls = userAgentAccessControls
+	} else {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "Error reading User Agent Access Controls",
+			Detail:   err.Error(),
+		})
 	}
 
 	log.Printf("[DEBUG] Allowed HTTP Methods: %+v\n", accessRule.AllowedHTTPMethods)
@@ -349,9 +414,9 @@ func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func InterfaceToAccessControls(attr interface{}) *api.AccessControls {
+func ConvertInterfaceToAccessControls(attr interface{}) (*api.AccessControls, error) {
 	if attr == nil {
-		return nil
+		return nil, fmt.Errorf("attr was nil")
 	}
 
 	var accessControls *api.AccessControls
@@ -360,16 +425,41 @@ func InterfaceToAccessControls(attr interface{}) *api.AccessControls {
 	if set, ok := attr.(*schema.Set); ok {
 		arr := set.List()
 
-		// The single item in the list is a map[string][]interface{}
-		entryMap := arr[0].(map[string]interface{})
-
-		// Each interface{} in the map is a []interface{}
-		accessControls = &api.AccessControls{
-			Accesslist: entryMap["accesslist"].([]interface{}),
-			Blacklist:  entryMap["blacklist"].([]interface{}),
-			Whitelist:  entryMap["whitelist"].([]interface{}),
+		// Terraform will normally not allow more than one item because we specify MaxItems=1, but we'll check again here
+		if len(arr) > 1 {
+			return nil, errors.New("each access controls definition must contain exactly one item")
 		}
+
+		if len(arr) == 1 {
+			// The single item in the list is a map[string][]interface{}
+			if entryMap, ok := arr[0].(map[string]interface{}); ok {
+				accessControls = &api.AccessControls{}
+
+				if accesslist, ok := entryMap["accesslist"].([]interface{}); ok {
+					accessControls.Accesslist = accesslist
+				} else {
+					return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["accesslist"], entryMap["accesslist"])
+				}
+
+				if blacklist, ok := entryMap["blacklist"].([]interface{}); ok {
+					accessControls.Blacklist = blacklist
+				} else {
+					return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["blacklist"], entryMap["blacklist"])
+				}
+
+				if whitelist, ok := entryMap["whitelist"].([]interface{}); ok {
+					accessControls.Whitelist = whitelist
+				} else {
+					return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["whitelist"], entryMap["whitelist"])
+				}
+			} else {
+				return nil, fmt.Errorf("%v must be of type map[string]interface{}, actual: %T", arr[0], arr[0])
+			}
+		}
+
+	} else {
+		return nil, fmt.Errorf("attr was not a *schema.Set")
 	}
 
-	return accessControls
+	return accessControls, nil
 }

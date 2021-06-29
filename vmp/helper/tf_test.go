@@ -26,9 +26,9 @@ func TestInterfaceToStringArray(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual := helper.InterfaceToStringArray(v.input)
+		actual := helper.ConvertInterfaceToStringArray(v.input)
 
-		if !helper.StringSliceEqual(v.expected, actual) {
+		if !helper.IsStringSliceEqual(v.expected, actual) {
 			t.Fatalf("Expected %q but got %q", v.expected, actual)
 		}
 	}
@@ -71,8 +71,9 @@ func TestInterfaceArrayToStringArray(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual, ok := helper.InterfaceArrayToStringArray(v.input)
-		if !helper.StringSliceEqual(v.expected.Array, actual) {
+		actual, ok := helper.ConvertInterfaceArrayToStringArray(v.input)
+
+		if !helper.IsStringSliceEqual(v.expected.Array, actual) {
 			t.Fatalf("Expected %q but got %q", v.expected.Array, actual)
 		}
 

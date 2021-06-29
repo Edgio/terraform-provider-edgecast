@@ -4,7 +4,7 @@ package helper
 
 // InterfaceSliceEqual tells whether a and b contain the same elements.
 // A nil argument is equivalent to an empty slice.
-func InterfaceSliceEqual(a, b []interface{}) bool {
+func IsInterfaceSliceEqual(a, b []interface{}) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -18,7 +18,7 @@ func InterfaceSliceEqual(a, b []interface{}) bool {
 
 // StringSliceEqual tells whether a and b contain the same elements.
 // A nil argument is equivalent to an empty slice.
-func StringSliceEqual(a, b []string) bool {
+func IsStringSliceEqual(a, b []string) bool {
 	if len(a) != len(b) {
 		return false
 	}
@@ -42,7 +42,7 @@ func IsInterfaceArray(input interface{}) bool {
 
 // MapEqual tells whether a and b contain the same key-value pairs.
 // A nil argument is equivalent to an empty map.
-func MapEqual(a, b map[string]interface{}) bool {
+func IsMapEqual(a, b map[string]interface{}) bool {
 	if len(a) != len(b) {
 		return false
 	}
