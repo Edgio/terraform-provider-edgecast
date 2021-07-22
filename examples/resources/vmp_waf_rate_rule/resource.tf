@@ -1,5 +1,5 @@
 resource "vmp_waf_rate_rule" "rate_rule_1" {
-  account_number = "ACCOUNT NUMBER"
+  account_number = "<Account Number>"
   name           = "Rate Rule #1"
   duration_sec   = 1
   keys           = ["IP", "USER_AGENT"]

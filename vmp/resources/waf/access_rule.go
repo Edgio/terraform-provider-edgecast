@@ -73,7 +73,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for autonomous system numbers (ASNs). Note: ASN access controls are integer values.",
+				Description: "Contains access controls for autonomous system numbers (ASNs).  \\\n" +
+					"*Note: ASN access controls are integer values.*",
 			},
 			"cookie": {
 				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
@@ -211,7 +212,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for referrers. Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.",
+				Description: "Contains access controls for referrers.  \\\n" +
+					"*Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 			"response_header_name": {
 				Type:         schema.TypeString,
@@ -247,8 +249,8 @@ func ResourceAccessRule() *schema.Resource {
 					},
 				},
 				Description: "Contains access controls for URL paths. Specify a URL path pattern that starts directly after the hostname. " +
-					"Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin. " +
-					"Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.",
+					"Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin.  \\\n" +
+					"*Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 			"user_agent": {
 				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
@@ -277,7 +279,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for user agents. Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.",
+				Description: "Contains access controls for user agents.  \\\n" +
+					"*Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 		},
 	}
