@@ -3,7 +3,7 @@ HOSTNAME=github.com
 NAMESPACE=terraform-providers
 NAME=vmp
 BINARY=terraform-provider-${NAME}
-VERSION=0.0.8
+VERSION=0.4.0
 OS_ARCH=darwin_amd64
 
 default: install

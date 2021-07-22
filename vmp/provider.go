@@ -1,5 +1,4 @@
 // Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license. See LICENSE file in project root for terms.
-
 package vmp
 
 import (
@@ -21,6 +20,11 @@ const (
 	apiURLProd       string = "https://api.vdms.io"
 	apiURLProdLegacy string = "https://api.edgecast.com"
 	idsURLProd       string = "https://id.vdms.io"
+
+	// Version indicates the current version of this provider
+	Version string = "0.4.0"
+
+	userAgentFormat = "edgecast/terraform-provider:%s"
 )
 
 // TODO Platforms should be a data source retrieved via an API call, not a local collection
@@ -96,6 +100,7 @@ func Provider() *schema.Provider {
 			"vmp_dns_tsig":               dnsroute.ResourceTsig(),
 			"vmp_dns_secondaryzonegroup": dnsroute.ResourceSecondaryZoneGroup(),
 			"vmp_waf_access_rule":        waf.ResourceAccessRule(),
+			"vmp_waf_rate_rule":          waf.ResourceRateRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"vmp_customer_services": customer.DataSourceCustomerServices(),
@@ -147,5 +152,8 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		partnerID := partnerIDValue.(int)
 		config.PartnerID = partnerID
 	}
+
+	config.UserAgent = fmt.Sprintf(userAgentFormat, Version)
+
 	return &config, diags
 }
