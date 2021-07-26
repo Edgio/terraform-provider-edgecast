@@ -4,11 +4,12 @@ package waf
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 	"terraform-provider-vmp/vmp/api"
 	"terraform-provider-vmp/vmp/helper"
+
+	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -72,7 +73,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for autonomous system numbers (ASNs). Note: ASN access controls are integer values.",
+				Description: "Contains access controls for autonomous system numbers (ASNs).  \\\n" +
+					"*Note: ASN access controls are integer values.*",
 			},
 			"cookie": {
 				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
@@ -210,7 +212,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for referrers. Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.",
+				Description: "Contains access controls for referrers.  \\\n" +
+					"*Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 			"response_header_name": {
 				Type:         schema.TypeString,
@@ -246,8 +249,8 @@ func ResourceAccessRule() *schema.Resource {
 					},
 				},
 				Description: "Contains access controls for URL paths. Specify a URL path pattern that starts directly after the hostname. " +
-					"Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin. " +
-					"Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.",
+					"Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin.  \\\n" +
+					"*Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 			"user_agent": {
 				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
@@ -276,7 +279,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for user agents. Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.",
+				Description: "Contains access controls for user agents.  \\\n" +
+					"*Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 		},
 	}
@@ -285,13 +289,11 @@ func ResourceAccessRule() *schema.Resource {
 func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("account_number").(string)
-	(*config).AccountNumber = accountNumber
 
 	log.Printf("[INFO] Creating WAF Access Rule for Account >> %s", accountNumber)
 
-	accessRule := api.AccessRule{
+	accessRule := sdkwaf.AccessRule{
 		AllowedHTTPMethods:         helper.ConvertInterfaceToStringArray(d.Get("allowed_http_methods")),
 		AllowedRequestContentTypes: helper.ConvertInterfaceToStringArray(d.Get("allowed_request_content_types")),
 		CustomerID:                 accountNumber,
@@ -383,18 +385,24 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("[DEBUG] URL: %+v\n", accessRule.URLAccessControls)
 	log.Printf("[DEBUG] User Agent: %+v\n", accessRule.UserAgentAccessControls)
 
-	apiClient := api.NewWAFAPIClient(*config)
+	config := m.(**api.ClientConfig)
 
-	accessRuleId, err := apiClient.AddAccessRule(accessRule)
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.AddAccessRule(accessRule)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully created WAF Access Rule, ID=%s", accessRuleId)
+	log.Printf("[INFO] Successfully created WAF Access Rule: %+v", resp)
 
-	d.SetId(accessRuleId)
+	d.SetId(resp.ID)
 
 	return diags
 }
@@ -414,51 +422,37 @@ func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func ConvertInterfaceToAccessControls(attr interface{}) (*api.AccessControls, error) {
+func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
 	if attr == nil {
 		return nil, fmt.Errorf("attr was nil")
 	}
 
-	var accessControls *api.AccessControls
+	// The values are stored as a map in a 1-item set
+	// So pull it out so we can work with it
+	entryMap, err := helper.GetMapFromSet(attr)
 
-	// Must convert the set to a slice/array to work with the values
-	if set, ok := attr.(*schema.Set); ok {
-		arr := set.List()
+	if err != nil {
+		return nil, err
+	}
 
-		// Terraform will normally not allow more than one item because we specify MaxItems=1, but we'll check again here
-		if len(arr) > 1 {
-			return nil, errors.New("each access controls definition must contain exactly one item")
-		}
+	accessControls := &sdkwaf.AccessControls{}
 
-		if len(arr) == 1 {
-			// The single item in the list is a map[string][]interface{}
-			if entryMap, ok := arr[0].(map[string]interface{}); ok {
-				accessControls = &api.AccessControls{}
-
-				if accesslist, ok := entryMap["accesslist"].([]interface{}); ok {
-					accessControls.Accesslist = accesslist
-				} else {
-					return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["accesslist"], entryMap["accesslist"])
-				}
-
-				if blacklist, ok := entryMap["blacklist"].([]interface{}); ok {
-					accessControls.Blacklist = blacklist
-				} else {
-					return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["blacklist"], entryMap["blacklist"])
-				}
-
-				if whitelist, ok := entryMap["whitelist"].([]interface{}); ok {
-					accessControls.Whitelist = whitelist
-				} else {
-					return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["whitelist"], entryMap["whitelist"])
-				}
-			} else {
-				return nil, fmt.Errorf("%v must be of type map[string]interface{}, actual: %T", arr[0], arr[0])
-			}
-		}
-
+	if accesslist, ok := entryMap["accesslist"].([]interface{}); ok {
+		accessControls.Accesslist = accesslist
 	} else {
-		return nil, fmt.Errorf("attr was not a *schema.Set")
+		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["accesslist"], entryMap["accesslist"])
+	}
+
+	if blacklist, ok := entryMap["blacklist"].([]interface{}); ok {
+		accessControls.Blacklist = blacklist
+	} else {
+		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["blacklist"], entryMap["blacklist"])
+	}
+
+	if whitelist, ok := entryMap["whitelist"].([]interface{}); ok {
+		accessControls.Whitelist = whitelist
+	} else {
+		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["whitelist"], entryMap["whitelist"])
 	}
 
 	return accessControls, nil

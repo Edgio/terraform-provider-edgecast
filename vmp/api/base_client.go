@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	// Deprecated - remove once migrated over to SDK
 	userAgent string = "verizonmedia/terraform:1.0.0"
 )
 
@@ -49,6 +50,7 @@ type ClientConfig struct {
 	PartnerUserID    int
 	BaseClient       *BaseClient
 	BaseClientLegacy *BaseClient
+	UserAgent        string
 }
 
 // NewClientConfig constructor of ClientConfig

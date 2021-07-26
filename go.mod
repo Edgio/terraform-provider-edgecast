@@ -5,10 +5,13 @@ module terraform-provider-vmp
 go 1.15
 
 require (
+	github.com/EdgeCast/ec-sdk-go v0.1.5
+	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/gruntwork-io/terratest v0.35.7
 	github.com/hashicorp/go-retryablehttp v0.7.0
 	github.com/hashicorp/terraform-plugin-docs v0.4.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.7.0
-	google.golang.org/genproto v0.0.0-20200904004341-0bd0a958aa1d // indirect
+	github.com/posener/complete v1.2.1 // indirect
+	google.golang.org/api v0.34.0 // indirect
 )
