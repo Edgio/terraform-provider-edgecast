@@ -5,7 +5,7 @@ package helper
 import (
 	"encoding/json"
 	"io/ioutil"
-	"terraform-provider-vmp/unit-tests/model"
+	"terraform-provider-ec/unit-tests/model"
 )
 
 // Users struct which contains

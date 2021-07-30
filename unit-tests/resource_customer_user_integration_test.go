@@ -2,7 +2,7 @@
 package test
 
 import (
-	"terraform-provider-vmp/unit-tests/model"
+	"terraform-provider-ec/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -10,21 +10,22 @@ import (
 
 // Test cases for storage account name conversion logic
 var tcCustomerUser = map[string]model.ResourceNewCustomerUser{
-	"terratest.testing.vmp.customer": {
+	"terratest.testing.ec.customeruser": {
 		CustomerUserInfo: model.NewCustomerUserInfo{
-			AccountNumber: "D9127",
-			FirstName:     "John",
-			LastName:      "Doe",
-			Email:         "admin+1@test20252021-7.com",
+			AccountNumber: "5A45C",
+			FirstName:     "Terra",
+			LastName:      "Test1",
+			Email:         "terraformtest1@sharedectest.com",
 			IsAdmin:       false,
 		},
 		Credential: model.Credentials{
-			ApiToken:        "AULdReDoB3gb0D7LNTx857NQvrcIKyvL",
-			IdsClientSecret: "CDbbMJw7FFJ11a7433ti1l9XgJHKr2Wk",
-			IdsClientID:     "31ef8e8f-0120-4112-8554-3eb11e83d58b",
-			IdsScope:        "ec.rules",
-			ApiAddress:      "http://dev-api.edgecast.com",
-			IdsAddress:      "https://id-dev.vdms.io",
+			ApiToken:         "<apitoken>",
+			IdsClientSecret:  "<idsclientsecret>",
+			IdsClientID:      "<idssclientID>",
+			IdsScope:         "<scope>",
+			ApiAddress:       "<apiUrl>",
+			IdsAddress:       "<idsaddress>",
+			ApiAddressLegacy: "<apiAddressLegacy",
 		},
 	},
 }
@@ -35,22 +36,23 @@ func TestUT_CustomerUser_basic(t *testing.T) {
 	for _, input := range tcCustomerUser {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/vmp_customer_user",
+			TerraformDir: "../examples/resources/ec_customer_user",
 			Vars: map[string]interface{}{
 				"new_admin_user": map[string]interface{}{
 					"customer_account_number": input.CustomerUserInfo.AccountNumber,
 					"first_name":              input.CustomerUserInfo.FirstName,
 					"last_name":               input.CustomerUserInfo.LastName,
-					"Email":                   input.CustomerUserInfo.Email,
+					"email":                   input.CustomerUserInfo.Email,
 					"is_admin":                input.CustomerUserInfo.IsAdmin,
 				},
 				"credentials": map[string]interface{}{
-					"api_token":         input.Credential.ApiAddress,
-					"ids_client_secret": input.Credential.IdsClientSecret,
-					"ids_client_id":     input.Credential.IdsClientID,
-					"ids_scope":         input.Credential.IdsScope,
-					"api_address":       input.Credential.ApiAddress,
-					"ids_address":       input.Credential.IdsAddress,
+					"api_token":          input.Credential.ApiToken,
+					"ids_client_secret":  input.Credential.IdsClientSecret,
+					"ids_client_id":      input.Credential.IdsClientID,
+					"ids_scope":          input.Credential.IdsScope,
+					"api_address":        input.Credential.ApiAddress,
+					"ids_address":        input.Credential.IdsAddress,
+					"api_address_legacy": input.Credential.ApiAddressLegacy,
 				},
 			},
 		}

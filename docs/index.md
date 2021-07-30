@@ -25,7 +25,7 @@ export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 ## Example Usage
 
 ```terraform
-provider "vmp" {
+provider "ec" {
     api_token = var.api_token
     ids_client_secret = var.ids_client_secret
     ids_client_id = var.ids_client_id

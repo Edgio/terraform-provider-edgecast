@@ -1,9 +1,9 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 HOSTNAME=github.com
 NAMESPACE=terraform-providers
-NAME=vmp
+NAME=ec
 BINARY=terraform-provider-${NAME}
-VERSION=0.4.0
+VERSION=0.4.2
 OS_ARCH=darwin_amd64
 
 default: install

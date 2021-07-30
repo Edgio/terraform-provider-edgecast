@@ -1,4 +1,4 @@
-provider "vmp" {
+provider "ec" {
     api_token = var.api_token
     ids_client_secret = var.ids_client_secret
     ids_client_id = var.ids_client_id
