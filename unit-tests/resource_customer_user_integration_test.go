@@ -12,20 +12,20 @@ import (
 var tcCustomerUser = map[string]model.ResourceNewCustomerUser{
 	"terratest.testing.ec.customeruser": {
 		CustomerUserInfo: model.NewCustomerUserInfo{
-			AccountNumber: "5A45C",
+			AccountNumber: "129C31",
 			FirstName:     "Terra",
 			LastName:      "Test1",
 			Email:         "terraformtest1@sharedectest.com",
 			IsAdmin:       false,
 		},
 		Credential: model.Credentials{
-			ApiToken:         "<apitoken>",
+			ApiToken:         "SBmJDiOOArP8W5Q82YHhiMSFj8uJy08F",
 			IdsClientSecret:  "<idsclientsecret>",
 			IdsClientID:      "<idssclientID>",
 			IdsScope:         "<scope>",
 			ApiAddress:       "<apiUrl>",
 			IdsAddress:       "<idsaddress>",
-			ApiAddressLegacy: "<apiAddressLegacy",
+			ApiAddressLegacy: "https://qa-api.edgecast.com",
 		},
 	},
 }

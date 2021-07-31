@@ -19,13 +19,13 @@ var tcCustomer = map[string]model.ResourceNewCustomer{
 			AccessModules:    []int{1, 4, 5, 7, 8, 21, 22, 25, 26, 27, 29, 30, 32, 40, 46, 53, 56, 71, 72, 73, 74, 75, 76, 77, 78, 79, 81, 138, 139, 140, 144, 145, 146, 149, 153, 157, 159, 160, 161, 162, 163, 164, 166, 168, 169, 170, 171, 172, 174, 175, 176, 177, 178, 179, 180, 182, 183, 184, 185, 186, 187, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 204, 386, 387, 409, 410, 411, 412, 413, 414, 415, 416, 479, 501, 502},
 		},
 		Credential: model.Credentials{
-			ApiToken:         "<apitoken>",
+			ApiToken:         "76733FA6-5772-4C7A-AF53-D84E1A42FC53",
 			IdsClientSecret:  "<idsclientsecret>",
 			IdsClientID:      "<idssclientID>",
 			IdsScope:         "<scope>",
 			ApiAddress:       "<apiUrl>",
 			IdsAddress:       "<idsaddress>",
-			ApiAddressLegacy: "<apiAddressLegacy",
+			ApiAddressLegacy: "https://api.edgecast.com",
 		},
 	},
 }
@@ -61,7 +61,7 @@ func TestUT_Customer_basic(t *testing.T) {
 		// retryable errors in terraform testing.
 		terraformOptions := terraform.WithDefaultRetryableErrors(t, tfOptions)
 		// At the end of the test, run `terraform destroy` to clean up any resources that were created.
-		defer terraform.Destroy(t, terraformOptions)
+		//defer terraform.Destroy(t, terraformOptions)
 
 		// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
 		terraform.InitAndApply(t, terraformOptions)

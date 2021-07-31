@@ -233,30 +233,28 @@ func (apiClient *CustomerAPIClient) GetCustomerServices(accountNumber string) ([
 
 // UpdateCustomerServices -
 func (apiClient *CustomerAPIClient) UpdateCustomerServices(accountNumber string, serviceIDs []int, status int8) error {
-	relURL := fmt.Sprintf("v2/pcc/customers/%s/services", accountNumber)
 
-	body := &struct {
-		Status      int8
-		ServiceCode []int
-	}{
-		Status:      status,
-		ServiceCode: serviceIDs,
-	}
+	for _, service := range serviceIDs {
 
-	request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
+		relURL := fmt.Sprintf("v2/pcc/customers/%s/services/%v", accountNumber, service)
 
-	if err != nil {
-		return fmt.Errorf("UpdateCustomerServices: %v", err)
-	}
+		body := &struct {
+			Status int8
+		}{
+			Status: status,
+		}
 
-	resp, err := apiClient.BaseAPIClient.SendRequest(request, nil)
+		request, err := apiClient.BaseAPIClient.BuildRequest("PUT", relURL, body, false)
 
-	if err == nil && resp.StatusCode != 200 {
-		return fmt.Errorf("failed to set customer services, please contact an administrator")
-	}
+		if err != nil {
+			return fmt.Errorf("UpdateCustomerServices: %v", err)
+		}
 
-	if err != nil {
-		return fmt.Errorf("UpdateCustomerServices: %v", err)
+		_, err = apiClient.BaseAPIClient.SendRequest(request, nil)
+
+		if err != nil {
+			return fmt.Errorf("UpdateCustomerServices: %v", err)
+		}
 	}
 
 	return nil
