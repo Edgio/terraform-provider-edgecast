@@ -12,10 +12,10 @@ import (
 var tcCustomerUser = map[string]model.ResourceNewCustomerUser{
 	"terratest.testing.ec.customeruser": {
 		CustomerUserInfo: model.NewCustomerUserInfo{
-			AccountNumber: "5A45C",
-			FirstName:     "Terra",
-			LastName:      "Test1",
-			Email:         "terraformtest1@sharedectest.com",
+			AccountNumber: "D9127",
+			FirstName:     "John",
+			LastName:      "Doe",
+			Email:         "admin+1@test20252021-7.com",
 			IsAdmin:       false,
 		},
 		Credential: model.Credentials{
