@@ -25,7 +25,7 @@ var tcCustomerUser = map[string]model.ResourceNewCustomerUser{
 			IdsScope:         "<scope>",
 			ApiAddress:       "<apiUrl>",
 			IdsAddress:       "<idsaddress>",
-			ApiAddressLegacy: "<apiAddressLegacy",
+			ApiAddressLegacy: "<apiaddresslegacy>",
 		},
 	},
 }

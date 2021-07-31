@@ -47,7 +47,7 @@ var tsRulesEngine = map[string]model.ResourceREV4{
 			IdsScope:         "<scope>",
 			ApiAddress:       "<apiUrl>",
 			IdsAddress:       "<idsaddress>",
-			ApiAddressLegacy: "https://ci-api.portals.dev.edgecast.com",
+			ApiAddressLegacy: "<apiaddresslegacy>",
 		},
 		TestCustomerInfo: model.CustomerInfo{
 			AccountNumber:  "C1B6",
