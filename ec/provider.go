@@ -18,7 +18,7 @@ import (
 
 const (
 	apiURLProd       string = "https://api.vdms.io"
-	apiURLProdLegacy string = "https://ci-api.portals.dev.edgecast.com"
+	apiURLProdLegacy string = "https://api.edgecast.com"
 	idsURLProd       string = "https://id.vdms.io"
 
 	// Version indicates the current version of this provider
