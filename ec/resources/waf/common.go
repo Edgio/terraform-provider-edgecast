@@ -4,39 +4,25 @@ package waf
 import (
 	"terraform-provider-ec/ec/api"
 
-	sdk "github.com/EdgeCast/ec-sdk-go/edgecast"
-	sdkclient "github.com/EdgeCast/ec-sdk-go/edgecast/client"
+	"github.com/EdgeCast/ec-sdk-go/edgecast"
+	sdkauth "github.com/EdgeCast/ec-sdk-go/edgecast/auth"
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
 // buildWAFService builds the SDK WAF service to managed WAF resources
 func buildWAFService(config api.ClientConfig) (*sdkwaf.WAFService, error) {
-	/*
-		TODO SDK Re-work: unify WAFConfig with SDK Config
 
-		This is not dev-friendly... should not have to construct the WAF Service in this way
-
-		Something like this would be ideal:
-			sdkConfig := sdk.Config{...}
-			wafService := waf.New(sdkConfig)
-
-		The below workaround will work in the meantime.
-	*/
-	authProvider, err := sdkclient.NewLegacyAuthorizationHeaderProvider(config.APIToken)
-
-	if err != nil {
-		return nil, err
+	idsCredentials := sdkauth.OAuth2Credentials{
+		ClientID:     config.IdsClientID,
+		ClientSecret: config.IdsClientSecret,
+		Scope:        config.IdsScope,
 	}
 
-	logger := sdk.NewStandardLogger()
+	sdkConfig := edgecast.NewSDKConfig(config.APIToken, idsCredentials)
 
-	return &sdkwaf.WAFService{
-		Logger: logger,
-		Client: sdkclient.NewClient(sdkclient.ClientConfig{
-			AuthHeaderProvider: authProvider,
-			BaseAPIURL:         config.APIURLLegacy,
-			UserAgent:          config.UserAgent,
-			Logger:             logger,
-		}),
-	}, nil
+	sdkConfig.BaseAPIURL = *config.APIURL
+	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
+	sdkConfig.BaseIDSURL = *config.IdsURL
+
+	return sdkwaf.New(sdkConfig)
 }

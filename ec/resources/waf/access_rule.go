@@ -294,83 +294,137 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("[INFO] Creating WAF Access Rule for Account >> %s", accountNumber)
 
 	accessRule := sdkwaf.AccessRule{
-		AllowedHTTPMethods:         helper.ConvertInterfaceToStringArray(d.Get("allowed_http_methods")),
-		AllowedRequestContentTypes: helper.ConvertInterfaceToStringArray(d.Get("allowed_request_content_types")),
-		CustomerID:                 accountNumber,
-		DisallowedHeaders:          helper.ConvertInterfaceToStringArray(d.Get("disallowed_headers")),
-		DisallowedExtensions:       helper.ConvertInterfaceToStringArray(d.Get("disallowed_extensions")),
-		Name:                       d.Get("name").(string),
-		ResponseHeaderName:         d.Get("response_header_name").(string),
+		CustomerID:         accountNumber,
+		Name:               d.Get("name").(string),
+		ResponseHeaderName: d.Get("response_header_name").(string),
 	}
 
-	if asnAccessControls, err := ConvertInterfaceToAccessControls(d.Get("asn")); err == nil {
-		accessRule.ASNAccessControls = asnAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading ASN Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("allowed_http_methods"); ok {
+		if allowedHttpControlsPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
+			accessRule.AllowedHTTPMethods = *allowedHttpControlsPtr
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Allowed HTTP Methods",
+			})
+		}
 	}
 
-	if cookieAccessControls, err := ConvertInterfaceToAccessControls(d.Get("cookie")); err == nil {
-		accessRule.CookieAccessControls = cookieAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Cookie Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("allowed_request_content_types"); ok {
+		if allowedRequestContentTypesPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
+			accessRule.AllowedRequestContentTypes = *allowedRequestContentTypesPtr
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Allowed Request Content Types",
+			})
+		}
 	}
 
-	if countryAccessControls, err := ConvertInterfaceToAccessControls(d.Get("country")); err == nil {
-		accessRule.CountryAccessControls = countryAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Country Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("disallowed_headers"); ok {
+		if disallowedHeadersPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
+			accessRule.DisallowedHeaders = *disallowedHeadersPtr
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Disallowed Headers",
+			})
+		}
 	}
 
-	if ipAccessControls, err := ConvertInterfaceToAccessControls(d.Get("ip")); err == nil {
-		accessRule.IPAccessControls = ipAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading IP Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("disallowed_extensions"); ok {
+		if disallowedExtensionsPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
+			accessRule.DisallowedExtensions = *disallowedExtensionsPtr
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Disallowed Extensions",
+			})
+		}
 	}
 
-	if refererAccessControls, err := ConvertInterfaceToAccessControls(d.Get("referer")); err == nil {
-		accessRule.RefererAccessControls = refererAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Referer Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("asn"); ok {
+		if asnAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.ASNAccessControls = asnAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading ASN Access Controls",
+				Detail:   err.Error(),
+			})
+		}
 	}
 
-	if urlAccessControls, err := ConvertInterfaceToAccessControls(d.Get("url")); err == nil {
-		accessRule.URLAccessControls = urlAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading URL Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("cookie"); ok {
+		if cookieAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.CookieAccessControls = cookieAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Cookie Access Controls",
+				Detail:   err.Error(),
+			})
+		}
 	}
 
-	if userAgentAccessControls, err := ConvertInterfaceToAccessControls(d.Get("user_agent")); err == nil {
-		accessRule.UserAgentAccessControls = userAgentAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading User Agent Access Controls",
-			Detail:   err.Error(),
-		})
+	if v, ok := d.GetOk("country"); ok {
+		if countryAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.CountryAccessControls = countryAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Country Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("ip"); ok {
+		if ipAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.IPAccessControls = ipAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading IP Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("referer"); ok {
+		if refererAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.RefererAccessControls = refererAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Referer Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("url"); ok {
+		if urlAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.URLAccessControls = urlAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading URL Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("user_agent"); ok {
+		if userAgentAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
+			accessRule.UserAgentAccessControls = userAgentAccessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading User Agent Access Controls",
+				Detail:   err.Error(),
+			})
+		}
 	}
 
 	log.Printf("[DEBUG] Allowed HTTP Methods: %+v\n", accessRule.AllowedHTTPMethods)

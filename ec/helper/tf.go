@@ -10,20 +10,41 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ConvertInterfaceToStringArray converts a interface{} whose underlying type is []string. Useful for parsing Terraform resource values.
-func ConvertInterfaceToStringArray(attr interface{}) []string {
+/*
+	ConvertInterfaceToStringArray takes the following two types and converts them to []string:
+		- []interface{} where every item in the slice is a string
+		- (Terraform) *schema.Set whose elements are strings
+*/
+func ConvertInterfaceToStringArray(attr interface{}) (*[]string, bool) {
 	if attr == nil {
-		return nil
+		return nil, false
 	}
 
 	// Terraform's schema.TypeList stores values as []interface{}
 	if interfaceArray, ok := attr.([]interface{}); ok {
 		if values, ok := ConvertInterfaceArrayToStringArray(interfaceArray); ok {
-			return values
+			return &values, true
 		}
 	}
 
-	return nil
+	// Terraform's schema.TypeSet stores values as *schema.Set, which holds the list internally
+	if set, ok := attr.(*schema.Set); ok {
+
+		items := set.List()
+		strings := make([]string, len(items))
+
+		for i := range items {
+			if v, ok := items[i].(string); ok {
+				strings[i] = v
+			} else {
+				return nil, false
+			}
+		}
+
+		return &strings, true
+	}
+
+	return nil, false
 }
 
 // ConvertInterfaceArrayToStringArray converts []interface{} to []string. Note that this only works if the underlying items are strings.
