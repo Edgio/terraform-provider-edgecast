@@ -2,8 +2,8 @@
 package test
 
 import (
-	"terraform-provider-vmp/unit-tests/helper"
-	"terraform-provider-vmp/unit-tests/model"
+	"terraform-provider-ec/unit-tests/helper"
+	"terraform-provider-ec/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -21,7 +21,7 @@ func TestUT_Group_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/vmp_dns_group",
+			TerraformDir: "../examples/resources/ec_dns_group",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":         input.ApiToken,
@@ -54,7 +54,7 @@ func getGroupTestCases() (*map[string]model.Credentials, error) {
 		return nil, err
 	}
 
-	tc["terratest.testing.vmp.msg1"] = credential
+	tc["terratest.testing.ec.msg1"] = credential
 
 	return &tc, nil
 }
