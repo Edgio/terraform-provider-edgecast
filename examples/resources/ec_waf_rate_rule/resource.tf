@@ -7,7 +7,6 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
   num            = 10
 
   condition_group {
-    id   = "group1"
     name = "Group 1"
 
     condition {
@@ -51,7 +50,6 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
   }
   
   condition_group {
-    id   = "group2"
     name = "Group 2"
 
     condition {

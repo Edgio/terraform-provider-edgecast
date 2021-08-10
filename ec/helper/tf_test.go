@@ -13,28 +13,42 @@ import (
 func TestInterfaceToStringArray(t *testing.T) {
 
 	cases := []struct {
-		input    interface{}
-		expected []string
+		input      interface{}
+		expected   []string
+		expectedOk bool
 	}{
 		{
-			input:    []interface{}{"val1", "val2", "val3"},
-			expected: []string{"val1", "val2", "val3"},
+			input:      []interface{}{"val1", "val2", "val3"},
+			expected:   []string{"val1", "val2", "val3"},
+			expectedOk: true,
 		},
 		{
-			input:    make([]interface{}, 0),
-			expected: make([]string, 0),
+			input:      make([]interface{}, 0),
+			expected:   make([]string, 0),
+			expectedOk: true,
 		},
 		{
-			input:    nil,
-			expected: nil,
+			input:      nil,
+			expected:   nil,
+			expectedOk: false,
 		},
 	}
 
 	for _, v := range cases {
-		actual := helper.ConvertInterfaceToStringArray(v.input)
+		actualPtr, ok := helper.ConvertInterfaceToStringArray(v.input)
 
-		if !helper.IsStringSliceEqual(v.expected, actual) {
-			t.Fatalf("Expected %q but got %q", v.expected, actual)
+		if ok == v.expectedOk {
+
+			if ok {
+				actual := *actualPtr
+
+				if !helper.IsStringSliceEqual(v.expected, actual) {
+					t.Fatalf("Expected %q but got %q", v.expected, actual)
+				}
+			}
+
+		} else {
+			t.Fatalf("Expected ok result of %t but got %t", v.expectedOk, ok)
 		}
 	}
 }
