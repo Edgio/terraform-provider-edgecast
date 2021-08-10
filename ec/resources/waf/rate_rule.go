@@ -4,6 +4,7 @@ package waf
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"terraform-provider-ec/ec/api"
 	"terraform-provider-ec/ec/helper"
@@ -60,7 +61,7 @@ func ResourceRateRule() *schema.Resource {
 					"`num` requests per `duration_sec`",
 			},
 			"keys": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Description: "Indicates the method by requests will be grouped for the purposes of this rate rule. \\\n" +
 					"Valid values are: \n" +
@@ -75,13 +76,13 @@ func ResourceRateRule() *schema.Resource {
 			},
 			"condition_group": {
 				Type:     schema.TypeSet,
-				Optional: true,
+				Required: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeString,
 							Description: "Indicates the system-defined alphanumeric ID of a condition group. Example: `12345678-90ab-cdef-ghij-klmnopqrstuvwxyz1`",
-							Optional:    true,
+							Computed:    true,
 						},
 						"name": {
 							Type:        schema.TypeString,
@@ -89,7 +90,7 @@ func ResourceRateRule() *schema.Resource {
 							Optional:    true,
 						},
 						"condition": {
-							Type:        schema.TypeList,
+							Type:        schema.TypeSet,
 							Description: "Contains a list of match conditions.",
 							Optional:    true,
 							Elem: &schema.Resource{
@@ -151,7 +152,7 @@ func ResourceRateRule() *schema.Resource {
 														"    Valid values are: `Host | Referer | User-Agent`",
 												},
 												"values": {
-													Type:     schema.TypeList,
+													Type:     schema.TypeSet,
 													Optional: true,
 													Description: "type: EM and IPMATCH Only \\\n" +
 														"Identifies one or more values used to identify requests that are eligible for rate limiting. \\\n" +
@@ -178,7 +179,6 @@ func ResourceRateRule() *schema.Resource {
 }
 
 func ResourceRateRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
 
@@ -198,10 +198,17 @@ func ResourceRateRuleCreate(ctx context.Context, d *schema.ResourceData, m inter
 		Disabled:    d.Get("disabled").(bool),
 		Num:         d.Get("num").(int),
 		DurationSec: d.Get("duration_sec").(int),
-		Keys:        helper.ConvertInterfaceToStringArray(d.Get("key")),
 	}
 
-	conditionGroups, err := ConvertInterfaceToConditionGroups(d.Get("condition_group"))
+	if v, ok := d.GetOk("keys"); ok {
+		if keys, ok := helper.ConvertInterfaceToStringArray(v); ok {
+			rateRule.Keys = *keys
+		} else {
+			return diag.Errorf("Error reading 'keys''")
+		}
+	}
+
+	conditionGroups, err := ExpandConditionGroups(d.Get("condition_group"))
 
 	if err != nil {
 		return diag.Errorf("error parsing condition_groups: %+v", err)
@@ -228,25 +235,63 @@ func ResourceRateRuleCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	d.SetId(resp.ID)
 
-	return diags
+	return ResourceRateRuleRead(ctx, d, m)
 }
 
 func ResourceRateRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+
 	var diags diag.Diagnostics
+
+	config := m.(**api.ClientConfig)
+	accountNumber := d.Get("account_number").(string)
+	ruleID := d.Id()
+
+	log.Printf("[INFO] Retrieving rate rule %s for account number %s", ruleID, accountNumber)
+
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.GetRateRule(accountNumber, ruleID)
+
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully retrieved rate rule %s: %+v", ruleID, resp)
+
+	d.SetId(resp.ID)
+	d.Set("account_number", accountNumber)
+	d.Set("duration_sec", resp.DurationSec)
+	d.Set("disabled", resp.Disabled)
+	d.Set("name", resp.Name)
+	d.Set("num", resp.Num)
+	d.Set("keys", resp.Keys)
+
+	flattenedConditionGroups := FlattenConditionGroups(resp.ConditionGroups)
+
+	d.Set("condition_group", flattenedConditionGroups)
+
 	return diags
 }
 
 func ResourceRateRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+
 	var diags diag.Diagnostics
 	return diags
 }
 
 func ResourceRateRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+
 	var diags diag.Diagnostics
 	return diags
 }
 
-func ConvertInterfaceToConditionGroups(attr interface{}) (*[]sdkwaf.ConditionGroup, error) {
+// ExpandConditionGroups converts user-provided Terraform configuration data into the Condition Group API Model
+func ExpandConditionGroups(attr interface{}) (*[]sdkwaf.ConditionGroup, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
@@ -261,10 +306,10 @@ func ConvertInterfaceToConditionGroups(attr interface{}) (*[]sdkwaf.ConditionGro
 				Name: curr["name"].(string),
 			}
 
-			conditions, err := ConvertInterfaceToConditions(curr["condition"])
+			conditions, err := ExpandConditions(curr["condition"])
 
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("error parsing conditions: %v", err)
 			}
 
 			group.Conditions = *conditions
@@ -277,13 +322,14 @@ func ConvertInterfaceToConditionGroups(attr interface{}) (*[]sdkwaf.ConditionGro
 	} else {
 		return nil, errors.New("attr input was not a *schema.Set")
 	}
-
 }
 
-func ConvertInterfaceToConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
+// ExpandConditions converts user-provided Terraform configuration data into the Condition API Model
+func ExpandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
 
-	if items, ok := attr.([]interface{}); ok {
+	if set, ok := attr.(*schema.Set); ok {
 
+		items := set.List()
 		conditions := make([]sdkwaf.Condition, 0)
 
 		for _, item := range items {
@@ -321,7 +367,9 @@ func ConvertInterfaceToConditions(attr interface{}) (*[]sdkwaf.Condition, error)
 			}
 
 			if opValues, ok := opMap["values"]; ok {
-				condition.OP.Values = helper.ConvertInterfaceToStringArray(opValues)
+				if arr, ok := helper.ConvertInterfaceToStringArray(opValues); ok {
+					condition.OP.Values = *arr
+				}
 			}
 
 			if v, ok := opMap["is_case_insensitive"]; ok {
@@ -340,6 +388,80 @@ func ConvertInterfaceToConditions(attr interface{}) (*[]sdkwaf.Condition, error)
 		return &conditions, nil
 
 	} else {
-		return nil, errors.New("attr input was not a []interface{}")
+		return nil, errors.New("attr input was not a *schema.Set")
 	}
+}
+
+// FlattenConditionGroups converts the ConditionGroup API Model
+// into a format that Terraform can work with
+func FlattenConditionGroups(conditionGroups []sdkwaf.ConditionGroup) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, cg := range conditionGroups {
+		m := make(map[string]interface{})
+
+		m["id"] = cg.ID
+		m["name"] = cg.Name
+		m["condition"] = FlattenConditions(cg.Conditions)
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+// FlattenConditions converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenConditions(conditions []sdkwaf.Condition) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, c := range conditions {
+		m := make(map[string]interface{})
+
+		m["op"] = FlattenOP(c.OP)
+		m["target"] = FlattenTarget(c.Target)
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+// FlattenOP converts the OP API Model
+// into a format that Terraform can work with
+func FlattenOP(op sdkwaf.OP) []map[string]interface{} {
+
+	m := make(map[string]interface{})
+
+	if op.IsNegated != nil {
+		m["is_negated"] = *(op.IsNegated)
+	}
+
+	if op.IsCaseInsensitive != nil {
+		m["is_case_insensitive"] = *(op.IsNegated)
+	}
+
+	m["type"] = op.Type
+	m["value"] = op.Value
+	m["values"] = op.Values
+
+	// We return a collection of just 1 item
+	// Since we defined OP as a 1-item set in the schema
+	return []map[string]interface{}{m}
+}
+
+// FlattenTarget converts the Target API Model
+// into a format that Terraform can work with
+func FlattenTarget(target sdkwaf.Target) []map[string]interface{} {
+
+	m := make(map[string]interface{})
+
+	m["type"] = target.Type
+	m["value"] = target.Value
+
+	// We return a collection of just 1 item
+	// Since we defined Target as a 1-item set in the schema
+	return []map[string]interface{}{m}
 }
