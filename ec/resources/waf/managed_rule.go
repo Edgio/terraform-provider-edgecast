@@ -23,28 +23,172 @@ func ResourceManagedRule() *schema.Resource {
 		DeleteContext: ResourceManagedRuleDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": {
+			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Identifies your account by its customer account number.",
+				Description: "Indicates the name of the custom rule.",
 			},
-			"asn": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+			"ruleset_id": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Indicates the ID for the rule set associated with this managed rule.",
+			},
+			"ruleset_version": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Indicates the version of the rule set associated with this managed rule.",
+			},
+			"disabled_rules": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"accesslist": {
-							Type:        schema.TypeList,
-							Description: "Contains entries that identify traffic that may access your content upon passing a threat assessment.",
+						"policy_id": {
+							Type:        schema.TypeString,
+							Description: "Identifies a policy from which a rule will be disabled by its system-defined ID.",
 							Optional:    true,
-							Elem:        &schema.Schema{Type: schema.TypeInt},
+						},
+						"rule_id": {
+							Type:        schema.TypeString,
+							Description: "Identifies a rule that will be disabled by its system-defined ID.",
+							Optional:    true,
 						},
 					},
 				},
-				Description: "Contains access controls for autonomous system numbers (ASNs).  \\\n" +
-					"*Note: ASN access controls are integer values.*",
+				Description: "This array identifies each rule that has been disabled using these properties",
+			},
+			"general_settings": {
+				Type:     schema.TypeSet,
+				Required: true,
+				MaxItems: 1,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"anomaly_threshold": {
+							Type:        schema.TypeString,
+							Description: "Indicates the anomaly score threshold.",
+							Required:    true,
+						},
+						"arg_length": {
+							Type:        schema.TypeString,
+							Description: "Indicates the maximum number of characters for any single query string parameter value.",
+							Required:    true,
+						},
+						"arg_name_length": {
+							Type:        schema.TypeString,
+							Description: "Indicates the maximum number of characters for any single query string parameter name.",
+							Required:    true,
+						},
+						"combined_file_sizes": {
+							Type:        schema.TypeString,
+							Description: "Indicates the total file size for multipart message lengths.",
+							Optional:    true,
+						},
+						"ignore_cookie": {
+							Type:        schema.TypeList,
+							Description: "Identifies each cookie that will be ignored for the purpose of determining whether a request is malicious traffic.",
+							Optional:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"ignore_header": {
+							Type:        schema.TypeList,
+							Description: "Identifies each request header that will be ignored for the purpose of determining whether a request is malicious traffic.",
+							Optional:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"ignore_query_args": {
+							Type:        schema.TypeList,
+							Description: "Identifies each query string argument that will be ignored for the purpose of determining whether a request is malicious traffic.",
+							Optional:    true,
+							Elem:        &schema.Schema{Type: schema.TypeString},
+						},
+						"json_parser": {
+							Type:        schema.TypeBool,
+							Description: "Determines whether JSON payloads will be inspected. Valid values are: true | false",
+							Optional:    true,
+						},
+						"max_num_args": {
+							Type:        schema.TypeInt,
+							Description: "Indicates the maximum number of query string parameters.",
+							Required:    true,
+						},
+						"paranoia_level": {
+							Type:        schema.TypeInt,
+							Description: "Indicates the balance between the level of protection and false positives. Valid values are: 1 | 2 | 3 | 4",
+							Optional:    true,
+						},
+						"process_request_body": {
+							Type:        schema.TypeBool,
+							Description: "Determines whether JSON payloads will be inspected.",
+							Optional:    true,
+						},
+						"response_header_name": {
+							Type:        schema.TypeString,
+							Description: "Determines the name of the response header that will be included with blocked requests.",
+							Optional:    true,
+						},
+						"total_arg_length": {
+							Type:        schema.TypeInt,
+							Description: "Indicates the maximum number of characters for the query string value.",
+							Required:    true,
+						},
+						"validate_utf8_encoding": {
+							Type:        schema.TypeBool,
+							Description: "Indicates whether WAF may check whether a request variable (e.g., ARGS, ARGS_NAMES, and REQUEST_FILENAME) is a valid UTF-8 string.",
+							Optional:    true,
+						},
+						"xml_parser": {
+							Type:        schema.TypeBool,
+							Description: "Determines whether XML payloads will be inspected.",
+							Optional:    true,
+						},
+					},
+				},
+				Description: "Contains settings that define the profile for a valid request.",
+			},
+			"policies": {
+				Type:        schema.TypeList,
+				Description: "Contains a list of policies that have been enabled on this managed rule.",
+				Optional:    true,
+				Elem:        &schema.Schema{Type: schema.TypeString},
+			},
+			"rule_target_updates": {
+				Type:     schema.TypeSet,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"is_negated": {
+							Type:        schema.TypeBool,
+							Description: "Determines whether the current target, as defined within this object, will be ignored when identifying threats.",
+							Optional:    true,
+						},
+						"is_regex": {
+							Type:        schema.TypeBool,
+							Description: "Identifies a rule that will be disabled by its system-defined ID.",
+							Required:    true,
+						},
+						"replace_target": {
+							Type:        schema.TypeString,
+							Description: "Defines the data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) that will be used instead of the one defined in the target parameter.",
+							Optional:    true,
+						},
+						"rule_id": {
+							Type:        schema.TypeString,
+							Description: "Identifies a rule by its system-defined ID.",
+							Required:    true,
+						},
+						"target": {
+							Type:        schema.TypeString,
+							Description: "Identifies the type of data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) for which a target will be created.",
+							Required:    true,
+						},
+						"target_match": {
+							Type:        schema.TypeString,
+							Description: "Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the target parameter.",
+							Required:    true,
+						},
+					},
+				},
+				Description: "This array identifies each rule that has been disabled using these properties",
 			},
 		},
 	}
@@ -57,85 +201,25 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Creating WAF Managed Rule for Account >> %s", accountNumber)
 
-	accessRule := sdkwaf.AccessRule{
-		AllowedHTTPMethods:         helper.ConvertInterfaceToStringArray(d.Get("allowed_http_methods")),
-		AllowedRequestContentTypes: helper.ConvertInterfaceToStringArray(d.Get("allowed_request_content_types")),
-		CustomerID:                 accountNumber,
-		DisallowedHeaders:          helper.ConvertInterfaceToStringArray(d.Get("disallowed_headers")),
-		DisallowedExtensions:       helper.ConvertInterfaceToStringArray(d.Get("disallowed_extensions")),
-		Name:                       d.Get("name").(string),
-		ResponseHeaderName:         d.Get("response_header_name").(string),
+	managedRule := sdkwaf.ManagedRule{
+		Name:              d.Get("name").(string),
+		RulesetID:         d.Get("ruleset_id").(string),
+		RulesetVersion:    d.Get("ruleset_version").(string),
+		DisabledRules:     d.Get("disabled_rules").List(),
+		Policies:          helper.ConvertInterfaceToStringArray(d.Get("polices")),
+		RuleTargetUpdates: d.Get("rule_target_updates").List(),
 	}
 
-	if asnAccessControls, err := ConvertInterfaceToAccessControls(d.Get("asn")); err == nil {
-		accessRule.ASNAccessControls = asnAccessControls
-	} else {
+	generalSettings, err := helper.GetMapFromSet(d.Get("general_settings"))
+	if err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
-			Summary:  "Error reading ASN Access Controls",
+			Summary:  "Error reading General Settings",
 			Detail:   err.Error(),
 		})
 	}
 
-	if cookieAccessControls, err := ConvertInterfaceToAccessControls(d.Get("cookie")); err == nil {
-		accessRule.CookieAccessControls = cookieAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Cookie Access Controls",
-			Detail:   err.Error(),
-		})
-	}
-
-	if countryAccessControls, err := ConvertInterfaceToAccessControls(d.Get("country")); err == nil {
-		accessRule.CountryAccessControls = countryAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Country Access Controls",
-			Detail:   err.Error(),
-		})
-	}
-
-	if ipAccessControls, err := ConvertInterfaceToAccessControls(d.Get("ip")); err == nil {
-		accessRule.IPAccessControls = ipAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading IP Access Controls",
-			Detail:   err.Error(),
-		})
-	}
-
-	if refererAccessControls, err := ConvertInterfaceToAccessControls(d.Get("referer")); err == nil {
-		accessRule.RefererAccessControls = refererAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Referer Access Controls",
-			Detail:   err.Error(),
-		})
-	}
-
-	if urlAccessControls, err := ConvertInterfaceToAccessControls(d.Get("url")); err == nil {
-		accessRule.URLAccessControls = urlAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading URL Access Controls",
-			Detail:   err.Error(),
-		})
-	}
-
-	if userAgentAccessControls, err := ConvertInterfaceToAccessControls(d.Get("user_agent")); err == nil {
-		accessRule.UserAgentAccessControls = userAgentAccessControls
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading User Agent Access Controls",
-			Detail:   err.Error(),
-		})
-	}
+	managedRule.GeneralSettings = generalSettings
 
 	log.Printf("[DEBUG] Allowed HTTP Methods: %+v\n", accessRule.AllowedHTTPMethods)
 	log.Printf("[DEBUG] Allowed Request Content Types: %+v\n", accessRule.AllowedRequestContentTypes)
