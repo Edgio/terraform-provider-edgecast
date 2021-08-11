@@ -4,6 +4,8 @@ package waf
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
 	"terraform-provider-ec/ec/api"
 	"terraform-provider-ec/ec/helper"
@@ -23,6 +25,11 @@ func ResourceManagedRule() *schema.Resource {
 		DeleteContext: ResourceManagedRuleDelete,
 
 		Schema: map[string]*schema.Schema{
+			"account_number": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Identifies your account by its customer account number.",
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
@@ -64,22 +71,22 @@ func ResourceManagedRule() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"anomaly_threshold": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Description: "Indicates the anomaly score threshold.",
 							Required:    true,
 						},
 						"arg_length": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Description: "Indicates the maximum number of characters for any single query string parameter value.",
 							Required:    true,
 						},
 						"arg_name_length": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Description: "Indicates the maximum number of characters for any single query string parameter name.",
 							Required:    true,
 						},
 						"combined_file_sizes": {
-							Type:        schema.TypeString,
+							Type:        schema.TypeInt,
 							Description: "Indicates the total file size for multipart message lengths.",
 							Optional:    true,
 						},
@@ -201,37 +208,61 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Creating WAF Managed Rule for Account >> %s", accountNumber)
 
-	managedRule := sdkwaf.ManagedRule{
-		Name:              d.Get("name").(string),
-		RulesetID:         d.Get("ruleset_id").(string),
-		RulesetVersion:    d.Get("ruleset_version").(string),
-		DisabledRules:     d.Get("disabled_rules").List(),
-		Policies:          helper.ConvertInterfaceToStringArray(d.Get("polices")),
-		RuleTargetUpdates: d.Get("rule_target_updates").List(),
+	managedRuleRequest := sdkwaf.AddManagedRuleRequest{}
+
+	managedRuleRequest.Name = d.Get("name").(string)
+	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
+	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
+
+	if policies, ok := helper.ConvertInterfaceToStringArray(d.Get("policies")); ok {
+		managedRuleRequest.Policies = *policies
+	} else {
+		return diag.Errorf("Error reading 'policies''")
 	}
 
-	generalSettings, err := helper.GetMapFromSet(d.Get("general_settings"))
+	// Disabled Rules
+	disabledRules, err := ExpandDisabledRules(d.Get("disabled_rules"))
+
 	if err != nil {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading General Settings",
-			Detail:   err.Error(),
-		})
+		return diag.Errorf("error parsing disabled_rules: %+v", err)
 	}
 
-	managedRule.GeneralSettings = generalSettings
+	managedRuleRequest.DisabledRules = *disabledRules
 
-	log.Printf("[DEBUG] Allowed HTTP Methods: %+v\n", accessRule.AllowedHTTPMethods)
-	log.Printf("[DEBUG] Allowed Request Content Types: %+v\n", accessRule.AllowedRequestContentTypes)
-	log.Printf("[DEBUG] Disallowed Headers: %+v\n", accessRule.DisallowedHeaders)
-	log.Printf("[DEBUG] Disallowed Extensions: %+v\n", accessRule.DisallowedExtensions)
-	log.Printf("[DEBUG] ASN: %+v\n", accessRule.ASNAccessControls)
-	log.Printf("[DEBUG] Cookie: %+v\n", accessRule.CookieAccessControls)
-	log.Printf("[DEBUG] Country: %+v\n", accessRule.CountryAccessControls)
-	log.Printf("[DEBUG] IP: %+v\n", accessRule.IPAccessControls)
-	log.Printf("[DEBUG] Referer: %+v\n", accessRule.RefererAccessControls)
-	log.Printf("[DEBUG] URL: %+v\n", accessRule.URLAccessControls)
-	log.Printf("[DEBUG] User Agent: %+v\n", accessRule.UserAgentAccessControls)
+	// Rule Target Updates
+	ruleTargetUpdates, err := ExpandRuleTargetUpdates(d.Get("rule_target_updates"))
+
+	if err != nil {
+		return diag.Errorf("error parsing rule_target_updates: %+v", err)
+	}
+
+	managedRuleRequest.RuleTargetUpdates = *ruleTargetUpdates
+
+	// General Settings
+
+	if v, ok := d.GetOk("general_settings"); ok {
+		if generalSettings, err := ConvertInterfaceToGeneralSettings(v); err == nil {
+			managedRuleRequest.GeneralSettings = *generalSettings
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading General Settings",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	log.Printf("[DEBUG] Name: %+v\n", managedRuleRequest.Name)
+	log.Printf("[DEBUG] RulesetID: %+v\n", managedRuleRequest.RulesetID)
+	log.Printf("[DEBUG] Ruleset Version: %+v\n", managedRuleRequest.RulesetVersion)
+	log.Printf("[DEBUG] Disabled Rules: %+v\n", managedRuleRequest.DisabledRules)
+	log.Printf("[DEBUG] General Settings: %+v\n", managedRuleRequest.GeneralSettings)
+	log.Printf("[DEBUG] Policies: %+v\n", managedRuleRequest.Policies)
+	log.Printf("[DEBUG] Rule Target Updates: %+v\n", managedRuleRequest.RuleTargetUpdates)
+
+	if diags.HasError() {
+		return diags
+	}
 
 	config := m.(**api.ClientConfig)
 
@@ -241,7 +272,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.AddAccessRule(accessRule)
+	resp, err := wafService.AddManagedRule(managedRuleRequest, accountNumber)
 
 	if err != nil {
 		d.SetId("")
@@ -270,38 +301,180 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 	return diags
 }
 
-// func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
-// 	if attr == nil {
-// 		return nil, fmt.Errorf("attr was nil")
-// 	}
+// ExpandDisabledRules converts user-provided Terraform configuration data into the Disabled Rules API Model
+func ExpandDisabledRules(attr interface{}) (*[]sdkwaf.DisabledRules, error) {
 
-// 	// The values are stored as a map in a 1-item set
-// 	// So pull it out so we can work with it
-// 	entryMap, err := helper.GetMapFromSet(attr)
+	if set, ok := attr.(*schema.Set); ok {
 
-// 	if err != nil {
-// 		return nil, err
-// 	}
+		items := set.List()
+		disabledRules := make([]sdkwaf.DisabledRules, 0)
 
-// 	accessControls := &sdkwaf.AccessControls{}
+		for _, item := range items {
+			curr := item.(map[string]interface{})
 
-// 	if accesslist, ok := entryMap["accesslist"].([]interface{}); ok {
-// 		accessControls.Accesslist = accesslist
-// 	} else {
-// 		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["accesslist"], entryMap["accesslist"])
-// 	}
+			disabledRule := sdkwaf.DisabledRules{
+				PolicyID: curr["policy_id"].(string),
+				RuleID:   curr["rule_id"].(string),
+			}
 
-// 	if blacklist, ok := entryMap["blacklist"].([]interface{}); ok {
-// 		accessControls.Blacklist = blacklist
-// 	} else {
-// 		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["blacklist"], entryMap["blacklist"])
-// 	}
+			disabledRules = append(disabledRules, disabledRule)
+		}
 
-// 	if whitelist, ok := entryMap["whitelist"].([]interface{}); ok {
-// 		accessControls.Whitelist = whitelist
-// 	} else {
-// 		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["whitelist"], entryMap["whitelist"])
-// 	}
+		return &disabledRules, nil
 
-// 	return accessControls, nil
-// }
+	} else {
+		return nil, errors.New("attr input was not a *schema.Set")
+	}
+}
+
+// ExpandRuleTargetUpdates converts user-provided Terraform configuration data into the Rule Target Updates API Model
+func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdates, error) {
+
+	if set, ok := attr.(*schema.Set); ok {
+
+		items := set.List()
+		ruleTargetUpdates := make([]sdkwaf.RuleTargetUpdates, 0)
+
+		for _, item := range items {
+			curr := item.(map[string]interface{})
+
+			ruleTargetUpdate := sdkwaf.RuleTargetUpdates{
+				IsNegated:     curr["is_negated"].(bool),
+				IsRegex:       curr["is_regex"].(bool),
+				ReplaceTarget: curr["replace_target"].(string),
+				RuleID:        curr["rule_id"].(string),
+				Target:        curr["target"].(string),
+				TargetMatch:   curr["target_match"].(string),
+			}
+
+			ruleTargetUpdates = append(ruleTargetUpdates, ruleTargetUpdate)
+		}
+
+		return &ruleTargetUpdates, nil
+
+	} else {
+		return nil, errors.New("attr input was not a *schema.Set")
+	}
+}
+
+// Processes all General Settings values from a Terraform configuration file into the General Settings API Model
+func ConvertInterfaceToGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
+	if attr == nil {
+		return nil, fmt.Errorf("attr was nil")
+	}
+
+	// The values are stored as a map in a 1-item set
+	// So pull it out so we can work with it
+	entryMap, err := helper.GetMapFromSet(attr)
+
+	if err != nil {
+		return nil, err
+	}
+
+	generalSettings := sdkwaf.GeneralSettings{}
+
+	if anomalyThreshold, ok := entryMap["anomaly_threshold"].(int); ok {
+		generalSettings.AnomalyThreshold = anomalyThreshold
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["anomaly_threshold"], entryMap["anomaly_threshold"])
+	}
+
+	if argLength, ok := entryMap["arg_length"].(int); ok {
+		generalSettings.ArgLength = argLength
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["arg_length"], entryMap["arg_length"])
+	}
+
+	if argNameLength, ok := entryMap["arg_name_length"].(int); ok {
+		generalSettings.ArgNameLength = argNameLength
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["arg_name_length"], entryMap["arg_name_length"])
+	}
+
+	if combinedFileSizes, ok := entryMap["combined_file_sizes"].(int); ok {
+		generalSettings.CombinedFileSizes = combinedFileSizes
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["combined_file_sizes"], entryMap["combined_file_sizes"])
+	}
+
+	if ignoreCookieInterface, ok := entryMap["ignore_cookie"].([]interface{}); ok {
+		if ignoreCookie, ok := helper.ConvertInterfaceArrayToStringArray(ignoreCookieInterface); ok {
+			generalSettings.IgnoreCookie = ignoreCookie
+		} else {
+			return nil, fmt.Errorf("%v was not successfully converted to []string{}, type: %T", entryMap["ignore_cookie"], entryMap["ignore_cookie"])
+		}
+
+	} else {
+		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["ignore_cookie"], entryMap["ignore_cookie"])
+	}
+
+	if ignoreHeaderInterface, ok := entryMap["ignore_header"].([]interface{}); ok {
+		if ignoreHeader, ok := helper.ConvertInterfaceArrayToStringArray(ignoreHeaderInterface); ok {
+			generalSettings.IgnoreHeader = ignoreHeader
+		} else {
+			return nil, fmt.Errorf("%v was not successfully converted to []string{}, type: %T", entryMap["ignore_header"], entryMap["ignore_header"])
+		}
+	} else {
+		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["ignore_header"], entryMap["ignore_header"])
+	}
+
+	if ignoreQueryArgsInterface, ok := entryMap["ignore_query_args"].([]interface{}); ok {
+		if ignoreQueryArgs, ok := helper.ConvertInterfaceArrayToStringArray(ignoreQueryArgsInterface); ok {
+			generalSettings.IgnoreQueryArgs = ignoreQueryArgs
+		} else {
+			return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["ignore_query_args"], entryMap["ignore_query_args"])
+		}
+	} else {
+		return nil, fmt.Errorf("%v was not a []string{}, actual: %T", entryMap["ignore_query_args"], entryMap["ignore_query_args"])
+	}
+
+	if jsonParser, ok := entryMap["json_parser"].(bool); ok {
+		generalSettings.JsonParser = jsonParser
+	} else {
+		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["json_parser"], entryMap["json_parser"])
+	}
+
+	if maxNumArgs, ok := entryMap["max_num_args"].(int); ok {
+		generalSettings.MaxNumArgs = maxNumArgs
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["max_num_args"], entryMap["max_num_args"])
+	}
+
+	if paranoiaLevel, ok := entryMap["paranoia_level"].(int); ok {
+		generalSettings.ParanoiaLevel = paranoiaLevel
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["paranoia_level"], entryMap["paranoia_level"])
+	}
+
+	if processRequestBody, ok := entryMap["process_request_body"].(bool); ok {
+		generalSettings.ProcessRequestBody = processRequestBody
+	} else {
+		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["process_request_body"], entryMap["process_request_body"])
+	}
+
+	if responseHeaderName, ok := entryMap["response_header_name"].(string); ok {
+		generalSettings.ResponseHeaderName = responseHeaderName
+	} else {
+		return nil, fmt.Errorf("%v was not a string{}, actual: %T", entryMap["response_header_name"], entryMap["response_header_name"])
+	}
+
+	if totalArgLength, ok := entryMap["total_arg_length"].(int); ok {
+		generalSettings.TotalArgLength = totalArgLength
+	} else {
+		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["total_arg_length"], entryMap["total_arg_length"])
+	}
+
+	if validateUtf8Encoding, ok := entryMap["validate_utf8_encoding"].(bool); ok {
+		generalSettings.ValidateUtf8Encoding = validateUtf8Encoding
+	} else {
+		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["validate_utf8_encoding"], entryMap["validate_utf8_encoding"])
+	}
+
+	if xmlParser, ok := entryMap["xml_parser"].(bool); ok {
+		generalSettings.XmlParser = xmlParser
+	} else {
+		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["xml_parser"], entryMap["xml_parser"])
+	}
+
+	return &generalSettings, nil
+}
