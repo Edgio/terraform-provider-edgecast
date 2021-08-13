@@ -185,7 +185,7 @@ func TestExpandRuleTargetUpdates(t *testing.T) {
 	}
 }
 
-func TestConvertInterfaceToGeneralSettings(t *testing.T) {
+func TestExpandGeneralSettings(t *testing.T) {
 
 	cases := []struct {
 		name          string
@@ -254,7 +254,7 @@ func TestConvertInterfaceToGeneralSettings(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := ConvertInterfaceToGeneralSettings(v.input)
+		actualPtr, err := ExpandGeneralSettings(v.input)
 
 		if v.expectSuccess {
 			if err != nil {

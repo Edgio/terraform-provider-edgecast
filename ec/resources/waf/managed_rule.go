@@ -195,7 +195,7 @@ func ResourceManagedRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "This array identifies each rule that has been disabled using these properties",
+				Description: "This array describes each target using these properties",
 			},
 		},
 	}
@@ -241,7 +241,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	// General Settings
 
 	if v, ok := d.GetOk("general_settings"); ok {
-		if generalSettings, err := ConvertInterfaceToGeneralSettings(v); err == nil {
+		if generalSettings, err := ExpandGeneralSettings(v); err == nil {
 			managedRuleRequest.GeneralSettings = *generalSettings
 		} else {
 			diags = append(diags, diag.Diagnostic{
@@ -358,7 +358,7 @@ func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdate, erro
 }
 
 // Processes all General Settings values from a Terraform configuration file into the General Settings API Model
-func ConvertInterfaceToGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
+func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 	if attr == nil {
 		return nil, fmt.Errorf("attr was nil")
 	}
