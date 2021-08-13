@@ -28,7 +28,7 @@ resource "ec_customer_user" "my_customer_user" {
   fax = ""
   mobile = ""
   phone = ""
-  time_zone_id = ""
+  time_zone_id = "0"
   title = ""
   zip = ""
 }

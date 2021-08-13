@@ -101,6 +101,7 @@ func Provider() *schema.Provider {
 			"ec_dns_secondaryzonegroup": dnsroute.ResourceSecondaryZoneGroup(),
 			"ec_waf_access_rule":        waf.ResourceAccessRule(),
 			"ec_waf_rate_rule":          waf.ResourceRateRule(),
+			"ec_waf_managed_rule":       waf.ResourceManagedRule(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_customer_services": customer.DataSourceCustomerServices(),
