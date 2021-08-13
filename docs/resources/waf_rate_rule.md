@@ -22,7 +22,6 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
   num            = 10
 
   condition_group {
-    id   = "group1"
     name = "Group 1"
 
     condition {
@@ -66,7 +65,6 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
   }
   
   condition_group {
-    id   = "group2"
     name = "Group 2"
 
     condition {
@@ -106,6 +104,7 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
 
 ### Required
 
+- **condition_group** (Block Set, Min: 1) Contains the set of condition groups associated with a rule. (see [below for nested schema](#nestedblock--condition_group))
 - **duration_sec** (Number) Indicates the length, in seconds, of the rolling window that tracks the number of requests eligible for rate limiting. \
 The rate limit formula is calculated through the num and duration_sec properties as indicated below. \
     `num` requests per `duration_sec` \
@@ -118,13 +117,12 @@ The rate limit formula is calculated through the num and duration_sec properties
 ### Optional
 
 - **account_number** (String) Identifies your account by its customer account number.
-- **condition_group** (Block Set) Contains the set of condition groups associated with a rule. (see [below for nested schema](#nestedblock--condition_group))
 - **disabled** (Boolean) Indicates whether this rate rule will be enforced. \
 Valid values are: 
     * true: Disabled. This rate limit will not be applied to traffic.
     * false: Enabled. Traffic is restricted to this rate limit.
 - **id** (String) The ID of this resource.
-- **keys** (List of String) Indicates the method by requests will be grouped for the purposes of this rate rule. \
+- **keys** (Set of String) Indicates the method by requests will be grouped for the purposes of this rate rule. \
 Valid values are: 
     * Missing / Empty Array: If the `keys` property is not defined or set to an empty array, all requests will be treated as a single group for the purpose of rate limiting. 
     * IP: Indicates that requests will be grouped by IP address. Each unique IP address is considered a separate group. 
@@ -136,9 +134,12 @@ Valid values are:
 
 Optional:
 
-- **condition** (Block List) Contains a list of match conditions. (see [below for nested schema](#nestedblock--condition_group--condition))
-- **id** (String) Indicates the system-defined alphanumeric ID of a condition group. Example: `12345678-90ab-cdef-ghij-klmnopqrstuvwxyz1`
+- **condition** (Block Set) Contains a list of match conditions. (see [below for nested schema](#nestedblock--condition_group--condition))
 - **name** (String) Indicates the name of a condition group.
+
+Read-Only:
+
+- **id** (String) Indicates the system-defined alphanumeric ID of a condition group. Example: `12345678-90ab-cdef-ghij-klmnopqrstuvwxyz1`
 
 <a id="nestedblock--condition_group--condition"></a>
 ### Nested Schema for `condition_group.condition`
@@ -166,7 +167,7 @@ Optional:
 - **value** (String) type: REQUEST_HEADERS Only \
 Indicates the name of the request header through which requests will be identified. \
     Valid values are: `Host | Referer | User-Agent`
-- **values** (List of String) type: EM and IPMATCH Only \
+- **values** (Set of String) type: EM and IPMATCH Only \
 Identifies one or more values used to identify requests that are eligible for rate limiting. \
 If you are identifying traffic via a URL path (REQUEST_URI), then you should specify a URL path pattern that starts directly after the hostname. Exclude a protocol or a hostname when defining this property. \
 Sample values: \
