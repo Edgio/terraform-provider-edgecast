@@ -45,7 +45,7 @@ func ResourceManagedRule() *schema.Resource {
 				Required:    true,
 				Description: "Indicates the version of the rule set associated with this managed rule.",
 			},
-			"disabled_rules": {
+			"disabled_rule": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -158,7 +158,7 @@ func ResourceManagedRule() *schema.Resource {
 				Optional:    true,
 				Elem:        &schema.Schema{Type: schema.TypeString},
 			},
-			"rule_target_updates": {
+			"rule_target_update": {
 				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
@@ -221,19 +221,19 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	}
 
 	// Disabled Rules
-	disabledRules, err := ExpandDisabledRules(d.Get("disabled_rules"))
+	disabledRules, err := ExpandDisabledRules(d.Get("disabled_rule"))
 
 	if err != nil {
-		return diag.Errorf("error parsing disabled_rules: %+v", err)
+		return diag.Errorf("error parsing disabled_rule: %+v", err)
 	}
 
 	managedRuleRequest.DisabledRules = *disabledRules
 
 	// Rule Target Updates
-	ruleTargetUpdates, err := ExpandRuleTargetUpdates(d.Get("rule_target_updates"))
+	ruleTargetUpdates, err := ExpandRuleTargetUpdates(d.Get("rule_target_update"))
 
 	if err != nil {
-		return diag.Errorf("error parsing rule_target_updates: %+v", err)
+		return diag.Errorf("error parsing rule_target_update: %+v", err)
 	}
 
 	managedRuleRequest.RuleTargetUpdates = *ruleTargetUpdates
@@ -302,17 +302,17 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 }
 
 // ExpandDisabledRules converts user-provided Terraform configuration data into the Disabled Rules API Model
-func ExpandDisabledRules(attr interface{}) (*[]sdkwaf.DisabledRules, error) {
+func ExpandDisabledRules(attr interface{}) (*[]sdkwaf.DisabledRule, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		disabledRules := make([]sdkwaf.DisabledRules, 0)
+		disabledRules := make([]sdkwaf.DisabledRule, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			disabledRule := sdkwaf.DisabledRules{
+			disabledRule := sdkwaf.DisabledRule{
 				PolicyID: curr["policy_id"].(string),
 				RuleID:   curr["rule_id"].(string),
 			}
@@ -328,17 +328,17 @@ func ExpandDisabledRules(attr interface{}) (*[]sdkwaf.DisabledRules, error) {
 }
 
 // ExpandRuleTargetUpdates converts user-provided Terraform configuration data into the Rule Target Updates API Model
-func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdates, error) {
+func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdate, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		ruleTargetUpdates := make([]sdkwaf.RuleTargetUpdates, 0)
+		ruleTargetUpdates := make([]sdkwaf.RuleTargetUpdate, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			ruleTargetUpdate := sdkwaf.RuleTargetUpdates{
+			ruleTargetUpdate := sdkwaf.RuleTargetUpdate{
 				IsNegated:     curr["is_negated"].(bool),
 				IsRegex:       curr["is_regex"].(bool),
 				ReplaceTarget: curr["replace_target"].(string),

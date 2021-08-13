@@ -25,7 +25,7 @@ resource "ec_waf_managed_rule" "managed_rule_1" {
         "r6000_blocking_evaluation.conf.json"
     ]
 
-    disabled_rules {
+    disabled_rule {
                 policy_id = "r2000_ec_custom_rule.conf.json"
                 rule_id = "431003"
             } 
@@ -48,24 +48,30 @@ resource "ec_waf_managed_rule" "managed_rule_1" {
         xml_parser = true
     }
 
-    rule_target_updates {
+    rule_target_update {
+        is_negated = false
         is_regex = true
         target = "ARGS"
         target_match = "ignoredArgumentException"
         rule_id = "431000"
+        replace_target = ""
     }
-    
-    rule_target_updates {
+
+    rule_target_update {
+        is_negated = false
         is_regex = true
         target = "REQUEST_COOKIES"
         target_match = "ignoredCookiesException"
         rule_id = "431000"
+        replace_target = ""
     }
 
-    rule_target_updates  {
+    rule_target_update  {
+        is_negated = false
         is_regex = true
         target = "REQUEST_HEADERS"
         target_match = "ignoredHeaderException"
         rule_id = "431000"
+        replace_target = ""
     }
 }
