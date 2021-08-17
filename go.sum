@@ -77,6 +77,8 @@ github.com/EdgeCast/ec-sdk-go v0.1.5 h1:SsdDMpEIGw8IlGkfmhzhKFD1nA3D5mMoP5N2MWok
 github.com/EdgeCast/ec-sdk-go v0.1.5/go.mod h1:xRXtdgTvwf6JUqor2QS+45YyAgJdnWIByTG23NFD2Ho=
 github.com/EdgeCast/ec-sdk-go v0.1.6 h1:tCBQQe7QMaRqG7KqPGLNj7SBqpNFYKMuB/Ol3kOkpUA=
 github.com/EdgeCast/ec-sdk-go v0.1.6/go.mod h1:xRXtdgTvwf6JUqor2QS+45YyAgJdnWIByTG23NFD2Ho=
+github.com/EdgeCast/ec-sdk-go v0.1.7 h1:y/H1nL0YtEUNYuRrfPY7z839BPkDSCw/AWIv3EZVOkw=
+github.com/EdgeCast/ec-sdk-go v0.1.7/go.mod h1:xRXtdgTvwf6JUqor2QS+45YyAgJdnWIByTG23NFD2Ho=
 github.com/GoogleCloudPlatform/k8s-cloud-provider v0.0.0-20190822182118-27a4ced34534/go.mod h1:iroGtC8B3tQiqtds1l+mgk/BBOrxbqjH+eUfFQYRc14=
 github.com/Masterminds/goutils v1.1.0 h1:zukEsf/1JZwCMgHiK3GZftabmxiCw4apj3a28RPBiVg=
 github.com/Masterminds/goutils v1.1.0/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
