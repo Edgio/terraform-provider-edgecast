@@ -458,11 +458,58 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 
 	d.SetId(resp.ID)
 
-	return diags
+	return ResourceAccessRuleRead(ctx, d, m)
 }
 
 func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	accountNumber := d.Get("account_number").(string)
+	ruleID := d.Id()
+	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
+
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	//change the order
+	log.Printf("[INFO] Reading WAF Access Rule Id %s for Account >> %s", accountNumber, ruleID)
+
+	resp, err := wafService.GetAccessRuleByID(accountNumber, ruleID)
+
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	//change %v with printing funcation.
+	log.Printf("[INFO] Retrieved Rule: %+v", resp)
+
+	d.SetId(resp.ID)
+	d.Set("account_number", accountNumber)
+	d.Set("allowed_http_methods", resp.AllowedHTTPMethods)
+	d.Set("allowed_request_content_types", resp.AllowedRequestContentTypes)
+	flattenedASN := FlattenAccessControls(*resp.ASNAccessControls)
+	d.Set("asn", flattenedASN)
+	flattenedCookie := FlattenAccessControls(*resp.CookieAccessControls)
+	d.Set("cookie", flattenedCookie)
+	flattenedCountry := FlattenAccessControls(*resp.CountryAccessControls)
+	d.Set("country", flattenedCountry)
+	d.Set("disallowed_extensions", resp.DisallowedExtensions)
+	d.Set("disallowed_headers", resp.DisallowedHeaders)
+	flattenedIp := FlattenAccessControls(*resp.IPAccessControls)
+	d.Set("ip", flattenedIp)
+	d.Set("name", resp.Name)
+	flattenedReferer := FlattenAccessControls(*resp.RefererAccessControls)
+	d.Set("referer", flattenedReferer)
+	d.Set("response_header_name", resp.ResponseHeaderName)
+	flattenedUrl := FlattenAccessControls(*resp.URLAccessControls)
+	d.Set("url", flattenedUrl)
+	flattenedUserAgent := FlattenAccessControls(*resp.UserAgentAccessControls)
+	d.Set("user_agent", flattenedUserAgent)
+
 	return diags
 }
 
@@ -510,4 +557,21 @@ func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls,
 	}
 
 	return accessControls, nil
+}
+
+// FlattenAccessControls converts the AccessControls API Model
+// into a format that Terraform can work with
+func FlattenAccessControls(accessControlsGroups sdkwaf.AccessControls) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["accesslist"] = accessControlsGroups.Accesslist
+	m["blacklist"] = accessControlsGroups.Blacklist
+	m["whitelist"] = accessControlsGroups.Whitelist
+
+	flattened = append(flattened, m)
+
+	return flattened
 }
