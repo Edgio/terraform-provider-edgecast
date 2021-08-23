@@ -635,7 +635,6 @@ func ResourceAccessRuleUpdate(ctx context.Context, d *schema.ResourceData, m int
 	}
 
 	helper.ConvertInterfaceToStringArray(accessRule)
-	helper.LogInstanceAsPrettyJsonToFile("[DEBUG] ACCESSRULE", accessRule, "access-rule.log")
 	helper.LogInstanceAsPrettyJson("[DEBUG] ACCESSRULE", accessRule)
 	config := m.(**api.ClientConfig)
 
