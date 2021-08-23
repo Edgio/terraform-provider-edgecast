@@ -497,7 +497,7 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 func ResourceAccessRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 	accountNumber := d.Get("account_number").(string)
-	//ruleID := d.Id()
+	ruleID := d.Id()
 	log.Printf("[INFO] Updating WAF Access Rule for Account >> %s", accountNumber)
 
 	accessRule := sdkwaf.AccessRule{
@@ -645,7 +645,7 @@ func ResourceAccessRuleUpdate(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.AddAccessRule(accessRule)
+	resp, err := wafService.UpdateAccessRule(accessRule, ruleID)
 
 	if err != nil {
 		d.SetId("")
