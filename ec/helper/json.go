@@ -78,7 +78,7 @@ func LogIntComparison(a int, b int, file string) {
 // message: message
 // instance: any data structure, like map, slice, instance of struct
 // file: file name. file is created in the folder that tf.exe exeduted
-func LogInstanceToPrettyJson(message string, instance interface{}, file string) {
+func LogInstanceAsPrettyJsonToFile(message string, instance interface{}, file string) {
 	f, err := os.OpenFile(file,
 		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
@@ -93,6 +93,15 @@ func LogInstanceToPrettyJson(message string, instance interface{}, file string) 
 	logger.Printf("[[[%s]]]:", message)
 	logger.Printf("[[[Parsed Json]]]:%s", e)
 	logger.Print("=====================================================================")
+}
+
+func LogInstanceAsPrettyJson(message string, instance interface{}) {
+	e, _ := json.MarshalIndent(instance, "", "    ")
+
+	log.Print("=====================================================================")
+	log.Printf("[[[%s]]]:", message)
+	log.Printf("\n[[[Parsed Json]]]:\n%s", e)
+	log.Print("=====================================================================")
 }
 
 // IsJSONString -
