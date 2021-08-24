@@ -275,3 +275,200 @@ func TestExpandGeneralSettings(t *testing.T) {
 		}
 	}
 }
+
+func TestFlattenDisabledRules(t *testing.T) {
+
+	cases := []struct {
+		name     string
+		input    []sdkwaf.DisabledRule
+		expected []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			input: []sdkwaf.DisabledRule{
+				{
+					PolicyID: "policyID1",
+					RuleID:   "ruleID1",
+				},
+				{
+					PolicyID: "policyID2",
+					RuleID:   "ruleID2",
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"policy_id": "policyID1",
+					"rule_id":   "ruleID1",
+				},
+				{
+					"policy_id": "policyID2",
+					"rule_id":   "ruleID2",
+				},
+			},
+		},
+		{
+			name:     "Empty collection",
+			input:    []sdkwaf.DisabledRule{},
+			expected: []map[string]interface{}{},
+		},
+	}
+
+	for _, v := range cases {
+
+		actualRules := FlattenDisabledRules(v.input)
+
+		if !reflect.DeepEqual(actualRules, v.expected) {
+			t.Fatalf("%s: Expected %+v but got %+v", v.name, actualRules, v.expected)
+		}
+	}
+}
+
+func TestFlattenRuleTargetUpdates(t *testing.T) {
+
+	cases := []struct {
+		name     string
+		input    []sdkwaf.RuleTargetUpdate
+		expected []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			input: []sdkwaf.RuleTargetUpdate{
+				{
+					IsNegated:     true,
+					IsRegex:       true,
+					ReplaceTarget: "ARGS",
+					RuleID:        "ruleID1",
+					Target:        "GEO",
+					TargetMatch:   "name",
+				},
+				{
+					IsNegated:     false,
+					IsRegex:       false,
+					ReplaceTarget: "REQUEST_COOKIES",
+					RuleID:        "ruleID2",
+					Target:        "REQUEST_HEADERS",
+					TargetMatch:   "value",
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"is_negated":     true,
+					"is_regex":       true,
+					"replace_target": "ARGS",
+					"rule_id":        "ruleID1",
+					"target":         "GEO",
+					"target_match":   "name",
+				},
+				{
+					"is_negated":     false,
+					"is_regex":       false,
+					"replace_target": "REQUEST_COOKIES",
+					"rule_id":        "ruleID2",
+					"target":         "REQUEST_HEADERS",
+					"target_match":   "value",
+				},
+			},
+		},
+		{
+			name:     "Empty collection",
+			input:    []sdkwaf.RuleTargetUpdate{},
+			expected: []map[string]interface{}{},
+		},
+	}
+
+	for _, v := range cases {
+
+		actualRules := FlattenRuleTargetUpdates(v.input)
+
+		if !reflect.DeepEqual(actualRules, v.expected) {
+			t.Fatalf("%s: Expected %+v but got %+v", v.name, actualRules, v.expected)
+		}
+	}
+}
+
+func TestFlattenGeneralSettings(t *testing.T) {
+
+	cases := []struct {
+		name     string
+		input    sdkwaf.GeneralSettings
+		expected []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			input: sdkwaf.GeneralSettings{
+				AnomalyThreshold:     10,
+				ArgLength:            1024,
+				ArgNameLength:        2048,
+				CombinedFileSizes:    4092,
+				IgnoreCookie:         []string{"iCookie1", "iCookie2"},
+				IgnoreHeader:         []string{"iHeader1", "iHeader2"},
+				IgnoreQueryArgs:      []string{"iQueryArgs1", "iQueryArgs2"},
+				JsonParser:           true,
+				MaxNumArgs:           100,
+				ParanoiaLevel:        3,
+				ProcessRequestBody:   false,
+				ResponseHeaderName:   "response_header",
+				TotalArgLength:       256,
+				ValidateUtf8Encoding: true,
+				XmlParser:            false,
+			},
+			expected: []map[string]interface{}{
+				map[string]interface{}{
+					"anomaly_threshold":      10,
+					"arg_length":             1024,
+					"arg_name_length":        2048,
+					"combined_file_sizes":    4092,
+					"ignore_cookie":          []string{"iCookie1", "iCookie2"},
+					"ignore_header":          []string{"iHeader1", "iHeader2"},
+					"ignore_query_args":      []string{"iQueryArgs1", "iQueryArgs2"},
+					"json_parser":            true,
+					"max_num_args":           100,
+					"paranoia_level":         3,
+					"process_request_body":   false,
+					"response_header_name":   "response_header",
+					"total_arg_length":       256,
+					"validate_utf8_encoding": true,
+					"xml_parser":             false,
+				},
+			},
+		},
+		{
+			name:  "Empty collection",
+			input: sdkwaf.GeneralSettings{},
+			expected: []map[string]interface{}{
+				map[string]interface{}{
+					"anomaly_threshold":      0,
+					"arg_length":             0,
+					"arg_name_length":        0,
+					"combined_file_sizes":    0,
+					"ignore_cookie":          []string(nil),
+					"ignore_header":          []string(nil),
+					"ignore_query_args":      []string(nil),
+					"json_parser":            false,
+					"max_num_args":           0,
+					"paranoia_level":         0,
+					"process_request_body":   false,
+					"response_header_name":   "",
+					"total_arg_length":       0,
+					"validate_utf8_encoding": false,
+					"xml_parser":             false,
+				},
+			},
+		},
+	}
+
+	for _, v := range cases {
+
+		actualGeneralSettings := FlattenGeneralSettings(v.input)
+
+		actualGeneralSettingsLength := len(actualGeneralSettings)
+		if actualGeneralSettingsLength != 1 {
+			t.Fatalf("GeneralSettings map of length 1 expected, actual length: %v", actualGeneralSettingsLength)
+			return
+		}
+
+		if !reflect.DeepEqual(actualGeneralSettings, v.expected) {
+			t.Fatalf("%s: Expected %+v but got %+v", v.name, actualGeneralSettings, v.expected)
+		}
+	}
+}
