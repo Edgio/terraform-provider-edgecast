@@ -88,9 +88,10 @@ func TestConvertInterfaceToAccessControls(t *testing.T) {
 func TestFlattenAccessControls(t *testing.T) {
 
 	cases := []struct {
-		name     string
-		input    sdkwaf.AccessControls
-		expected []map[string]interface{}
+		name          string
+		input         sdkwaf.AccessControls
+		expected      []map[string]interface{}
+		expectSuccess bool
 	}{
 		{
 			name: "Happy path",
@@ -112,6 +113,17 @@ func TestFlattenAccessControls(t *testing.T) {
 					},
 				},
 			},
+			expectSuccess: true,
+		},
+		{
+			name: "Nil path",
+			input: sdkwaf.AccessControls{
+				Accesslist: nil,
+				Blacklist:  nil,
+				Whitelist:  nil,
+			},
+			expected:      nil,
+			expectSuccess: false,
 		},
 	}
 
@@ -121,26 +133,46 @@ func TestFlattenAccessControls(t *testing.T) {
 
 		for i, actual := range actualGroups {
 
-			expected := v.expected[i]
+			if v.expectSuccess {
+				expected := v.expected[i]
 
-			actualAccessList := actual["accesslist"].([]interface{})
-			exceptedAccessList := expected["accesslist"].([]string)
-			if actualAccessList[0] != exceptedAccessList[0] {
-				t.Fatalf("accesslist[%d] does not match with expected", actualAccessList[0])
-				return
-			}
+				actualAccessList := actual["accesslist"].([]interface{})
+				exceptedAccessList := expected["accesslist"].([]string)
+				if actualAccessList[0] != exceptedAccessList[0] {
+					t.Fatalf("accesslist[%d] does not match with expected", actualAccessList[0])
+					return
+				}
 
-			actualBlackList := actual["blacklist"].([]interface{})
-			exceptedBlackList := expected["blacklist"].([]string)
-			if actualBlackList[0] != exceptedBlackList[0] {
-				t.Fatalf("blacklist[%d] does not match with expected", actualBlackList[0])
-				return
-			}
-			actualWhiteList := actual["whitelist"].([]interface{})
-			exceptedWhiteList := expected["whitelist"].([]string)
-			if actualWhiteList[0] != exceptedWhiteList[0] {
-				t.Fatalf("Whitelist[%d] does not match with expected", actualWhiteList[0])
-				return
+				actualBlackList := actual["blacklist"].([]interface{})
+				exceptedBlackList := expected["blacklist"].([]string)
+				if actualBlackList[0] != exceptedBlackList[0] {
+					t.Fatalf("blacklist[%d] does not match with expected", actualBlackList[0])
+					return
+				}
+				actualWhiteList := actual["whitelist"].([]interface{})
+				exceptedWhiteList := expected["whitelist"].([]string)
+				if actualWhiteList[0] != exceptedWhiteList[0] {
+					t.Fatalf("Whitelist[%d] does not match with expected", actualWhiteList[0])
+					return
+				}
+			} else {
+				actualAccessList := actual["accesslist"].([]interface{})
+				if actualAccessList != nil {
+					t.Fatalf("accesslist[%d] does not match with expected", actualAccessList[0])
+					return
+				}
+				actualBlackList := actual["blacklist"].([]interface{})
+
+				if actualBlackList != nil {
+					t.Fatalf("blacklist[%d] does not match with expected", actualBlackList[0])
+					return
+				}
+				actualWhiteList := actual["whitelist"].([]interface{})
+
+				if actualWhiteList != nil {
+					t.Fatalf("Whitelist[%d] does not match with expected", actualWhiteList[0])
+					return
+				}
 			}
 		}
 	}

@@ -475,7 +475,7 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	//change the order
-	log.Printf("[INFO] Reading WAF Access Rule Id %s for Account >> %s", accountNumber, ruleID)
+	log.Printf("[INFO] Reading WAF Access Rule Id %s for Account >> %s", ruleID, accountNumber)
 
 	resp, err := wafService.GetAccessRuleByID(accountNumber, ruleID)
 
@@ -485,7 +485,8 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 	}
 
 	//change %v with printing funcation.
-	log.Printf("[INFO] Retrieved Rule: %+v", resp)
+	log.Printf("[INFO] Retrieved Rule")
+	ReponsePrint(resp, accountNumber)
 
 	d.SetId(resp.ID)
 	d.Set("account_number", accountNumber)
@@ -574,4 +575,11 @@ func FlattenAccessControls(accessControlsGroups sdkwaf.AccessControls) []map[str
 	flattened = append(flattened, m)
 
 	return flattened
+}
+
+func ReponsePrint(input *sdkwaf.AccessRuleByID, accountNumber string) {
+	log.Printf("AN : %v", accountNumber)
+	log.Printf("RuleId : %v", input.ID)
+	log.Printf("Name : %v", input.Name)
+	log.Printf("AllowedHTTPMethods : %v", input.AllowedHTTPMethods)
 }
