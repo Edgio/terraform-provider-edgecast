@@ -26,3 +26,4 @@ unit-tests/**/credential_ucc.json
 .vscode/
 *.hcl
 .terraform/*
+**/*.copy
