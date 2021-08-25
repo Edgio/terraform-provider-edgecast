@@ -448,7 +448,7 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	d.SetId(resp.ID)
 	ResourceAccessRuleRead(ctx, d, m)
 
-	return diags
+	return ResourceAccessRuleRead(ctx, d, m)
 }
 
 func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
@@ -457,17 +457,26 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 	ruleID := d.Id()
 	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = accountNumber
+
 	wafService, err := buildWAFService(**config)
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	log.Printf("[INFO] Reading WAF Access Rule Id %s for Account >> %s", accountNumber, ruleID)
+
+	//change the order
+	log.Printf("[INFO] Reading WAF Access Rule Id %s for Account >> %s", ruleID, accountNumber)
+
 	resp, err := wafService.GetAccessRuleByID(accountNumber, ruleID)
+
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
-	log.Printf("[INFO] Retrieved Rule: %+v", resp)
+
+	//change %v with printing funcation.
+	helper.LogInstanceAsPrettyJson("[INFO] Retrieved Rule", resp)
+
 	d.SetId(resp.ID)
 	d.Set("account_number", accountNumber)
 	d.Set("allowed_http_methods", resp.AllowedHTTPMethods)
@@ -490,6 +499,7 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 	d.Set("url", flattenedUrl)
 	flattenedUserAgent := FlattenAccessControls(*resp.UserAgentAccessControls)
 	d.Set("user_agent", flattenedUserAgent)
+
 	return diags
 }
 
@@ -700,11 +710,15 @@ func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls,
 // FlattenAccessControls converts the AccessControls API Model
 // into a format that Terraform can work with
 func FlattenAccessControls(accessControlsGroups sdkwaf.AccessControls) []map[string]interface{} {
+
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
+
 	m["accesslist"] = accessControlsGroups.Accesslist
 	m["blacklist"] = accessControlsGroups.Blacklist
 	m["whitelist"] = accessControlsGroups.Whitelist
+
 	flattened = append(flattened, m)
+
 	return flattened
 }

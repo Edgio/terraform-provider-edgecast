@@ -45,6 +45,31 @@ func ResourceManagedRule() *schema.Resource {
 				Required:    true,
 				Description: "Indicates the version of the rule set associated with this managed rule.",
 			},
+			"created_date": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Indicates the date and time at which the managed rule was created.",
+			},
+			"customer_id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Identifies your account by its customer account number.",
+			},
+			"last_modified_date": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Indicates the date and time at which the managed rule was last modified.",
+			},
+			"last_modified_by": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Reserved for future use.",
+			},
+			"version": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Reserved for future use.",
+			},
 			"disabled_rule": {
 				Type:     schema.TypeSet,
 				Optional: true,
@@ -283,11 +308,57 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	d.SetId(resp.ID)
 
-	return diags
+	return ResourceManagedRuleRead(ctx, d, m)
 }
 
 func ResourceManagedRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	// Retrieve data for Read call
+	accountNumber := d.Get("account_number").(string)
+	ruleID := d.Id()
+
+	log.Printf("[INFO] Reading WAF Managed Rule ID %s for Account >> %s", ruleID, accountNumber)
+
+	// Initialize WAF Service
+	config := m.(**api.ClientConfig)
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Retrieve Managed Rule
+	resp, err := wafService.GetManagedRule(accountNumber, ruleID)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+	log.Printf("[INFO] Retrieved Managed Rule: %+v", resp)
+
+	// Store all the values retrieved from the API
+	d.SetId(resp.ID)
+	d.Set("account_number", accountNumber)
+	d.Set("created_date", resp.CreatedDate)
+	d.Set("customer_id", resp.CustomerID)
+	d.Set("last_modified_date", resp.LastModifiedDate)
+	d.Set("last_modified_by", resp.LastModifiedBy)
+	d.Set("version", resp.Version)
+	d.Set("name", resp.Name)
+	d.Set("ruleset_id", resp.RulesetID)
+	d.Set("ruleset_version", resp.RulesetVersion)
+
+	disabledRules := FlattenDisabledRules(resp.DisabledRules)
+	d.Set("disabled_rule", disabledRules)
+
+	generalSettings := FlattenGeneralSettings(resp.GeneralSettings)
+	d.Set("general_settings", generalSettings)
+
+	d.Set("policies", resp.Policies)
+
+	ruleTargetUpdates := FlattenRuleTargetUpdates(resp.RuleTargetUpdates)
+	d.Set("rule_target_update", ruleTargetUpdates)
+
 	return diags
 }
 
@@ -477,4 +548,63 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 	}
 
 	return &generalSettings, nil
+}
+
+// FlattenDisabledRules converts the Disabled Rules API Model into a format that Terraform can work with
+func FlattenDisabledRules(disabledRules []sdkwaf.DisabledRule) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, rule := range disabledRules {
+		m := make(map[string]interface{})
+		m["policy_id"] = rule.PolicyID
+		m["rule_id"] = rule.RuleID
+		flattened = append(flattened, m)
+	}
+	return flattened
+}
+
+// FlattenRuleTargetUpdates converts the Rule Target Update API Model into a format that Terraform can work with
+func FlattenRuleTargetUpdates(ruleTargetUpdate []sdkwaf.RuleTargetUpdate) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, rule := range ruleTargetUpdate {
+		m := make(map[string]interface{})
+		m["is_negated"] = rule.IsNegated
+		m["is_regex"] = rule.IsRegex
+		m["replace_target"] = rule.ReplaceTarget
+		m["rule_id"] = rule.RuleID
+		m["target"] = rule.Target
+		m["target_match"] = rule.TargetMatch
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+// FlattenGeneralSettings converts the General Settings API Model into a format that Terraform can work with
+func FlattenGeneralSettings(generalSettings sdkwaf.GeneralSettings) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+	m["anomaly_threshold"] = generalSettings.AnomalyThreshold
+	m["arg_length"] = generalSettings.ArgLength
+	m["arg_name_length"] = generalSettings.ArgNameLength
+	m["combined_file_sizes"] = generalSettings.CombinedFileSizes
+	m["ignore_cookie"] = generalSettings.IgnoreCookie
+	m["ignore_header"] = generalSettings.IgnoreHeader
+	m["ignore_query_args"] = generalSettings.IgnoreQueryArgs
+	m["json_parser"] = generalSettings.JsonParser
+	m["max_num_args"] = generalSettings.MaxNumArgs
+	m["paranoia_level"] = generalSettings.ParanoiaLevel
+	m["process_request_body"] = generalSettings.ProcessRequestBody
+	m["response_header_name"] = generalSettings.ResponseHeaderName
+	m["total_arg_length"] = generalSettings.TotalArgLength
+	m["validate_utf8_encoding"] = generalSettings.ValidateUtf8Encoding
+	m["xml_parser"] = generalSettings.XmlParser
+	flattened = append(flattened, m)
+
+	return flattened
 }
