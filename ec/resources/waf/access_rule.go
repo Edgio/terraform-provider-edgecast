@@ -427,7 +427,6 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 		}
 	}
 
-	helper.LogInstanceAsPrettyJsonToFile("[DEBUG] ACCESSRULE", accessRule, "access-rule.log")
 	helper.LogInstanceAsPrettyJson("[DEBUG] ACCESSRULE", accessRule)
 	config := m.(**api.ClientConfig)
 
