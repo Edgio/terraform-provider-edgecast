@@ -668,6 +668,29 @@ func ResourceAccessRuleUpdate(ctx context.Context, d *schema.ResourceData, m int
 
 func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+	accountNumber := d.Get("account_number").(string)
+	ruleID := d.Id()
+	log.Printf("[INFO] Deleting WAF Access Rule(ID:%s) for Account >> %s", ruleID, accountNumber)
+
+	config := m.(**api.ClientConfig)
+
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.DeleteAccessRuleByID(accountNumber, ruleID)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if !resp.Success || len(resp.Errors) > 0 {
+		return diag.FromErr(fmt.Errorf("Status Code:%s, Msg: %s", resp.Errors[0].Code, resp.Errors[0].Message))
+	}
+
+	d.SetId("")
+
 	return diags
 }
 
