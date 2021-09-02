@@ -6,7 +6,7 @@ import (
 	"terraform-provider-ec/ec/helper"
 	"testing"
 
-	sdkwaf "github.com/edgecast/ec-sdk-go/edgecast/waf"
+	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
 var (
