@@ -1,17 +1,17 @@
 ---
 layout: ""
-page_title: "Provider: Verizon Media Platform"
+page_title: "Provider: Edgecast Platform"
 description: |-
-  A Terraform provider for the Verizon Media Platform.
+  A Terraform provider for the Edgecast Platform.
 ---
 
-# Verizon Media Platform Provider
+# Edgecast Platform Provider
 
-A Terraform provider for the Verizon Media Platform. Follow the table of contents for resource documentation.
+A Terraform provider for the Edgecast Platform. Follow the table of contents for resource documentation.
 
 ## Security
 
-For those users who have been granted specific permission(s) by an account administrator to use the Verizon Media Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
+For those users who have been granted specific permission(s) by an account administrator to use the Edgecast Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
 
 ## Logging
 You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
@@ -42,22 +42,22 @@ provider "ec" {
 ### Optional
 
 - **account_number** (String) Account Number to use when only managing a single customer's resources. If managing multiple customers, this parameter should be omitted.
-- **api_address** (String) The base url of Verizon Media resource APIs. Omit to use the default url. For internal testing.
-- **api_address_legacy** (String) The base url of legacy Verizon Media resource APIs. Omit to use the default url. For internal testing.
+- **api_address** (String) The base url of Edgecast resource APIs. Omit to use the default url. For internal testing.
+- **api_address_legacy** (String) The base url of legacy Edgecast resource APIs. Omit to use the default url. For internal testing.
 - **api_token** (String) API Token for managing the following resources: Origin, CNAME, Customer, Customer User
-- **ids_address** (String) The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing.
+- **ids_address** (String) The base url of Edgecast identity APIs. Omit to use the default url. For internal testing.
 - **ids_client_id** (String) OAuth 2.0 Client ID for managing the following resources: Rules Engine Policy
 - **ids_client_secret** (String) OAuth 2.0 Client Secret for managing the following resources: Rules Engine Policy
 - **ids_scope** (String) OAuth 2.0 Scopes for managing the following resources: Rules Engine Policy
 - **partner_id** (Number) Partner ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored.
 - **partner_user_id** (Number) Partner User ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored.
 
-**Note for Verizon Media internal users:** `partner_id` and `partner_user_id` are required in addition to your credentials.
+**Note for Edgecast internal users:** `partner_id` and `partner_user_id` are required in addition to your credentials.
 
 ## Variable File Usage
 There are two ways to set your data. One is to set your configuration data directly in a `main.tf` file.
 For local testing, this works fine. **However, if you plant to use the provider for multiple environments, we recommend terraform.tfvars files.**
-The example variable file below contains variables that can be used for the Verizon Media Platform Terraform Provider.
+The example variable file below contains variables that can be used for the Edgecast Platform Terraform Provider.
 
 ```terraform
 partner_info = {

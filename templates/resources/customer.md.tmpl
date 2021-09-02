@@ -7,7 +7,7 @@ description: |-
 ---
 
 # ec_customer (Resource)
-Please use the Verizon Media API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
 A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage

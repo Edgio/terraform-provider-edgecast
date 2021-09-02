@@ -1,17 +1,17 @@
 ---
 layout: ""
-page_title: "Provider: Verizon Media Platform"
+page_title: "Provider: Edgecast Platform"
 description: |-
-  A Terraform provider for the Verizon Media Platform.
+  A Terraform provider for the Edgecast Platform.
 ---
 
-# Verizon Media Platform Provider
+# Edgecast Platform Provider
 
-A Terraform provider for the Verizon Media Platform. Follow the table of contents for resource documentation.
+A Terraform provider for the Edgecast Platform. Follow the table of contents for resource documentation.
 
 ## Security
 
-For those users who have been granted specific permission(s) by an account administrator to use the Verizon Media Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
+For those users who have been granted specific permission(s) by an account administrator to use the Edgecast Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
 
 ## Logging
 You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
@@ -28,12 +28,12 @@ export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 
 {{ .SchemaMarkdown | trimspace }}
 
-**Note for Verizon Media internal users:** `partner_id` and `partner_user_id` are required in addition to your credentials.
+**Note for Edgecast internal users:** `partner_id` and `partner_user_id` are required in addition to your credentials.
 
 ## Variable File Usage
 There are two ways to set your data. One is to set your configuration data directly in a `main.tf` file.
 For local testing, this works fine. **However, if you plant to use the provider for multiple environments, we recommend terraform.tfvars files.**
-The example variable file below contains variables that can be used for the Verizon Media Platform Terraform Provider.
+The example variable file below contains variables that can be used for the Edgecast Platform Terraform Provider.
 
 ```terraform
 partner_info = {

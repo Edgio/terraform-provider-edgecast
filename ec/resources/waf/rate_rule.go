@@ -1,4 +1,4 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 package waf
 
 import (
@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	sdkwaf "github.com/edgecast/ec-sdk-go/edgecast/waf"
 )
 
 func ResourceRateRule() *schema.Resource {
