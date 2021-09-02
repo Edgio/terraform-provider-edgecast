@@ -4,9 +4,9 @@ package waf
 import (
 	"terraform-provider-ec/ec/api"
 
-	"github.com/edgecast/ec-sdk-go/edgecast"
-	sdkauth "github.com/edgecast/ec-sdk-go/edgecast/auth"
-	sdkwaf "github.com/edgecast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast"
+	sdkauth "github.com/EdgeCast/ec-sdk-go/edgecast/auth"
+	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
 // buildWAFService builds the SDK WAF service to managed WAF resources

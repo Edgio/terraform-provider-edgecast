@@ -10,7 +10,7 @@ import (
 	"terraform-provider-ec/ec/api"
 	"terraform-provider-ec/ec/helper"
 
-	sdkwaf "github.com/edgecast/ec-sdk-go/edgecast/waf"
+	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

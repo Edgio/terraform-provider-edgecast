@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	sdkwaf "github.com/edgecast/ec-sdk-go/edgecast/waf"
+	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
 func ResourceRateRule() *schema.Resource {
