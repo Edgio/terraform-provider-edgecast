@@ -1,4 +1,4 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license. See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license. See LICENSE file in project root for terms.
 package ec
 
 import (
@@ -37,7 +37,7 @@ var (
 	}
 )
 
-// Provider creates a new instance of the Verizon Media Terraform Provider
+// Provider creates a new instance of the Edgecast Terraform Provider
 func Provider() *schema.Provider {
 
 	return &schema.Provider{
@@ -75,17 +75,17 @@ func Provider() *schema.Provider {
 			"api_address": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The base url of Verizon Media resource APIs. Omit to use the default url. For internal testing.",
+				Description: "The base url of Edgecast resource APIs. Omit to use the default url. For internal testing.",
 				Default:     apiURLProd},
 			"ids_address": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The base url of Verizon Media identity APIs. Omit to use the default url. For internal testing.",
+				Description: "The base url of Edgecast identity APIs. Omit to use the default url. For internal testing.",
 				Default:     idsURLProd},
 			"api_address_legacy": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The base url of legacy Verizon Media resource APIs. Omit to use the default url. For internal testing.",
+				Description: "The base url of legacy Edgecast resource APIs. Omit to use the default url. For internal testing.",
 				Default:     apiURLProdLegacy},
 		},
 		ResourcesMap: map[string]*schema.Resource{
