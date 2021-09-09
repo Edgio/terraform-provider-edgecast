@@ -108,7 +108,15 @@ resource "ec_waf_managed_rule" "managed_rule_1" {
 - **id** (String) The ID of this resource.
 - **name** (String) Indicates the name of the custom rule.
 - **policies** (List of String) Contains a list of policies that have been enabled on this managed rule.
-- **rule_target_update** (Block Set) This array identifies each rule that has been disabled using these properties (see [below for nested schema](#nestedblock--rule_target_update))
+- **rule_target_update** (Block Set) This array describes each target using these properties (see [below for nested schema](#nestedblock--rule_target_update))
+
+### Read-Only
+
+- **created_date** (String) Indicates the date and time at which the managed rule was created.
+- **customer_id** (String) Identifies your account by its customer account number.
+- **last_modified_by** (String) Reserved for future use.
+- **last_modified_date** (String) Indicates the date and time at which the managed rule was last modified.
+- **version** (String) Reserved for future use.
 
 <a id="nestedblock--general_settings"></a>
 ### Nested Schema for `general_settings`
