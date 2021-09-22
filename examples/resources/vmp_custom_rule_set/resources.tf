@@ -25,7 +25,7 @@ resource "vmp_waf_custom_rule" "custom_rule_1" {
               match {
                   is_negated = false
                   is_regex = false
-                  value = "customer-Agent"
+                  value = "User-Agent"
               }
               type = "REQUEST_HEADERS"
           }
@@ -36,7 +36,7 @@ resource "vmp_waf_custom_rule" "custom_rule_1" {
                 is_regex = false
                 value = "User-Agent"
               } 
-              type = "RESPONSE_HEADERS"
+              type = "REQUEST_URI"
           }
           chained_rule {
                 action {
@@ -59,7 +59,7 @@ resource "vmp_waf_custom_rule" "custom_rule_1" {
                 match {
                     is_negated = false
                     is_regex = false
-                    value = "customer-Agent"
+                    value = "User-Agent"
                 }
                 type = "REQUEST_HEADERS"
             }
