@@ -1,4 +1,4 @@
-resource "vmp_waf_custom_rule" "custom_rule_1" {
+resource "ec_waf_custom_rule" "custom_rule_1" {
   account_number = "ca5db"
   name           = "Custom Rule 1"
   
@@ -38,32 +38,7 @@ resource "vmp_waf_custom_rule" "custom_rule_1" {
               } 
               type = "REQUEST_URI"
           }
-          chained_rule {
-                action {
-                id = 66000001 
-                msg = "Invalid user agent - chained."
-                t = ["NONE"]
-            }
-            operator {
-                is_negated = false
-                type = "CONTAINS"
-                value = "bot"
-            }
-            variable {
-                is_count = false
-                match {
-                    is_negated = false
-                    is_regex = false
-                    value = "User-Agent"
-                } 
-                match {
-                    is_negated = false
-                    is_regex = false
-                    value = "User-Agent"
-                }
-                type = "REQUEST_HEADERS"
-            }
-          }
+          
         }
     }
 }

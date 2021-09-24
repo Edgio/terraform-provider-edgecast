@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    vmp = {
-      version = "0.4.0"
-      source  = "github.com/terraform-providers/vmp"
+    ec = {
+      version = "0.4.2"
+      source  = "github.com/terraform-providers/ec"
     }
   }
 }
@@ -25,7 +25,7 @@ variable "credentials" {
 ##########################################
 # Providers
 ##########################################
-provider "vmp" {
+provider "ec" {
   api_token          = var.credentials.api_token
   ids_client_secret  = var.credentials.ids_client_secret
   ids_client_id      = var.credentials.ids_client_id
