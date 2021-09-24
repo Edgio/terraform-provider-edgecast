@@ -1,9 +1,9 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 package test
 
 import (
-	"terraform-provider-vmp/unit-tests/helper"
-	"terraform-provider-vmp/unit-tests/model"
+	"terraform-provider-ec/unit-tests/helper"
+	"terraform-provider-ec/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -21,7 +21,7 @@ func TestUT_AccessRule_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../../examples/resources/vmp_waf_access_rule",
+			TerraformDir: "../../examples/resources/ec_waf_access_rule",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":          input.ApiToken,
@@ -55,7 +55,7 @@ func getTestCases() (*map[string]model.Credentials, error) {
 		return nil, err
 	}
 
-	tc["terratest.testing.vmp.acl1"] = credential
+	tc["terratest.testing.ec.acl1"] = credential
 
 	return &tc, nil
 }

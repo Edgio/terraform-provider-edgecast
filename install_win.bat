@@ -1,4 +1,4 @@
-:: Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+:: Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
 :: This script is intended for windows environments, for Unix-like systems use the Makefile
 
@@ -6,7 +6,7 @@
 
 set HOSTNAME=github.com
 set NAMESPACE=terraform-providers
-set NAME=vmp
+set NAME=ec
 set BINARY=terraform-provider-%NAME%.exe
 set VERSION=0.3.0
 set OS_ARCH=windows_amd64

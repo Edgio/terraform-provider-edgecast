@@ -1,11 +1,11 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 package test
 
 import (
 	"fmt"
 	"strconv"
 	"strings"
-	"terraform-provider-vmp/unit-tests/model"
+	"terraform-provider-ec/unit-tests/model"
 	"testing"
 
 	"github.com/google/uuid"
@@ -14,7 +14,7 @@ import (
 
 // Test cases for storage account name conversion logic
 var tsRulesEngine = map[string]model.ResourceREV4{
-	"terratest.testing.vmp.rulesengine": {
+	"terratest.testing.ec.rulesengine": {
 		Policy: `
 		        {
 		            "name": "test policy-$UUID$",
@@ -41,12 +41,13 @@ var tsRulesEngine = map[string]model.ResourceREV4{
                 `,
 		RulesEngineEnvironment: "staging",
 		Credentials: model.Credentials{
-			ApiToken:        "<apitoken>",
-			IdsClientSecret: "<idsclientsecret>",
-			IdsClientID:     "<idssclientID>",
-			IdsScope:        "<scope>",
-			ApiAddress:      "<apiUrl>",
-			IdsAddress:      "<idsaddress>",
+			ApiToken:         "<apitoken>",
+			IdsClientSecret:  "<idsclientsecret>",
+			IdsClientID:      "<idssclientID>",
+			IdsScope:         "<scope>",
+			ApiAddress:       "<apiUrl>",
+			IdsAddress:       "<idsaddress>",
+			ApiAddressLegacy: "<apiaddresslegacy>",
 		},
 		TestCustomerInfo: model.CustomerInfo{
 			AccountNumber:  "C1B6",
@@ -62,7 +63,7 @@ func TestUT_RulesEngine_basic(t *testing.T) {
 	for expected, input := range tsRulesEngine {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/vmp_rules_engine_policy",
+			TerraformDir: "../examples/resources/ec_rules_engine_policy",
 			Vars: map[string]interface{}{
 				"policy": strings.Replace(input.Policy, "$UUID$", uuid.New().String(), -1),
 				"test_customer_info": map[string]interface{}{
@@ -71,12 +72,13 @@ func TestUT_RulesEngine_basic(t *testing.T) {
 					"portaltypeid":   input.TestCustomerInfo.PortalTypeID,
 				},
 				"credentials": map[string]interface{}{
-					"api_token":         input.Credentials.ApiToken,
-					"ids_client_secret": input.Credentials.IdsClientSecret,
-					"ids_client_id":     input.Credentials.IdsClientID,
-					"ids_scope":         input.Credentials.IdsScope,
-					"api_address":       input.Credentials.ApiAddress,
-					"ids_address":       input.Credentials.IdsAddress,
+					"api_token":          input.Credentials.ApiToken,
+					"ids_client_secret":  input.Credentials.IdsClientSecret,
+					"ids_client_id":      input.Credentials.IdsClientID,
+					"ids_scope":          input.Credentials.IdsScope,
+					"api_address":        input.Credentials.ApiAddress,
+					"ids_address":        input.Credentials.IdsAddress,
+					"api_address_legacy": input.Credentials.ApiAddressLegacy,
 				},
 				"rulesEngineEnvironment": input.RulesEngineEnvironment,
 			},

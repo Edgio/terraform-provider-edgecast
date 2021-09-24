@@ -1,0 +1,63 @@
+# Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+terraform {
+  required_providers {
+    ec = {
+      version = "0.4.2"
+      source  = "EdgeCast/ec"
+    }
+  }
+}
+##########################################
+# Variables
+##########################################
+variable "credentials" {
+  type = object ({
+    api_token = string
+    ids_client_secret = string
+    ids_client_id = string
+    ids_scope = string
+    api_address = string
+    api_address_legacy = string
+    ids_address = string
+  })
+}
+variable "new_customer_info" {
+  type = object({
+    company_name = string
+    service_level_code = string
+    services = list(number)
+    access_modules = list(number)
+    delivery_region = number
+  })
+  default = {
+    company_name = "new customer1"
+    service_level_code = "STND"
+    services = []
+    access_modules = []
+    delivery_region = 1
+  }
+}
+
+##########################################
+# Providers
+##########################################
+provider "ec" {
+    api_token = var.credentials.api_token
+    ids_client_secret = var.credentials.ids_client_secret
+    ids_client_id = var.credentials.ids_client_id
+    ids_scope = var.credentials.ids_scope
+    api_address = var.credentials.api_address
+    api_address_legacy = var.credentials.api_address_legacy
+    ids_address = var.credentials.ids_address
+}
+
+##########################################
+# Resources
+##########################################
+resource "ec_customer" "test_customer" {
+  company_name = var.new_customer_info.company_name
+  service_level_code = var.new_customer_info.service_level_code
+  services = var.new_customer_info.services
+  delivery_region =  var.new_customer_info.delivery_region
+  access_modules = var.new_customer_info.access_modules
+}

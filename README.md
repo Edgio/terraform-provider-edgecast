@@ -1,5 +1,5 @@
-# Verizon Media Terraform Provider
-A Terraform provider for the Verizon Media Platform.
+# Edgecast Terraform Provider
+A Terraform provider for the Edgecast Platform.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ A Terraform provider for the Verizon Media Platform.
 Terraform is a tool for developing, changing and versioning infrastructure safely and efficiently. One important reason people consider Terraform is to manage their infrastructure as code. With Terraform, you can store and version your configuration in GitHub (or your source code control system of choice). Once you learn Terraform's configuration syntax, you don't need to bother learning how to use providers' UIs or APIs—you just tell Terraform what you want and it figures out the rest.
 
 ## Install
-This provider is automatically installed when you run `terraform init` on a Terraform configuration that contains a reference to the Verizon Media provider.
+This provider is automatically installed when you run `terraform init` on a Terraform configuration that contains a reference to the Edgecast provider.
 
 ## Development
 ### Requirements
@@ -37,19 +37,19 @@ export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 ```
 
 ## Usage
-The detailed documentation for the provider and specific resources can be found on the [Terraform provider registry](https://registry.terraform.io/providers/VerizonDigital/vmp/latest/docs).
+The detailed documentation for the provider and specific resources can be found on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/ec/latest/docs).
 
 ## Security
 
-For those users who have been granted specific permission(s) by an account administrator to use the Verizon Media Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
+For those users who have been granted specific permission(s) by an account administrator to use the Edgecast Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
 
 ## Contribute
 
 Please refer to [the contributing.md file](Contributing.md) for information about how to get involved. We welcome issues, questions, and pull requests.
 
 ## Maintainers
-- Changgyu Oh: changgyu.oh@verizonmedia.com
-- Steven Paz: steven.paz@verizonmedia.com
+- Changgyu Oh: changgyu.oh@edgecast.com
+- Steven Paz: steven.paz@edgecast.com
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](LICENSE) open source license.
