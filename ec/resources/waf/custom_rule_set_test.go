@@ -168,11 +168,18 @@ func TestExpandDirectives(t *testing.T) {
 				expected := *v.expectedPtr
 
 				if !reflect.DeepEqual(expected, actual) {
-					t.Fatalf("%s: Expected %+v but got %+v", v.name, expected, actual)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						v.name,
+						expected,
+						actual,
+					)
 				}
 
 			} else {
-				t.Fatalf("%s: Encountered error where one was not expected: %+v", v.name, err)
+				t.Fatalf("%s: Encountered error where one was not expected: %+v",
+					v.name,
+					err,
+				)
 			}
 		} else {
 			if err == nil {
@@ -330,11 +337,18 @@ func TestExpandChainedRules(t *testing.T) {
 				expected := *v.expectedPtr
 
 				if !reflect.DeepEqual(expected, actual) {
-					t.Fatalf("%s: Expected %+v but got %+v", v.name, expected, actual)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						v.name,
+						expected,
+						actual,
+					)
 				}
 
 			} else {
-				t.Fatalf("%s: Encountered error where one was not expected: %+v", v.name, err)
+				t.Fatalf("%s: Encountered error where one was not expected: %+v",
+					v.name,
+					err,
+				)
 			}
 		} else {
 			if err == nil {
