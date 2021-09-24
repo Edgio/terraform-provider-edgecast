@@ -89,9 +89,9 @@ func TestExpandDirectives(t *testing.T) {
 					SecRule: sdkwaf.SecRule{
 						Name: "REQUEST_HEADERS",
 						Action: sdkwaf.Action{
-							ID:  "66000000",
-							MSG: "Invalid user agent.",
-							T:   []string{"NONE"},
+							ID:              "66000000",
+							Message:         "Invalid user agent.",
+							Transformations: []string{"NONE"},
 						},
 						Operator: sdkwaf.Operator{
 							IsNegated: false,
@@ -114,9 +114,9 @@ func TestExpandDirectives(t *testing.T) {
 						ChainedRules: []sdkwaf.ChainedRule{
 							{
 								Action: sdkwaf.Action{
-									ID:  "66000001",
-									MSG: "Invalid user agent - chained.",
-									T:   []string{"NONE"},
+									ID:              "66000001",
+									Message:         "Invalid user agent - chained.",
+									Transformations: []string{"NONE"},
 								},
 								Operator: sdkwaf.Operator{
 									IsNegated: false,
@@ -254,9 +254,9 @@ func TestExpandChainedRules(t *testing.T) {
 			expectedPtr: &[]sdkwaf.ChainedRule{
 				{
 					Action: sdkwaf.Action{
-						ID:  "66000001",
-						MSG: "Invalid user agent - chainedRule 1.",
-						T:   []string{"NONE"},
+						ID:              "66000001",
+						Message:         "Invalid user agent - chainedRule 1.",
+						Transformations: []string{"NONE"},
 					},
 					Operator: sdkwaf.Operator{
 						IsNegated: false,
@@ -279,9 +279,9 @@ func TestExpandChainedRules(t *testing.T) {
 				},
 				{
 					Action: sdkwaf.Action{
-						ID:  "66000002",
-						MSG: "Invalid user agent - chainedRule 2.",
-						T:   []string{"NONE"},
+						ID:              "66000002",
+						Message:         "Invalid user agent - chainedRule 2.",
+						Transformations: []string{"NONE"},
 					},
 					Operator: sdkwaf.Operator{
 						IsNegated: false,

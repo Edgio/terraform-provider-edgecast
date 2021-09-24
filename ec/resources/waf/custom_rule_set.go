@@ -367,7 +367,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
 
-	customRuleSet := sdkwaf.CustomRule{
+	customRuleSet := sdkwaf.CustomRuleSetDetail{
 		Name: d.Get("name").(string),
 	}
 
@@ -496,11 +496,13 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 	}
 
 	if actionMsg, ok := actionMap["msg"]; ok {
-		secRule.Action.MSG = actionMsg.(string)
+		secRule.Action.Message = actionMsg.(string)
 	}
 
 	if actionT, ok := actionMap["t"]; ok {
-		secRule.Action.T = helper.ConvertInterfaceToStringArray(actionT)
+		if arr, ok := helper.ConvertInterfaceToStringArray(actionT); ok {
+			secRule.Action.Transformations = *arr
+		}
 	}
 
 	if v, ok := operatorMap["is_negated"]; ok {
@@ -549,11 +551,13 @@ func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 			}
 
 			if actionMsg, ok := actionMap["msg"]; ok {
-				chainedRule.Action.MSG = actionMsg.(string)
+				chainedRule.Action.Message = actionMsg.(string)
 			}
 
 			if actionT, ok := actionMap["t"]; ok {
-				chainedRule.Action.T = helper.ConvertInterfaceToStringArray(actionT)
+				if arr, ok := helper.ConvertInterfaceToStringArray(actionT); ok {
+					chainedRule.Action.Transformations = *arr
+				}
 			}
 
 			if v, ok := operatorMap["is_negated"]; ok {

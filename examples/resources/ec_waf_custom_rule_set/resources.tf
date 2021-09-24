@@ -1,4 +1,5 @@
-resource "ec_waf_custom_rule" "custom_rule_1" {
+
+resource "ec_waf_custom_rule_set" "custom_rule_1" {
   account_number = "ca5db"
   name           = "Custom Rule 1"
   
