@@ -28,7 +28,7 @@ func ResourceCustomRuleSet() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:        schema.TypeString,
-				Optional:    true,
+				Required:    true,
 				Description: "Identifies your account by its customer account number.",
 			},
 			"name": {

@@ -17,12 +17,12 @@ description: |-
 
 ### Required
 
+- **account_number** (String) Identifies your account by its customer account number.
 - **directive** (Block Set, Min: 1) Contains custom rules. Each directive object defines a custom rule via the sec_rule object \
     Note: You may create up to 10 custom rules. (see [below for nested schema](#nestedblock--directive))
 
 ### Optional
 
-- **account_number** (String) Identifies your account by its customer account number.
 - **id** (String) The ID of this resource.
 - **name** (String) Indicates the name of the custom rule.
 
@@ -59,7 +59,7 @@ Optional:
 - **msg** (String) Determines the rule message that will be assigned to this custom rule. This message is exposed via the Threats Dashboard. \
     *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \
     Default Value: Blank
-- **t** (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \
+- **transformations** (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \
 Valid Values are: \
 *NONE*: Indicates that the source value should not be modified. \
 *LOWERCASE*: Indicates that the source value should be converted to lowercase characters. \
@@ -157,7 +157,7 @@ Optional:
 - **msg** (String) Determines the rule message that will be assigned to this custom rule. This message is exposed via the Threats Dashboard. \
     *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \
     Default Value: Blank
-- **t** (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \
+- **transformations** (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \
 Valid Values are: \
 *NONE*: Indicates that the source value should not be modified. \
 *LOWERCASE*: Indicates that the source value should be converted to lowercase characters. \
