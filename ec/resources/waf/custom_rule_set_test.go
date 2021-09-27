@@ -24,9 +24,9 @@ func TestExpandDirectives(t *testing.T) {
 							"name": "REQUEST_HEADERS",
 							"action": helper.NewTerraformSet([]interface{}{
 								map[string]interface{}{
-									"id":  "66000000",
-									"msg": "Invalid user agent.",
-									"t":   []interface{}{"NONE"},
+									"id":              "66000000",
+									"msg":             "Invalid user agent.",
+									"transformations": []interface{}{"NONE"},
 								},
 							}),
 							"operator": helper.NewTerraformSet([]interface{}{
@@ -53,9 +53,9 @@ func TestExpandDirectives(t *testing.T) {
 								map[string]interface{}{
 									"action": helper.NewTerraformSet([]interface{}{
 										map[string]interface{}{
-											"id":  "66000001",
-											"msg": "Invalid user agent - chained.",
-											"t":   []interface{}{"NONE"},
+											"id":              "66000001",
+											"msg":             "Invalid user agent - chained.",
+											"transformations": []interface{}{"NONE"},
 										},
 									}),
 									"operator": helper.NewTerraformSet([]interface{}{
@@ -202,9 +202,9 @@ func TestExpandChainedRules(t *testing.T) {
 				map[string]interface{}{
 					"action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"id":  "66000001",
-							"msg": "Invalid user agent - chainedRule 1.",
-							"t":   []interface{}{"NONE"},
+							"id":              "66000001",
+							"msg":             "Invalid user agent - chainedRule 1.",
+							"transformations": []interface{}{"NONE"},
 						},
 					}),
 					"operator": helper.NewTerraformSet([]interface{}{
@@ -231,9 +231,9 @@ func TestExpandChainedRules(t *testing.T) {
 				map[string]interface{}{
 					"action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"id":  "66000002",
-							"msg": "Invalid user agent - chainedRule 2.",
-							"t":   []interface{}{"NONE"},
+							"id":              "66000002",
+							"msg":             "Invalid user agent - chainedRule 2.",
+							"transformations": []interface{}{"NONE"},
 						},
 					}),
 					"operator": helper.NewTerraformSet([]interface{}{

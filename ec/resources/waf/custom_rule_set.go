@@ -69,7 +69,7 @@ func ResourceCustomRuleSet() *schema.Resource {
 														"    *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \\\n" +
 														"    Default Value: Blank",
 												},
-												"t": {
+												"transformations": {
 													Type:     schema.TypeList,
 													Optional: true,
 													Description: "Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \\\n" +
@@ -113,7 +113,7 @@ func ResourceCustomRuleSet() *schema.Resource {
 																	"    *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \\\n" +
 																	"    Default Value: Blank",
 															},
-															"t": {
+															"transformations": {
 																Type:     schema.TypeList,
 																Optional: true,
 																Description: "Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \\\n" +
@@ -499,7 +499,7 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 		secRule.Action.Message = actionMsg.(string)
 	}
 
-	if actionT, ok := actionMap["t"]; ok {
+	if actionT, ok := actionMap["transformations"]; ok {
 		if arr, ok := helper.ConvertInterfaceToStringArray(actionT); ok {
 			secRule.Action.Transformations = *arr
 		}
@@ -554,7 +554,7 @@ func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 				chainedRule.Action.Message = actionMsg.(string)
 			}
 
-			if actionT, ok := actionMap["t"]; ok {
+			if actionT, ok := actionMap["transformations"]; ok {
 				if arr, ok := helper.ConvertInterfaceToStringArray(actionT); ok {
 					chainedRule.Action.Transformations = *arr
 				}

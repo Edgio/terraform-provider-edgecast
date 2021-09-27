@@ -9,7 +9,7 @@ directive {
           action {
               id = 66000000 
               msg = "Invalid user agent."
-              t = ["NONE"]
+              transformations = ["NONE"]
           }
           operator {
               is_negated = false
@@ -43,7 +43,7 @@ directive {
                 action {
                 id = 66000001 
                 msg = "Invalid user agent - chained."
-                t = ["NONE"]
+                transformations = ["NONE"]
             }
             operator {
                 is_negated = false
