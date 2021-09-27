@@ -102,6 +102,7 @@ func Provider() *schema.Provider {
 			"ec_waf_access_rule":        waf.ResourceAccessRule(),
 			"ec_waf_rate_rule":          waf.ResourceRateRule(),
 			"ec_waf_managed_rule":       waf.ResourceManagedRule(),
+			"ec_waf_custom_rule_set":    waf.ResourceCustomRuleSet(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_customer_services": customer.DataSourceCustomerServices(),
