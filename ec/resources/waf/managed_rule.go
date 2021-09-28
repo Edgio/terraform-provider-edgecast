@@ -1,4 +1,4 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
 package waf
 
@@ -264,7 +264,6 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	managedRuleRequest.RuleTargetUpdates = *ruleTargetUpdates
 
 	// General Settings
-
 	if v, ok := d.GetOk("general_settings"); ok {
 		if generalSettings, err := ExpandGeneralSettings(v); err == nil {
 			managedRuleRequest.GeneralSettings = *generalSettings
@@ -364,11 +363,115 @@ func ResourceManagedRuleRead(ctx context.Context, d *schema.ResourceData, m inte
 
 func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	return diags
+
+	accountNumber := d.Get("account_number").(string)
+	managedRuleID := d.Id()
+
+	log.Printf("[INFO] Updating WAF Managed Rule ID %s for Account >> %s", managedRuleID, accountNumber)
+
+	managedRuleRequest := sdkwaf.UpdateManagedRuleRequest{}
+
+	managedRuleRequest.Name = d.Get("name").(string)
+	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
+	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
+
+	if policies, ok := helper.ConvertInterfaceToStringArray(d.Get("policies")); ok {
+		managedRuleRequest.Policies = *policies
+	} else {
+		return diag.Errorf("Error reading 'policies''")
+	}
+
+	// Disabled Rules
+	disabledRules, err := ExpandDisabledRules(d.Get("disabled_rule"))
+
+	if err != nil {
+		return diag.Errorf("error parsing disabled_rule: %+v", err)
+	}
+
+	managedRuleRequest.DisabledRules = *disabledRules
+
+	// Rule Target Updates
+	ruleTargetUpdates, err := ExpandRuleTargetUpdates(d.Get("rule_target_update"))
+
+	if err != nil {
+		return diag.Errorf("error parsing rule_target_update: %+v", err)
+	}
+
+	managedRuleRequest.RuleTargetUpdates = *ruleTargetUpdates
+
+	// General Settings
+	if v, ok := d.GetOk("general_settings"); ok {
+		if generalSettings, err := ExpandGeneralSettings(v); err == nil {
+			managedRuleRequest.GeneralSettings = *generalSettings
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading General Settings",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	log.Printf("[DEBUG] Name: %+v\n", managedRuleRequest.Name)
+	log.Printf("[DEBUG] RulesetID: %+v\n", managedRuleRequest.RulesetID)
+	log.Printf("[DEBUG] Ruleset Version: %+v\n", managedRuleRequest.RulesetVersion)
+	log.Printf("[DEBUG] Disabled Rules: %+v\n", managedRuleRequest.DisabledRules)
+	log.Printf("[DEBUG] General Settings: %+v\n", managedRuleRequest.GeneralSettings)
+	log.Printf("[DEBUG] Policies: %+v\n", managedRuleRequest.Policies)
+	log.Printf("[DEBUG] Rule Target Updates: %+v\n", managedRuleRequest.RuleTargetUpdates)
+
+	if diags.HasError() {
+		return diags
+	}
+
+	config := m.(**api.ClientConfig)
+
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.UpdateManagedRule(accountNumber, managedRuleID, managedRuleRequest)
+
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully updated WAF Managed Rule: %+v", resp)
+
+	d.SetId(resp.ID)
+
+	return ResourceManagedRuleRead(ctx, d, m)
 }
 
 func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
+
+	accountNumber := d.Get("account_number").(string)
+	managedRuleID := d.Id()
+
+	log.Printf("[INFO] Deleting WAF Managed Rule ID %s for Account >> %s", managedRuleID, accountNumber)
+
+	config := m.(**api.ClientConfig)
+
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.DeleteManagedRule(accountNumber, managedRuleID)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully deleted WAF Managed Rule: %+v", resp)
+
+	d.SetId("")
+
 	return diags
 }
 

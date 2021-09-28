@@ -1,4 +1,4 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
 package api
 
@@ -27,7 +27,7 @@ var (
 	idsToken *IDSToken
 )
 
-// IDSToken holds the OAuth 2.0 token for calling Verizon Media APIs
+// IDSToken holds the OAuth 2.0 token for calling Edgecast APIs
 type IDSToken struct {
 	AccessToken    string
 	ExpirationTime time.Time
@@ -134,7 +134,7 @@ func newClient(config *ClientConfig, isLegacy bool) *BaseClient {
 	}
 }
 
-// BuildRequest creates a new Request for a Verizon Media API, adding appropriate headers
+// BuildRequest creates a new Request for a Edgecast API, adding appropriate headers
 func (BaseClient *BaseClient) BuildRequest(method, path string, body interface{}, isUsingIdsToken bool) (*retryablehttp.Request, error) {
 	relativeURL, err := url.Parse(path)
 

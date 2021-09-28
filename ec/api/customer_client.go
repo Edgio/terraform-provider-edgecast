@@ -1,4 +1,4 @@
-// Copyright Verizon Media, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
 
 package api
 
@@ -6,7 +6,7 @@ import (
 	"fmt"
 )
 
-// CustomerAPIClient interacts with the Verizon Media API
+// CustomerAPIClient interacts with the Edgecast API
 type CustomerAPIClient struct {
 	Config        *ClientConfig
 	BaseAPIClient *BaseClient
