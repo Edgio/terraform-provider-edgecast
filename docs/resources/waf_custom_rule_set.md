@@ -17,14 +17,18 @@ description: |-
 
 ### Required
 
-- **account_number** (String) Identifies your account by its customer account number.
+- **customer_id** (String) Identifies your account by its customer account number.
 - **directive** (Block Set, Min: 1) Contains custom rules. Each directive object defines a custom rule via the sec_rule object \
     Note: You may create up to 10 custom rules. (see [below for nested schema](#nestedblock--directive))
 
 ### Optional
 
-- **id** (String) The ID of this resource.
 - **name** (String) Indicates the name of the custom rule.
+
+### Read-Only
+
+- **id** (String) Indicates the system-defined ID for the custom rule set.
+- **last_modified_date** (String) Indicates the date and time at which the custom rule was last modified.
 
 <a id="nestedblock--directive"></a>
 ### Nested Schema for `directive`

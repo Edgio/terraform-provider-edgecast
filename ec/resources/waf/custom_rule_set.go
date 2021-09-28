@@ -26,10 +26,20 @@ func ResourceCustomRuleSet() *schema.Resource {
 		DeleteContext: ResourceCustomRuleSetDelete,
 
 		Schema: map[string]*schema.Schema{
-			"account_number": {
+			"customer_id": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Identifies your account by its customer account number.",
+			},
+			"id": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Indicates the system-defined ID for the custom rule set.",
+			},
+			"last_modified_date": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Indicates the date and time at which the custom rule was last modified.",
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -353,8 +363,6 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	var diags diag.Diagnostics
-
 	config := m.(**api.ClientConfig)
 
 	wafService, err := buildWAFService(**config)
@@ -363,7 +371,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	accountNumber := d.Get("account_number").(string)
+	accountNumber := d.Get("customer_id").(string)
 
 	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
 
@@ -382,7 +390,6 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 	log.Printf("[DEBUG] Directive(s): %+v\n", customRuleSet.Directives)
 
 	resp, err := wafService.AddCustomRuleSet(customRuleSet, accountNumber)
-
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -392,7 +399,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	d.SetId(resp.ID)
 
-	return diags
+	return ResourceCustomRuleSetRead(ctx, d, m)
 }
 
 func ResourceCustomRuleSetRead(ctx context.Context,
@@ -401,6 +408,39 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 ) diag.Diagnostics {
 
 	var diags diag.Diagnostics
+
+	config := m.(**api.ClientConfig)
+	accountNumber := d.Get("customer_id").(string)
+	ruleID := d.Id()
+
+	log.Printf("[INFO] Retrieving custom rule %s for account number %s",
+		ruleID,
+		accountNumber,
+	)
+
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.GetCustomRuleSet(accountNumber, ruleID)
+
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully retrieved rate rule %s: %+v", ruleID, resp)
+
+	d.SetId(resp.ID)
+	d.Set("customer_id", accountNumber)
+	d.Set("last_modified_date", resp.LastModifiedDate)
+	d.Set("name", resp.Name)
+
+	flattenDirectiveGroups := FlattenDirectives(resp.Directives)
+
+	d.Set("directive", flattenDirectiveGroups)
 	return diags
 }
 
@@ -636,4 +676,117 @@ func ExpandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
 		return nil,
 			errors.New("ExpandMatches: attr input was not a []interface{}")
 	}
+}
+
+// FlattenDirectives converts the ConditionGroup API Model
+// into a format that Terraform can work with
+func FlattenDirectives(directive []sdkwaf.Directive) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, cg := range directive {
+		m := make(map[string]interface{})
+
+		m["sec_rule"] = FlattenSecRule(cg.SecRule)
+
+		flattened = append(flattened, m)
+	}
+	return flattened
+}
+
+// FlattenSecRule converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+	m := make(map[string]interface{})
+
+	m["action"] = FlattenAction(secrule.Action)
+	m["chained_rule"] = FlattenChainedrule(secrule.ChainedRules)
+	m["operator"] = FlattenOperator(secrule.Operator)
+	m["variable"] = FlattenVariable(secrule.Variables)
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+// FlattenAction converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenAction(action sdkwaf.Action) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+	m := make(map[string]interface{})
+
+	m["id"] = action.ID
+	m["msg"] = action.Message
+	m["transformations"] = action.Transformations
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+// FlattenChainrule converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenChainedrule(chain []sdkwaf.ChainedRule) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, cg := range chain {
+		m := make(map[string]interface{})
+
+		m["action"] = FlattenAction(cg.Action)
+		m["operator"] = FlattenOperator(cg.Operator)
+		m["variable"] = FlattenVariable(cg.Variables)
+		flattened = append(flattened, m)
+	}
+	return flattened
+}
+
+// FlattenAction converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenOperator(operator sdkwaf.Operator) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+	m := make(map[string]interface{})
+
+	m["is_negated"] = operator.IsNegated
+	m["type"] = operator.Type
+	m["value"] = operator.Value
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+// FlattenVariable converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenVariable(val []sdkwaf.Variable) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+	for _, cg := range val {
+		m := make(map[string]interface{})
+
+		m["type"] = cg.Type
+		m["match"] = FlattenMatch(cg.Matches)
+		m["is_count"] = cg.IsCount
+
+		flattened = append(flattened, m)
+	}
+	return flattened
+}
+
+// FlattenMatch converts the Condition API Model
+// into a format that Terraform can work with
+func FlattenMatch(match []sdkwaf.Match) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+	for _, cg := range match {
+		m := make(map[string]interface{})
+
+		m["is_negated"] = cg.IsNegated
+		m["is_regex"] = cg.IsRegex
+		m["value"] = cg.Value
+
+		flattened = append(flattened, m)
+	}
+	return flattened
 }
