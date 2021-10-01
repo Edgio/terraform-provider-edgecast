@@ -1,7 +1,7 @@
 
 resource "ec_waf_custom_rule_set" "custom_rule_1" {
-  account_number = "<account_number>"
-  name           = "Custom Rule 1"
+  customer_id = "<customer_id>"
+  name        = "Custom Rule 1"
   
 directive {
       sec_rule {
