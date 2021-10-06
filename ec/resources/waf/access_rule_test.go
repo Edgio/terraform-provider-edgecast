@@ -7,7 +7,7 @@ import (
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
-func TestConvertInterfaceToAccessControls(t *testing.T) {
+func TestExpandAccessControls(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
@@ -60,7 +60,7 @@ func TestConvertInterfaceToAccessControls(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual, err := ConvertInterfaceToAccessControls(v.input)
+		actual, err := ExpandAccessControls(v.input)
 
 		if v.expectSuccess {
 			if err == nil {

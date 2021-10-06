@@ -239,10 +239,10 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
 	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
 
-	if policies, ok := helper.ConvertInterfaceToStringArray(d.Get("policies")); ok {
-		managedRuleRequest.Policies = *policies
+	if policies, ok := helper.ExpandTerraformStrings(d.Get("policies")); ok {
+		managedRuleRequest.Policies = policies
 	} else {
-		return diag.Errorf("Error reading 'policies''")
+		return diag.Errorf("Error reading 'policies'")
 	}
 
 	// Disabled Rules
@@ -375,10 +375,10 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
 	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
 
-	if policies, ok := helper.ConvertInterfaceToStringArray(d.Get("policies")); ok {
-		managedRuleRequest.Policies = *policies
+	if policies, ok := helper.ExpandTerraformStrings(d.Get("policies")); ok {
+		managedRuleRequest.Policies = policies
 	} else {
-		return diag.Errorf("Error reading 'policies''")
+		return diag.Errorf("Error reading 'policies'")
 	}
 
 	// Disabled Rules
@@ -531,15 +531,12 @@ func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdate, erro
 	}
 }
 
-// Processes all General Settings values from a Terraform configuration file into the General Settings API Model
+// ExpandGeneralSettings converts the values read from a Terraform
+// configuration file into the General Settings API Model
 func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
-	if attr == nil {
-		return nil, fmt.Errorf("attr was nil")
-	}
-
 	// The values are stored as a map in a 1-item set
 	// So pull it out so we can work with it
-	entryMap, err := helper.GetMapFromSet(attr)
+	m, err := helper.ExpandSingletonSet(attr)
 
 	if err != nil {
 		return nil, err
@@ -547,107 +544,139 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 
 	generalSettings := sdkwaf.GeneralSettings{}
 
-	if anomalyThreshold, ok := entryMap["anomaly_threshold"].(int); ok {
+	if anomalyThreshold, ok := m["anomaly_threshold"].(int); ok {
 		generalSettings.AnomalyThreshold = anomalyThreshold
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["anomaly_threshold"], entryMap["anomaly_threshold"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["anomaly_threshold"],
+			m["anomaly_threshold"])
 	}
 
-	if argLength, ok := entryMap["arg_length"].(int); ok {
+	if argLength, ok := m["arg_length"].(int); ok {
 		generalSettings.ArgLength = argLength
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["arg_length"], entryMap["arg_length"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["arg_length"],
+			m["arg_length"])
 	}
 
-	if argNameLength, ok := entryMap["arg_name_length"].(int); ok {
+	if argNameLength, ok := m["arg_name_length"].(int); ok {
 		generalSettings.ArgNameLength = argNameLength
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["arg_name_length"], entryMap["arg_name_length"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["arg_name_length"],
+			m["arg_name_length"])
 	}
 
-	if combinedFileSizes, ok := entryMap["combined_file_sizes"].(int); ok {
+	if combinedFileSizes, ok := m["combined_file_sizes"].(int); ok {
 		generalSettings.CombinedFileSizes = combinedFileSizes
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["combined_file_sizes"], entryMap["combined_file_sizes"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["combined_file_sizes"],
+			m["combined_file_sizes"])
 	}
 
-	if ignoreCookieInterface, ok := entryMap["ignore_cookie"].([]interface{}); ok {
-		if ignoreCookie, ok := helper.ConvertInterfaceArrayToStringArray(ignoreCookieInterface); ok {
-			generalSettings.IgnoreCookie = ignoreCookie
-		} else {
-			return nil, fmt.Errorf("%v was not successfully converted to []string{}, type: %T", entryMap["ignore_cookie"], entryMap["ignore_cookie"])
-		}
-
+	if ignoreCookie, ok := helper.ExpandTerraformStrings(m["ignore_cookie"]); ok {
+		generalSettings.IgnoreCookie = ignoreCookie
 	} else {
-		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["ignore_cookie"], entryMap["ignore_cookie"])
+		return nil, fmt.Errorf(
+			errorStringsExpand,
+			m["ignore_cookie"],
+			m["ignore_cookie"])
 	}
 
-	if ignoreHeaderInterface, ok := entryMap["ignore_header"].([]interface{}); ok {
-		if ignoreHeader, ok := helper.ConvertInterfaceArrayToStringArray(ignoreHeaderInterface); ok {
-			generalSettings.IgnoreHeader = ignoreHeader
-		} else {
-			return nil, fmt.Errorf("%v was not successfully converted to []string{}, type: %T", entryMap["ignore_header"], entryMap["ignore_header"])
-		}
+	if ignoreHeader, ok := helper.ExpandTerraformStrings(m["ignore_header"]); ok {
+		generalSettings.IgnoreHeader = ignoreHeader
 	} else {
-		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["ignore_header"], entryMap["ignore_header"])
+		return nil, fmt.Errorf(
+			errorStringsExpand,
+			m["ignore_header"],
+			m["ignore_header"])
 	}
 
-	if ignoreQueryArgsInterface, ok := entryMap["ignore_query_args"].([]interface{}); ok {
-		if ignoreQueryArgs, ok := helper.ConvertInterfaceArrayToStringArray(ignoreQueryArgsInterface); ok {
-			generalSettings.IgnoreQueryArgs = ignoreQueryArgs
-		} else {
-			return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["ignore_query_args"], entryMap["ignore_query_args"])
-		}
+	if ignoreQueryArgs, ok := helper.ExpandTerraformStrings(m["ignore_query_args"]); ok {
+		generalSettings.IgnoreQueryArgs = ignoreQueryArgs
 	} else {
-		return nil, fmt.Errorf("%v was not a []string{}, actual: %T", entryMap["ignore_query_args"], entryMap["ignore_query_args"])
+		return nil, fmt.Errorf(
+			errorStringsExpand,
+			m["ignore_query_args"],
+			m["ignore_query_args"])
 	}
 
-	if jsonParser, ok := entryMap["json_parser"].(bool); ok {
+	if jsonParser, ok := m["json_parser"].(bool); ok {
 		generalSettings.JsonParser = jsonParser
 	} else {
-		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["json_parser"], entryMap["json_parser"])
+		return nil, fmt.Errorf(
+			errorBoolExpand,
+			m["json_parser"],
+			m["json_parser"])
 	}
 
-	if maxNumArgs, ok := entryMap["max_num_args"].(int); ok {
+	if maxNumArgs, ok := m["max_num_args"].(int); ok {
 		generalSettings.MaxNumArgs = maxNumArgs
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["max_num_args"], entryMap["max_num_args"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["max_num_args"],
+			m["max_num_args"])
 	}
 
-	if paranoiaLevel, ok := entryMap["paranoia_level"].(int); ok {
+	if paranoiaLevel, ok := m["paranoia_level"].(int); ok {
 		generalSettings.ParanoiaLevel = paranoiaLevel
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["paranoia_level"], entryMap["paranoia_level"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["paranoia_level"],
+			m["paranoia_level"])
 	}
 
-	if processRequestBody, ok := entryMap["process_request_body"].(bool); ok {
+	if processRequestBody, ok := m["process_request_body"].(bool); ok {
 		generalSettings.ProcessRequestBody = processRequestBody
 	} else {
-		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["process_request_body"], entryMap["process_request_body"])
+		return nil, fmt.Errorf(
+			errorBoolExpand,
+			m["process_request_body"],
+			m["process_request_body"])
 	}
 
-	if responseHeaderName, ok := entryMap["response_header_name"].(string); ok {
+	if responseHeaderName, ok := m["response_header_name"].(string); ok {
 		generalSettings.ResponseHeaderName = responseHeaderName
 	} else {
-		return nil, fmt.Errorf("%v was not a string{}, actual: %T", entryMap["response_header_name"], entryMap["response_header_name"])
+		return nil, fmt.Errorf(
+			errorStringExpand,
+			m["response_header_name"],
+			m["response_header_name"])
 	}
 
-	if totalArgLength, ok := entryMap["total_arg_length"].(int); ok {
+	if totalArgLength, ok := m["total_arg_length"].(int); ok {
 		generalSettings.TotalArgLength = totalArgLength
 	} else {
-		return nil, fmt.Errorf("%v was not an int, actual: %T", entryMap["total_arg_length"], entryMap["total_arg_length"])
+		return nil, fmt.Errorf(
+			errorIntExpand,
+			m["total_arg_length"],
+			m["total_arg_length"])
 	}
 
-	if validateUtf8Encoding, ok := entryMap["validate_utf8_encoding"].(bool); ok {
-		generalSettings.ValidateUtf8Encoding = validateUtf8Encoding
+	if validateUTF8Encoding, ok := m["validate_utf8_encoding"].(bool); ok {
+		generalSettings.ValidateUtf8Encoding = validateUTF8Encoding
 	} else {
-		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["validate_utf8_encoding"], entryMap["validate_utf8_encoding"])
+		return nil, fmt.Errorf(
+			errorBoolExpand,
+			m["validate_utf8_encoding"],
+			m["validate_utf8_encoding"])
 	}
 
-	if xmlParser, ok := entryMap["xml_parser"].(bool); ok {
+	if xmlParser, ok := m["xml_parser"].(bool); ok {
 		generalSettings.XmlParser = xmlParser
 	} else {
-		return nil, fmt.Errorf("%v was not a boolean, actual: %T", entryMap["xml_parser"], entryMap["xml_parser"])
+		return nil, fmt.Errorf(
+			errorBoolExpand,
+			m["xml_parser"],
+			m["xml_parser"])
 	}
 
 	return &generalSettings, nil

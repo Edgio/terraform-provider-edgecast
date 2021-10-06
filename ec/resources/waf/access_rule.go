@@ -47,7 +47,8 @@ func ResourceAccessRule() *schema.Resource {
 				},
 			},
 			"asn": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -77,7 +78,8 @@ func ResourceAccessRule() *schema.Resource {
 					"*Note: ASN access controls are integer values.*",
 			},
 			"cookie": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -106,7 +108,8 @@ func ResourceAccessRule() *schema.Resource {
 				Description: "Contains access controls for cookies.",
 			},
 			"country": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -151,7 +154,8 @@ func ResourceAccessRule() *schema.Resource {
 				},
 			},
 			"ip": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -186,7 +190,8 @@ func ResourceAccessRule() *schema.Resource {
 				Description:  "Assigns a name to this access rule.",
 			},
 			"referer": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -222,7 +227,8 @@ func ResourceAccessRule() *schema.Resource {
 				Description:  "Determines the name of the response header that will be included with blocked requests.",
 			},
 			"url": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -253,7 +259,8 @@ func ResourceAccessRule() *schema.Resource {
 					"*Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.*",
 			},
 			"user_agent": {
-				// We use a 1-item TypeSet as a workaround since TypeMap doesn't support schema.Resource as a child element type (yet)
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
 				Type:     schema.TypeSet,
 				Optional: true,
 				MaxItems: 1,
@@ -286,150 +293,24 @@ func ResourceAccessRule() *schema.Resource {
 	}
 }
 
-func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ResourceAccessRuleCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	accessRule, diags := ExpandAccessRule(d)
 
-	accountNumber := d.Get("account_number").(string)
-
-	log.Printf("[INFO] Creating WAF Access Rule for Account >> %s", accountNumber)
-
-	accessRule := sdkwaf.AccessRule{
-		CustomerID:         accountNumber,
-		Name:               d.Get("name").(string),
-		ResponseHeaderName: d.Get("response_header_name").(string),
+	if len(diags) > 0 {
+		d.SetId("")
+		return diags
 	}
 
-	if v, ok := d.GetOk("allowed_http_methods"); ok {
-		if allowedHttpControlsPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.AllowedHTTPMethods = *allowedHttpControlsPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Allowed HTTP Methods",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("allowed_request_content_types"); ok {
-		if allowedRequestContentTypesPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.AllowedRequestContentTypes = *allowedRequestContentTypesPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Allowed Request Content Types",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("disallowed_headers"); ok {
-		if disallowedHeadersPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.DisallowedHeaders = *disallowedHeadersPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Disallowed Headers",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("disallowed_extensions"); ok {
-		if disallowedExtensionsPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.DisallowedExtensions = *disallowedExtensionsPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Disallowed Extensions",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("asn"); ok {
-		if asnAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.ASNAccessControls = asnAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading ASN Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("cookie"); ok {
-		if cookieAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.CookieAccessControls = cookieAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Cookie Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("country"); ok {
-		if countryAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.CountryAccessControls = countryAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Country Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("ip"); ok {
-		if ipAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.IPAccessControls = ipAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading IP Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("referer"); ok {
-		if refererAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.RefererAccessControls = refererAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Referer Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("url"); ok {
-		if urlAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.URLAccessControls = urlAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading URL Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("user_agent"); ok {
-		if userAgentAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.UserAgentAccessControls = userAgentAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading User Agent Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
+	log.Printf(
+		"[INFO] Creating WAF Access Rule for Account >> %s",
+		accessRule.CustomerID)
 	helper.LogInstanceAsPrettyJson("[DEBUG] ACCESSRULE", accessRule)
-	config := m.(**api.ClientConfig)
 
+	config := m.(**api.ClientConfig)
 	wafService, err := buildWAFService(**config)
 
 	if err != nil {
@@ -444,14 +325,15 @@ func ResourceAccessRuleCreate(ctx context.Context, d *schema.ResourceData, m int
 	}
 
 	log.Printf("[INFO] Successfully created WAF Access Rule: %+v", resp)
-
 	d.SetId(resp.ID)
-	ResourceAccessRuleRead(ctx, d, m)
-
 	return ResourceAccessRuleRead(ctx, d, m)
 }
 
-func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceAccessRuleRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 	accountNumber := d.Get("account_number").(string)
 	ruleID := d.Id()
@@ -464,8 +346,10 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	//change the order
-	log.Printf("[INFO] Reading WAF Access Rule Id %s for Account >> %s", ruleID, accountNumber)
+	log.Printf(
+		"[INFO] Reading WAF Access Rule '%s' for Account >> %s",
+		ruleID,
+		accountNumber)
 
 	resp, err := wafService.GetAccessRuleByID(accountNumber, ruleID)
 
@@ -474,7 +358,6 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	//change %v with printing funcation.
 	helper.LogInstanceAsPrettyJson("[INFO] Retrieved Rule", resp)
 
 	d.SetId(resp.ID)
@@ -503,150 +386,27 @@ func ResourceAccessRuleRead(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func ResourceAccessRuleUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	accountNumber := d.Get("account_number").(string)
+func ResourceAccessRuleUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	ruleID := d.Id()
-	log.Printf("[INFO] Updating WAF Access Rule for Account >> %s", accountNumber)
 
-	accessRule := sdkwaf.AccessRule{
-		CustomerID:         accountNumber,
-		Name:               d.Get("name").(string),
-		ResponseHeaderName: d.Get("response_header_name").(string),
+	accessRule, diags := ExpandAccessRule(d)
+
+	if len(diags) > 0 {
+		d.SetId("")
+		return diags
 	}
 
-	if v, ok := d.GetOk("allowed_http_methods"); ok {
-		if allowedHttpControlsPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.AllowedHTTPMethods = *allowedHttpControlsPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Allowed HTTP Methods",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("allowed_request_content_types"); ok {
-		if allowedRequestContentTypesPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.AllowedRequestContentTypes = *allowedRequestContentTypesPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Allowed Request Content Types",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("disallowed_headers"); ok {
-		if disallowedHeadersPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.DisallowedHeaders = *disallowedHeadersPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Disallowed Headers",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("disallowed_extensions"); ok {
-		if disallowedExtensionsPtr, ok := helper.ConvertInterfaceToStringArray(v); ok {
-			accessRule.DisallowedExtensions = *disallowedExtensionsPtr
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Disallowed Extensions",
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("asn"); ok {
-		if asnAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.ASNAccessControls = asnAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading ASN Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("cookie"); ok {
-		if cookieAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.CookieAccessControls = cookieAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Cookie Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("country"); ok {
-		if countryAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.CountryAccessControls = countryAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Country Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("ip"); ok {
-		if ipAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.IPAccessControls = ipAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading IP Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("referer"); ok {
-		if refererAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.RefererAccessControls = refererAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Referer Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("url"); ok {
-		if urlAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.URLAccessControls = urlAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading URL Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	if v, ok := d.GetOk("user_agent"); ok {
-		if userAgentAccessControls, err := ConvertInterfaceToAccessControls(v); err == nil {
-			accessRule.UserAgentAccessControls = userAgentAccessControls
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading User Agent Access Controls",
-				Detail:   err.Error(),
-			})
-		}
-	}
-
-	helper.ConvertInterfaceToStringArray(accessRule)
 	helper.LogInstanceAsPrettyJson("[DEBUG] ACCESSRULE", accessRule)
-	config := m.(**api.ClientConfig)
+	log.Printf(
+		"[INFO] Updating WAF Access Rule '%s' for Account >> %s",
+		ruleID,
+		accessRule.CustomerID)
 
+	config := m.(**api.ClientConfig)
 	wafService, err := buildWAFService(**config)
 
 	if err != nil {
@@ -663,17 +423,23 @@ func ResourceAccessRuleUpdate(ctx context.Context, d *schema.ResourceData, m int
 	log.Printf("[INFO] Successfully updated WAF Access Rule: %+v", resp)
 
 	return ResourceAccessRuleRead(ctx, d, m)
-
 }
 
-func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceAccessRuleDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 	accountNumber := d.Get("account_number").(string)
 	ruleID := d.Id()
-	log.Printf("[INFO] Deleting WAF Access Rule(ID:%s) for Account >> %s", ruleID, accountNumber)
+
+	log.Printf(
+		"[INFO] Deleting WAF Access Rule '%s' for Account >> %s",
+		ruleID,
+		accountNumber)
 
 	config := m.(**api.ClientConfig)
-
 	wafService, err := buildWAFService(**config)
 
 	if err != nil {
@@ -683,10 +449,21 @@ func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m int
 	resp, err := wafService.DeleteAccessRuleByID(accountNumber, ruleID)
 
 	if err != nil {
-		return diag.FromErr(err)
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Error Deleting Access Rule %s", ruleID),
+			Detail:   err.Error(),
+		})
 	}
 	if !resp.Success || len(resp.Errors) > 0 {
-		return diag.FromErr(fmt.Errorf("Status Code:%s, Msg: %s", resp.Errors[0].Code, resp.Errors[0].Message))
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Error Deleting Access Rule %s", ruleID),
+			Detail: fmt.Sprintf(
+				"Status Code:%s, Msg: %s",
+				resp.Errors[0].Code,
+				resp.Errors[0].Message),
+		})
 	}
 
 	d.SetId("")
@@ -694,14 +471,159 @@ func ResourceAccessRuleDelete(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
-	if attr == nil {
-		return nil, fmt.Errorf("attr was nil")
+// ExpandAccessControls converts the values read from a Terraform
+// Configuration file into the Access Rule API Model
+func ExpandAccessRule(
+	d *schema.ResourceData,
+) (sdkwaf.AccessRule, diag.Diagnostics) {
+	var diags diag.Diagnostics
+	accessRule := sdkwaf.AccessRule{
+		CustomerID:         d.Get("account_number").(string),
+		Name:               d.Get("name").(string),
+		ResponseHeaderName: d.Get("response_header_name").(string),
 	}
 
+	if v, ok := d.GetOk("allowed_http_methods"); ok {
+		if values, ok := helper.ExpandTerraformStrings(v); ok {
+			accessRule.AllowedHTTPMethods = values
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Allowed HTTP Methods",
+				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("allowed_request_content_types"); ok {
+		if values, ok := helper.ExpandTerraformStrings(v); ok {
+			accessRule.AllowedRequestContentTypes = values
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Allowed Request Content Types",
+				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("disallowed_headers"); ok {
+		if values, ok := helper.ExpandTerraformStrings(v); ok {
+			accessRule.DisallowedHeaders = values
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Disallowed Headers",
+				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("disallowed_extensions"); ok {
+		if values, ok := helper.ExpandTerraformStrings(v); ok {
+			accessRule.DisallowedExtensions = values
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Disallowed Extensions",
+				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("asn"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.ASNAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading ASN Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("cookie"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.CookieAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Cookie Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("country"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.CountryAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Country Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("ip"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.IPAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading IP Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("referer"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.RefererAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Referer Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("url"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.URLAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading URL Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	if v, ok := d.GetOk("user_agent"); ok {
+		if accessControls, err := ExpandAccessControls(v); err == nil {
+			accessRule.UserAgentAccessControls = accessControls
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading User Agent Access Controls",
+				Detail:   err.Error(),
+			})
+		}
+	}
+
+	return accessRule, diags
+}
+
+// ExpandAccessControls converts the values read from a Terraform
+// Configuration file into the Access Controls API Model
+func ExpandAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
 	// The values are stored as a map in a 1-item set
 	// So pull it out so we can work with it
-	entryMap, err := helper.GetMapFromSet(attr)
+	entryMap, err := helper.ExpandSingletonSet(attr)
 
 	if err != nil {
 		return nil, err
@@ -712,19 +634,28 @@ func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls,
 	if accesslist, ok := entryMap["accesslist"].([]interface{}); ok {
 		accessControls.Accesslist = accesslist
 	} else {
-		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["accesslist"], entryMap["accesslist"])
+		return nil, fmt.Errorf(
+			errorInterfacesExpand,
+			entryMap["accesslist"],
+			entryMap["accesslist"])
 	}
 
 	if blacklist, ok := entryMap["blacklist"].([]interface{}); ok {
 		accessControls.Blacklist = blacklist
 	} else {
-		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["blacklist"], entryMap["blacklist"])
+		return nil, fmt.Errorf(
+			errorInterfacesExpand,
+			entryMap["blacklist"],
+			entryMap["blacklist"])
 	}
 
 	if whitelist, ok := entryMap["whitelist"].([]interface{}); ok {
 		accessControls.Whitelist = whitelist
 	} else {
-		return nil, fmt.Errorf("%v was not a []interface{}, actual: %T", entryMap["whitelist"], entryMap["whitelist"])
+		return nil, fmt.Errorf(
+			errorInterfacesExpand,
+			entryMap["whitelist"],
+			entryMap["whitelist"])
 	}
 
 	return accessControls, nil
@@ -732,7 +663,9 @@ func ConvertInterfaceToAccessControls(attr interface{}) (*sdkwaf.AccessControls,
 
 // FlattenAccessControls converts the AccessControls API Model
 // into a format that Terraform can work with
-func FlattenAccessControls(accessControlsGroups sdkwaf.AccessControls) []map[string]interface{} {
+func FlattenAccessControls(
+	accessControlsGroups sdkwaf.AccessControls,
+) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
