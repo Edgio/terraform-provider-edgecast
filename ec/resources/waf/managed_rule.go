@@ -239,7 +239,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
 	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
 
-	if policies, ok := helper.ExpandTerraformStrings(d.Get("policies")); ok {
+	if policies, ok := helper.ConvertToStrings(d.Get("policies")); ok {
 		managedRuleRequest.Policies = policies
 	} else {
 		return diag.Errorf("Error reading 'policies'")
@@ -375,7 +375,7 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
 	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
 
-	if policies, ok := helper.ExpandTerraformStrings(d.Get("policies")); ok {
+	if policies, ok := helper.ConvertToStrings(d.Get("policies")); ok {
 		managedRuleRequest.Policies = policies
 	} else {
 		return diag.Errorf("Error reading 'policies'")
@@ -536,7 +536,7 @@ func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdate, erro
 func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 	// The values are stored as a map in a 1-item set
 	// So pull it out so we can work with it
-	m, err := helper.ExpandSingletonSet(attr)
+	m, err := helper.ConvertSingletonSetToMap(attr)
 
 	if err != nil {
 		return nil, err
@@ -580,7 +580,7 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 			m["combined_file_sizes"])
 	}
 
-	if ignoreCookie, ok := helper.ExpandTerraformStrings(m["ignore_cookie"]); ok {
+	if ignoreCookie, ok := helper.ConvertToStrings(m["ignore_cookie"]); ok {
 		generalSettings.IgnoreCookie = ignoreCookie
 	} else {
 		return nil, fmt.Errorf(
@@ -589,7 +589,7 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 			m["ignore_cookie"])
 	}
 
-	if ignoreHeader, ok := helper.ExpandTerraformStrings(m["ignore_header"]); ok {
+	if ignoreHeader, ok := helper.ConvertToStrings(m["ignore_header"]); ok {
 		generalSettings.IgnoreHeader = ignoreHeader
 	} else {
 		return nil, fmt.Errorf(
@@ -598,7 +598,7 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 			m["ignore_header"])
 	}
 
-	if ignoreQueryArgs, ok := helper.ExpandTerraformStrings(m["ignore_query_args"]); ok {
+	if ignoreQueryArgs, ok := helper.ConvertToStrings(m["ignore_query_args"]); ok {
 		generalSettings.IgnoreQueryArgs = ignoreQueryArgs
 	} else {
 		return nil, fmt.Errorf(

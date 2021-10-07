@@ -10,22 +10,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ExpandTerraformStrings converts Terraform's
+// ConvertToStrings converts Terraform's
 // TypeList and TypeSet collections into a []string.
-func ExpandTerraformStrings(v interface{}) ([]string, bool) {
+func ConvertToStrings(v interface{}) ([]string, bool) {
 	if listItems, ok := v.([]interface{}); ok {
-		return ExpandStrings(listItems)
+		return ConvertSliceToStrings(listItems)
 	}
 	if set, ok := v.(*schema.Set); ok {
 		setItems := set.List()
-		return ExpandStrings(setItems)
+		return ConvertSliceToStrings(setItems)
 	}
 	return nil, false
 }
 
-// ExpandStrings converts a []interface{} to []string.
+// ConvertSliceToStrings converts a []interface{} to []string.
 // Note that any items in v that are not strings will be excluded.
-func ExpandStrings(v []interface{}) ([]string, bool) {
+func ConvertSliceToStrings(v []interface{}) ([]string, bool) {
 	strings := make([]string, len(v))
 	for i, val := range v {
 		if s, ok := val.(string); ok {
@@ -37,10 +37,10 @@ func ExpandStrings(v []interface{}) ([]string, bool) {
 	return strings, true
 }
 
-// ExpandSet converts a interface{} that is actually a Terraform
+// ConvertSingletonSetToMap converts a interface{} that is actually a Terraform
 // schema.TypeSet into a Map. This is useful when using the schema.TypeSet
 // with MaxItems=1 workaround.
-func ExpandSingletonSet(attr interface{}) (map[string]interface{}, error) {
+func ConvertSingletonSetToMap(attr interface{}) (map[string]interface{}, error) {
 	if attr == nil {
 		return nil, fmt.Errorf("set was nil")
 	}
@@ -75,16 +75,16 @@ func NewTerraformSet(items []interface{}) *schema.Set {
 	return schema.NewSet(dummySetFunc, items)
 }
 
-// ExpandInt converts an interface{} to int
+// ConvertToInt converts an interface{} to int
 // If v is nil or not an int, 0 is returned
-func ExpandInt(v interface{}) int {
+func ConvertToInt(v interface{}) int {
 	i, _ := v.(int)
 	return i
 }
 
-// ExpandIntPointer converts an interface{} to *int
+// ConvertToIntPointer converts an interface{} to *int
 // If v is nil or not an integer, a nil pointer is returned
-func ExpandIntPointer(v interface{}, assertNaturalNumber bool) *int {
+func ConvertToIntPointer(v interface{}, assertNaturalNumber bool) *int {
 	if v == nil {
 		return nil
 	}
@@ -97,9 +97,9 @@ func ExpandIntPointer(v interface{}, assertNaturalNumber bool) *int {
 	return nil
 }
 
-// ExpandBoolPointer converts an interface{} to *bool
+// ConvertToBoolPointer converts an interface{} to *bool
 // If v is nil or not a bool, a nil pointer is returned
-func ExpandBoolPointer(v interface{}) *bool {
+func ConvertToBoolPointer(v interface{}) *bool {
 	if v == nil {
 		return nil
 	}
@@ -109,16 +109,16 @@ func ExpandBoolPointer(v interface{}) *bool {
 	return nil
 }
 
-// ExpandString converts an interface{} to string
+// ConvertToString converts an interface{} to string
 // If v is nil or not a string, an empty string is returned
-func ExpandString(v interface{}) string {
+func ConvertToString(v interface{}) string {
 	s, _ := v.(string)
 	return s
 }
 
-// ExpandStringPointer converts an interface{} to *string
+// ConvertToStringPointer converts an interface{} to *string
 // If v is nil or not a string, a nil pointer is returned
-func ExpandStringPointer(v interface{}, excludeWhiteSpace bool) *string {
+func ConvertToStringPointer(v interface{}, excludeWhiteSpace bool) *string {
 	if s, ok := v.(string); ok {
 		if excludeWhiteSpace && len(s) == 0 {
 			return nil
@@ -128,9 +128,9 @@ func ExpandStringPointer(v interface{}, excludeWhiteSpace bool) *string {
 	return nil
 }
 
-// ExpandStringSlicePointer converts an interface{} to *[]string
+// ConvertToStringSlicePointer converts an interface{} to *[]string
 // If v is nil or not a string, a nil pointer is returned
-func ExpandStringsPointer(v interface{}, excludeEmpty bool) *[]string {
+func ConvertToStringsPointer(v interface{}, excludeEmpty bool) *[]string {
 	if v == nil {
 		return nil
 	}
@@ -147,9 +147,9 @@ func ExpandStringsPointer(v interface{}, excludeEmpty bool) *[]string {
 	return nil
 }
 
-// ExpandMapPointer converts an interface{} to *map[string]string{}
+// ConvertToMapPointer converts an interface{} to *map[string]string{}
 // If v is nil or not a string, a nil pointer is returned
-func ExpandStringMapPointer(v interface{}, excludeEmpty bool) *map[string]string {
+func ConvertToStringMapPointer(v interface{}, excludeEmpty bool) *map[string]string {
 	if v == nil {
 		return nil
 	}

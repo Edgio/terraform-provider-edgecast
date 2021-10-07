@@ -204,7 +204,7 @@ func ResourceRateRuleCreate(
 	}
 
 	if v, ok := d.GetOk("keys"); ok {
-		if keys, ok := helper.ExpandTerraformStrings(v); ok {
+		if keys, ok := helper.ConvertToStrings(v); ok {
 			rateRule.Keys = keys
 		} else {
 			diags = append(diags, diag.Diagnostic{
@@ -342,13 +342,13 @@ func ExpandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
 			curr := item.(map[string]interface{})
 
 			// The properties for target and op are stored as a map in a 1-item set
-			targetMap, err := helper.ExpandSingletonSet(curr["target"])
+			targetMap, err := helper.ConvertSingletonSetToMap(curr["target"])
 
 			if err != nil {
 				return nil, err
 			}
 
-			opMap, err := helper.ExpandSingletonSet(curr["op"])
+			opMap, err := helper.ConvertSingletonSetToMap(curr["op"])
 
 			if err != nil {
 				return nil, err
@@ -373,7 +373,7 @@ func ExpandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
 			}
 
 			if opValues, ok := opMap["values"]; ok {
-				if arr, ok := helper.ExpandTerraformStrings(opValues); ok {
+				if arr, ok := helper.ConvertToStrings(opValues); ok {
 					condition.OP.Values = arr
 				}
 			}

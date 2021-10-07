@@ -33,7 +33,7 @@ func TestExpandTerraformStrings(t *testing.T) {
 		},
 	}
 	for _, v := range cases {
-		actual, ok := helper.ExpandTerraformStrings(v.input)
+		actual, ok := helper.ConvertToStrings(v.input)
 		if ok == v.expectedOk {
 			if ok {
 				if !helper.IsStringSliceEqual(v.expected, actual) {
@@ -81,7 +81,7 @@ func TestExpandStrings(t *testing.T) {
 		},
 	}
 	for _, v := range cases {
-		actual, ok := helper.ExpandStrings(v.input)
+		actual, ok := helper.ConvertSliceToStrings(v.input)
 		if !helper.IsStringSliceEqual(v.expected.Array, actual) {
 			t.Fatalf("Expected %q but got %q", v.expected.Array, actual)
 		}
@@ -143,7 +143,7 @@ func TestExpandSingletonSet(t *testing.T) {
 		},
 	}
 	for _, v := range cases {
-		actual, err := helper.ExpandSingletonSet(v.input)
+		actual, err := helper.ConvertSingletonSetToMap(v.input)
 		if v.expectSuccess {
 			if err == nil {
 				if !reflect.DeepEqual(*v.expected, actual) {

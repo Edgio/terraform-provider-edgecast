@@ -574,7 +574,7 @@ func ExpandScopes(flatScopes interface{}) (*[]waf.Scope, error) {
 		for i, v := range scopes {
 			if m, ok := v.(map[string]interface{}); ok {
 				scope := waf.Scope{}
-				scope.Name = helper.ExpandString(
+				scope.Name = helper.ConvertToString(
 					m["name"])
 				scope.Host = ExpandMatchCondition(
 					m["host"])
@@ -582,37 +582,37 @@ func ExpandScopes(flatScopes interface{}) (*[]waf.Scope, error) {
 					m["path"])
 				scope.ACLAuditAction = ExpandAuditAction(
 					m["acl_audit_action"])
-				scope.ACLAuditID = helper.ExpandStringPointer(
+				scope.ACLAuditID = helper.ConvertToStringPointer(
 					m["acl_audit_id"],
 					true)
 				scope.ACLProdAction = ExpandProdAction(
 					m["acl_prod_action"])
-				scope.ACLProdID = helper.ExpandStringPointer(
+				scope.ACLProdID = helper.ConvertToStringPointer(
 					m["acl_prod_id"],
 					true)
 				scope.BotsProdAction = ExpandProdAction(
 					m["bots_prod_action"])
-				scope.BotsProdID = helper.ExpandStringPointer(
+				scope.BotsProdID = helper.ConvertToStringPointer(
 					m["bots_prod_id"],
 					true)
 				scope.ProfileAuditAction = ExpandAuditAction(
 					m["profile_audit_action"])
-				scope.ProfileAuditID = helper.ExpandStringPointer(
+				scope.ProfileAuditID = helper.ConvertToStringPointer(
 					m["profile_audit_id"],
 					true)
 				scope.ProfileProdAction = ExpandProdAction(
 					m["profile_prod_action"])
-				scope.ProfileProdID = helper.ExpandStringPointer(
+				scope.ProfileProdID = helper.ConvertToStringPointer(
 					m["profile_prod_id"],
 					true)
 				scope.RuleAuditAction = ExpandAuditAction(
 					m["rule_audit_action"])
-				scope.RuleAuditID = helper.ExpandStringPointer(
+				scope.RuleAuditID = helper.ConvertToStringPointer(
 					m["rule_audit_id"],
 					true)
 				scope.RuleProdAction = ExpandProdAction(
 					m["rule_prod_action"])
-				scope.RuleProdID = helper.ExpandStringPointer(
+				scope.RuleProdID = helper.ConvertToStringPointer(
 					m["rule_prod_id"],
 					true)
 				limits, err := ExpandLimits(m["limit"])
@@ -637,13 +637,13 @@ func ExpandAuditAction(v interface{}) *waf.AuditAction {
 	if v == nil {
 		return nil
 	}
-	m, _ := helper.ExpandSingletonSet(v)
+	m, _ := helper.ConvertSingletonSetToMap(v)
 	if len(m) == 0 {
 		return nil
 	}
 	return &waf.AuditAction{
-		Name: helper.ExpandString(m["name"]),
-		Type: helper.ExpandString(m["type"]),
+		Name: helper.ConvertToString(m["name"]),
+		Type: helper.ConvertToString(m["type"]),
 	}
 }
 
@@ -653,26 +653,26 @@ func ExpandProdAction(v interface{}) *waf.ProdAction {
 	if v == nil {
 		return nil
 	}
-	m, _ := helper.ExpandSingletonSet(v)
+	m, _ := helper.ConvertSingletonSetToMap(v)
 	if len(m) == 0 {
 		return nil
 	}
 	return &waf.ProdAction{
-		Name:    helper.ExpandString(m["name"]),
-		ENFType: helper.ExpandString(m["enf_type"]),
-		ResponseBodyBase64: helper.ExpandStringPointer(
+		Name:    helper.ConvertToString(m["name"]),
+		ENFType: helper.ConvertToString(m["enf_type"]),
+		ResponseBodyBase64: helper.ConvertToStringPointer(
 			m["response_body_base64"],
 			true),
-		ResponseHeaders: helper.ExpandStringMapPointer(
+		ResponseHeaders: helper.ConvertToStringMapPointer(
 			m["response_headers"],
 			true),
-		Status: helper.ExpandIntPointer(
+		Status: helper.ConvertToIntPointer(
 			m["status"],
 			true),
-		URL: helper.ExpandStringPointer(
+		URL: helper.ConvertToStringPointer(
 			m["url"],
 			true),
-		ValidForSec: helper.ExpandIntPointer(
+		ValidForSec: helper.ConvertToIntPointer(
 			m["valid_for_sec"],
 			true),
 	}
@@ -681,21 +681,21 @@ func ExpandProdAction(v interface{}) *waf.ProdAction {
 // ExpandMatchCondition converts the values read from a Terraform Configuration
 // file into the MatchCondition API Model
 func ExpandMatchCondition(v interface{}) waf.MatchCondition {
-	m, _ := helper.ExpandSingletonSet(v)
+	m, _ := helper.ConvertSingletonSetToMap(v)
 	mc := waf.MatchCondition{
-		Type: helper.ExpandString(m["type"]),
+		Type: helper.ConvertToString(m["type"]),
 	}
 	if v, ok := m["is_case_insensitive"]; ok {
-		mc.IsCaseInsensitive = helper.ExpandBoolPointer(v)
+		mc.IsCaseInsensitive = helper.ConvertToBoolPointer(v)
 	}
 	if v, ok := m["is_negated"]; ok {
-		mc.IsNegated = helper.ExpandBoolPointer(v)
+		mc.IsNegated = helper.ConvertToBoolPointer(v)
 	}
 	if v, ok := m["value"]; ok {
-		mc.Value = helper.ExpandStringPointer(v, true)
+		mc.Value = helper.ConvertToStringPointer(v, true)
 	}
 	if v, ok := m["values"]; ok {
-		mc.Values = helper.ExpandStringsPointer(v, true)
+		mc.Values = helper.ConvertToStringsPointer(v, true)
 	}
 	return mc
 }
@@ -714,24 +714,24 @@ func ExpandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 		for i, listItem := range list {
 			m := listItem.(map[string]interface{})
 			limits[i] = waf.Limit{
-				ID: helper.ExpandString(m["id"]),
+				ID: helper.ConvertToString(m["id"]),
 				Action: waf.LimitAction{
-					DurationSec: helper.ExpandInt(
+					DurationSec: helper.ConvertToInt(
 						m["duration_sec"]),
-					ENFType: helper.ExpandString(
+					ENFType: helper.ConvertToString(
 						m["enf_type"]),
-					Name: helper.ExpandString(
+					Name: helper.ConvertToString(
 						m["name"]),
-					ResponseBodyBase64: helper.ExpandStringPointer(
+					ResponseBodyBase64: helper.ConvertToStringPointer(
 						m["response_body_base64"],
 						true),
-					ResponseHeaders: helper.ExpandStringMapPointer(
+					ResponseHeaders: helper.ConvertToStringMapPointer(
 						m["response_headers"],
 						true),
-					Status: helper.ExpandIntPointer(
+					Status: helper.ConvertToIntPointer(
 						m["status"],
 						true),
-					URL: helper.ExpandStringPointer(
+					URL: helper.ConvertToStringPointer(
 						m["url"],
 						true),
 				},

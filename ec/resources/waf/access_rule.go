@@ -484,7 +484,7 @@ func ExpandAccessRule(
 	}
 
 	if v, ok := d.GetOk("allowed_http_methods"); ok {
-		if values, ok := helper.ExpandTerraformStrings(v); ok {
+		if values, ok := helper.ConvertToStrings(v); ok {
 			accessRule.AllowedHTTPMethods = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
@@ -496,7 +496,7 @@ func ExpandAccessRule(
 	}
 
 	if v, ok := d.GetOk("allowed_request_content_types"); ok {
-		if values, ok := helper.ExpandTerraformStrings(v); ok {
+		if values, ok := helper.ConvertToStrings(v); ok {
 			accessRule.AllowedRequestContentTypes = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
@@ -508,7 +508,7 @@ func ExpandAccessRule(
 	}
 
 	if v, ok := d.GetOk("disallowed_headers"); ok {
-		if values, ok := helper.ExpandTerraformStrings(v); ok {
+		if values, ok := helper.ConvertToStrings(v); ok {
 			accessRule.DisallowedHeaders = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
@@ -520,7 +520,7 @@ func ExpandAccessRule(
 	}
 
 	if v, ok := d.GetOk("disallowed_extensions"); ok {
-		if values, ok := helper.ExpandTerraformStrings(v); ok {
+		if values, ok := helper.ConvertToStrings(v); ok {
 			accessRule.DisallowedExtensions = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
@@ -623,7 +623,7 @@ func ExpandAccessRule(
 func ExpandAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
 	// The values are stored as a map in a 1-item set
 	// So pull it out so we can work with it
-	entryMap, err := helper.ExpandSingletonSet(attr)
+	entryMap, err := helper.ConvertSingletonSetToMap(attr)
 
 	if err != nil {
 		return nil, err
