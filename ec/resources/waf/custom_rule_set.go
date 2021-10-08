@@ -459,6 +459,31 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 ) diag.Diagnostics {
 
 	var diags diag.Diagnostics
+
+	accountNumber := d.Get("customer_id").(string)
+	customRuleID := d.Id()
+
+	log.Printf("[INFO] Deleting WAF Custom Rule Set ID %s for Account >> %s",
+		customRuleID,
+		accountNumber,
+	)
+
+	config := m.(**api.ClientConfig)
+
+	wafService, err := buildWAFService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.DeleteCustomRuleSet(accountNumber, customRuleID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully deleted WAF Custom Rule Set: %+v", resp)
+
+	d.SetId("")
+
 	return diags
 }
 
