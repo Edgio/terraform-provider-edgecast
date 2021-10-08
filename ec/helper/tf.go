@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strings"
 
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -26,6 +27,9 @@ func ConvertToStrings(v interface{}) ([]string, bool) {
 // ConvertSliceToStrings converts a []interface{} to []string.
 // Note that any items in v that are not strings will be excluded.
 func ConvertSliceToStrings(v []interface{}) ([]string, bool) {
+	if v == nil {
+		return nil, false
+	}
 	strings := make([]string, len(v))
 	for i, val := range v {
 		if s, ok := val.(string); ok {
@@ -120,7 +124,7 @@ func ConvertToString(v interface{}) string {
 // If v is nil or not a string, a nil pointer is returned
 func ConvertToStringPointer(v interface{}, excludeWhiteSpace bool) *string {
 	if s, ok := v.(string); ok {
-		if excludeWhiteSpace && len(s) == 0 {
+		if excludeWhiteSpace && len(strings.TrimSpace(s)) == 0 {
 			return nil
 		}
 		return &s

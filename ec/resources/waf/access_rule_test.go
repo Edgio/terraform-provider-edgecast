@@ -1,6 +1,7 @@
 package waf
 
 import (
+	"reflect"
 	"terraform-provider-ec/ec/helper"
 	"testing"
 
@@ -64,15 +65,15 @@ func TestExpandAccessControls(t *testing.T) {
 
 		if v.expectSuccess {
 			if err == nil {
-				if !helper.IsInterfaceSliceEqual(v.expected.Accesslist, actual.Accesslist) {
+				if !reflect.DeepEqual(v.expected.Accesslist, actual.Accesslist) {
 					t.Fatalf("%s: Expected %q but got %q", v.name, v.expected.Accesslist, actual.Accesslist)
 				}
 
-				if !helper.IsInterfaceSliceEqual(v.expected.Blacklist, actual.Blacklist) {
+				if !reflect.DeepEqual(v.expected.Blacklist, actual.Blacklist) {
 					t.Fatalf("%s: Expected %q but got %q", v.name, v.expected.Blacklist, actual.Blacklist)
 				}
 
-				if !helper.IsInterfaceSliceEqual(v.expected.Whitelist, actual.Whitelist) {
+				if !reflect.DeepEqual(v.expected.Whitelist, actual.Whitelist) {
 					t.Fatalf("%s: Expected %q but got %q", v.name, v.expected.Whitelist, actual.Whitelist)
 				}
 			} else {

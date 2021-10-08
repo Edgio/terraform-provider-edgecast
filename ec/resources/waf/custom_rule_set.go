@@ -500,7 +500,7 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 		return nil, errors.New("sec rule attr was nil")
 	}
 
-	curr, err := helper.GetMapFromSet(attr)
+	curr, err := helper.ConvertSingletonSetToMap(attr)
 	if err != nil {
 		return nil, err
 	}
@@ -509,12 +509,12 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 		Name: curr["name"].(string),
 	}
 
-	actionMap, err := helper.GetMapFromSet(curr["action"])
+	actionMap, err := helper.ConvertSingletonSetToMap(curr["action"])
 	if err != nil {
 		return nil, err
 	}
 
-	operatorMap, err := helper.GetMapFromSet(curr["operator"])
+	operatorMap, err := helper.ConvertSingletonSetToMap(curr["operator"])
 	if err != nil {
 		return nil, err
 	}
@@ -540,8 +540,8 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 	}
 
 	if actionT, ok := actionMap["transformations"]; ok {
-		if arr, ok := helper.ConvertInterfaceToStringArray(actionT); ok {
-			secRule.Action.Transformations = *arr
+		if arr, ok := helper.ConvertToStrings(actionT); ok {
+			secRule.Action.Transformations = arr
 		}
 	}
 
@@ -570,12 +570,12 @@ func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 
 			chainedRule := sdkwaf.ChainedRule{}
 
-			actionMap, err := helper.GetMapFromSet(curr["action"])
+			actionMap, err := helper.ConvertSingletonSetToMap(curr["action"])
 			if err != nil {
 				return nil, err
 			}
 
-			operatorMap, err := helper.GetMapFromSet(curr["operator"])
+			operatorMap, err := helper.ConvertSingletonSetToMap(curr["operator"])
 			if err != nil {
 				return nil, err
 			}
@@ -595,8 +595,8 @@ func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 			}
 
 			if actionT, ok := actionMap["transformations"]; ok {
-				if arr, ok := helper.ConvertInterfaceToStringArray(actionT); ok {
-					chainedRule.Action.Transformations = *arr
+				if arr, ok := helper.ConvertToStrings(actionT); ok {
+					chainedRule.Action.Transformations = arr
 				}
 			}
 
