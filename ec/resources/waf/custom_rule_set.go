@@ -471,13 +471,11 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 	config := m.(**api.ClientConfig)
 
 	wafService, err := buildWAFService(**config)
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	resp, err := wafService.DeleteCustomRuleSet(accountNumber, customRuleID)
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
