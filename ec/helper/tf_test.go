@@ -10,8 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestInterfaceToStringArray(t *testing.T) {
-
+func TestExpandTerraformStrings(t *testing.T) {
 	cases := []struct {
 		input      interface{}
 		expected   []string
@@ -33,81 +32,71 @@ func TestInterfaceToStringArray(t *testing.T) {
 			expectedOk: false,
 		},
 	}
-
 	for _, v := range cases {
-		actualPtr, ok := helper.ConvertInterfaceToStringArray(v.input)
-
+		actual, ok := helper.ConvertToStrings(v.input)
 		if ok == v.expectedOk {
-
 			if ok {
-				actual := *actualPtr
-
 				if !helper.IsStringSliceEqual(v.expected, actual) {
 					t.Fatalf("Expected %q but got %q", v.expected, actual)
 				}
 			}
-
 		} else {
 			t.Fatalf("Expected ok result of %t but got %t", v.expectedOk, ok)
 		}
 	}
 }
 
-func TestInterfaceArrayToStringArray(t *testing.T) {
-
+func TestExpandStrings(t *testing.T) {
 	cases := []struct {
 		input    []interface{}
-		expected InterfaceArrayToStringArrayResult
+		expected ExpandStringsResult
 	}{
 		{
 			input: []interface{}{"val1", "val2", "val3"},
-			expected: InterfaceArrayToStringArrayResult{
+			expected: ExpandStringsResult{
 				Array: []string{"val1", "val2", "val3"},
 				Ok:    true,
 			},
 		},
 		{
 			input: []interface{}{"val1", 1, "val3"},
-			expected: InterfaceArrayToStringArrayResult{
+			expected: ExpandStringsResult{
 				Array: nil,
 				Ok:    false,
 			},
 		},
 		{
 			input: make([]interface{}, 0),
-			expected: InterfaceArrayToStringArrayResult{
+			expected: ExpandStringsResult{
 				Array: make([]string, 0),
 				Ok:    true,
 			},
 		},
 		{
 			input: nil,
-			expected: InterfaceArrayToStringArrayResult{
+			expected: ExpandStringsResult{
 				Array: nil,
 				Ok:    false,
 			},
 		},
 	}
-
 	for _, v := range cases {
-		actual, ok := helper.ConvertInterfaceArrayToStringArray(v.input)
-
+		actual, ok := helper.ConvertSliceToStrings(v.input)
 		if !helper.IsStringSliceEqual(v.expected.Array, actual) {
 			t.Fatalf("Expected %q but got %q", v.expected.Array, actual)
 		}
-
 		if v.expected.Ok != ok {
 			t.Fatalf("Expected %t but got %t", v.expected.Ok, ok)
 		}
 	}
 }
 
-type InterfaceArrayToStringArrayResult struct {
+type ExpandStringsResult struct {
 	Array []string
 	Ok    bool
 }
 
-func TestGetMapFromSet(t *testing.T) {
+func TestExpandSingletonSet(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
@@ -116,11 +105,13 @@ func TestGetMapFromSet(t *testing.T) {
 	}{
 		{
 			name: "Happy path",
-			input: schema.NewSet(dummySetFunc, []interface{}{map[string]interface{}{
-				"stringProperty": "string value",
-				"intProperty":    1,
-				"arrayProperty":  []string{"one", "two"},
-			}}),
+			input: schema.NewSet(
+				dummySetFunc,
+				[]interface{}{map[string]interface{}{
+					"stringProperty": "string value",
+					"intProperty":    1,
+					"arrayProperty":  []string{"one", "two"},
+				}}),
 			expected: &map[string]interface{}{
 				"stringProperty": "string value",
 				"intProperty":    1,
@@ -151,14 +142,16 @@ func TestGetMapFromSet(t *testing.T) {
 			expectSuccess: false,
 		},
 	}
-
 	for _, v := range cases {
-		actual, err := helper.GetMapFromSet(v.input)
-
+		actual, err := helper.ConvertSingletonSetToMap(v.input)
 		if v.expectSuccess {
 			if err == nil {
 				if !reflect.DeepEqual(*v.expected, actual) {
-					t.Fatalf("%s: Expected %v but got %v", v.name, *v.expected, actual)
+					t.Fatalf(
+						"%s: Expected %v but got %v",
+						v.name,
+						*v.expected,
+						actual)
 				}
 			} else {
 				t.Fatalf("%s: Encountered error: %v", v.name, err)
