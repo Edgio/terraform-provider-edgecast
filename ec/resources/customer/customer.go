@@ -10,6 +10,7 @@ import (
 
 	"terraform-provider-ec/ec/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -78,8 +79,11 @@ func ResourceCustomer() *schema.Resource {
 	}
 }
 
-func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
+func ResourceCustomerCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 
 	payload, err := getCustomerCreateUpdate(d)
 
@@ -87,17 +91,27 @@ func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
-	customerAPIClient := api.NewCustomerAPIClient(*config)
+	config := m.(**api.ClientConfig)
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		d.SetId("") // Terraform requires an empty ID for failed creation
+		return diag.FromErr(err)
+	}
 
-	accountNumber, err := customerAPIClient.AddCustomer(payload)
+	accountNumber, err := customerService.AddCustomer(payload)
 
 	if err != nil {
-		// Terraform requires an empty ID for failed creation
-		d.SetId("")
+		d.SetId("") // Terraform requires an empty ID for failed creation
 		return diag.FromErr(err)
 	}
 
 	d.SetId(accountNumber)
+
+	customer, err := customerService.GetCustomer(accountNumber)
+	if err != nil {
+		d.SetId("") // Terraform requires an empty ID for failed creation
+		return diag.FromErr(err)
+	}
 
 	if attr, ok := d.GetOk("services"); ok {
 		attrList := attr.([]interface{})
@@ -108,7 +122,11 @@ func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 			providedServiceIDs[i] = attrList[i].(int)
 		}
 
-		err = customerAPIClient.UpdateCustomerServices(accountNumber, providedServiceIDs, 1)
+		enableFlag := 1
+		err = customerService.UpdateCustomerServices(accountNumber,
+			providedServiceIDs,
+			enableFlag,
+		)
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -117,7 +135,7 @@ func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 
 	if attr, ok := d.GetOk("delivery_region"); ok {
 		deliveryRegion := attr.(int)
-		err = customerAPIClient.UpdateCustomerDeliveryRegion(accountNumber, deliveryRegion)
+		err = customerService.UpdateCustomerDeliveryRegion(*customer, deliveryRegion)
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -127,14 +145,20 @@ func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 	if attr, ok := d.GetOk("access_modules"); ok {
 		attrList := attr.([]interface{})
 
+		var accessModuleIDs []int
 		for _, v := range attrList {
-			accessModuleID := v.(int)
+			accessModuleIDs = append(accessModuleIDs, v.(int))
+		}
 
-			err = customerAPIClient.UpdateCustomerAccessModule(accountNumber, accessModuleID)
+		enableFlag := 1
+		err = customerService.UpdateCustomerAccessModule(
+			*customer,
+			accessModuleIDs,
+			enableFlag,
+		)
 
-			if err != nil {
-				return diag.FromErr(err)
-			}
+		if err != nil {
+			return diag.FromErr(err)
 		}
 	}
 
@@ -144,63 +168,68 @@ func ResourceCustomerCreate(ctx context.Context, d *schema.ResourceData, m inter
 func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(**api.ClientConfig)
 	accountNumber := d.Id()
 	fmt.Printf("GetCustomer>>[CustomerID]:%s", accountNumber)
+
+	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = accountNumber
 
-	customerAPIClient := api.NewCustomerAPIClient(*config)
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		d.SetId("") // Terraform requires an empty ID for failed creation
+		return diag.FromErr(err)
+	}
 
-	resp, err := customerAPIClient.GetCustomer(accountNumber)
+	customer, err := customerService.GetCustomer(accountNumber)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	d.SetId(resp.HexID)
-	d.Set("status", resp.Status)
-	d.Set("address1", resp.Address1)
-	d.Set("address2", resp.Address2)
-	d.Set("bandwidth_usage_limit", strconv.FormatInt(resp.BandwidthUsageLimit, 10))
-	d.Set("billing_account_tag", resp.BillingAccountTag)
-	d.Set("billing_address1", resp.BillingAddress1)
-	d.Set("billing_address2", resp.BillingAddress2)
-	d.Set("billing_city", resp.BillingCity)
-	d.Set("billing_contact_email", resp.BillingContactEmail)
-	d.Set("billing_contact_fax", resp.BillingContactFax)
-	d.Set("billing_contact_first_name", resp.BillingContactFirstName)
-	d.Set("billing_contact_last_name", resp.BillingContactLastName)
-	d.Set("billing_contact_mobile", resp.BillingContactMobile)
-	d.Set("billing_contact_phone", resp.BillingContactPhone)
-	d.Set("billing_contact_title", resp.BillingContactTitle)
-	d.Set("billing_country", resp.BillingCountry)
-	d.Set("billing_rate_info", resp.BillingRateInfo)
-	d.Set("billing_state", resp.BillingState)
-	d.Set("billing_zip", resp.BillingZIP)
-	d.Set("city", resp.City)
-	d.Set("company_name", resp.CompanyName)
-	d.Set("contact_email", resp.ContactEmail)
-	d.Set("contact_fax", resp.ContactFax)
-	d.Set("contact_first_name", resp.ContactFirstName)
-	d.Set("contact_last_name", resp.ContactLastName)
-	d.Set("contact_mobile", resp.ContactMobile)
-	d.Set("contact_phone", resp.ContactPhone)
-	d.Set("contact_title", resp.ContactTitle)
-	d.Set("country", resp.Country)
-	d.Set("data_transferred_usage_limit", strconv.FormatInt(resp.DataTransferredUsageLimit, 10))
-	d.Set("notes", resp.Notes)
-	d.Set("service_level_code", resp.ServiceLevelCode)
-	d.Set("state", resp.State)
-	d.Set("website", resp.Website)
-	d.Set("zip", resp.ZIP)
-	d.Set("usage_limit_update_date", resp.UsageLimitUpdateDate)
-	d.Set("partner_id", resp.PartnerID)
-	d.Set("partner_name", resp.PartnerName)
-	d.Set("wholesale_id", resp.WholesaleID)
-	d.Set("wholesale_name", resp.WholesaleName)
+	d.SetId(customer.HexID)
+	d.Set("status", customer.Status)
+	d.Set("address1", customer.Address1)
+	d.Set("address2", customer.Address2)
+	d.Set("bandwidth_usage_limit", strconv.FormatInt(customer.BandwidthUsageLimit, 10))
+	d.Set("billing_account_tag", customer.BillingAccountTag)
+	d.Set("billing_address1", customer.BillingAddress1)
+	d.Set("billing_address2", customer.BillingAddress2)
+	d.Set("billing_city", customer.BillingCity)
+	d.Set("billing_contact_email", customer.BillingContactEmail)
+	d.Set("billing_contact_fax", customer.BillingContactFax)
+	d.Set("billing_contact_first_name", customer.BillingContactFirstName)
+	d.Set("billing_contact_last_name", customer.BillingContactLastName)
+	d.Set("billing_contact_mobile", customer.BillingContactMobile)
+	d.Set("billing_contact_phone", customer.BillingContactPhone)
+	d.Set("billing_contact_title", customer.BillingContactTitle)
+	d.Set("billing_country", customer.BillingCountry)
+	d.Set("billing_rate_info", customer.BillingRateInfo)
+	d.Set("billing_state", customer.BillingState)
+	d.Set("billing_zip", customer.BillingZip)
+	d.Set("city", customer.City)
+	d.Set("company_name", customer.CompanyName)
+	d.Set("contact_email", customer.ContactEmail)
+	d.Set("contact_fax", customer.ContactFax)
+	d.Set("contact_first_name", customer.ContactFirstName)
+	d.Set("contact_last_name", customer.ContactLastName)
+	d.Set("contact_mobile", customer.ContactMobile)
+	d.Set("contact_phone", customer.ContactPhone)
+	d.Set("contact_title", customer.ContactTitle)
+	d.Set("country", customer.Country)
+	d.Set("data_transferred_usage_limit", strconv.FormatInt(customer.DataTransferredUsageLimit, 10))
+	d.Set("notes", customer.Notes)
+	d.Set("service_level_code", customer.ServiceLevelCode)
+	d.Set("state", customer.State)
+	d.Set("website", customer.Website)
+	d.Set("zip", customer.Zip)
+	d.Set("usage_limit_update_date", customer.UsageLimitUpdateDate)
+	d.Set("partner_id", customer.PartnerID)
+	d.Set("partner_name", customer.PartnerName)
+	d.Set("wholesale_id", customer.WholesaleID)
+	d.Set("wholesale_name", customer.WholesaleName)
 
-	if services, err := customerAPIClient.GetCustomerServices(accountNumber); err != nil {
+	if services, err := customerService.GetCustomerServices(accountNumber); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "error retrieving customer services",
@@ -209,7 +238,7 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	} else {
 		serviceIds := []int{}
 
-		for _, s := range services {
+		for _, s := range *services {
 			// return only those services with Status = 1
 			if s.Status == 1 {
 				serviceIds = append(serviceIds, s.ID)
@@ -221,7 +250,7 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("services", serviceIds)
 	}
 
-	if deliveryRegion, err := customerAPIClient.GetCustomerDeliveryRegion(accountNumber); err != nil {
+	if deliveryRegion, err := customerService.GetCustomerDeliveryRegion(accountNumber); err != nil {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
 			Summary:  "error retrieving customer delivery region",
@@ -231,24 +260,24 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("delivery_region", deliveryRegion)
 	}
 
-	// Uncomment below when new API endpoint is up on production
-	// if accessModules, err := customerAPIClient.GetCustomerAccessModules(accountNumber); err != nil {
-	// 	diags = append(diags, diag.Diagnostic{
-	// 		Severity: diag.Error,
-	// 		Summary:  "error retrieving customer access modules",
-	// 		Detail:   err.Error(),
-	// 	})
-	// } else {
-	// 	accessModuleIds := []int{}
+	//Uncomment below when new API endpoint is up on production
+	if accessModules, err := customerService.GetCustomerAccessModules(*customer); err != nil {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  "error retrieving customer access modules",
+			Detail:   err.Error(),
+		})
+	} else {
+		accessModuleIds := []int{}
 
-	// 	for _, a := range *accessModules {
-	// 		accessModuleIds = append(accessModuleIds, a.ID)
-	// 	}
+		for _, a := range *accessModules {
+			accessModuleIds = append(accessModuleIds, a.ID)
+		}
 
-	// 	// order matters for terraform state, so we'll sort
-	// 	sort.Ints(accessModuleIds)
-	// 	d.Set("access_modules", accessModuleIds)
-	// }
+		// order matters for terraform state, so we'll sort
+		sort.Ints(accessModuleIds)
+		d.Set("access_modules", accessModuleIds)
+	}
 
 	return diags
 }
@@ -260,13 +289,25 @@ func ResourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m inter
 
 func ResourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(**api.ClientConfig)
+
 	accountNumber := d.Id()
+	fmt.Printf("DeleteCustomer>>[CustomerID]:%s", accountNumber)
+
+	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = accountNumber
 
-	customerAPIClient := api.NewCustomerAPIClient(*config)
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	err := customerAPIClient.DeleteCustomer(accountNumber)
+	customer, err := customerService.GetCustomer(accountNumber)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = customerService.DeleteCustomer(customer)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -277,7 +318,7 @@ func ResourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate, error) {
+func getCustomerCreateUpdate(d *schema.ResourceData) (*customer.Customer, error) {
 	var bandwidthUsageLimit int64
 	var dataTransferredUsageLimit int64
 
@@ -302,7 +343,7 @@ func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate,
 		dataTransferredUsageLimit = parsed
 	}
 
-	return &api.CustomerCreateUpdate{
+	return &customer.Customer{
 		CompanyName:               d.Get("company_name").(string),
 		Status:                    1, // not user configurable
 		AccountID:                 d.Get("account_id").(string),
@@ -323,7 +364,7 @@ func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate,
 		BillingCountry:            d.Get("billing_country").(string),
 		BillingRateInfo:           d.Get("billing_rate_info").(string),
 		BillingState:              d.Get("billing_state").(string),
-		BillingZIP:                d.Get("billing_zip").(string),
+		BillingZip:                d.Get("billing_zip").(string),
 		City:                      d.Get("city").(string),
 		ContactEmail:              d.Get("contact_email").(string),
 		ContactFax:                d.Get("contact_fax").(string),
@@ -338,6 +379,6 @@ func getCustomerCreateUpdate(d *schema.ResourceData) (*api.CustomerCreateUpdate,
 		ServiceLevelCode:          d.Get("service_level_code").(string),
 		State:                     d.Get("state").(string),
 		Website:                   d.Get("website").(string),
-		ZIP:                       d.Get("zip").(string),
+		Zip:                       d.Get("zip").(string),
 	}, nil
 }

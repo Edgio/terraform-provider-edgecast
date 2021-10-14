@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"terraform-provider-ec/ec/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -57,16 +58,25 @@ func ResourceCustomerUser() *schema.Resource {
 }
 
 func ResourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
+
 	accountNumber := d.Get("account_number").(string)
+	log.Printf("[INFO] Creating customer user for Account>> [AccountNumber]: %s", accountNumber)
+
+	config := m.(**api.ClientConfig)
 	(*config).AccountNumber = accountNumber
-	log.Printf("[INFO] Creating user for Account>> [AccountNumber]: %s", accountNumber)
+
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customer, err := customerService.GetCustomer(accountNumber)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	customerUser := getCustomerUserFromData(d)
-
-	apiClient := api.NewUserAPIClient(*config)
-
-	customerUserID, err := apiClient.AddCustomerUser(accountNumber, customerUser)
+	customerUserID, err := customerService.AddCustomerUser(customer, customerUser)
 
 	if err != nil {
 		d.SetId("")
@@ -81,22 +91,30 @@ func ResourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 }
 
 func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("account_number").(string)
-	(*config).AccountNumber = accountNumber
-	apiClient := api.NewUserAPIClient(*config)
-
 	customerUser := getCustomerUserFromData(d)
+
 	customerUserID, err := strconv.Atoi(d.Id())
-
-	log.Printf("[INFO] Updating Customer User %d for Account %s", customerUserID, accountNumber)
-
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	err = apiClient.UpdateCustomerUser(accountNumber, customerUserID, customerUser)
+	log.Printf("[INFO] Updating customer user %d for account %s", customerUserID, accountNumber)
+
+	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
+
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customer, err := customerService.GetCustomer(accountNumber)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = customerService.UpdateCustomerUser(customer, customerUser)
 
 	if err != nil {
 		d.SetId("")
@@ -109,20 +127,32 @@ func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("account_number").(string)
-	(*config).AccountNumber = accountNumber
-	apiClient := api.NewUserAPIClient(*config)
-
 	customerUserID, err := strconv.Atoi(d.Id())
 
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
 	log.Printf("[INFO] Retreiving Customer User %d for Account %s", customerUserID, accountNumber)
-	resp, err := apiClient.GetCustomerUser(accountNumber, customerUserID)
+
+	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customer, err := customerService.GetCustomer(accountNumber)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customerUser, err := customerService.GetCustomerUser(customer, customerUserID)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	isAdminOld, isAdminNew := d.GetChange("is_admin")
 
@@ -133,49 +163,55 @@ func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 		})
 	}
 
-	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
-
-	d.Set("address1", resp.Address1)
-	d.Set("address2", resp.Address2)
-	d.Set("city", resp.City)
-	d.Set("country", resp.Country)
-	d.Set("custom_id", resp.CustomID)
-	d.Set("email", resp.Email)
-	d.Set("fax", resp.Fax)
-	d.Set("first_name", resp.FirstName)
-	d.Set("is_admin", resp.IsAdmin)
-	d.Set("last_name", resp.LastName)
-	d.Set("mobile", resp.Mobile)
-	d.Set("password", resp.Password)
-	d.Set("phone", resp.Phone)
-	d.Set("state", resp.State)
-	d.Set("time_zone_id", resp.TimeZoneID)
-	d.Set("title", resp.Title)
-	d.Set("zip", resp.ZIP)
-	d.Set("last_login_date", resp.LastLoginDate)
+	d.Set("address1", customerUser.Address1)
+	d.Set("address2", customerUser.Address2)
+	d.Set("city", customerUser.City)
+	d.Set("country", customerUser.Country)
+	d.Set("custom_id", customerUser.CustomID)
+	d.Set("email", customerUser.Email)
+	d.Set("fax", customerUser.Fax)
+	d.Set("first_name", customerUser.FirstName)
+	d.Set("is_admin", customerUser.IsAdmin)
+	d.Set("last_name", customerUser.LastName)
+	d.Set("mobile", customerUser.Mobile)
+	d.Set("phone", customerUser.Phone)
+	d.Set("state", customerUser.State)
+	d.Set("title", customerUser.Title)
+	d.Set("zip", customerUser.Zip)
+	d.Set("last_login_date", customerUser.LastLoginDate)
 
 	return diags
 }
 
 func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(**api.ClientConfig)
+
 	accountNumber := d.Get("account_number").(string)
-	(*config).AccountNumber = accountNumber
-	apiClient := api.NewUserAPIClient(*config)
-
 	customerUserID, err := strconv.Atoi(d.Id())
-
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	log.Printf("[INFO] Deleting Customer User %d for Account %s", customerUserID, accountNumber)
-	err = apiClient.DeleteCustomerUser(accountNumber, customerUserID)
 
+	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = accountNumber
+	customerService, err := buildCustomerService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customer, err := customerService.GetCustomer(accountNumber)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customerUser, err := customerService.GetCustomerUser(customer, customerUserID)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = customerService.DeleteCustomerUser(customer, *customerUser)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -185,7 +221,7 @@ func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m i
 	return diags
 }
 
-func getCustomerUserFromData(d *schema.ResourceData) *api.CustomerUser {
+func getCustomerUserFromData(d *schema.ResourceData) *customer.CustomerUser {
 	var isAdmin int8 = 0
 
 	if attr, ok := d.GetOk("is_admin"); ok {
@@ -194,28 +230,20 @@ func getCustomerUserFromData(d *schema.ResourceData) *api.CustomerUser {
 		}
 	}
 
-	var timeZoneID *int
-
-	if attr, ok := d.GetOk("time_zone_id"); ok {
-		t := attr.(int)
-		timeZoneID = &t
-	}
-
-	return &api.CustomerUser{
-		Address1:   d.Get("address1").(string),
-		Address2:   d.Get("address2").(string),
-		City:       d.Get("city").(string),
-		Country:    d.Get("country").(string),
-		Email:      d.Get("email").(string),
-		Fax:        d.Get("fax").(string),
-		FirstName:  d.Get("first_name").(string),
-		IsAdmin:    isAdmin,
-		LastName:   d.Get("last_name").(string),
-		Mobile:     d.Get("mobile").(string),
-		Phone:      d.Get("phone").(string),
-		State:      d.Get("state").(string),
-		TimeZoneID: timeZoneID,
-		Title:      d.Get("title").(string),
-		ZIP:        d.Get("zip").(string),
+	return &customer.CustomerUser{
+		Address1:  d.Get("address1").(string),
+		Address2:  d.Get("address2").(string),
+		City:      d.Get("city").(string),
+		Country:   d.Get("country").(string),
+		Email:     d.Get("email").(string),
+		Fax:       d.Get("fax").(string),
+		FirstName: d.Get("first_name").(string),
+		IsAdmin:   isAdmin,
+		LastName:  d.Get("last_name").(string),
+		Mobile:    d.Get("mobile").(string),
+		Phone:     d.Get("phone").(string),
+		State:     d.Get("state").(string),
+		Title:     d.Get("title").(string),
+		Zip:       d.Get("zip").(string),
 	}
 }
