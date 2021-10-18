@@ -1,4 +1,5 @@
-// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
 package waf
 
 import (
@@ -17,13 +18,11 @@ import (
 )
 
 func ResourceRateRule() *schema.Resource {
-
 	return &schema.Resource{
 		CreateContext: ResourceRateRuleCreate,
 		ReadContext:   ResourceRateRuleRead,
 		UpdateContext: ResourceRateRuleUpdate,
 		DeleteContext: ResourceRateRuleDelete,
-
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:        schema.TypeString,
@@ -192,9 +191,7 @@ func ResourceRateRuleCreate(
 	}
 
 	accountNumber := d.Get("account_number").(string)
-
 	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
-
 	rateRule := sdkwaf.RateRule{
 		Name:        d.Get("name").(string),
 		CustomerID:  accountNumber,
@@ -225,6 +222,11 @@ func ResourceRateRuleCreate(
 			Summary:  "Error reading 'condition_groups'",
 			Detail:   err.Error(),
 		})
+	}
+
+	if len(diags) > 0 {
+		d.SetId("")
+		return diags
 	}
 
 	log.Printf("[DEBUG] Customer ID: %+v \n", rateRule.CustomerID)

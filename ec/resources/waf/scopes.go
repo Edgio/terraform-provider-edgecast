@@ -26,9 +26,9 @@ func ResourceScopes() *schema.Resource {
 				Description: "Identifies your account by its customer account number.",
 			},
 			"scope": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: "",
+				Type:     schema.TypeList,
+				Required: true,
+
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"name": {
@@ -38,70 +38,33 @@ func ResourceScopes() *schema.Resource {
 								"Application Manager configuration. Default Value: 'name'",
 						},
 						"host": {
-							Type:        schema.TypeSet,
-							MaxItems:    1,
-							Optional:    true,
-							Description: "Describes a hostname match condition.",
+							Type:     schema.TypeSet,
+							MaxItems: 1,
+							Optional: true,
+							Description: "Describes a hostname match " +
+								"condition. Refer to the URL and Path " +
+								"section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_case_insensitive": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Description: "Note: Only valid when Type='EM'\\\n" +
-											"Indicates whether the comparison between " +
-											"the requested hostname or URL Path and the " +
-											"values property is case-sensitive.\\\n" +
-											"Valid values are:\\\n" +
-											"True: Case-insensitive\\\n" +
-											"False: Case-sensitive",
 									},
 									"is_negated": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Description: "Indicates whether this match " +
-											"condition will be satisfied when the" +
-											"requested hostname or URL Path matches or " +
-											"does not match the Value defined by the " +
-											"Value/Values property.\\\n" +
-											"Valid values are:\\\n" +
-											"True: Does not match\\\n" +
-											"False: Matches",
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
-										Description: "Indicates how the system will " +
-											"interpret the comparison between the" +
-											"request's hostname or the URL Path and the " +
-											"value defined within the Value/Values " +
-											"property.\\\nValid values are:\\\n" +
-											"*EM: Indicates that request hostname or URL " +
-											"Path must be an exact match to one of the " +
-											"case-sensitive values specified in the " +
-											"values property.\\\n" +
-											"*GLOB: Indicates that the request hostname " +
-											"or URL Path must be an exact match to the " +
-											"wildcard pattern defined in the value " +
-											"property.\\\n" +
-											"*RX: Indicates that the request hostname " +
-											"or URL Path must be an exact match to the " +
-											"regular expression defined in the value " +
-											"property.\\\nNote: Apply this Security " +
-											"Application Manager configuration across all" +
-											"hostnames or URLs by setting this property " +
-											"to 'GLOB' and setting the Value property " +
-											"to '*.' This type of configuration is also " +
-											"known as 'Default.'",
 									},
 									"value": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"values": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeList,
+										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
@@ -115,83 +78,126 @@ func ResourceScopes() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
+										Description: "Indicates the " +
+											"system-defined ID for the rate " +
+											"limit configuration that will " +
+											"be applied to this Security " +
+											"Application Manager " +
+											"configuration.",
 									},
 									"duration_sec": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										Description:  "",
 										ValidateFunc: validation.IntAtLeast(0),
+										Description: "Indicates the length " +
+											"of time, in seconds, that the " +
+											"action defined within this " +
+											"object will be applied to a " +
+											"client that violates the rate " +
+											"rule identified by the id " +
+											"property.\\\n\\\nValid values " +
+											"are: 10 | 60 | 300",
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
+										Description: "Indicates the type " +
+											"of action that will be applied " +
+											"to rate limited requests." +
+											"\\\n\\\nValid values are:" +
+											"ALERT: Alert Only" +
+											"REDIRECT_302: Redirect (HTTP 302)" +
+											"CUSTOM_RESPONSE: Custom Response" +
+											"DROP_REQUEST: Drop Request " +
+											"(503 Service Unavailable " +
+											"response with a retry-after of " +
+											"10 seconds)",
 									},
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
+										Description: "Indicates the name " +
+											"assigned to this enforcement " +
+											"action.",
 									},
 									"response_body_base64": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
+										Description: "Note: Only valid when" +
+											" ENFType is set to " +
+											"CUSTOM_RESPONSE \\\n\\\n" +
+											"Indicates the response body that" +
+											" will be sent to rate limited " +
+											"requests. This value is Base64 " +
+											"encoded.",
 									},
 									"response_headers": {
-										Type:        schema.TypeMap,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeMap,
+										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
+										Description: "Note: Only valid " +
+											"when ENFType is set to " +
+											"CUSTOM_RESPONSE\\\n\\\n" +
+											"Contains the set of headers " +
+											"that will be included in " +
+											"the response sent to rate " +
+											"limited requests.",
 									},
 									"status": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeInt,
+										Optional: true,
+										Description: "Note: Only valid when " +
+											"ENFType is set to " +
+											"CUSTOM_RESPONSE\\\n\\\nIndicates" +
+											" the HTTP status code " +
+											"(e.g., 404) for the custom " +
+											"response sent to rate limited " +
+											"requests.",
 									},
 									"url": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
+										Description: "Note: Only valid when " +
+											"ENFType is set to REDIRECT_302" +
+											"\\\n\\\nIndicates the URL to " +
+											"which rate limited requests " +
+											"will be redirected.",
 									},
 								},
 							},
 						},
 						"path": {
-							Type:        schema.TypeSet,
-							MaxItems:    1,
-							Optional:    true,
-							Description: "Describes a URL match condition.",
+							Type:     schema.TypeSet,
+							MaxItems: 1,
+							Optional: true,
+							Description: "Describes a URL match condition." +
+								"Refer to the URL and Path section for " +
+								"property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_case_insensitive": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 									"is_negated": {
-										Type:        schema.TypeBool,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeBool,
+										Optional: true,
 									},
 									"type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"value": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"values": {
-										Type:        schema.TypeList,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeList,
+										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
@@ -200,291 +206,314 @@ func ResourceScopes() *schema.Resource {
 							},
 						},
 						"acl_audit_action": {
-							Type:        schema.TypeSet,
-							MaxItems:    1,
-							Optional:    true,
-							Description: "Describes a URL match condition.",
+							Type:     schema.TypeSet,
+							MaxItems: 1,
+							Optional: true,
+							Description: "Describe the type of action that " +
+								"will take place when the access rule " +
+								"defined within the acl_audit_id property " +
+								"is violated. Refer to the Audit Action " +
+								"section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 								},
 							},
 						},
 						"acl_audit_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined ID " +
+								"for the access rule that will audit " +
+								"production traffic for this Security " +
+								"Application Manager configuration.",
 						},
 						"acl_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
+							Description: "Describes the type of action " +
+								"that will take place when the access rule " +
+								"defined within the acl_prod_id property is " +
+								"violated. Refer to the Prod Action " +
+								"section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										Description:  "",
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_body_base64": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_headers": {
-										Type:        schema.TypeMap,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeMap,
+										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
 									},
 									"status": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"url": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 								},
 							},
 						},
 						"acl_prod_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined " +
+								"ID for the access rule that will be " +
+								"applied to production traffic for this " +
+								"Security Application Manager configuration.",
 						},
 						"bots_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
+							Description: "Describes the type of action " +
+								"that will take place when the bots rule " +
+								"defined within the bots_prod_id property " +
+								"is violated. Refer to the Prod Action " +
+								"section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Required:     true,
-										Description:  "",
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_body_base64": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_headers": {
-										Type:        schema.TypeMap,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeMap,
+										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
 									},
 									"status": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"url": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 								},
 							},
 						},
 						"bots_prod_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined " +
+								"ID for the bots rule that will be applied " +
+								"to production traffic for this " +
+								"Security Application Manager configuration.",
 						},
 						"profile_audit_action": {
-							Type:        schema.TypeSet,
-							MaxItems:    1,
-							Optional:    true,
-							Description: "Describes a URL match condition.",
+							Type:     schema.TypeSet,
+							MaxItems: 1,
+							Optional: true,
+							Description: "Describes the type of action " +
+								"that will take place when the managed " +
+								"rule defined within the profile_audit_id " +
+								"property is violated. Refer to the " +
+								"Audit Action  section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 								},
 							},
 						},
 						"profile_audit_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined ID " +
+								"for the managed rule that will audit " +
+								"production traffic for this Security " +
+								"Application Manager configuration.",
 						},
 						"profile_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
+							Description: "Describes the type of action " +
+								"that will take place when the managed " +
+								"rule defined within the profile_prod_id " +
+								"property is violated. Refer to the Prod " +
+								"Action section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										Description:  "",
+										Type:     schema.TypeInt,
+										Required: true,
+
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_body_base64": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_headers": {
-										Type:        schema.TypeMap,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeMap,
+										Optional: true,
+
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
 									},
 									"status": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"url": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 								},
 							},
 						},
 						"profile_prod_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined " +
+								"ID for the managed rule that will be applied" +
+								" to production traffic for this Security " +
+								"Application Manager configuration.",
 						},
 						"rule_audit_action": {
-							Type:        schema.TypeSet,
-							MaxItems:    1,
-							Optional:    true,
-							Description: "Describes a URL match condition.",
+							Type:     schema.TypeSet,
+							MaxItems: 1,
+							Optional: true,
+							Description: "Describes the type of action that " +
+								"will take place when the custom rule set " +
+								"defined within the rule_audit_id property " +
+								"is violated. Refer to the Audit Action " +
+								"section for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 								},
 							},
 						},
 						"rule_audit_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined ID " +
+								"for the custom rule set that will audit " +
+								"production traffic for this Security " +
+								"Application Manager configuration.",
 						},
 						"rule_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
+							Description: "Describes the type of action that " +
+								"will take place when the custom rule set " +
+								"defined within the rule_prod_id property is " +
+								"violated. Refer to the Prod Action section " +
+								"for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
-										Type:         schema.TypeInt,
-										Required:     true,
-										Description:  "",
+										Type:     schema.TypeInt,
+										Required: true,
+
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Required: true,
 									},
 									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_body_base64": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 									"response_headers": {
-										Type:        schema.TypeMap,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeMap,
+										Optional: true,
+
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
 									},
 									"status": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeInt,
+										Optional: true,
 									},
 									"url": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "",
+										Type:     schema.TypeString,
+										Optional: true,
 									},
 								},
 							},
 						},
 						"rule_prod_id": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Description: "",
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: "Indicates the system-defined ID " +
+								"for the custom rule set that will be applied" +
+								" to production traffic for this Security " +
+								"Application Manager configuration.",
 						},
 					},
 				},
@@ -509,7 +538,7 @@ func ResourceScopesCreate(
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		scopes.Scopes = *expandedScopes
+		scopes.Scopes = expandedScopes
 	} else {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Error,
@@ -568,7 +597,10 @@ func ResourceScopesDelete(
 
 // ExpandScopes converts the values read from a Terraform Configuration
 // file into the Scope API Model
-func ExpandScopes(flatScopes interface{}) (*[]waf.Scope, error) {
+func ExpandScopes(flatScopes interface{}) ([]waf.Scope, error) {
+	if flatScopes == nil {
+		return make([]waf.Scope, 0), errors.New("input was nil")
+	}
 	if scopes, ok := flatScopes.([]interface{}); ok {
 		expandedScopes := make([]waf.Scope, len(scopes))
 		for i, v := range scopes {
@@ -626,9 +658,9 @@ func ExpandScopes(flatScopes interface{}) (*[]waf.Scope, error) {
 				return nil, errors.New("scope was not a map[string]interface{}")
 			}
 		}
-		return &expandedScopes, nil
+		return expandedScopes, nil
 	}
-	return nil, errors.New("flatScopes was not a []interface{}")
+	return make([]waf.Scope, 0), errors.New("input was not a []interface{}")
 }
 
 // ExpandAuditAction converts the values read from a Terraform Configuration
