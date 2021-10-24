@@ -450,7 +450,52 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 ) diag.Diagnostics {
 
 	var diags diag.Diagnostics
-	return diags
+
+	accountNumber := d.Get("customer_id").(string)
+	customRuleSetID := d.Id()
+
+	log.Printf("[INFO] Updating WAF Custom Rule Set ID %s for Account >> %s",
+		customRuleSetID,
+		accountNumber,
+	)
+
+	customRuleSetRequest := sdkwaf.UpdateCustomRuleSetRequest{}
+	customRuleSetRequest.Name = d.Get("name").(string)
+
+	directives, err := ExpandDirectives(d.Get("directive"))
+	if err != nil {
+		return diag.Errorf("error parsing directives: %+v", err)
+	}
+	customRuleSetRequest.Directives = *directives
+
+	log.Printf("[DEBUG] Name: %+v\n", customRuleSetRequest.Name)
+	log.Printf("[DEBUG] Directives: %+v\n", customRuleSetRequest.Directives)
+
+	if diags.HasError() {
+		return diags
+	}
+
+	config := m.(**api.ClientConfig)
+
+	wafService, err := buildWAFService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.UpdateCustomRuleSet(accountNumber,
+		customRuleSetID,
+		customRuleSetRequest,
+	)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully updated WAF Custom Rule Set: %+v", resp)
+
+	d.SetId(resp.ID)
+
+	return ResourceCustomRuleSetRead(ctx, d, m)
 }
 
 func ResourceCustomRuleSetDelete(ctx context.Context,
