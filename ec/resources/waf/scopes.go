@@ -21,9 +21,10 @@ func ResourceScopes() *schema.Resource {
 		DeleteContext: ResourceScopesDelete,
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Identifies your account by its customer account number.",
+				Type:     schema.TypeString,
+				Optional: true,
+				Description: "Identifies your account by its customer " +
+					"account number.",
 			},
 			"scope": {
 				Type:     schema.TypeList,
@@ -34,8 +35,9 @@ func ResourceScopes() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the name assigned to the Security " +
-								"Application Manager configuration. Default Value: 'name'",
+							Description: "Indicates the name assigned to the " +
+								"Security Application Manager configuration. " +
+								"Default Value: 'name'",
 						},
 						"host": {
 							Type:     schema.TypeSet,
@@ -574,6 +576,31 @@ func ResourceScopesRead(
 	m interface{},
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
+	config := m.(**api.ClientConfig)
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	accountNumber := d.Get("account_number").(string)
+	log.Printf("[INFO] Getting WAF Scopes for Account >> %s", accountNumber)
+	resp, err := wafService.GetAllScopes(accountNumber)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully retrieved WAF Scopes: %+v", resp)
+	flattenedScopes, err := FlattenScopes(resp)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.Set("account_number", accountNumber)
+	d.Set("scope", flattenedScopes)
+	d.SetId(resp.ID)
 	return diags
 }
 
@@ -773,6 +800,157 @@ func ExpandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 
 	}
 	return nil, errors.New("flatLimits was not a []interface{}")
+}
+
+// FlattenTarget converts the Scopes API Model
+// into a format that Terraform can work with
+func FlattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
+	if scopes == nil {
+		return nil, errors.New("scopes was nil")
+	}
+	flattenedScopes := make([]map[string]interface{}, len(scopes.Scopes))
+	for i, s := range scopes.Scopes {
+		m := make(map[string]interface{})
+		m["name"] = s.Name
+		m["host"] = FlattenMatchCondition(s.Host)
+		m["path"] = FlattenMatchCondition(s.Path)
+		if s.Limits != nil {
+			m["limit"] = FlattenLimits(*s.Limits)
+		}
+		if s.ACLAuditID != nil {
+			m["acl_audit_id"] = *s.ACLAuditID
+		}
+		if (s.ACLAuditAction) != nil {
+			m["acl_audit_action"] = FlattenAuditAction(*s.ACLAuditAction)
+		}
+		if s.ACLProdID != nil {
+			m["acl_prod_id"] = *s.ACLProdID
+		}
+		if s.ACLProdAction != nil {
+			m["acl_prod_action"] = FlattenProdAction(*s.ACLProdAction)
+		}
+		if s.BotsProdID != nil {
+			m["bots_prod_id"] = *s.BotsProdID
+		}
+		if s.BotsProdAction != nil {
+			m["bots_prod_action"] = FlattenProdAction(*s.BotsProdAction)
+		}
+		if s.ProfileAuditID != nil {
+			m["profile_audit_id"] = *s.ProfileAuditID
+		}
+		if s.ProfileAuditAction != nil {
+			m["profile_audit_action"] =
+				FlattenAuditAction(*s.ProfileAuditAction)
+		}
+		if s.ProfileProdID != nil {
+			m["profile_prod_id"] = *s.ProfileProdID
+		}
+		if s.ProfileProdAction != nil {
+			m["profile_prod_action"] = FlattenProdAction(*s.ProfileProdAction)
+		}
+		if s.RuleAuditID != nil {
+			m["rule_audit_id"] = *s.RuleAuditID
+		}
+		if s.RuleAuditAction != nil {
+			m["rule_audit_action"] = FlattenAuditAction(*s.RuleAuditAction)
+		}
+		if s.RuleProdID != nil {
+			m["rule_prod_id"] = *s.RuleProdID
+		}
+		if s.RuleProdAction != nil {
+			m["rule_prod_action"] = FlattenProdAction(*s.RuleProdAction)
+		}
+		flattenedScopes[i] = m
+	}
+	return flattenedScopes, nil
+}
+
+// FlattenTarget converts the ProdAction API Model
+// into a format that Terraform can work with
+func FlattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
+	m := make(map[string]interface{})
+	m["enf_type"] = prodAction.ENFType
+	m["name"] = prodAction.Name
+	if prodAction.ValidForSec != nil {
+		m["valid_for_sec"] = *prodAction.ValidForSec
+	}
+	if prodAction.ResponseBodyBase64 != nil {
+		m["response_body_base64"] = *prodAction.ResponseBodyBase64
+	}
+	if prodAction.ResponseHeaders != nil {
+		m["response_headers"] = *prodAction.ResponseHeaders
+	}
+	if prodAction.Status != nil {
+		m["status"] = *prodAction.Status
+	}
+	if prodAction.URL != nil {
+		m["url"] = *prodAction.URL
+	}
+	// We return a collection of just 1 item
+	// Since we defined ProdActions as 1-item sets in the schema
+	return []map[string]interface{}{m}
+}
+
+// FlattenTarget converts the AuditAction API Model
+// into a format that Terraform can work with
+func FlattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
+	m := make(map[string]interface{})
+	m["type"] = auditAction.Type
+	m["name"] = auditAction.Name
+	// We return a collection of just 1 item
+	// Since we defined AuditActions as 1-item sets in the schema
+	return []map[string]interface{}{m}
+}
+
+// FlattenTarget converts the MatchCondition API Model
+// into a format that Terraform can work with
+func FlattenMatchCondition(
+	matchCondition waf.MatchCondition,
+) []map[string]interface{} {
+	m := make(map[string]interface{})
+	m["type"] = matchCondition.Type
+	if matchCondition.IsCaseInsensitive != nil {
+		m["is_case_insensitive"] = *matchCondition.IsCaseInsensitive
+	}
+	if matchCondition.IsNegated != nil {
+		m["is_negated"] = *matchCondition.IsNegated
+	}
+	if matchCondition.Value != nil {
+		m["value"] = *matchCondition.Value
+	}
+	if matchCondition.Values != nil {
+		m["values"] = *matchCondition.Values
+	}
+	// We return a collection of just 1 item
+	// Since we defined Host and Path as 1-item sets in the schema
+	return []map[string]interface{}{m}
+}
+
+// FlattenTarget converts the Limit API Model
+// into a format that Terraform can work with
+func FlattenLimits(limits []waf.Limit) []map[string]interface{} {
+	maps := make([]map[string]interface{}, len(limits))
+	for i, l := range limits {
+		m := make(map[string]interface{})
+		m["id"] = l.ID
+		m["duration_sec"] = l.Action.DurationSec
+		m["enf_type"] = l.Action.ENFType
+		m["name"] = l.Action.Name
+		if l.Action.ResponseBodyBase64 != nil {
+			m["response_body_base64"] = *l.Action.ResponseBodyBase64
+		}
+		if l.Action.ResponseHeaders != nil {
+			m["response_headers"] = *l.Action.ResponseHeaders
+		}
+		if l.Action.Status != nil {
+			m["status"] = *l.Action.Status
+		}
+		if l.Action.URL != nil {
+			m["url"] = *l.Action.URL
+		}
+		maps[i] = m
+	}
+	return maps
 }
 
 func logScopes(s waf.Scopes) {
