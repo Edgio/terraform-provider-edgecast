@@ -802,7 +802,7 @@ func ExpandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 	return nil, errors.New("flatLimits was not a []interface{}")
 }
 
-// FlattenTarget converts the Scopes API Model
+// FlattenScopes converts the Scopes API Model
 // into a format that Terraform can work with
 func FlattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
 	if scopes == nil {
@@ -865,7 +865,7 @@ func FlattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
 	return flattenedScopes, nil
 }
 
-// FlattenTarget converts the ProdAction API Model
+// FlattenProdAction converts the ProdAction API Model
 // into a format that Terraform can work with
 func FlattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
 	m := make(map[string]interface{})
@@ -891,7 +891,7 @@ func FlattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
 	return []map[string]interface{}{m}
 }
 
-// FlattenTarget converts the AuditAction API Model
+// FlattenAuditAction converts the AuditAction API Model
 // into a format that Terraform can work with
 func FlattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
 	m := make(map[string]interface{})
@@ -902,7 +902,7 @@ func FlattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
 	return []map[string]interface{}{m}
 }
 
-// FlattenTarget converts the MatchCondition API Model
+// FlattenMatchCondition converts the MatchCondition API Model
 // into a format that Terraform can work with
 func FlattenMatchCondition(
 	matchCondition waf.MatchCondition,
@@ -926,7 +926,7 @@ func FlattenMatchCondition(
 	return []map[string]interface{}{m}
 }
 
-// FlattenTarget converts the Limit API Model
+// FlattenLimits converts the Limit API Model
 // into a format that Terraform can work with
 func FlattenLimits(limits []waf.Limit) []map[string]interface{} {
 	maps := make([]map[string]interface{}, len(limits))
