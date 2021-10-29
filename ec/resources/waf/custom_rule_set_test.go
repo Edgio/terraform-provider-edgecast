@@ -159,7 +159,7 @@ func TestExpandDirectives(t *testing.T) {
 
 	for _, v := range cases {
 
-		actualPtr, err := ExpandDirectives(v.input)
+		actualPtr, err := expandDirectives(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -328,7 +328,7 @@ func TestExpandChainedRules(t *testing.T) {
 
 	for _, v := range cases {
 
-		actualPtr, err := ExpandChainedRules(v.input)
+		actualPtr, err := expandChainedRules(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
