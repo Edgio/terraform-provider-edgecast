@@ -619,6 +619,27 @@ func ResourceScopesDelete(
 	m interface{},
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
+	config := m.(**api.ClientConfig)
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	accountNumber := d.Get("account_number").(string)
+	log.Printf("[INFO] Deleting WAF Scopes for Account >> %s", accountNumber)
+	emptyScopes := waf.Scopes{
+		CustomerID: accountNumber,
+		Scopes:     make([]waf.Scope, 0),
+	}
+	resp, err := wafService.ModifyAllScopes(emptyScopes)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully deleted WAF Scopes: %+v", resp)
+	d.SetId("")
 	return diags
 }
 
