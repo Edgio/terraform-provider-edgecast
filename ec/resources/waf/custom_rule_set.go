@@ -449,8 +449,6 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	var diags diag.Diagnostics
-
 	accountNumber := d.Get("customer_id").(string)
 	customRuleSetID := d.Id()
 
@@ -470,10 +468,6 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 
 	log.Printf("[DEBUG] Name: %+v\n", customRuleSetRequest.Name)
 	log.Printf("[DEBUG] Directives: %+v\n", customRuleSetRequest.Directives)
-
-	if diags.HasError() {
-		return diags
-	}
 
 	config := m.(**api.ClientConfig)
 
