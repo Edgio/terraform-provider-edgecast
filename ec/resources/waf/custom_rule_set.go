@@ -449,8 +449,46 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	var diags diag.Diagnostics
-	return diags
+	accountNumber := d.Get("customer_id").(string)
+	customRuleSetID := d.Id()
+
+	log.Printf("[INFO] Updating WAF Custom Rule Set ID %s for Account >> %s",
+		customRuleSetID,
+		accountNumber,
+	)
+
+	customRuleSetRequest := sdkwaf.UpdateCustomRuleSetRequest{}
+	customRuleSetRequest.Name = d.Get("name").(string)
+
+	directives, err := expandDirectives(d.Get("directive"))
+	if err != nil {
+		return diag.Errorf("error parsing directives: %+v", err)
+	}
+	customRuleSetRequest.Directives = *directives
+
+	log.Printf("[DEBUG] Name: %+v\n", customRuleSetRequest.Name)
+	log.Printf("[DEBUG] Directives: %+v\n", customRuleSetRequest.Directives)
+
+	config := m.(**api.ClientConfig)
+
+	wafService, err := buildWAFService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.UpdateCustomRuleSet(accountNumber,
+		customRuleSetID,
+		customRuleSetRequest,
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully updated WAF Custom Rule Set: %+v", resp)
+
+	d.SetId(resp.ID)
+
+	return ResourceCustomRuleSetRead(ctx, d, m)
 }
 
 func ResourceCustomRuleSetDelete(ctx context.Context,
@@ -487,7 +525,7 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 	return diags
 }
 
-func ExpandDirectives(attr interface{}) (*[]sdkwaf.Directive, error) {
+func expandDirectives(attr interface{}) (*[]sdkwaf.Directive, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
@@ -500,7 +538,7 @@ func ExpandDirectives(attr interface{}) (*[]sdkwaf.Directive, error) {
 
 			directive := sdkwaf.Directive{}
 
-			secRule, err := ExpandSecRule(curr["sec_rule"])
+			secRule, err := expandSecRule(curr["sec_rule"])
 			if err != nil {
 				return nil, err
 			}
@@ -519,7 +557,7 @@ func ExpandDirectives(attr interface{}) (*[]sdkwaf.Directive, error) {
 
 }
 
-func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
+func expandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 
 	if attr == nil {
 		return nil, errors.New("sec rule attr was nil")
@@ -544,13 +582,13 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 		return nil, err
 	}
 
-	chainedRule, err := ExpandChainedRules(curr["chained_rule"])
+	chainedRule, err := expandChainedRules(curr["chained_rule"])
 	if err != nil {
 		return nil, err
 	}
 	secRule.ChainedRules = *chainedRule
 
-	variables, err := ExpandVariables(curr["variable"])
+	variables, err := expandVariables(curr["variable"])
 	if err != nil {
 		return nil, err
 	}
@@ -585,7 +623,7 @@ func ExpandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 	return &secRule, nil
 }
 
-func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
+func expandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 
 	if items, ok := attr.([]interface{}); ok {
 		chainedRules := make([]sdkwaf.ChainedRule, 0)
@@ -605,7 +643,7 @@ func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 				return nil, err
 			}
 
-			variables, err := ExpandVariables(curr["variable"])
+			variables, err := expandVariables(curr["variable"])
 			if err != nil {
 				return nil, err
 			}
@@ -648,7 +686,7 @@ func ExpandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 	}
 }
 
-func ExpandVariables(attr interface{}) (*[]sdkwaf.Variable, error) {
+func expandVariables(attr interface{}) (*[]sdkwaf.Variable, error) {
 
 	if items, ok := attr.([]interface{}); ok {
 
@@ -662,7 +700,7 @@ func ExpandVariables(attr interface{}) (*[]sdkwaf.Variable, error) {
 				IsCount: curr["is_count"].(bool),
 			}
 
-			matches, err := ExpandMatches(curr["match"])
+			matches, err := expandMatches(curr["match"])
 			if err != nil {
 				return nil, err
 			}
@@ -679,7 +717,7 @@ func ExpandVariables(attr interface{}) (*[]sdkwaf.Variable, error) {
 	}
 }
 
-func ExpandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
+func expandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
 
 	if items, ok := attr.([]interface{}); ok {
 		matches := make([]sdkwaf.Match, 0)
@@ -705,14 +743,14 @@ func ExpandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
 
 // FlattenDirectives converts the ConditionGroup API Model
 // into a format that Terraform can work with
-func FlattenDirectives(directive []sdkwaf.Directive) []map[string]interface{} {
+func flattenDirectives(directive []sdkwaf.Directive) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, cg := range directive {
 		m := make(map[string]interface{})
 
-		m["sec_rule"] = FlattenSecRule(cg.SecRule)
+		m["sec_rule"] = flattenSecRule(cg.SecRule)
 
 		flattened = append(flattened, m)
 	}
@@ -721,15 +759,15 @@ func FlattenDirectives(directive []sdkwaf.Directive) []map[string]interface{} {
 
 // FlattenSecRule converts the Condition API Model
 // into a format that Terraform can work with
-func FlattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
+func flattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
 
-	m["action"] = FlattenAction(secrule.Action)
-	m["chained_rule"] = FlattenChainedrule(secrule.ChainedRules)
-	m["operator"] = FlattenOperator(secrule.Operator)
-	m["variable"] = FlattenVariable(secrule.Variables)
+	m["action"] = flattenAction(secrule.Action)
+	m["chained_rule"] = flattenChainedrule(secrule.ChainedRules)
+	m["operator"] = flattenOperator(secrule.Operator)
+	m["variable"] = flattenVariable(secrule.Variables)
 
 	flattened = append(flattened, m)
 	return flattened
@@ -737,7 +775,7 @@ func FlattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
 
 // FlattenAction converts the Condition API Model
 // into a format that Terraform can work with
-func FlattenAction(action sdkwaf.Action) []map[string]interface{} {
+func flattenAction(action sdkwaf.Action) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
@@ -752,16 +790,16 @@ func FlattenAction(action sdkwaf.Action) []map[string]interface{} {
 
 // FlattenChainrule converts the Condition API Model
 // into a format that Terraform can work with
-func FlattenChainedrule(chain []sdkwaf.ChainedRule) []map[string]interface{} {
+func flattenChainedrule(chain []sdkwaf.ChainedRule) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, cg := range chain {
 		m := make(map[string]interface{})
 
-		m["action"] = FlattenAction(cg.Action)
-		m["operator"] = FlattenOperator(cg.Operator)
-		m["variable"] = FlattenVariable(cg.Variables)
+		m["action"] = flattenAction(cg.Action)
+		m["operator"] = flattenOperator(cg.Operator)
+		m["variable"] = flattenVariable(cg.Variables)
 		flattened = append(flattened, m)
 	}
 	return flattened
@@ -769,7 +807,7 @@ func FlattenChainedrule(chain []sdkwaf.ChainedRule) []map[string]interface{} {
 
 // FlattenAction converts the Condition API Model
 // into a format that Terraform can work with
-func FlattenOperator(operator sdkwaf.Operator) []map[string]interface{} {
+func flattenOperator(operator sdkwaf.Operator) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
@@ -784,14 +822,14 @@ func FlattenOperator(operator sdkwaf.Operator) []map[string]interface{} {
 
 // FlattenVariable converts the Condition API Model
 // into a format that Terraform can work with
-func FlattenVariable(val []sdkwaf.Variable) []map[string]interface{} {
+func flattenVariable(val []sdkwaf.Variable) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 	for _, cg := range val {
 		m := make(map[string]interface{})
 
 		m["type"] = cg.Type
-		m["match"] = FlattenMatch(cg.Matches)
+		m["match"] = flattenMatch(cg.Matches)
 		m["is_count"] = cg.IsCount
 
 		flattened = append(flattened, m)
@@ -801,7 +839,7 @@ func FlattenVariable(val []sdkwaf.Variable) []map[string]interface{} {
 
 // FlattenMatch converts the Condition API Model
 // into a format that Terraform can work with
-func FlattenMatch(match []sdkwaf.Match) []map[string]interface{} {
+func flattenMatch(match []sdkwaf.Match) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 	for _, cg := range match {
