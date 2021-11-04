@@ -71,30 +71,28 @@ func TestExpandScopes(t *testing.T) {
 					"acl_audit_id": "accessRuleID",
 					"acl_audit_action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"name": "access rule audit action",
-							"type": "ALERT",
+							"name":     "access rule audit action",
+							"enf_type": "ALERT",
 						},
 					}),
 					"acl_prod_id": "accessRuleID",
 					"acl_prod_action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"name":          "access rule prod action",
-							"valid_for_sec": 60,
-							"enf_type":      "ALERT",
+							"name":     "access rule prod action",
+							"enf_type": "ALERT",
 						},
 					}),
 					"profile_audit_id": "managedRuleID",
 					"profile_audit_action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"name": "managed rule audit action",
-							"type": "ALERT",
+							"name":     "managed rule audit action",
+							"enf_type": "ALERT",
 						},
 					}),
 					"profile_prod_id": "managedRuleID",
 					"profile_prod_action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
 							"name":                 "managed rule prod action",
-							"valid_for_sec":        60,
 							"enf_type":             "CUSTOM_RESPONSE",
 							"status":               404,
 							"response_body_base64": "SGVsbG8sIHdvcmxkIQo=",
@@ -104,19 +102,18 @@ func TestExpandScopes(t *testing.T) {
 							},
 						},
 					}),
-					"rule_audit_id": "customRuleID",
-					"rule_audit_action": helper.NewTerraformSet([]interface{}{
+					"rules_audit_id": "customRuleID",
+					"rules_audit_action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"name": "custom rule audit action",
-							"type": "ALERT",
+							"name":     "custom rule audit action",
+							"enf_type": "ALERT",
 						},
 					}),
-					"rule_prod_id": "customRuleID",
-					"rule_prod_action": helper.NewTerraformSet([]interface{}{
+					"rules_prod_id": "customRuleID",
+					"rules_prod_action": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
-							"name":          "custom rule prod action",
-							"valid_for_sec": 60,
-							"enf_type":      "BLOCK_REQUEST",
+							"name":     "custom rule prod action",
+							"enf_type": "BLOCK_REQUEST",
 						},
 					}),
 					"bots_prod_id": "botsRuleID",
@@ -187,9 +184,8 @@ func TestExpandScopes(t *testing.T) {
 					},
 					ACLProdID: wrapStringInPtr("accessRuleID"),
 					ACLProdAction: &waf.ProdAction{
-						ENFType:     "ALERT",
-						ValidForSec: wrapIntInPtr(60),
-						Name:        "access rule prod action",
+						ENFType: "ALERT",
+						Name:    "access rule prod action",
 					},
 
 					ProfileAuditID: wrapStringInPtr("managedRuleID"),
@@ -200,7 +196,6 @@ func TestExpandScopes(t *testing.T) {
 					ProfileProdID: wrapStringInPtr("managedRuleID"),
 					ProfileProdAction: &waf.ProdAction{
 						Name:               "managed rule prod action",
-						ValidForSec:        wrapIntInPtr(60),
 						ENFType:            "CUSTOM_RESPONSE",
 						Status:             wrapIntInPtr(404),
 						ResponseBodyBase64: wrapStringInPtr("SGVsbG8sIHdvcmxkIQo="),
@@ -217,9 +212,8 @@ func TestExpandScopes(t *testing.T) {
 					},
 					RuleProdID: wrapStringInPtr("customRuleID"),
 					RuleProdAction: &waf.ProdAction{
-						ENFType:     "BLOCK_REQUEST",
-						ValidForSec: wrapIntInPtr(60),
-						Name:        "custom rule prod action",
+						ENFType: "BLOCK_REQUEST",
+						Name:    "custom rule prod action",
 					},
 
 					BotsProdID: wrapStringInPtr("botsRuleID"),
@@ -333,9 +327,8 @@ func TestFlattenScopes(t *testing.T) {
 						},
 						ACLProdID: wrapStringInPtr("accessRuleID"),
 						ACLProdAction: &waf.ProdAction{
-							ENFType:     "ALERT",
-							ValidForSec: wrapIntInPtr(60),
-							Name:        "access rule prod action",
+							ENFType: "ALERT",
+							Name:    "access rule prod action",
 						},
 
 						ProfileAuditID: wrapStringInPtr("managedRuleID"),
@@ -346,7 +339,6 @@ func TestFlattenScopes(t *testing.T) {
 						ProfileProdID: wrapStringInPtr("managedRuleID"),
 						ProfileProdAction: &waf.ProdAction{
 							Name:               "managed rule prod action",
-							ValidForSec:        wrapIntInPtr(60),
 							ENFType:            "CUSTOM_RESPONSE",
 							Status:             wrapIntInPtr(404),
 							ResponseBodyBase64: wrapStringInPtr("SGVsbG8sIHdvcmxkIQo="),
@@ -363,16 +355,14 @@ func TestFlattenScopes(t *testing.T) {
 						},
 						RuleProdID: wrapStringInPtr("customRuleID"),
 						RuleProdAction: &waf.ProdAction{
-							ENFType:     "BLOCK_REQUEST",
-							ValidForSec: wrapIntInPtr(60),
-							Name:        "custom rule prod action",
+							ENFType: "BLOCK_REQUEST",
+							Name:    "custom rule prod action",
 						},
 
 						BotsProdID: wrapStringInPtr("botsRuleID"),
 						BotsProdAction: &waf.ProdAction{
-							ENFType:     "BROWSER_CHALLENGE",
-							ValidForSec: wrapIntInPtr(60),
-							Name:        "bots rule prod action",
+							ENFType: "BROWSER_CHALLENGE",
+							Name:    "bots rule prod action",
 						},
 					},
 				},
@@ -429,30 +419,28 @@ func TestFlattenScopes(t *testing.T) {
 					"acl_audit_id": "accessRuleID",
 					"acl_audit_action": []map[string]interface{}{
 						{
-							"name": "access rule audit action",
-							"type": "ALERT",
+							"name":     "access rule audit action",
+							"enf_type": "ALERT",
 						},
 					},
 					"acl_prod_id": "accessRuleID",
 					"acl_prod_action": []map[string]interface{}{
 						{
-							"name":          "access rule prod action",
-							"valid_for_sec": 60,
-							"enf_type":      "ALERT",
+							"name":     "access rule prod action",
+							"enf_type": "ALERT",
 						},
 					},
 					"profile_audit_id": "managedRuleID",
 					"profile_audit_action": []map[string]interface{}{
 						{
-							"name": "managed rule audit action",
-							"type": "ALERT",
+							"name":     "managed rule audit action",
+							"enf_type": "ALERT",
 						},
 					},
 					"profile_prod_id": "managedRuleID",
 					"profile_prod_action": []map[string]interface{}{
 						{
 							"name":                 "managed rule prod action",
-							"valid_for_sec":        60,
 							"enf_type":             "CUSTOM_RESPONSE",
 							"status":               404,
 							"response_body_base64": "SGVsbG8sIHdvcmxkIQo=",
@@ -462,27 +450,25 @@ func TestFlattenScopes(t *testing.T) {
 							},
 						},
 					},
-					"rule_audit_id": "customRuleID",
-					"rule_audit_action": []map[string]interface{}{
+					"rules_audit_id": "customRuleID",
+					"rules_audit_action": []map[string]interface{}{
 						{
-							"name": "custom rule audit action",
-							"type": "ALERT",
+							"name":     "custom rule audit action",
+							"enf_type": "ALERT",
 						},
 					},
-					"rule_prod_id": "customRuleID",
-					"rule_prod_action": []map[string]interface{}{
+					"rules_prod_id": "customRuleID",
+					"rules_prod_action": []map[string]interface{}{
 						{
-							"name":          "custom rule prod action",
-							"valid_for_sec": 60,
-							"enf_type":      "BLOCK_REQUEST",
+							"name":     "custom rule prod action",
+							"enf_type": "BLOCK_REQUEST",
 						},
 					},
 					"bots_prod_id": "botsRuleID",
 					"bots_prod_action": []map[string]interface{}{
 						{
-							"name":          "bots rule prod action",
-							"valid_for_sec": 60,
-							"enf_type":      "BROWSER_CHALLENGE",
+							"name":     "bots rule prod action",
+							"enf_type": "BROWSER_CHALLENGE",
 						},
 					},
 				},

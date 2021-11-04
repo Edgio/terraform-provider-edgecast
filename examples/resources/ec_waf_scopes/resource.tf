@@ -2,8 +2,6 @@ resource "ec_waf_scopes" "scopes1" {
   account_number = var.account_number
 
   scope {
-    name           = "Scopes Test"
-    
     host {
       is_case_insensitive = false
       type                = "EM"
@@ -12,30 +10,31 @@ resource "ec_waf_scopes" "scopes1" {
 
     limit {
       id                   = "<Rate Rule ID #1>"
+      name = "limit action custom"
       duration_sec         = 60
       enf_type             = "CUSTOM_RESPONSE"
-      name                 = "limit 1 custom response"
       status               = 404
       response_body_base64 = "SGVsbG8sIHdvcmxkIQo="
       response_headers = {
         "header1" = "val1"
-        "header2" = "val1"
+        "header2" = "val2"
+        "header3" = "val4"
       }
     }
 
     limit {
       id           = "<Rate Rule ID #2>"
-      duration_sec = 300
+      name          = "limit action drop request"
+      duration_sec = 10
       enf_type     = "DROP_REQUEST"
-      name         = "limit 2 drop request"
     }
 
     limit {
       id           = "<Rate Rule ID #3>"
+      name = "limit action redirect"
       duration_sec = 10
       enf_type     = "REDIRECT_302"
-      name         = "limit 3 redirect"
-      url          = "https://mysite.com/redirected"
+      url          = "https://mysite.com/redirected2"
     }
 
     path {
@@ -46,54 +45,58 @@ resource "ec_waf_scopes" "scopes1" {
     }
 
     acl_audit_action {
-      name = "audit action"
-      type = "ALERT"
+      enf_type = "ALERT"
     }
 
     acl_audit_id = "<Access Rule ID>"
 
     acl_prod_action {
-      valid_for_sec = 60
+      name = "acl action"
       enf_type      = "ALERT"
     }
 
     acl_prod_id = "<Access Rule ID>"
 
     profile_audit_action {
-      name = "profile action"
-      type = "ALERT"
+      enf_type = "ALERT"
     }
 
     profile_audit_id = "<Managed Rule ID>"
 
     profile_prod_action {
-      valid_for_sec        = 60
+      name = "managed rule action"
       enf_type             = "CUSTOM_RESPONSE"
-      name                 = "profile action"
       response_body_base64 = "SGVsbG8sIHdvcmxkIQo="
       response_headers = {
         "header1" = "val1"
-        "header2" = "val1"
+        "header2" = "val2"
+        "header3" = "val3"
       }
       status = 404
     }
 
     profile_prod_id = "<Managed Rule ID>"
 
-    rule_audit_action {
+    rules_audit_action {
+      enf_type = "ALERT"
+    }
+
+    rules_audit_id = "<Custom Rule ID>"
+
+    rules_prod_action {
       name = "custom rule action"
-      type = "ALERT"
-    }
-
-    rule_audit_id = "<Custom Rule ID>"
-
-    rule_prod_action {
-      valid_for_sec        = 60
       enf_type             = "BLOCK_REQUEST"
-      name                 = "profile action"
     }
 
-    rule_prod_id = "<Custom Rule ID>"
+    rules_prod_id = "<Custom Rule ID>"
+
+    bots_prod_id = "<Bots Rule ID>"
+
+    bots_prod_action {
+      name = "bots action"
+      enf_type = "BROWSER_CHALLENGE"
+      valid_for_sec = 60
+    }
   }
 
 }

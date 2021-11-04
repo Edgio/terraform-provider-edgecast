@@ -35,6 +35,7 @@ func ResourceScopes() *schema.Resource {
 						"name": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Default:  "name",
 							Description: "Indicates the name assigned to the " +
 								"Security Application Manager configuration. " +
 								"Default Value: 'name'",
@@ -120,6 +121,7 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "limit action",
 										Description: "Indicates the name " +
 											"assigned to this enforcement " +
 											"action.",
@@ -221,8 +223,9 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "Alert Only",
 									},
-									"type": {
+									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -250,7 +253,7 @@ func ResourceScopes() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
@@ -260,6 +263,7 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "acl action",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
@@ -275,6 +279,7 @@ func ResourceScopes() *schema.Resource {
 									"status": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										Default:  0,
 									},
 									"url": {
 										Type:     schema.TypeString,
@@ -304,7 +309,7 @@ func ResourceScopes() *schema.Resource {
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
-										Required:     true,
+										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
@@ -314,6 +319,7 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "bots action",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
@@ -359,8 +365,9 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "Alert Only",
 									},
-									"type": {
+									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
@@ -387,9 +394,8 @@ func ResourceScopes() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
-										Type:     schema.TypeInt,
-										Required: true,
-
+										Type:         schema.TypeInt,
+										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
@@ -399,6 +405,7 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "profile action",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
@@ -431,13 +438,13 @@ func ResourceScopes() *schema.Resource {
 								" to production traffic for this Security " +
 								"Application Manager configuration.",
 						},
-						"rule_audit_action": {
+						"rules_audit_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
 							Description: "Describes the type of action that " +
 								"will take place when the custom rule set " +
-								"defined within the rule_audit_id property " +
+								"defined within the rules_audit_id property " +
 								"is violated. Refer to the Audit Action " +
 								"section for property details.",
 							Elem: &schema.Resource{
@@ -445,15 +452,16 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "Alert Only",
 									},
-									"type": {
+									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
 									},
 								},
 							},
 						},
-						"rule_audit_id": {
+						"rules_audit_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Description: "Indicates the system-defined ID " +
@@ -461,21 +469,20 @@ func ResourceScopes() *schema.Resource {
 								"production traffic for this Security " +
 								"Application Manager configuration.",
 						},
-						"rule_prod_action": {
+						"rules_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
 							Description: "Describes the type of action that " +
 								"will take place when the custom rule set " +
-								"defined within the rule_prod_id property is " +
+								"defined within the rules_prod_id property is " +
 								"violated. Refer to the Prod Action section " +
 								"for property details.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
-										Type:     schema.TypeInt,
-										Required: true,
-
+										Type:         schema.TypeInt,
+										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
@@ -485,6 +492,7 @@ func ResourceScopes() *schema.Resource {
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Default:  "rules action",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
@@ -509,7 +517,7 @@ func ResourceScopes() *schema.Resource {
 								},
 							},
 						},
-						"rule_prod_id": {
+						"rules_prod_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Description: "Indicates the system-defined ID " +
@@ -529,45 +537,7 @@ func ResourceScopesCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	var diags diag.Diagnostics
-	accountNumber := d.Get("account_number").(string)
-	log.Printf("[INFO] Creating WAF Scopes for Account >> %s", accountNumber)
-	scopes := waf.Scopes{
-		CustomerID: accountNumber,
-	}
-	if flatScopes, ok := d.GetOk("scope"); ok {
-		expandedScopes, err := ExpandScopes(flatScopes)
-		if err != nil {
-			return diag.FromErr(err)
-		}
-		scopes.Scopes = expandedScopes
-	} else {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  "Error reading Scopes",
-			Detail:   "Scopes not found or incorrectly formatted",
-		})
-		return diags
-	}
-
-	logScopes(scopes)
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	resp, err := wafService.ModifyAllScopes(scopes)
-
-	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
-
-	log.Printf("[INFO] Successfully created WAF Scopes: %+v", resp)
-	d.SetId(resp.ID)
-	return diags
+	return modifyAllScopes(ctx, d, m, false)
 }
 
 func ResourceScopesRead(
@@ -600,7 +570,10 @@ func ResourceScopesRead(
 
 	d.Set("account_number", accountNumber)
 	d.Set("scope", flattenedScopes)
-	d.SetId(resp.ID)
+
+	// Use account number as the entity ID since a customer can only have one
+	// set of scopes
+	d.SetId(accountNumber)
 	return diags
 }
 
@@ -609,8 +582,7 @@ func ResourceScopesUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	var diags diag.Diagnostics
-	return diags
+	return modifyAllScopes(ctx, d, m, false)
 }
 
 func ResourceScopesDelete(
@@ -618,8 +590,7 @@ func ResourceScopesDelete(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	var diags diag.Diagnostics
-	return diags
+	return modifyAllScopes(ctx, d, m, true)
 }
 
 // ExpandScopes converts the values read from a Terraform Configuration
@@ -665,14 +636,14 @@ func ExpandScopes(flatScopes interface{}) ([]waf.Scope, error) {
 					m["profile_prod_id"],
 					true)
 				scope.RuleAuditAction = ExpandAuditAction(
-					m["rule_audit_action"])
+					m["rules_audit_action"])
 				scope.RuleAuditID = helper.ConvertToStringPointer(
-					m["rule_audit_id"],
+					m["rules_audit_id"],
 					true)
 				scope.RuleProdAction = ExpandProdAction(
-					m["rule_prod_action"])
+					m["rules_prod_action"])
 				scope.RuleProdID = helper.ConvertToStringPointer(
-					m["rule_prod_id"],
+					m["rules_prod_id"],
 					true)
 				limits, err := ExpandLimits(m["limit"])
 				if err != nil {
@@ -702,7 +673,7 @@ func ExpandAuditAction(v interface{}) *waf.AuditAction {
 	}
 	return &waf.AuditAction{
 		Name: helper.ConvertToString(m["name"]),
-		Type: helper.ConvertToString(m["type"]),
+		Type: helper.ConvertToString(m["enf_type"]),
 	}
 }
 
@@ -849,16 +820,16 @@ func FlattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
 			m["profile_prod_action"] = FlattenProdAction(*s.ProfileProdAction)
 		}
 		if s.RuleAuditID != nil {
-			m["rule_audit_id"] = *s.RuleAuditID
+			m["rules_audit_id"] = *s.RuleAuditID
 		}
 		if s.RuleAuditAction != nil {
-			m["rule_audit_action"] = FlattenAuditAction(*s.RuleAuditAction)
+			m["rules_audit_action"] = FlattenAuditAction(*s.RuleAuditAction)
 		}
 		if s.RuleProdID != nil {
-			m["rule_prod_id"] = *s.RuleProdID
+			m["rules_prod_id"] = *s.RuleProdID
 		}
 		if s.RuleProdAction != nil {
-			m["rule_prod_action"] = FlattenProdAction(*s.RuleProdAction)
+			m["rules_prod_action"] = FlattenProdAction(*s.RuleProdAction)
 		}
 		flattenedScopes[i] = m
 	}
@@ -895,7 +866,7 @@ func FlattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
 // into a format that Terraform can work with
 func FlattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
 	m := make(map[string]interface{})
-	m["type"] = auditAction.Type
+	m["enf_type"] = auditAction.Type
 	m["name"] = auditAction.Name
 	// We return a collection of just 1 item
 	// Since we defined AuditActions as 1-item sets in the schema
@@ -951,6 +922,62 @@ func FlattenLimits(limits []waf.Limit) []map[string]interface{} {
 		maps[i] = m
 	}
 	return maps
+}
+
+func modifyAllScopes(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+	isDeleteOperation bool,
+) diag.Diagnostics {
+	var diags diag.Diagnostics
+	accountNumber := d.Get("account_number").(string)
+	log.Printf("[INFO] Modifying WAF Scopes for Account >> %s", accountNumber)
+
+	scopes := waf.Scopes{
+		CustomerID: accountNumber,
+	}
+
+	if isDeleteOperation {
+		scopes.Scopes = make([]waf.Scope, 0)
+	} else {
+		if flatScopes, ok := d.GetOk("scope"); ok {
+			expandedScopes, err := ExpandScopes(flatScopes)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+			scopes.Scopes = expandedScopes
+		} else {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  "Error reading Scopes",
+				Detail:   "Scopes not found or incorrectly formatted",
+			})
+			return diags
+		}
+		logScopes(scopes)
+	}
+
+	config := m.(**api.ClientConfig)
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.ModifyAllScopes(scopes)
+
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Successfully modified WAF Scopes: %+v", resp)
+
+	// Use account number as the entity ID since a customer can only have one
+	// set of scopes
+	d.SetId(accountNumber)
+	return diags
 }
 
 func logScopes(s waf.Scopes) {

@@ -15,8 +15,6 @@ resource "ec_waf_scopes" "scopes1" {
   account_number = var.account_number
 
   scope {
-    name           = "Scopes Test"
-    
     host {
       is_case_insensitive = false
       type                = "EM"
@@ -27,7 +25,6 @@ resource "ec_waf_scopes" "scopes1" {
       id                   = "<Rate Rule ID #1>"
       duration_sec         = 60
       enf_type             = "CUSTOM_RESPONSE"
-      name                 = "limit 1 custom response"
       status               = 404
       response_body_base64 = "SGVsbG8sIHdvcmxkIQo="
       response_headers = {
@@ -40,14 +37,12 @@ resource "ec_waf_scopes" "scopes1" {
       id           = "<Rate Rule ID #2>"
       duration_sec = 300
       enf_type     = "DROP_REQUEST"
-      name         = "limit 2 drop request"
     }
 
     limit {
       id           = "<Rate Rule ID #3>"
       duration_sec = 10
       enf_type     = "REDIRECT_302"
-      name         = "limit 3 redirect"
       url          = "https://mysite.com/redirected"
     }
 
@@ -59,30 +54,25 @@ resource "ec_waf_scopes" "scopes1" {
     }
 
     acl_audit_action {
-      name = "audit action"
-      type = "ALERT"
+      enf_type = "ALERT"
     }
 
     acl_audit_id = "<Access Rule ID>"
 
     acl_prod_action {
-      valid_for_sec = 60
       enf_type      = "ALERT"
     }
 
     acl_prod_id = "<Access Rule ID>"
 
     profile_audit_action {
-      name = "profile action"
-      type = "ALERT"
+      enf_type = "ALERT"
     }
 
     profile_audit_id = "<Managed Rule ID>"
 
     profile_prod_action {
-      valid_for_sec        = 60
       enf_type             = "CUSTOM_RESPONSE"
-      name                 = "profile action"
       response_body_base64 = "SGVsbG8sIHdvcmxkIQo="
       response_headers = {
         "header1" = "val1"
@@ -93,20 +83,24 @@ resource "ec_waf_scopes" "scopes1" {
 
     profile_prod_id = "<Managed Rule ID>"
 
-    rule_audit_action {
-      name = "custom rule action"
-      type = "ALERT"
+    rules_audit_action {
+      enf_type = "ALERT"
     }
 
-    rule_audit_id = "<Custom Rule ID>"
+    rules_audit_id = "<Custom Rule ID>"
 
-    rule_prod_action {
-      valid_for_sec        = 60
+    rules_prod_action {
       enf_type             = "BLOCK_REQUEST"
-      name                 = "profile action"
     }
 
-    rule_prod_id = "<Custom Rule ID>"
+    rules_prod_id = "<Custom Rule ID>"
+
+    bots_prod_id = "<Bots Rule ID>"
+
+    bots_prod_action {
+      enf_type = "BROWSER_CHALLENGE"
+      valid_for_sec = 60
+    }
   }
 
 }
@@ -143,10 +137,10 @@ Optional:
 - **profile_audit_id** (String) Indicates the system-defined ID for the managed rule that will audit production traffic for this Security Application Manager configuration.
 - **profile_prod_action** (Block Set, Max: 1) Describes the type of action that will take place when the managed rule defined within the profile_prod_id property is violated. Refer to the Prod Action section for property details. (see [below for nested schema](#nestedblock--scope--profile_prod_action))
 - **profile_prod_id** (String) Indicates the system-defined ID for the managed rule that will be applied to production traffic for this Security Application Manager configuration.
-- **rule_audit_action** (Block Set, Max: 1) Describes the type of action that will take place when the custom rule set defined within the rule_audit_id property is violated. Refer to the Audit Action section for property details. (see [below for nested schema](#nestedblock--scope--rule_audit_action))
-- **rule_audit_id** (String) Indicates the system-defined ID for the custom rule set that will audit production traffic for this Security Application Manager configuration.
-- **rule_prod_action** (Block Set, Max: 1) Describes the type of action that will take place when the custom rule set defined within the rule_prod_id property is violated. Refer to the Prod Action section for property details. (see [below for nested schema](#nestedblock--scope--rule_prod_action))
-- **rule_prod_id** (String) Indicates the system-defined ID for the custom rule set that will be applied to production traffic for this Security Application Manager configuration.
+- **rules_audit_action** (Block Set, Max: 1) Describes the type of action that will take place when the custom rule set defined within the rules_audit_id property is violated. Refer to the Audit Action section for property details. (see [below for nested schema](#nestedblock--scope--rules_audit_action))
+- **rules_audit_id** (String) Indicates the system-defined ID for the custom rule set that will audit production traffic for this Security Application Manager configuration.
+- **rules_prod_action** (Block Set, Max: 1) Describes the type of action that will take place when the custom rule set defined within the rules_prod_id property is violated. Refer to the Prod Action section for property details. (see [below for nested schema](#nestedblock--scope--rules_prod_action))
+- **rules_prod_id** (String) Indicates the system-defined ID for the custom rule set that will be applied to production traffic for this Security Application Manager configuration.
 
 <a id="nestedblock--scope--acl_audit_action"></a>
 ### Nested Schema for `scope.acl_audit_action`
@@ -166,7 +160,6 @@ Optional:
 Required:
 
 - **enf_type** (String)
-- **valid_for_sec** (Number)
 
 Optional:
 
@@ -175,6 +168,7 @@ Optional:
 - **response_headers** (Map of String)
 - **status** (Number)
 - **url** (String)
+- **valid_for_sec** (Number)
 
 
 <a id="nestedblock--scope--bots_prod_action"></a>
@@ -183,7 +177,6 @@ Optional:
 Required:
 
 - **enf_type** (String)
-- **valid_for_sec** (Number)
 
 Optional:
 
@@ -192,6 +185,7 @@ Optional:
 - **response_headers** (Map of String)
 - **status** (Number)
 - **url** (String)
+- **valid_for_sec** (Number)
 
 
 <a id="nestedblock--scope--host"></a>
@@ -272,7 +266,6 @@ Optional:
 Required:
 
 - **enf_type** (String)
-- **valid_for_sec** (Number)
 
 Optional:
 
@@ -281,10 +274,10 @@ Optional:
 - **response_headers** (Map of String)
 - **status** (Number)
 - **url** (String)
+- **valid_for_sec** (Number)
 
-
-<a id="nestedblock--scope--rule_audit_action"></a>
-### Nested Schema for `scope.rule_audit_action`
+<a id="nestedblock--scope--rules_audit_action"></a>
+### Nested Schema for `scope.rules_audit_action`
 
 Required:
 
@@ -295,13 +288,12 @@ Optional:
 - **name** (String)
 
 
-<a id="nestedblock--scope--rule_prod_action"></a>
-### Nested Schema for `scope.rule_prod_action`
+<a id="nestedblock--scope--rules_prod_action"></a>
+### Nested Schema for `scope.rules_prod_action`
 
 Required:
 
 - **enf_type** (String)
-- **valid_for_sec** (Number)
 
 Optional:
 
@@ -310,6 +302,7 @@ Optional:
 - **response_headers** (Map of String)
 - **status** (Number)
 - **url** (String)
+- **valid_for_sec** (Number)
 
 
 
