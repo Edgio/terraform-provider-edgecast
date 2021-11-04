@@ -241,7 +241,7 @@ func TestExpandScopes(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual, err := ExpandScopes(v.input)
+		actual, err := expandScopes(v.input)
 		if v.expectSuccess {
 			diffs := deep.Equal(v.expected, actual)
 			if len(diffs) > 0 {
@@ -489,7 +489,7 @@ func TestFlattenScopes(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual, err := FlattenScopes(v.input)
+		actual, err := flattenScopes(v.input)
 		if v.expectSuccess {
 			diffs := deep.Equal(v.expected, actual)
 			if len(diffs) > 0 {

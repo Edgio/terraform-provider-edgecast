@@ -562,7 +562,7 @@ func ResourceScopesRead(
 	}
 
 	log.Printf("[INFO] Successfully retrieved WAF Scopes: %+v", resp)
-	flattenedScopes, err := FlattenScopes(resp)
+	flattenedScopes, err := flattenScopes(resp)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -593,9 +593,9 @@ func ResourceScopesDelete(
 	return modifyAllScopes(ctx, d, m, true)
 }
 
-// ExpandScopes converts the values read from a Terraform Configuration
+// expandScopes converts the values read from a Terraform Configuration
 // file into the Scope API Model
-func ExpandScopes(flatScopes interface{}) ([]waf.Scope, error) {
+func expandScopes(flatScopes interface{}) ([]waf.Scope, error) {
 	if flatScopes == nil {
 		return make([]waf.Scope, 0), errors.New("input was nil")
 	}
@@ -606,46 +606,46 @@ func ExpandScopes(flatScopes interface{}) ([]waf.Scope, error) {
 				scope := waf.Scope{}
 				scope.Name = helper.ConvertToString(
 					m["name"])
-				scope.Host = ExpandMatchCondition(
+				scope.Host = expandMatchCondition(
 					m["host"])
-				scope.Path = ExpandMatchCondition(
+				scope.Path = expandMatchCondition(
 					m["path"])
-				scope.ACLAuditAction = ExpandAuditAction(
+				scope.ACLAuditAction = expandAuditAction(
 					m["acl_audit_action"])
 				scope.ACLAuditID = helper.ConvertToStringPointer(
 					m["acl_audit_id"],
 					true)
-				scope.ACLProdAction = ExpandProdAction(
+				scope.ACLProdAction = expandProdAction(
 					m["acl_prod_action"])
 				scope.ACLProdID = helper.ConvertToStringPointer(
 					m["acl_prod_id"],
 					true)
-				scope.BotsProdAction = ExpandProdAction(
+				scope.BotsProdAction = expandProdAction(
 					m["bots_prod_action"])
 				scope.BotsProdID = helper.ConvertToStringPointer(
 					m["bots_prod_id"],
 					true)
-				scope.ProfileAuditAction = ExpandAuditAction(
+				scope.ProfileAuditAction = expandAuditAction(
 					m["profile_audit_action"])
 				scope.ProfileAuditID = helper.ConvertToStringPointer(
 					m["profile_audit_id"],
 					true)
-				scope.ProfileProdAction = ExpandProdAction(
+				scope.ProfileProdAction = expandProdAction(
 					m["profile_prod_action"])
 				scope.ProfileProdID = helper.ConvertToStringPointer(
 					m["profile_prod_id"],
 					true)
-				scope.RuleAuditAction = ExpandAuditAction(
+				scope.RuleAuditAction = expandAuditAction(
 					m["rules_audit_action"])
 				scope.RuleAuditID = helper.ConvertToStringPointer(
 					m["rules_audit_id"],
 					true)
-				scope.RuleProdAction = ExpandProdAction(
+				scope.RuleProdAction = expandProdAction(
 					m["rules_prod_action"])
 				scope.RuleProdID = helper.ConvertToStringPointer(
 					m["rules_prod_id"],
 					true)
-				limits, err := ExpandLimits(m["limit"])
+				limits, err := expandLimits(m["limit"])
 				if err != nil {
 					return nil, err
 				}
@@ -661,9 +661,9 @@ func ExpandScopes(flatScopes interface{}) ([]waf.Scope, error) {
 	return make([]waf.Scope, 0), errors.New("input was not a []interface{}")
 }
 
-// ExpandAuditAction converts the values read from a Terraform Configuration
+// expandAuditAction converts the values read from a Terraform Configuration
 // file into the AuditAction API Model
-func ExpandAuditAction(v interface{}) *waf.AuditAction {
+func expandAuditAction(v interface{}) *waf.AuditAction {
 	if v == nil {
 		return nil
 	}
@@ -677,9 +677,9 @@ func ExpandAuditAction(v interface{}) *waf.AuditAction {
 	}
 }
 
-// ExpandProdAction converts the values read from a Terraform Configuration
+// expandProdAction converts the values read from a Terraform Configuration
 // file into the ProdAction API Model
-func ExpandProdAction(v interface{}) *waf.ProdAction {
+func expandProdAction(v interface{}) *waf.ProdAction {
 	if v == nil {
 		return nil
 	}
@@ -708,9 +708,9 @@ func ExpandProdAction(v interface{}) *waf.ProdAction {
 	}
 }
 
-// ExpandMatchCondition converts the values read from a Terraform Configuration
+// expandMatchCondition converts the values read from a Terraform Configuration
 // file into the MatchCondition API Model
-func ExpandMatchCondition(v interface{}) waf.MatchCondition {
+func expandMatchCondition(v interface{}) waf.MatchCondition {
 	m, _ := helper.ConvertSingletonSetToMap(v)
 	mc := waf.MatchCondition{
 		Type: helper.ConvertToString(m["type"]),
@@ -730,9 +730,9 @@ func ExpandMatchCondition(v interface{}) waf.MatchCondition {
 	return mc
 }
 
-// ExpandLimits converts the values read from a Terraform Configuration file
+// expandLimits converts the values read from a Terraform Configuration file
 // into the Limit API Model
-func ExpandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
+func expandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 	if flatLimits == nil {
 		return nil, nil
 	}
@@ -773,9 +773,9 @@ func ExpandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 	return nil, errors.New("flatLimits was not a []interface{}")
 }
 
-// FlattenScopes converts the Scopes API Model
+// flattenScopes converts the Scopes API Model
 // into a format that Terraform can work with
-func FlattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
+func flattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
 	if scopes == nil {
 		return nil, errors.New("scopes was nil")
 	}
@@ -783,62 +783,62 @@ func FlattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
 	for i, s := range scopes.Scopes {
 		m := make(map[string]interface{})
 		m["name"] = s.Name
-		m["host"] = FlattenMatchCondition(s.Host)
-		m["path"] = FlattenMatchCondition(s.Path)
+		m["host"] = flattenMatchCondition(s.Host)
+		m["path"] = flattenMatchCondition(s.Path)
 		if s.Limits != nil {
-			m["limit"] = FlattenLimits(*s.Limits)
+			m["limit"] = flattenLimits(*s.Limits)
 		}
 		if s.ACLAuditID != nil {
 			m["acl_audit_id"] = *s.ACLAuditID
 		}
 		if (s.ACLAuditAction) != nil {
-			m["acl_audit_action"] = FlattenAuditAction(*s.ACLAuditAction)
+			m["acl_audit_action"] = flattenAuditAction(*s.ACLAuditAction)
 		}
 		if s.ACLProdID != nil {
 			m["acl_prod_id"] = *s.ACLProdID
 		}
 		if s.ACLProdAction != nil {
-			m["acl_prod_action"] = FlattenProdAction(*s.ACLProdAction)
+			m["acl_prod_action"] = flattenProdAction(*s.ACLProdAction)
 		}
 		if s.BotsProdID != nil {
 			m["bots_prod_id"] = *s.BotsProdID
 		}
 		if s.BotsProdAction != nil {
-			m["bots_prod_action"] = FlattenProdAction(*s.BotsProdAction)
+			m["bots_prod_action"] = flattenProdAction(*s.BotsProdAction)
 		}
 		if s.ProfileAuditID != nil {
 			m["profile_audit_id"] = *s.ProfileAuditID
 		}
 		if s.ProfileAuditAction != nil {
 			m["profile_audit_action"] =
-				FlattenAuditAction(*s.ProfileAuditAction)
+				flattenAuditAction(*s.ProfileAuditAction)
 		}
 		if s.ProfileProdID != nil {
 			m["profile_prod_id"] = *s.ProfileProdID
 		}
 		if s.ProfileProdAction != nil {
-			m["profile_prod_action"] = FlattenProdAction(*s.ProfileProdAction)
+			m["profile_prod_action"] = flattenProdAction(*s.ProfileProdAction)
 		}
 		if s.RuleAuditID != nil {
 			m["rules_audit_id"] = *s.RuleAuditID
 		}
 		if s.RuleAuditAction != nil {
-			m["rules_audit_action"] = FlattenAuditAction(*s.RuleAuditAction)
+			m["rules_audit_action"] = flattenAuditAction(*s.RuleAuditAction)
 		}
 		if s.RuleProdID != nil {
 			m["rules_prod_id"] = *s.RuleProdID
 		}
 		if s.RuleProdAction != nil {
-			m["rules_prod_action"] = FlattenProdAction(*s.RuleProdAction)
+			m["rules_prod_action"] = flattenProdAction(*s.RuleProdAction)
 		}
 		flattenedScopes[i] = m
 	}
 	return flattenedScopes, nil
 }
 
-// FlattenProdAction converts the ProdAction API Model
+// flattenProdAction converts the ProdAction API Model
 // into a format that Terraform can work with
-func FlattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
+func flattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
 	m := make(map[string]interface{})
 	m["enf_type"] = prodAction.ENFType
 	m["name"] = prodAction.Name
@@ -862,9 +862,9 @@ func FlattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
 	return []map[string]interface{}{m}
 }
 
-// FlattenAuditAction converts the AuditAction API Model
+// flattenAuditAction converts the AuditAction API Model
 // into a format that Terraform can work with
-func FlattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
+func flattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
 	m := make(map[string]interface{})
 	m["enf_type"] = auditAction.Type
 	m["name"] = auditAction.Name
@@ -873,9 +873,9 @@ func FlattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
 	return []map[string]interface{}{m}
 }
 
-// FlattenMatchCondition converts the MatchCondition API Model
+// flattenMatchCondition converts the MatchCondition API Model
 // into a format that Terraform can work with
-func FlattenMatchCondition(
+func flattenMatchCondition(
 	matchCondition waf.MatchCondition,
 ) []map[string]interface{} {
 	m := make(map[string]interface{})
@@ -897,9 +897,9 @@ func FlattenMatchCondition(
 	return []map[string]interface{}{m}
 }
 
-// FlattenLimits converts the Limit API Model
+// flattenLimits converts the Limit API Model
 // into a format that Terraform can work with
-func FlattenLimits(limits []waf.Limit) []map[string]interface{} {
+func flattenLimits(limits []waf.Limit) []map[string]interface{} {
 	maps := make([]map[string]interface{}, len(limits))
 	for i, l := range limits {
 		m := make(map[string]interface{})
@@ -942,7 +942,7 @@ func modifyAllScopes(
 		scopes.Scopes = make([]waf.Scope, 0)
 	} else {
 		if flatScopes, ok := d.GetOk("scope"); ok {
-			expandedScopes, err := ExpandScopes(flatScopes)
+			expandedScopes, err := expandScopes(flatScopes)
 			if err != nil {
 				return diag.FromErr(err)
 			}

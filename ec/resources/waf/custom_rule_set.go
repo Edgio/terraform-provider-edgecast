@@ -379,7 +379,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 		Name: d.Get("name").(string),
 	}
 
-	directive, err := ExpandDirectives(d.Get("directive"))
+	directive, err := expandDirectives(d.Get("directive"))
 	if err != nil {
 		return diag.Errorf("error parsing directive: %+v", err)
 	}
@@ -438,7 +438,7 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 	d.Set("last_modified_date", resp.LastModifiedDate)
 	d.Set("name", resp.Name)
 
-	flattenDirectiveGroups := FlattenDirectives(resp.Directives)
+	flattenDirectiveGroups := flattenDirectives(resp.Directives)
 
 	d.Set("directive", flattenDirectiveGroups)
 	return diags
@@ -741,7 +741,7 @@ func expandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
 	}
 }
 
-// FlattenDirectives converts the ConditionGroup API Model
+// flattenDirectives converts the ConditionGroup API Model
 // into a format that Terraform can work with
 func flattenDirectives(directive []sdkwaf.Directive) []map[string]interface{} {
 
@@ -757,7 +757,7 @@ func flattenDirectives(directive []sdkwaf.Directive) []map[string]interface{} {
 	return flattened
 }
 
-// FlattenSecRule converts the Condition API Model
+// flattenSecRule converts the Condition API Model
 // into a format that Terraform can work with
 func flattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
 
