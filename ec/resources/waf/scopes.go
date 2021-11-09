@@ -537,7 +537,21 @@ func ResourceScopesCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	return modifyAllScopes(ctx, d, m, false)
+	accountNumber := d.Get("account_number").(string)
+	scopes, err := readScopes(d)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+	err = modifyAllScopes(ctx, m, accountNumber, scopes)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+	// Use account number as the entity ID since a customer can only have one
+	// set of scopes
+	d.SetId(accountNumber)
+	return diag.Diagnostics{}
 }
 
 func ResourceScopesRead(
@@ -545,7 +559,6 @@ func ResourceScopesRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	var diags diag.Diagnostics
 	config := m.(**api.ClientConfig)
 	wafService, err := buildWAFService(**config)
 
@@ -574,7 +587,7 @@ func ResourceScopesRead(
 	// Use account number as the entity ID since a customer can only have one
 	// set of scopes
 	d.SetId(accountNumber)
-	return diags
+	return diag.Diagnostics{}
 }
 
 func ResourceScopesUpdate(
@@ -582,7 +595,19 @@ func ResourceScopesUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	return modifyAllScopes(ctx, d, m, false)
+	accountNumber := d.Get("account_number").(string)
+	scopes, err := readScopes(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	err = modifyAllScopes(ctx, m, accountNumber, scopes)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	// Use account number as the entity ID since a customer can only have one
+	// set of scopes
+	d.SetId(accountNumber)
+	return diag.Diagnostics{}
 }
 
 func ResourceScopesDelete(
@@ -590,7 +615,14 @@ func ResourceScopesDelete(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	return modifyAllScopes(ctx, d, m, true)
+	accountNumber := d.Get("account_number").(string)
+	scopes := make([]waf.Scope, 0)
+	err := modifyAllScopes(ctx, m, accountNumber, scopes)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	d.SetId("")
+	return diag.Diagnostics{}
 }
 
 // expandScopes converts the values read from a Terraform Configuration
@@ -926,58 +958,42 @@ func flattenLimits(limits []waf.Limit) []map[string]interface{} {
 
 func modifyAllScopes(
 	ctx context.Context,
-	d *schema.ResourceData,
 	m interface{},
-	isDeleteOperation bool,
-) diag.Diagnostics {
-	var diags diag.Diagnostics
-	accountNumber := d.Get("account_number").(string)
+	accountNumber string,
+	scopes []waf.Scope,
+) error {
 	log.Printf("[INFO] Modifying WAF Scopes for Account >> %s", accountNumber)
-
-	scopes := waf.Scopes{
+	payload := waf.Scopes{
 		CustomerID: accountNumber,
+		Scopes:     scopes,
 	}
-
-	if isDeleteOperation {
-		scopes.Scopes = make([]waf.Scope, 0)
-	} else {
-		if flatScopes, ok := d.GetOk("scope"); ok {
-			expandedScopes, err := expandScopes(flatScopes)
-			if err != nil {
-				return diag.FromErr(err)
-			}
-			scopes.Scopes = expandedScopes
-		} else {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "Error reading Scopes",
-				Detail:   "Scopes not found or incorrectly formatted",
-			})
-			return diags
-		}
-		logScopes(scopes)
-	}
-
+	logScopes(payload)
 	config := m.(**api.ClientConfig)
 	wafService, err := buildWAFService(**config)
 
 	if err != nil {
-		return diag.FromErr(err)
+		return err
 	}
 
-	resp, err := wafService.ModifyAllScopes(scopes)
+	resp, err := wafService.ModifyAllScopes(payload)
 
 	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
+		return err
 	}
 
 	log.Printf("[INFO] Successfully modified WAF Scopes: %+v", resp)
+	return nil
+}
 
-	// Use account number as the entity ID since a customer can only have one
-	// set of scopes
-	d.SetId(accountNumber)
-	return diags
+func readScopes(d *schema.ResourceData) ([]waf.Scope, error) {
+	if flatScopes, ok := d.GetOk("scope"); ok {
+		expandedScopes, err := expandScopes(flatScopes)
+		if err != nil {
+			return nil, err
+		}
+		return expandedScopes, nil
+	}
+	return nil, errors.New("scopes not found or incorrectly formatted")
 }
 
 func logScopes(s waf.Scopes) {
