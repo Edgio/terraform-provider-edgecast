@@ -5,7 +5,7 @@ module terraform-provider-ec
 go 1.15
 
 require (
-	github.com/EdgeCast/ec-sdk-go v0.1.9
+	github.com/EdgeCast/ec-sdk-go v0.1.10
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/go-test/deep v1.0.3
 	github.com/google/uuid v1.2.0
