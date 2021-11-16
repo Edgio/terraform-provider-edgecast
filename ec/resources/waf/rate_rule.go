@@ -297,6 +297,33 @@ func ResourceRateRuleUpdate(ctx context.Context, d *schema.ResourceData, m inter
 func ResourceRateRuleDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 
 	var diags diag.Diagnostics
+	ruleID := d.Id()
+	accountNumber := d.Get("account_number").(string)
+	config := m.(**api.ClientConfig)
+	wafService, err := buildWAFService(**config)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := wafService.DeleteRateRuleByID(accountNumber, ruleID)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	if !resp.Success || len(resp.Errors) > 0 {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  fmt.Sprintf("Error Deleting Rate Rule %s", ruleID),
+			Detail: fmt.Sprintf(
+				"Status Code:%s, Msg: %s",
+				resp.Errors[0].Code,
+				resp.Errors[0].Message),
+		})
+	}
+
+	d.SetId("")
+
 	return diags
 }
 
