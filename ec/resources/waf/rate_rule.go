@@ -320,6 +320,7 @@ func ResourceRateRuleDelete(ctx context.Context, d *schema.ResourceData, m inter
 				resp.Errors[0].Code,
 				resp.Errors[0].Message),
 		})
+		return diags
 	}
 
 	d.SetId("")
