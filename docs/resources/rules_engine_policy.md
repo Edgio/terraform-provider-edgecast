@@ -7,7 +7,7 @@ description: |-
 ---
 
 # ec_rules_engine_policy (Resource)
-Please refer to the [official documentation](https://dev.vdms.com/cdn/api/index.html#Media_Management/REv4/Add-Policy.htm) for details on policy fields.
+Please refer to the [official documentation](https://developer.edgecast.com/cdn/api/index.html#Media_Management/REv4/Add-Policy.htm) for details on policy fields.
 
 ## Example Usage
 
