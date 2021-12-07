@@ -271,7 +271,6 @@ func ResourceRateRuleUpdate(
 	ruleID := d.Id()
 	rule, err := expandRateRule(d)
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 	log.Printf(
@@ -289,7 +288,6 @@ func ResourceRateRuleUpdate(
 	resp, err := wafService.UpdateRateRule(*rule, ruleID)
 
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
