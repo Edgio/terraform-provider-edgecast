@@ -127,7 +127,7 @@ func TestExpandConditions(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := ExpandConditions(v.input)
+		actualPtr, err := expandConditions(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -264,7 +264,7 @@ func TestExpandConditionGroups(t *testing.T) {
 
 	for _, v := range cases {
 
-		actualPtr, err := ExpandConditionGroups(v.input)
+		actualPtr, err := expandConditionGroups(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -392,7 +392,7 @@ func TestFlattenConditionGroups(t *testing.T) {
 
 	for _, v := range cases {
 
-		actualGroups := FlattenConditionGroups(v.input)
+		actualGroups := flattenConditionGroups(v.input)
 
 		for i, actual := range actualGroups {
 

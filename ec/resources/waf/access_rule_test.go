@@ -1,13 +1,14 @@
 package waf
 
 import (
+	"reflect"
 	"terraform-provider-ec/ec/helper"
 	"testing"
 
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
-func TestConvertInterfaceToAccessControls(t *testing.T) {
+func TestExpandAccessControls(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
@@ -60,19 +61,19 @@ func TestConvertInterfaceToAccessControls(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actual, err := ConvertInterfaceToAccessControls(v.input)
+		actual, err := ExpandAccessControls(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
-				if !helper.IsInterfaceSliceEqual(v.expected.Accesslist, actual.Accesslist) {
+				if !reflect.DeepEqual(v.expected.Accesslist, actual.Accesslist) {
 					t.Fatalf("%s: Expected %q but got %q", v.name, v.expected.Accesslist, actual.Accesslist)
 				}
 
-				if !helper.IsInterfaceSliceEqual(v.expected.Blacklist, actual.Blacklist) {
+				if !reflect.DeepEqual(v.expected.Blacklist, actual.Blacklist) {
 					t.Fatalf("%s: Expected %q but got %q", v.name, v.expected.Blacklist, actual.Blacklist)
 				}
 
-				if !helper.IsInterfaceSliceEqual(v.expected.Whitelist, actual.Whitelist) {
+				if !reflect.DeepEqual(v.expected.Whitelist, actual.Whitelist) {
 					t.Fatalf("%s: Expected %q but got %q", v.name, v.expected.Whitelist, actual.Whitelist)
 				}
 			} else {

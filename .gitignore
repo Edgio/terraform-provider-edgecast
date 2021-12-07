@@ -27,3 +27,4 @@ unit-tests/**/credential_ucc.json
 *.hcl
 .terraform/*
 **/*.copy
+docs_current/

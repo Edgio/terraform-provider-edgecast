@@ -1,4 +1,5 @@
-// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license. See LICENSE file in project root for terms.
+// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
 package ec
 
 import (
@@ -103,6 +104,7 @@ func Provider() *schema.Provider {
 			"ec_waf_rate_rule":          waf.ResourceRateRule(),
 			"ec_waf_managed_rule":       waf.ResourceManagedRule(),
 			"ec_waf_custom_rule_set":    waf.ResourceCustomRuleSet(),
+			"ec_waf_scopes":             waf.ResourceScopes(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"ec_customer_services": customer.DataSourceCustomerServices(),

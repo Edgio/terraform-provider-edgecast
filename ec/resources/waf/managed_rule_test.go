@@ -413,7 +413,7 @@ func TestFlattenGeneralSettings(t *testing.T) {
 				XmlParser:            false,
 			},
 			expected: []map[string]interface{}{
-				map[string]interface{}{
+				{
 					"anomaly_threshold":      10,
 					"arg_length":             1024,
 					"arg_name_length":        2048,
@@ -436,7 +436,7 @@ func TestFlattenGeneralSettings(t *testing.T) {
 			name:  "Empty collection",
 			input: sdkwaf.GeneralSettings{},
 			expected: []map[string]interface{}{
-				map[string]interface{}{
+				{
 					"anomaly_threshold":      0,
 					"arg_length":             0,
 					"arg_name_length":        0,

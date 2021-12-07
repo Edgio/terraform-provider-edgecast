@@ -1,4 +1,5 @@
-// Copyright Edgecast, Licensed under the terms of the Apache 2.0 license . See LICENSE file in project root for terms.
+// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
 
 package api
 
@@ -33,7 +34,8 @@ type IDSToken struct {
 	ExpirationTime time.Time
 }
 
-// ClientConfig a config needed for the provider to interact with VDMS APIs, reading data comes from terraform main.tf
+// ClientConfig a config needed for the provider to interact with EdgeCast APIs,
+// reading data comes from terraform main.tf
 type ClientConfig struct {
 	APIToken         string
 	AccountNumber    string
