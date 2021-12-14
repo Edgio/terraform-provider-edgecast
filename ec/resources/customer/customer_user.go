@@ -71,13 +71,17 @@ func ResourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	customer, err := customerService.GetCustomer(accountNumber)
+	getCustomerParams := customer.NewGetCustomerParams()
+	getCustomerParams.AccountNumber = accountNumber
+	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	customerUser := getCustomerUserFromData(d)
-	customerUserID, err := customerService.AddCustomerUser(customer, customerUser)
+	addCustUserParams := customer.NewAddCustomerUserParams()
+	addCustUserParams.Customer = *customerObj
+	addCustUserParams.CustomerUser = *getCustomerUserFromData(d)
+	customerUserID, err := customerService.AddCustomerUser(*addCustUserParams)
 
 	if err != nil {
 		d.SetId("")
@@ -110,12 +114,17 @@ func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	customer, err := customerService.GetCustomer(accountNumber)
+	getCustomerParams := customer.NewGetCustomerParams()
+	getCustomerParams.AccountNumber = accountNumber
+	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = customerService.UpdateCustomerUser(customer, customerUser)
+	updateCustUserParams := customer.NewUpdateCustomerUserParams()
+	updateCustUserParams.Customer = *customerObj
+	updateCustUserParams.CustomerUser = *customerUser
+	err = customerService.UpdateCustomerUser(*updateCustUserParams)
 
 	if err != nil {
 		d.SetId("")
@@ -144,12 +153,17 @@ func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	customer, err := customerService.GetCustomer(accountNumber)
+	getCustomerParams := customer.NewGetCustomerParams()
+	getCustomerParams.AccountNumber = accountNumber
+	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	customerUser, err := customerService.GetCustomerUser(customer, customerUserID)
+	getCustUserParams := customer.NewGetCustomerUserParams()
+	getCustUserParams.Customer = *customerObj
+	getCustUserParams.CustomerUserID = customerUserID
+	customerUser, err := customerService.GetCustomerUser(*getCustUserParams)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -202,17 +216,25 @@ func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	customer, err := customerService.GetCustomer(accountNumber)
+	getCustomerParams := customer.NewGetCustomerParams()
+	getCustomerParams.AccountNumber = accountNumber
+	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	customerUser, err := customerService.GetCustomerUser(customer, customerUserID)
+	getCustUserParams := customer.NewGetCustomerUserParams()
+	getCustUserParams.Customer = *customerObj
+	getCustUserParams.CustomerUserID = customerUserID
+	customerUser, err := customerService.GetCustomerUser(*getCustUserParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = customerService.DeleteCustomerUser(customer, *customerUser)
+	deleteCustUserParams := customer.NewDeleteCustomerUserParams()
+	deleteCustUserParams.Customer = *customerObj
+	deleteCustUserParams.CustomerUser = *customerUser
+	err = customerService.DeleteCustomerUser(*deleteCustUserParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
