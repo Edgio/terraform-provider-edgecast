@@ -13,19 +13,107 @@ A Terraform provider for the Edgecast Platform.
 
 ## Background
 
-Terraform is a tool for developing, changing and versioning infrastructure safely and efficiently. One important reason people consider Terraform is to manage their infrastructure as code. With Terraform, you can store and version your configuration in GitHub (or your source code control system of choice). Once you learn Terraform's configuration syntax, you don't need to bother learning how to use providers' UIs or APIs—you just tell Terraform what you want and it figures out the rest.
+Terraform is a tool for developing, changing and versioning infrastructure 
+safely and efficiently. It allows the management of infrastructure as code. With Terraform, you can store and version your configuration in GitHub (or your 
+source code control system of choice). Thanks to Terraform's configuration 
+syntax, there is no need to write custom code to use APIs. Simply describe your
+infrastructure in a file and Terraform will figure out the rest.
 
 ## Install
-This provider is automatically installed when you run `terraform init` on a Terraform configuration that contains a reference to the Edgecast provider.
+This provider is automatically installed when you run `terraform init` in a 
+directory that contains a Terraform configuration file that references the 
+Edgecast provider.
+
+## Using the Provider
+Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
+
+```
+terraform {
+  required_providers {
+    ec = {
+      version = "0.4.2"
+      source  = "EdgeCast/ec"
+    }
+  }
+}
+```
+
+Then, use it in a provider block, passing in any credentials provided to you:
+```
+provider "ec" {
+  api_token          = "YOUR_API_TOKEN"
+  ids_client_secret  = "IDS_SECRET"
+  ids_client_id      = "IDS_CLIENT_ID"
+  ids_scope          = "IDS_SCOPE"
+}
+```
+
+Below this, you can start defining resources. For example:
+```
+resource "ec_origin" "origin_images" {
+    account_number = "A1234"
+    directory_name = "images"
+    media_type = "httplarge"
+    host_header = "images.mysite.com"
+    http {
+        load_balancing = "RR"
+        hostnames = ["images-origin-1.mysite.com","images-origin-2.mysite.com"]
+    }
+}
+```
+Then follow the usual flow for Terraform:
+1. Run `terraform init` in a command line or terminal window.
+2. Run `terraform plan out="tf.plan"` and inspect the detected changes.
+3. Run `terraform apply tf.plan`
 
 ## Development
 ### Requirements
 -    [Terraform](https://www.terraform.io/downloads.html) 0.13.x
--    [Terraform] on mac, move it to /usr/local/bin in order
--    [Go](https://golang.org/) 1.15 (also set up a GOPATH, as well as add $GOPATH/bin to your $PATH)
+-    [Terraform] on Mac, move it to /usr/local/bin; Windows add it to your path
+-    [Go](https://golang.org/) 1.15
+It is strongly recommended to create a GOPATH environment variable that points
+to the directory containing your Go installation, then add $GOPATH/bin to your 
+$PATH.
 
-### Building The Provider
-Follow the instructions to [install it as a plugin.](https://www.terraform.io/docs/plugins/basics.html#installing-a-plugin). After placing it into your plugins directory, run `terraform init` to initialize it.
+### Testing Your Local Code
+If you wish to modify the source code and test it with a configuration file,
+there are special steps involved.
+
+To simply build the code on any machine, run `go build`.
+
+Actually using your local version provider with Terraform is more complicated.
+You must:
+
+1. Install the provider to your machine's Terraform plugin directory.
+
+On a Mac, open a terminal window and change directory to the root folder of
+the source code. Run `make install`. The binary will be built and moved to your
+local Terraform plugin directory (`~/.terraform.d/plugins`).
+
+On a Windows machine, do the same from a command line or powershell window. 
+However, instead of the makefile, run the `install_win.bat` script. The provider
+exe will be moved to `%APPDATA%\terraform.d\plugins`.
+
+2. Reference the correct version of the provider in your `.tf` test file.
+If you do not do this, Terraform will download the provider from the remote
+Terraform Registry instead of using your locally installed provider. 
+
+Make note of the version that is used from within the the `Makefile` or 
+`install_win.bat`. You must use the same version within your Terraform 
+configuration file. Also, use `"github.com/terraform-providers/ec"` as the
+source.
+
+Example:
+```
+terraform {
+  required_providers {
+    ec = {
+      version = "0.4.2"
+      source  = "github.com/terraform-providers/ec"
+    }
+  }
+}
+```
 
 ## Logging
 You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
@@ -50,6 +138,22 @@ Please refer to [the contributing.md file](Contributing.md) for information abou
 ## Maintainers
 - Changgyu Oh: changgyu.oh@edgecast.com
 - Steven Paz: steven.paz@edgecast.com
+- Shikha Saluja: shikha.saluja@edgecast.com
+- Frank Contreras: frank.contreras@edgecast.com
 
 ## License
-This project is licensed under the terms of the [Apache 2.0](LICENSE) open source license.
+This project is licensed under the terms of the [Apache 2.0](LICENSE) open 
+source license.
+
+## Resources
+[CDN Reference Documentation](https://docs.edgecast.com/cdn/index.html) - This 
+is a useful resource for learning about the EdgeCast CDN. It is a good starting 
+point before using this provider.
+
+[API Documentation](https://docs.edgecast.com/cdn/index.html#REST-API.htm%3FTocPath%3D_____8) - For developers that want to interact directly with the EdgeCast CDN API, refer 
+to this documentation. It contains all of the available operations as well as 
+their inputs and outputs.
+
+[Examples](https://github.com/EdgeCast/terraform-provider-ec/tree/Master/examples) - Examples to get started can be found here.
+
+[Submit an Issue](https://github.com/EdgeCast/terraform-provider-ec/issues) - Found a bug? Want to request a feature? Please do so here.
