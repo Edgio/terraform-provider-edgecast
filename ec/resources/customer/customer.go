@@ -24,48 +24,176 @@ func ResourceCustomer() *schema.Resource {
 		DeleteContext: ResourceCustomerDelete,
 
 		Schema: map[string]*schema.Schema{
-			"company_name":                 {Type: schema.TypeString, Required: true},
-			"status":                       {Type: schema.TypeInt, Computed: true},
-			"service_level_code":           {Type: schema.TypeString, Required: true},
-			"bandwidth_usage_limit":        {Type: schema.TypeString, Optional: true, Default: "0"},
-			"data_transferred_usage_limit": {Type: schema.TypeString, Optional: true, Default: "0"},
-			"account_id":                   {Type: schema.TypeString, Optional: true},
-			"address1":                     {Type: schema.TypeString, Optional: true},
-			"address2":                     {Type: schema.TypeString, Optional: true},
-			"billing_account_tag":          {Type: schema.TypeString, Optional: true},
-			"billing_address1":             {Type: schema.TypeString, Optional: true},
-			"billing_address2":             {Type: schema.TypeString, Optional: true},
-			"billing_city":                 {Type: schema.TypeString, Optional: true},
-			"billing_contact_email":        {Type: schema.TypeString, Optional: true},
-			"billing_contact_fax":          {Type: schema.TypeString, Optional: true},
-			"billing_contact_first_name":   {Type: schema.TypeString, Optional: true},
-			"billing_contact_last_name":    {Type: schema.TypeString, Optional: true},
-			"billing_contact_mobile":       {Type: schema.TypeString, Optional: true},
-			"billing_contact_phone":        {Type: schema.TypeString, Optional: true},
-			"billing_contact_title":        {Type: schema.TypeString, Optional: true},
-			"billing_country":              {Type: schema.TypeString, Optional: true},
-			"billing_rate_info":            {Type: schema.TypeString, Optional: true},
-			"billing_state":                {Type: schema.TypeString, Optional: true},
-			"billing_zip":                  {Type: schema.TypeString, Optional: true},
-			"city":                         {Type: schema.TypeString, Optional: true},
-			"contact_email":                {Type: schema.TypeString, Optional: true},
-			"contact_fax":                  {Type: schema.TypeString, Optional: true},
-			"contact_first_name":           {Type: schema.TypeString, Optional: true},
-			"contact_last_name":            {Type: schema.TypeString, Optional: true},
-			"contact_mobile":               {Type: schema.TypeString, Optional: true},
-			"contact_phone":                {Type: schema.TypeString, Optional: true},
-			"contact_title":                {Type: schema.TypeString, Optional: true},
-			"country":                      {Type: schema.TypeString, Optional: true},
-			"notes":                        {Type: schema.TypeString, Optional: true},
-			"state":                        {Type: schema.TypeString, Optional: true},
-			"website":                      {Type: schema.TypeString, Optional: true},
-			"zip":                          {Type: schema.TypeString, Optional: true},
-			"usage_limit_update_date":      {Type: schema.TypeString, Computed: true},
-			"partner_id":                   {Type: schema.TypeInt, Computed: true},
-			"partner_name":                 {Type: schema.TypeString, Computed: true},
-			"wholesale_id":                 {Type: schema.TypeInt, Computed: true},
-			"wholesale_name":               {Type: schema.TypeString, Computed: true},
-			"delivery_region":              {Type: schema.TypeInt, Optional: true},
+			"company_name": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"status": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"service_level_code": {
+				Type:     schema.TypeString,
+				Required: true,
+			},
+			"bandwidth_usage_limit": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "0",
+			},
+			"data_transferred_usage_limit": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "0",
+			},
+			"account_id": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"address1": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"address2": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_account_tag": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_address1": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_address2": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_city": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_email": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_fax": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_first_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_last_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_mobile": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_phone": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_contact_title": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_country": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_rate_info": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_state": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"billing_zip": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"city": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_email": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_fax": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_first_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_last_name": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_mobile": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_phone": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"contact_title": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"country": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"notes": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"state": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"website": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"zip": {
+				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"usage_limit_update_date": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"partner_id": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"partner_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"wholesale_id": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"wholesale_name": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+			"delivery_region": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 			"services": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -86,12 +214,14 @@ func ResourceCustomerCreate(
 	m interface{},
 ) diag.Diagnostics {
 
+	// Create Customer object
 	newCustomer, err := getCustomerCreateUpdate(d)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
@@ -99,6 +229,7 @@ func ResourceCustomerCreate(
 		return diag.FromErr(err)
 	}
 
+	// Call Add Customer API
 	addCustomerParams := customer.NewAddCustomerParams()
 	addCustomerParams.Customer = *newCustomer
 	accountNumber, err := customerService.AddCustomer(addCustomerParams)
@@ -110,14 +241,15 @@ func ResourceCustomerCreate(
 
 	d.SetId(accountNumber)
 
+	// Retrieve newly created Customer object
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 	if err != nil {
-		d.SetId("") // Terraform requires an empty ID for failed creation
 		return diag.FromErr(err)
 	}
 
+	// Enable Services defined for newly created Customer
 	if attr, ok := d.GetOk("services"); ok {
 		attrList := attr.([]interface{})
 		enableFlag := 1
@@ -140,6 +272,7 @@ func ResourceCustomerCreate(
 		}
 	}
 
+	// Enable Delivery Regions defined for newly created Customer
 	if attr, ok := d.GetOk("delivery_region"); ok {
 		params := customer.NewUpdateCustomerDeliveryRegionParams()
 		params.Customer = *customerObj
@@ -151,6 +284,7 @@ func ResourceCustomerCreate(
 		}
 	}
 
+	// Enable Access Modules defined for newly created Customer
 	if attr, ok := d.GetOk("access_modules"); ok {
 		attrList := attr.([]interface{})
 		enableFlag := 1
@@ -162,7 +296,7 @@ func ResourceCustomerCreate(
 
 		params := customer.NewUpdateCustomerAccessModuleParams()
 		params.Customer = *customerObj
-		params.AccesModuleIDs = accessModuleIDs
+		params.AccessModuleIDs = accessModuleIDs
 		params.Status = enableFlag
 		err = customerService.UpdateCustomerAccessModule(*params)
 
@@ -174,35 +308,40 @@ func ResourceCustomerCreate(
 	return ResourceCustomerRead(ctx, d, m)
 }
 
-func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	accountNumber := d.Id()
 	fmt.Printf("GetCustomer>>[CustomerID]:%s", accountNumber)
 
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
-		d.SetId("") // Terraform requires an empty ID for failed creation
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
+	// Update Terraform state with retrieved Customer data
 	d.SetId(customerObj.HexID)
 	d.Set("status", customerObj.Status)
 	d.Set("address1", customerObj.Address1)
 	d.Set("address2", customerObj.Address2)
-	d.Set("bandwidth_usage_limit", strconv.FormatInt(customerObj.BandwidthUsageLimit, 10))
+	d.Set("bandwidth_usage_limit", strconv.FormatInt(
+		customerObj.BandwidthUsageLimit, 10,
+	))
 	d.Set("billing_account_tag", customerObj.BillingAccountTag)
 	d.Set("billing_address1", customerObj.BillingAddress1)
 	d.Set("billing_address2", customerObj.BillingAddress2)
@@ -228,7 +367,9 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("contact_phone", customerObj.ContactPhone)
 	d.Set("contact_title", customerObj.ContactTitle)
 	d.Set("country", customerObj.Country)
-	d.Set("data_transferred_usage_limit", strconv.FormatInt(customerObj.DataTransferredUsageLimit, 10))
+	d.Set("data_transferred_usage_limit", strconv.FormatInt(
+		customerObj.DataTransferredUsageLimit, 10,
+	))
 	d.Set("notes", customerObj.Notes)
 	d.Set("service_level_code", customerObj.ServiceLevelCode)
 	d.Set("state", customerObj.State)
@@ -240,6 +381,7 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	d.Set("wholesale_id", customerObj.WholesaleID)
 	d.Set("wholesale_name", customerObj.WholesaleName)
 
+	// Update Terraform state with retrieved Customer Services data for Customer
 	getServicesParams := customer.NewGetCustomerServicesParams()
 	getServicesParams.Customer = *customerObj
 	if services, err := customerService.GetCustomerServices(
@@ -265,6 +407,7 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("services", serviceIds)
 	}
 
+	// Update Terraform state with retrieved Delivery Regions data for Customer
 	getRegionParams := customer.NewGetCustomerDeliveryRegionParams()
 	getRegionParams.Customer = *customerObj
 	if deliveryRegion, err := customerService.GetCustomerDeliveryRegion(
@@ -279,6 +422,7 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 		d.Set("delivery_region", deliveryRegion)
 	}
 
+	// Update Terraform state with retrieved Access Modules data for Customer
 	getAccessModuleParams := customer.NewGetCustomerAccessModulesParams()
 	getAccessModuleParams.Customer = *customerObj
 	if accessModules, err := customerService.GetCustomerAccessModules(
@@ -304,25 +448,33 @@ func ResourceCustomerRead(ctx context.Context, d *schema.ResourceData, m interfa
 	return diags
 }
 
-func ResourceCustomerUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	// Not Yet Implemented
 	return ResourceCustomerRead(ctx, d, m)
 }
 
-func ResourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	accountNumber := d.Id()
 	fmt.Printf("DeleteCustomer>>[CustomerID]:%s", accountNumber)
 
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
@@ -331,6 +483,7 @@ func ResourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m inter
 		return diag.FromErr(err)
 	}
 
+	// Call Delete Customer API
 	deleteCustomerParams := customer.NewDeleteCustomerParams()
 	deleteCustomerParams.Customer = *customerObj
 	err = customerService.DeleteCustomer(deleteCustomerParams)
@@ -344,26 +497,37 @@ func ResourceCustomerDelete(ctx context.Context, d *schema.ResourceData, m inter
 	return diags
 }
 
-func getCustomerCreateUpdate(d *schema.ResourceData) (*customer.Customer, error) {
+func getCustomerCreateUpdate(
+	d *schema.ResourceData,
+) (*customer.Customer, error) {
 	var bandwidthUsageLimit int64
 	var dataTransferredUsageLimit int64
 
-	// Terraform schemas only support Int32, so gotta do a little more heavy lifting for int64 and int8
-	if attr, ok := d.GetOk("bandwidth_usage_limit"); ok && len(attr.(string)) > 0 {
+	// Terraform schemas only support Int32, so gotta do a little more heavy
+	// lifting for int64 and int8
+	if attr, ok := d.GetOk(
+		"bandwidth_usage_limit",
+	); ok && len(attr.(string)) > 0 {
 		parsed, err := strconv.ParseInt(attr.(string), 10, 64)
 
 		if err != nil {
-			return nil, fmt.Errorf("bandwidth_usage_limit should be a 64-bit integer")
+			return nil, fmt.Errorf(
+				"bandwidth_usage_limit should be a 64-bit integer",
+			)
 		}
 
 		bandwidthUsageLimit = parsed
 	}
 
-	if attr, ok := d.GetOk("data_transferred_usage_limit"); ok && len(attr.(string)) > 0 {
+	if attr, ok := d.GetOk(
+		"data_transferred_usage_limit",
+	); ok && len(attr.(string)) > 0 {
 		parsed, err := strconv.ParseInt(attr.(string), 10, 64)
 
 		if err != nil {
-			return nil, fmt.Errorf("data_transferred_usage_limit should be a 64-bit integer")
+			return nil, fmt.Errorf(
+				"data_transferred_usage_limit should be a 64-bit integer",
+			)
 		}
 
 		dataTransferredUsageLimit = parsed

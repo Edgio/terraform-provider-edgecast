@@ -5,6 +5,7 @@ package customer
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strconv"
 	"terraform-provider-ec/ec/api"
@@ -40,9 +41,14 @@ func ResourceCustomerUser() *schema.Resource {
 				Type:     schema.TypeBool,
 				Optional: true,
 				Default:  false,
-				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
-					// IsAdmin is a write-only field, so suppress the diff if being changed
-					// if the resource is new, do not suppress
+				DiffSuppressFunc: func(
+					k,
+					old,
+					new string,
+					d *schema.ResourceData,
+				) bool {
+					// IsAdmin is a write-only field, so suppress the diff if
+					// being changed. If the resource is new, do not suppress
 					return len(old) > 0
 				},
 			},
@@ -58,26 +64,36 @@ func ResourceCustomerUser() *schema.Resource {
 	}
 }
 
-func ResourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 
 	accountNumber := d.Get("account_number").(string)
-	log.Printf("[INFO] Creating customer user for Account>> [AccountNumber]: %s", accountNumber)
+	log.Printf(
+		"[INFO] Creating customer user for [Account Number]: %s",
+		accountNumber,
+	)
 
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
+	// Call Add Customer User API
 	addCustUserParams := customer.NewAddCustomerUserParams()
 	addCustUserParams.Customer = *customerObj
 	addCustUserParams.CustomerUser = *getCustomerUserFromData(d)
@@ -88,14 +104,22 @@ func ResourceCustomerUserCreate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully created user, ID=%d", customerUserID)
+	log.Printf(
+		"[INFO] Created [Customer User]: %d for [Account Number]: %s",
+		customerUserID,
+		accountNumber,
+	)
 
 	d.SetId(strconv.Itoa(customerUserID))
 
 	return ResourceCustomerUserRead(ctx, d, m)
 }
 
-func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
 	customerUser := getCustomerUserFromData(d)
 
@@ -103,17 +127,22 @@ func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	customerUser.Id = customerUserID
 
-	log.Printf("[INFO] Updating customer user %d for account %s", customerUserID, accountNumber)
+	log.Printf(
+		"[INFO] Updating [Customer User]: %d for [Account Number]: %s",
+		customerUserID,
+		accountNumber,
+	)
 
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
@@ -121,20 +150,24 @@ func ResourceCustomerUserUpdate(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
+	// Call Update Customer User API
 	updateCustUserParams := customer.NewUpdateCustomerUserParams()
 	updateCustUserParams.Customer = *customerObj
 	updateCustUserParams.CustomerUser = *customerUser
 	err = customerService.UpdateCustomerUser(*updateCustUserParams)
 
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
 	return ResourceCustomerUserRead(ctx, d, m)
 }
 
-func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	accountNumber := d.Get("account_number").(string)
@@ -144,15 +177,19 @@ func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retreiving Customer User %d for Account %s", customerUserID, accountNumber)
+	log.Printf("[INFO] Retreiving [Customer User]: %d for [Account Number]: %s",
+		customerUserID,
+		accountNumber,
+	)
 
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
@@ -160,6 +197,7 @@ func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer User object from API
 	getCustUserParams := customer.NewGetCustomerUserParams()
 	getCustUserParams.Customer = *customerObj
 	getCustUserParams.CustomerUserID = customerUserID
@@ -169,15 +207,18 @@ func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 		return diag.FromErr(err)
 	}
 
+	// Process special is_admin field
 	isAdminOld, isAdminNew := d.GetChange("is_admin")
 
 	if isAdminOld.(bool) != isAdminNew.(bool) {
 		diags = append(diags, diag.Diagnostic{
 			Severity: diag.Warning,
-			Summary:  "note: is_admin is a write-only property; modifications will be ignored",
+			Summary: "note: is_admin is a write-only property; modifications " +
+				"will be ignored",
 		})
 	}
 
+	// Update Terraform state with retrieved Customer User data
 	d.Set("address1", customerUser.Address1)
 	d.Set("address2", customerUser.Address2)
 	d.Set("city", customerUser.City)
@@ -198,7 +239,11 @@ func ResourceCustomerUserRead(ctx context.Context, d *schema.ResourceData, m int
 	return diags
 }
 
-func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceCustomerUserDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	accountNumber := d.Get("account_number").(string)
@@ -207,15 +252,34 @@ func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Deleting Customer User %d for Account %s", customerUserID, accountNumber)
+	if d.Get("is_admin").(bool) {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary: fmt.Sprintf(
+				"[Customer User]: %d for [Account Number]: %s is an admin "+
+					"user and cannot be deleted. This user will only be "+
+					"deleted if the parent Customer is deleted.",
+				customerUserID,
+				accountNumber,
+			),
+		})
+		return diags
+	}
 
+	log.Printf(
+		"[INFO] Deleting [Customer User]: %d for [Account Number]: %s",
+		customerUserID,
+		accountNumber,
+	)
+
+	// Initialize Customer Service
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
 	customerService, err := buildCustomerService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
 	getCustomerParams := customer.NewGetCustomerParams()
 	getCustomerParams.AccountNumber = accountNumber
 	customerObj, err := customerService.GetCustomer(*getCustomerParams)
@@ -223,6 +287,7 @@ func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer User object from API
 	getCustUserParams := customer.NewGetCustomerUserParams()
 	getCustUserParams.Customer = *customerObj
 	getCustUserParams.CustomerUserID = customerUserID
@@ -231,6 +296,7 @@ func ResourceCustomerUserDelete(ctx context.Context, d *schema.ResourceData, m i
 		return diag.FromErr(err)
 	}
 
+	// Call Delete Customer User API
 	deleteCustUserParams := customer.NewDeleteCustomerUserParams()
 	deleteCustUserParams.Customer = *customerObj
 	deleteCustUserParams.CustomerUser = *customerUser
