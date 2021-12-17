@@ -127,7 +127,6 @@ func ResourceCustomerUserUpdate(
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	customerUser.Id = customerUserID
 
 	log.Printf(
 		"[INFO] Updating [Customer User]: %d for [Account Number]: %s",
@@ -150,10 +149,36 @@ func ResourceCustomerUserUpdate(
 		return diag.FromErr(err)
 	}
 
+	// Retrieve Customer object from API
+	getCustomerUserParams := customer.NewGetCustomerUserParams()
+	getCustomerUserParams.Customer = *customerObj
+	getCustomerUserParams.CustomerUserID = customerUserID
+	customerUserObj, err := customerService.GetCustomerUser(
+		*getCustomerUserParams,
+	)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Update Customer User object with changed data
+	customerUserObj.Address1 = customerUser.Address1
+	customerUserObj.Address2 = customerUser.Address2
+	customerUserObj.City = customerUser.City
+	customerUserObj.Country = customerUser.Country
+	customerUserObj.Email = customerUser.Email
+	customerUserObj.Fax = customerUser.Fax
+	customerUserObj.FirstName = customerUser.FirstName
+	customerUserObj.LastName = customerUser.LastName
+	customerUserObj.Mobile = customerUser.Mobile
+	customerUserObj.Phone = customerUser.Phone
+	customerUserObj.State = customerUser.State
+	customerUserObj.Title = customerUser.Title
+	customerUserObj.Zip = customerUser.Zip
+
 	// Call Update Customer User API
 	updateCustUserParams := customer.NewUpdateCustomerUserParams()
 	updateCustUserParams.Customer = *customerObj
-	updateCustUserParams.CustomerUser = *customerUser
+	updateCustUserParams.CustomerUser = *customerUserObj
 	err = customerService.UpdateCustomerUser(*updateCustUserParams)
 
 	if err != nil {
