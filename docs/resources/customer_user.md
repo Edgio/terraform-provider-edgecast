@@ -28,7 +28,6 @@ resource "ec_customer_user" "my_customer_user" {
   fax = ""
   mobile = ""
   phone = ""
-  time_zone_id = "0"
   title = ""
   zip = ""
 }
@@ -56,7 +55,6 @@ resource "ec_customer_user" "my_customer_user" {
 - **mobile** (String)
 - **phone** (String)
 - **state** (String)
-- **time_zone_id** (Number)
 - **title** (String)
 - **zip** (String)
 

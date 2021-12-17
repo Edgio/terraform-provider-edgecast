@@ -56,7 +56,6 @@ func ResourceCustomerUser() *schema.Resource {
 			"mobile":          {Type: schema.TypeString, Optional: true},
 			"phone":           {Type: schema.TypeString, Optional: true},
 			"state":           {Type: schema.TypeString, Optional: true},
-			"time_zone_id":    {Type: schema.TypeInt, Optional: true},
 			"title":           {Type: schema.TypeString, Optional: true},
 			"zip":             {Type: schema.TypeString, Optional: true},
 			"last_login_date": {Type: schema.TypeString, Computed: true},
