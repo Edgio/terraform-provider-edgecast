@@ -172,7 +172,7 @@ func ResourceCustomerUserUpdate(
 	customerUserObj.Phone = customerUser.Phone
 	customerUserObj.State = customerUser.State
 	customerUserObj.Title = customerUser.Title
-	customerUserObj.Zip = customerUser.Zip
+	customerUserObj.ZIP = customerUser.ZIP
 
 	// Call Update Customer User API
 	updateCustUserParams := customer.NewUpdateCustomerUserParams()
@@ -257,7 +257,7 @@ func ResourceCustomerUserRead(
 	d.Set("phone", customerUser.Phone)
 	d.Set("state", customerUser.State)
 	d.Set("title", customerUser.Title)
-	d.Set("zip", customerUser.Zip)
+	d.Set("zip", customerUser.ZIP)
 	d.Set("last_login_date", customerUser.LastLoginDate)
 
 	return diags
@@ -357,6 +357,6 @@ func getCustomerUserFromData(d *schema.ResourceData) *customer.CustomerUser {
 		Phone:     d.Get("phone").(string),
 		State:     d.Get("state").(string),
 		Title:     d.Get("title").(string),
-		Zip:       d.Get("zip").(string),
+		ZIP:       d.Get("zip").(string),
 	}
 }

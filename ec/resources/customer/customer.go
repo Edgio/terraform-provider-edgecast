@@ -232,7 +232,7 @@ func ResourceCustomerCreate(
 	// Call Add Customer API
 	addCustomerParams := customer.NewAddCustomerParams()
 	addCustomerParams.Customer = *newCustomer
-	accountNumber, err := customerService.AddCustomer(addCustomerParams)
+	accountNumber, err := customerService.AddCustomer(*addCustomerParams)
 
 	if err != nil {
 		d.SetId("") // Terraform requires an empty ID for failed creation
@@ -356,7 +356,7 @@ func ResourceCustomerRead(
 	d.Set("billing_country", customerObj.BillingCountry)
 	d.Set("billing_rate_info", customerObj.BillingRateInfo)
 	d.Set("billing_state", customerObj.BillingState)
-	d.Set("billing_zip", customerObj.BillingZip)
+	d.Set("billing_zip", customerObj.BillingZIP)
 	d.Set("city", customerObj.City)
 	d.Set("company_name", customerObj.CompanyName)
 	d.Set("contact_email", customerObj.ContactEmail)
@@ -374,7 +374,7 @@ func ResourceCustomerRead(
 	d.Set("service_level_code", customerObj.ServiceLevelCode)
 	d.Set("state", customerObj.State)
 	d.Set("website", customerObj.Website)
-	d.Set("zip", customerObj.Zip)
+	d.Set("zip", customerObj.ZIP)
 	d.Set("usage_limit_update_date", customerObj.UsageLimitUpdateDate)
 	d.Set("partner_id", customerObj.PartnerID)
 	d.Set("partner_name", customerObj.PartnerName)
@@ -486,7 +486,7 @@ func ResourceCustomerDelete(
 	// Call Delete Customer API
 	deleteCustomerParams := customer.NewDeleteCustomerParams()
 	deleteCustomerParams.Customer = *customerObj
-	err = customerService.DeleteCustomer(deleteCustomerParams)
+	err = customerService.DeleteCustomer(*deleteCustomerParams)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -554,7 +554,7 @@ func getCustomerCreateUpdate(
 		BillingCountry:            d.Get("billing_country").(string),
 		BillingRateInfo:           d.Get("billing_rate_info").(string),
 		BillingState:              d.Get("billing_state").(string),
-		BillingZip:                d.Get("billing_zip").(string),
+		BillingZIP:                d.Get("billing_zip").(string),
 		City:                      d.Get("city").(string),
 		ContactEmail:              d.Get("contact_email").(string),
 		ContactFax:                d.Get("contact_fax").(string),
@@ -569,6 +569,6 @@ func getCustomerCreateUpdate(
 		ServiceLevelCode:          d.Get("service_level_code").(string),
 		State:                     d.Get("state").(string),
 		Website:                   d.Get("website").(string),
-		Zip:                       d.Get("zip").(string),
+		ZIP:                       d.Get("zip").(string),
 	}, nil
 }
