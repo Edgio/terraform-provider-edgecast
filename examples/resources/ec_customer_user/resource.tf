@@ -9,6 +9,7 @@ resource "ec_customer_user" "my_customer_user" {
   address1 = ""
   address2 = ""
   city = ""
+  state = ""
   country = ""
   fax = ""
   mobile = ""
