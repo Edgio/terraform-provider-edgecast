@@ -42,14 +42,25 @@ func DataSourceCustomerServices() *schema.Resource {
 	}
 }
 
-func DataSourceCustomerServicesRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func DataSourceCustomerServicesRead(
+	ctx context.Context,
+	d *schema.ResourceData, m interface{},
+) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
 
-	customerAPIClient := api.NewCustomerAPIClient(*config)
+	customerService, err := buildCustomerService(**config)
 
-	resp, err := customerAPIClient.GetAvailableCustomerServices()
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := customerService.GetAvailableCustomerServices()
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	services := []interface{}{}
 
