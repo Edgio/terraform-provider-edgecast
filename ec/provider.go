@@ -10,6 +10,7 @@ import (
 	cname_origin "terraform-provider-ec/ec/resources/cname-origin"
 	"terraform-provider-ec/ec/resources/customer"
 	"terraform-provider-ec/ec/resources/dnsroute"
+	"terraform-provider-ec/ec/resources/edgecname"
 	"terraform-provider-ec/ec/resources/rulesengine"
 	"terraform-provider-ec/ec/resources/waf"
 
@@ -91,7 +92,7 @@ func Provider() *schema.Provider {
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ec_origin":                 cname_origin.ResourceOrigin(),
-			"ec_cname":                  cname_origin.ResourceCname(),
+			"ec_edgecname":              edgecname.ResourceEdgeCname(),
 			"ec_customer":               customer.ResourceCustomer(),
 			"ec_customer_user":          customer.ResourceCustomerUser(),
 			"ec_rules_engine_policy":    rulesengine.ResourceRulesEngineV4Policy(),
