@@ -206,6 +206,7 @@ func ResourceOriginCreate(
 	if attr, ok := d.GetOk("origin_hostname_http"); ok {
 		hostnamesHTTP, err := ExpandHostname(attr)
 		if err != nil {
+			d.SetId("")
 			return diag.FromErr(err)
 		}
 		originObj.HTTPHostnames = *hostnamesHTTP
@@ -214,6 +215,7 @@ func ResourceOriginCreate(
 	if attr, ok := d.GetOk("origin_hostname_https"); ok {
 		hostnamesHTTPS, err := ExpandHostname(attr)
 		if err != nil {
+			d.SetId("")
 			return diag.FromErr(err)
 		}
 		originObj.HTTPSHostnames = *hostnamesHTTPS
@@ -222,6 +224,7 @@ func ResourceOriginCreate(
 	if attr, ok := d.GetOk("shield_pop"); ok {
 		shieldPOPs, err := ExpandShieldPOPs(attr)
 		if err != nil {
+			d.SetId("")
 			return diag.FromErr(err)
 		}
 		originObj.ShieldPOPs = *shieldPOPs
@@ -232,6 +235,7 @@ func ResourceOriginCreate(
 	// Initialize Origin Service
 	originService, err := buildOriginService(**config)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
@@ -243,6 +247,7 @@ func ResourceOriginCreate(
 	originID, err := originService.AddOrigin(*params)
 
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
