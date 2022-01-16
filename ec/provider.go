@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"log"
 	"terraform-provider-ec/ec/api"
-	cname_origin "terraform-provider-ec/ec/resources/cname-origin"
 	"terraform-provider-ec/ec/resources/customer"
 	"terraform-provider-ec/ec/resources/dnsroute"
 	"terraform-provider-ec/ec/resources/edgecname"
+	"terraform-provider-ec/ec/resources/origin"
 	"terraform-provider-ec/ec/resources/rulesengine"
 	"terraform-provider-ec/ec/resources/waf"
 
@@ -91,7 +91,7 @@ func Provider() *schema.Provider {
 				Default:     apiURLProdLegacy},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_origin":                 cname_origin.ResourceOrigin(),
+			"ec_origin":                 origin.ResourceOrigin(),
 			"ec_edgecname":              edgecname.ResourceEdgeCname(),
 			"ec_customer":               customer.ResourceCustomer(),
 			"ec_customer_user":          customer.ResourceCustomerUser(),

@@ -1,21 +1,21 @@
 // Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
 // license. See LICENSE file in project root for terms.
 
-package edgecname
+package origin
 
 import (
 	"terraform-provider-ec/ec/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/auth"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/origin"
 )
 
-// buildEdgeCnameService builds the SDK Edge CNAME service to manage Edge CNAME
+// buildOriginService builds the SDK Origin service to manage Origin
 // resources
-func buildEdgeCnameService(
+func buildOriginService(
 	config api.ClientConfig,
-) (*edgecname.EdgeCnameService, error) {
+) (*origin.OriginService, error) {
 
 	idsCredentials := auth.OAuth2Credentials{
 		ClientID:     config.IdsClientID,
@@ -29,5 +29,5 @@ func buildEdgeCnameService(
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
 
-	return edgecname.New(sdkConfig)
+	return origin.New(sdkConfig)
 }
