@@ -71,8 +71,8 @@ github.com/Azure/go-autorest/tracing v0.5.0/go.mod h1:r/s2XiOKccPW3HrqB+W0TQzfbt
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/EdgeCast/ec-sdk-go v0.1.13 h1:tslt+QzGTT0tYWlZ8znKRnqhoO0ypdrGnKg4HPhl8+A=
-github.com/EdgeCast/ec-sdk-go v0.1.13/go.mod h1:nu9cKpZSwwVTgm4qw3ddi5pXg6mDpZtQOpTbylL0ZoY=
+github.com/EdgeCast/ec-sdk-go v0.1.14 h1:UV7T0VWYtC61JbeKwTx9dOKbvGbBawHaAR3LgjC1rFo=
+github.com/EdgeCast/ec-sdk-go v0.1.14/go.mod h1:nu9cKpZSwwVTgm4qw3ddi5pXg6mDpZtQOpTbylL0ZoY=
 github.com/GoogleCloudPlatform/k8s-cloud-provider v0.0.0-20190822182118-27a4ced34534/go.mod h1:iroGtC8B3tQiqtds1l+mgk/BBOrxbqjH+eUfFQYRc14=
 github.com/Masterminds/goutils v1.1.0 h1:zukEsf/1JZwCMgHiK3GZftabmxiCw4apj3a28RPBiVg=
 github.com/Masterminds/goutils v1.1.0/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
