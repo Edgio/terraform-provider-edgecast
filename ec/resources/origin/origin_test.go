@@ -66,7 +66,7 @@ func TestExpandHostname(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := ExpandHostname(v.input)
+		actualPtr, err := expandHostname(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -149,7 +149,7 @@ func TestExpandShieldPOPs(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := ExpandShieldPOPs(v.input)
+		actualPtr, err := expandShieldPOPs(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -228,7 +228,7 @@ func TestFlattenHostname(t *testing.T) {
 
 	for _, v := range cases {
 
-		actual := FlattenHostname(v.input)
+		actual := flattenHostname(v.input)
 
 		if !reflect.DeepEqual(actual, v.expected) {
 			t.Fatalf("%s: Expected %+v but got %+v", v.name, actual, v.expected)
@@ -271,7 +271,7 @@ func TestFlattenShieldPOP(t *testing.T) {
 
 	for _, v := range cases {
 
-		actual := FlattenShieldPOP(v.input)
+		actual := flattenShieldPOP(v.input)
 
 		if !reflect.DeepEqual(actual, v.expected) {
 			t.Fatalf("%s: Expected %+v but got %+v", v.name, actual, v.expected)

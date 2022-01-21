@@ -204,7 +204,7 @@ func ResourceOriginCreate(
 	}
 
 	if attr, ok := d.GetOk("origin_hostname_http"); ok {
-		hostnamesHTTP, err := ExpandHostname(attr)
+		hostnamesHTTP, err := expandHostname(attr)
 		if err != nil {
 			d.SetId("")
 			return diag.FromErr(err)
@@ -213,7 +213,7 @@ func ResourceOriginCreate(
 	}
 
 	if attr, ok := d.GetOk("origin_hostname_https"); ok {
-		hostnamesHTTPS, err := ExpandHostname(attr)
+		hostnamesHTTPS, err := expandHostname(attr)
 		if err != nil {
 			d.SetId("")
 			return diag.FromErr(err)
@@ -222,7 +222,7 @@ func ResourceOriginCreate(
 	}
 
 	if attr, ok := d.GetOk("shield_pop"); ok {
-		shieldPOPs, err := ExpandShieldPOPs(attr)
+		shieldPOPs, err := expandShieldPOPs(attr)
 		if err != nil {
 			d.SetId("")
 			return diag.FromErr(err)
@@ -297,13 +297,13 @@ func ResourceOriginRead(
 	d.Set("https_full_url", parsedResponse.HTTPSFullURL)
 	d.Set("use_origin_shield", parsedResponse.UseOriginShield)
 
-	httpHostnames := FlattenHostname(parsedResponse.HTTPHostnames)
+	httpHostnames := flattenHostname(parsedResponse.HTTPHostnames)
 	d.Set("origin_hostname_http", httpHostnames)
 
-	httpsHostnames := FlattenHostname(parsedResponse.HTTPSHostnames)
+	httpsHostnames := flattenHostname(parsedResponse.HTTPSHostnames)
 	d.Set("origin_hostname_https", httpsHostnames)
 
-	shieldPOPs := FlattenShieldPOP(parsedResponse.ShieldPOPs)
+	shieldPOPs := flattenShieldPOP(parsedResponse.ShieldPOPs)
 	d.Set("shield_pop", shieldPOPs)
 
 	return diag.Diagnostics{}
@@ -349,7 +349,7 @@ func ResourceOriginUpdate(
 	originObj.ValidationURL = d.Get("validation_url").(string)
 
 	if attr, ok := d.GetOk("origin_hostname_http"); ok {
-		hostnamesHTTP, err := ExpandHostname(attr)
+		hostnamesHTTP, err := expandHostname(attr)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -357,7 +357,7 @@ func ResourceOriginUpdate(
 	}
 
 	if attr, ok := d.GetOk("origin_hostname_https"); ok {
-		hostnamesHTTPS, err := ExpandHostname(attr)
+		hostnamesHTTPS, err := expandHostname(attr)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -365,7 +365,7 @@ func ResourceOriginUpdate(
 	}
 
 	if attr, ok := d.GetOk("shield_pop"); ok {
-		shieldPOPs, err := ExpandShieldPOPs(attr)
+		shieldPOPs, err := expandShieldPOPs(attr)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -434,7 +434,7 @@ func ResourceOriginDelete(
 	return diag.Diagnostics{}
 }
 
-func ExpandHostname(attr interface{}) (*[]origin.Hostname, error) {
+func expandHostname(attr interface{}) (*[]origin.Hostname, error) {
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
@@ -459,7 +459,7 @@ func ExpandHostname(attr interface{}) (*[]origin.Hostname, error) {
 	}
 }
 
-func ExpandShieldPOPs(attr interface{}) (*[]origin.ShieldPOP, error) {
+func expandShieldPOPs(attr interface{}) (*[]origin.ShieldPOP, error) {
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
@@ -482,7 +482,7 @@ func ExpandShieldPOPs(attr interface{}) (*[]origin.ShieldPOP, error) {
 	}
 }
 
-func FlattenHostname(hostgroups []origin.Hostname) []map[string]interface{} {
+func flattenHostname(hostgroups []origin.Hostname) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, hostgroup := range hostgroups {
@@ -495,7 +495,7 @@ func FlattenHostname(hostgroups []origin.Hostname) []map[string]interface{} {
 	return flattened
 }
 
-func FlattenShieldPOP(shieldPOPs []origin.ShieldPOP) []map[string]interface{} {
+func flattenShieldPOP(shieldPOPs []origin.ShieldPOP) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, shieldPOP := range shieldPOPs {
