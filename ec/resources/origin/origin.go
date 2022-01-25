@@ -62,7 +62,7 @@ func ResourceOrigin() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:     schema.TypeString,
-				Optional: true,
+				Required: true,
 				Description: `Account Number for the customer if not already 
 				specified in the provider configuration.`,
 			},
