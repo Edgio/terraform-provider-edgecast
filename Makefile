@@ -3,7 +3,7 @@ HOSTNAME=github.com
 NAMESPACE=terraform-providers
 NAME=ec
 BINARY=terraform-provider-${NAME}
-VERSION=0.4.3
+VERSION=0.4.4
 OS_ARCH=darwin_amd64
 
 default: install
