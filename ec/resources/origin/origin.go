@@ -62,9 +62,10 @@ func ResourceOrigin() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:     schema.TypeString,
-				Optional: true,
-				Description: `Account Number for the customer if not already 
-				specified in the provider configuration.`,
+				Required: true,
+				Description: `Account Number associated with the customer whose 
+				origins you wish to manage. This account number may be found in 
+				the upper right-hand corner of the MCC.`,
 			},
 			"directory_name": {
 				Type:     schema.TypeString,

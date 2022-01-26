@@ -15,7 +15,7 @@ description: |-
 ```terraform
 resource "ec_origin" "origin_images_httplarge" {
     account_number = "A1234"
-    directory_name = "/images"
+    directory_name = "images"
     host_header = "images.exampleorigin.com:443"
     media_type_id = 3 # 3: HTTP Large, 8: HTTP Small, 14: ADN
     network_configuration = 1 # 1: default, 2: IPv6 preferred, 3: IPv4 preferred, 4: IPv4 only, 5: IPv6 only
@@ -44,15 +44,19 @@ resource "ec_origin" "origin_images_httplarge" {
     shield_pop {
         pop_code = "LAA"
     }
+
+    shield_pop {
+        pop_code = "LHB"
+    }
 }
 
 resource "ec_origin" "origin_cart_adn" {
     account_number = "A1234"
-    directory_name = "/shopping"
+    directory_name = "shopping"
     host_header = "cart.exampleorigin.com:443"
     media_type_id = 14 # 3: HTTP Large, 8: HTTP Small, 14: ADN
     network_configuration = 1 # 1: default, 2: IPv6 preferred, 3: IPv4 preferred, 4: IPv4 only, 5: IPv6 only
-    follow_redirects = true
+    follow_redirects = false
     validation_url = "https://cart.exampleorigin.com/logo.jpg"
     load_balancing_scheme_http = "PF" # RR: Round Robin  PF: Primary/Failover.
     origin_hostname_http {
@@ -84,6 +88,9 @@ resource "ec_origin" "origin_cart_adn" {
 
 ### Required
 
+- **account_number** (String) Account Number associated with the customer whose 
+				origins you wish to manage. This account number may be found in 
+				the upper right-hand corner of the MCC.
 - **directory_name** (String) Identifies the directory name that will be 
 				assigned to the customer origin configuration. This alphanumeric 
 				value is appended to the end of the base CDN URL that points to 
@@ -112,8 +119,6 @@ resource "ec_origin" "origin_cart_adn" {
 
 ### Optional
 
-- **account_number** (String) Account Number for the customer if not already 
-				specified in the provider configuration.
 - **follow_redirects** (Boolean) Indicates whether our edge servers will respect a 
 				URL redirect when validating the set of optimal ADN gateway 
 				servers for your customer origin configuration.
