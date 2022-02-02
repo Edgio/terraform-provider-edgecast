@@ -179,7 +179,7 @@ func (APIClient *RulesEngineAPIClient) GetPolicy(
 		portalTypeID)
 
 	if err != nil {
-		return nil, fmt.Errorf("AddPolicy: %v", err)
+		return nil, fmt.Errorf("GetPolicy: %v", err)
 	}
 
 	parsedResponse := make(map[string]interface{})
