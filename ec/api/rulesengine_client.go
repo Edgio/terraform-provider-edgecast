@@ -254,7 +254,7 @@ func (c *RulesEngineAPIClient) DeployPolicy(
 		portalTypeID)
 
 	if err != nil {
-		return nil, fmt.Errorf("AddPolicy: %v", err)
+		return nil, fmt.Errorf("DeployPolicy: %v", err)
 	}
 
 	parsedResponse := &AddDeployPolicyResponse{}
