@@ -59,11 +59,15 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 }
 
 // ResourcePolicyCreate - Create a new policy and deploy it to a target platform
-func ResourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourcePolicyCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	policy := d.Get("policy").(string)
 
-	// messy - needs improvement - unmarshalling json, modifying, then marshalling back to string
-	// state must always be locked
+	// messy - needs improvement - unmarshalling json, modifying, then
+	// marshalling back to string state must always be locked
 	policyMap := make(map[string]interface{})
 	json.Unmarshal([]byte(policy), &policyMap)
 	policyMap["state"] = "locked"
@@ -90,21 +94,9 @@ func ResourcePolicyRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = d.Get("account_number").(string)
-	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
-	portalTypeID := d.Get("portaltypeid").(string)
-	customerUserID := d.Get("customeruserid").(string)
-	policyID, _ := strconv.Atoi(d.Id())
 
-	log.Printf("[INFO] Retrieving policy %d", policyID)
-	client := api.NewRulesEngineAPIClient(*config)
+	policy, err := getPolicy(m, d)
 
-	policy, err := client.GetPolicy(
-		(**config).AccountNumber,
-		customerUserID,
-		portalTypeID,
-		policyID)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -129,7 +121,7 @@ func ResourcePolicyRead(
 	policyAsString := string(jsonBytes)
 	log.Printf(
 		"[INFO] Successfully retrieved policy %d: %s",
-		policyID,
+		d.Id(),
 		policyAsString)
 
 	d.Set("policy", policyAsString)
@@ -154,12 +146,16 @@ func ResourcePolicyDelete(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	policy := d.Get("policy").(string)
+	// We will retrieve a fresh copy of the policy to prevent
+	// sending an empty policy to the wrong platform
+	policy, err := getPolicy(m, d)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// pull out platform from existing policy
-	policyMap := make(map[string]interface{})
-	json.Unmarshal([]byte(policy), &policyMap)
-	platform := policyMap["platform"].(string)
+	platform := policy["platform"].(string)
 
 	// You can't actually delete policies, so we will instead create a
 	// placeholder empty policy for the customer for the given platform and
@@ -171,7 +167,7 @@ func ResourcePolicyDelete(
 		platform,
 		timestamp)
 
-	err := addPolicy(emptyPolicyJSON, true, d, m)
+	err = addPolicy(emptyPolicyJSON, true, d, m)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -272,6 +268,27 @@ func getDeployRequestData(
 		PolicyID:    policyID,
 		Environment: d.Get("deploy_to").(string),
 	}
+}
+
+func getPolicy(
+	m interface{},
+	d *schema.ResourceData,
+) (map[string]interface{}, error) {
+	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = d.Get("account_number").(string)
+	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
+	portalTypeID := d.Get("portaltypeid").(string)
+	customerUserID := d.Get("customeruserid").(string)
+	policyID, _ := strconv.Atoi(d.Id())
+
+	log.Printf("[INFO] Retrieving policy %d", policyID)
+	client := api.NewRulesEngineAPIClient(*config)
+
+	return client.GetPolicy(
+		(**config).AccountNumber,
+		customerUserID,
+		portalTypeID,
+		policyID)
 }
 
 func addPolicy(
