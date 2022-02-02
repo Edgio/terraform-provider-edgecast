@@ -1,21 +1,24 @@
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
+
 package api
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
 const rulesEngineRelURLFormat = "rules-engine/v1.1/%s"
 
-//RulesEngineAPIClient -
+// RulesEngineAPIClient -
 type RulesEngineAPIClient struct {
 	Config        *ClientConfig
 	BaseAPIClient *BaseClient
 }
 
-//AddDeployPolicyResponse -
+// AddDeployPolicyResponse -
 type AddDeployPolicyResponse struct {
 	ID          string                   `json:"id,omitempty"`
 	AtID        string                   `json:"@id,omitempty"`
@@ -32,13 +35,13 @@ type AddDeployPolicyResponse struct {
 	User        User                     `json:"user,omitempty"`
 }
 
-//UpdateDeployPolicyStateResponse -
+// UpdateDeployPolicyStateResponse -
 type UpdateDeployPolicyStateResponse struct {
 	ID    string `json:"id,omitempty"`
 	State string `json:"state,omitempty"`
 }
 
-//AddPolicyResponse -
+// AddPolicyResponse -
 type AddPolicyResponse struct {
 	ID          string    `json:"id,omitempty"`
 	Type        string    `json:"@type,omitempty"`
@@ -52,7 +55,7 @@ type AddPolicyResponse struct {
 	Rules       []Rule    `json:"rules,omitempty"`
 }
 
-//UpdatePolicyResponse -
+// UpdatePolicyResponse -
 type UpdatePolicyResponse struct {
 	ID          string    `json:"id,omitempty"`
 	Type        string    `json:"@type,omitempty"`
@@ -66,7 +69,7 @@ type UpdatePolicyResponse struct {
 	Rules       []Rule    `json:"rules,omitempty"`
 }
 
-//Rule -
+// Rule -
 type Rule struct {
 	ID          string                   `json:"id,omitempty"`
 	Name        string                   `json:"name,omitempty"`
@@ -77,7 +80,7 @@ type Rule struct {
 	Matches     []map[string]interface{} `json:"matches,omitempty"`
 }
 
-//Match -
+// Match -
 type Match struct {
 	ID         int    `json:"id"`
 	Type       string `json:"@type"`
@@ -95,7 +98,7 @@ type Match struct {
 	Features   []map[string]interface{}
 }
 
-//Feature -
+// Feature -
 type Feature struct {
 	Action          string   `json:"action,omitempty"`
 	Code            string   `json:"code,omitempty"`
@@ -129,14 +132,14 @@ type Feature struct {
 	Value           string   `json:"value,omitempty"`
 }
 
-//AddDeployRequest -
+// AddDeployRequest -
 type AddDeployRequest struct {
 	PolicyID    int    `json:"policy_id"`
 	Environment string `json:"environment,omitempty"`
 	Message     string `json:"message"`
 }
 
-//User -
+// User -
 type User struct {
 	ID        string `json:"id,omitempty"`
 	FirstName string `json:"first_name,omitempty"`
@@ -144,7 +147,7 @@ type User struct {
 	Email     string `json:"email,omitempty"`
 }
 
-//NewRulesEngineAPIClient -
+// NewRulesEngineAPIClient -
 func NewRulesEngineAPIClient(config *ClientConfig) *RulesEngineAPIClient {
 	APIClient := &RulesEngineAPIClient{
 		Config:        config,
@@ -155,24 +158,29 @@ func NewRulesEngineAPIClient(config *ClientConfig) *RulesEngineAPIClient {
 }
 
 // GetPolicy -
-func (APIClient *RulesEngineAPIClient) GetPolicy(accountNumber string, customerUserID string, portalTypeID string, policyID int) (map[string]interface{}, error) {
+func (APIClient *RulesEngineAPIClient) GetPolicy(
+	accountNumber string,
+	customerUserID string,
+	portalTypeID string,
+	policyID int,
+) (map[string]interface{}, error) {
 	relURL := formatRulesEngineRelURL("policies/%d", policyID)
-	request, err := APIClient.BaseAPIClient.BuildRequest("GET", relURL, nil, true)
+	request, err :=
+		APIClient.BaseAPIClient.BuildRequest("GET", relURL, nil, true)
 
 	if err != nil {
 		return nil, fmt.Errorf("GetPolicy: %v", err)
 	}
 
-	// account number hex string -> customer ID
-	customerID, err := strconv.ParseInt(accountNumber, 16, 64)
+	err = addPortalsHeaders(
+		&request.Header,
+		accountNumber,
+		customerUserID,
+		portalTypeID)
 
 	if err != nil {
-		return nil, fmt.Errorf("GetPolicy: ParseInt: %v", err)
+		return nil, fmt.Errorf("AddPolicy: %v", err)
 	}
-
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
-	request.Header.Set("Portals_UserId", customerUserID)
-	request.Header.Set("Portals_PortalTypeId", portalTypeID)
 
 	parsedResponse := make(map[string]interface{})
 
@@ -185,24 +193,32 @@ func (APIClient *RulesEngineAPIClient) GetPolicy(accountNumber string, customerU
 	return parsedResponse, nil
 }
 
-//AddPolicy -
-func (c *RulesEngineAPIClient) AddPolicy(policy string, accountNumber string, portalTypeID string, customerUserID string) (*AddPolicyResponse, error) {
-	request, err := c.BaseAPIClient.BuildRequest("POST", "rules-engine/v1.1/policies", policy, true)
+// AddPolicy -
+func (c *RulesEngineAPIClient) AddPolicy(
+	policy string,
+	accountNumber string,
+	portalTypeID string,
+	customerUserID string,
+) (*AddPolicyResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest(
+		"POST",
+		"rules-engine/v1.1/policies",
+		policy,
+		true)
+	if err != nil {
+		return nil, fmt.Errorf("AddPolicy: %v", err)
+	}
+
+	err = addPortalsHeaders(
+		&request.Header,
+		accountNumber,
+		customerUserID,
+		portalTypeID)
 
 	if err != nil {
 		return nil, fmt.Errorf("AddPolicy: %v", err)
 	}
 
-	// account number hex string -> customer ID
-	customerID, err := strconv.ParseInt(accountNumber, 16, 64)
-
-	if err != nil {
-		return nil, fmt.Errorf("AddPolicy: ParseInt: %v", err)
-	}
-
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
-	request.Header.Set("Portals_UserId", customerUserID)
-	request.Header.Set("Portals_PortalTypeId", portalTypeID)
 	parsedResponse := &AddPolicyResponse{}
 
 	_, err = c.BaseAPIClient.SendRequest(request, &parsedResponse)
@@ -214,24 +230,32 @@ func (c *RulesEngineAPIClient) AddPolicy(policy string, accountNumber string, po
 	return parsedResponse, nil
 }
 
-//DeployPolicy -
-func (c *RulesEngineAPIClient) DeployPolicy(body *AddDeployRequest, accountNumber string, portalTypeID string, customerUserID string) (*AddDeployPolicyResponse, error) {
-	request, err := c.BaseAPIClient.BuildRequest("POST", "rules-engine/v1.1/deploy-requests", body, true)
+// DeployPolicy -
+func (c *RulesEngineAPIClient) DeployPolicy(
+	body *AddDeployRequest,
+	accountNumber string,
+	portalTypeID string,
+	customerUserID string,
+) (*AddDeployPolicyResponse, error) {
+	request, err := c.BaseAPIClient.BuildRequest(
+		"POST",
+		"rules-engine/v1.1/deploy-requests",
+		body,
+		true)
 
 	if err != nil {
 		return nil, fmt.Errorf("DeployPolicy: %v", err)
 	}
 
-	// account number hex string -> customer ID
-	customerID, err := strconv.ParseInt(accountNumber, 16, 64)
+	err = addPortalsHeaders(
+		&request.Header,
+		accountNumber,
+		customerUserID,
+		portalTypeID)
 
 	if err != nil {
-		return nil, fmt.Errorf("DeployPolicy: ParseInt: %v", err)
+		return nil, fmt.Errorf("AddPolicy: %v", err)
 	}
-
-	request.Header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
-	request.Header.Set("Portals_UserId", customerUserID)
-	request.Header.Set("Portals_PortalTypeId", portalTypeID)
 
 	parsedResponse := &AddDeployPolicyResponse{}
 
@@ -244,14 +268,30 @@ func (c *RulesEngineAPIClient) DeployPolicy(body *AddDeployRequest, accountNumbe
 	return parsedResponse, nil
 }
 
-func removeHexPrefix(hexaString string) string {
-	// replace 0x or 0X with empty String
-	numberStr := strings.Replace(hexaString, "0x", "", -1)
-	numberStr = strings.Replace(numberStr, "0X", "", -1)
-	return numberStr
-}
-
 func formatRulesEngineRelURL(subFormat string, params ...interface{}) string {
 	subPath := fmt.Sprintf(subFormat, params...)
 	return fmt.Sprintf(rulesEngineRelURLFormat, subPath)
+}
+
+func addPortalsHeaders(
+	header *http.Header,
+	accountNumber string,
+	customerUserID string,
+	portalTypeID string,
+) error {
+	if len(accountNumber) > 0 {
+		// account number hex string -> customer ID
+		customerID, err := strconv.ParseInt(accountNumber, 16, 64)
+		if err != nil {
+			return fmt.Errorf("error parsing Hex account number: %v", err)
+		}
+		header.Set("Portals_CustomerId", strconv.FormatInt(customerID, 10))
+	}
+	if len(customerUserID) > 0 {
+		header.Set("Portals_UserId", customerUserID)
+	}
+	if len(portalTypeID) > 0 {
+		header.Set("Portals_PortalTypeId", portalTypeID)
+	}
+	return nil
 }
