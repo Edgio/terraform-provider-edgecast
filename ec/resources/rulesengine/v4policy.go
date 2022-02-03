@@ -279,7 +279,12 @@ func getPolicy(
 	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
 	portalTypeID := d.Get("portaltypeid").(string)
 	customerUserID := d.Get("customeruserid").(string)
-	policyID, _ := strconv.Atoi(d.Id())
+	policyID, err := strconv.Atoi(d.Id())
+
+	if err != nil {
+		return nil,
+			fmt.Errorf("error parsing Policy ID from state file: %v", err)
+	}
 
 	log.Printf("[INFO] Retrieving policy %d", policyID)
 	client := api.NewRulesEngineAPIClient(*config)
