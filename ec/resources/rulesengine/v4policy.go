@@ -52,28 +52,22 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "A Rules Engine Policy in JSON format",
-				StateFunc: func(val interface{}) string {
-					policyMap := make(map[string]interface{})
-					json.Unmarshal([]byte(val.(string)), &policyMap)
-					// remove unneeded metadata the user may have input
-					cleanPolicy(policyMap)
-					jsonBytes, err := json.Marshal(policyMap)
-					if err != nil {
-						panic(fmt.Errorf("policy StateFunc: %v", err))
-					}
-					return string(jsonBytes)
-				},
+				StateFunc:   cleanPolicyForTerrafomState,
 			},
 		},
 	}
 }
 
 // ResourcePolicyCreate - Create a new policy and deploy it to a target platform
-func ResourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourcePolicyCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	policy := d.Get("policy").(string)
 
-	// messy - needs improvement - unmarshalling json, modifying, then marshalling back to string
-	// state must always be locked
+	// messy - needs improvement - unmarshalling json, modifying, then
+	// marshalling back to string state must always be locked
 	policyMap := make(map[string]interface{})
 	json.Unmarshal([]byte(policy), &policyMap)
 	policyMap["state"] = "locked"
@@ -94,19 +88,14 @@ func ResourcePolicyCreate(ctx context.Context, d *schema.ResourceData, m interfa
 	return ResourcePolicyRead(ctx, d, m)
 }
 
-// ResourcePolicyRead - Read the current policy
-func ResourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+// ResourcePolicyRead reads the current policy
+func ResourcePolicyRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = d.Get("account_number").(string)
-	portalTypeID := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
-	customerUserID := d.Get("customeruserid").(string)
-	policyID, _ := strconv.Atoi(d.Id())
-
-	log.Printf("[INFO] Retrieving policy %d", policyID)
-	rulesEngineAPIClient := api.NewRulesEngineAPIClient(*config)
-	policyFromAPIMap, err := rulesEngineAPIClient.GetPolicy((**config).AccountNumber, customerUserID, portalTypeID, policyID)
+	policy, err := getPolicy(m, d)
 
 	if err != nil {
 		d.SetId("")
@@ -114,56 +103,77 @@ func ResourcePolicyRead(ctx context.Context, d *schema.ResourceData, m interface
 	}
 
 	// set id to policy id from body
-	d.SetId(policyFromAPIMap["id"].(string))
+	d.SetId(policy["id"].(string))
 
-	// Remove unneeded policy and rule  metadata - this metadata interferes with terraform diffs
-	cleanPolicy(policyFromAPIMap)
+	// Remove unneeded policy and rule  metadata - this metadata interferes with
+	// terraform diffs
+	cleanPolicy(policy)
 
 	// convert to json
-	jsonBytes, err := json.Marshal(policyFromAPIMap)
+	jsonBytes, err := json.Marshal(policy)
 
 	if err != nil {
 		d.SetId("")
-		return diag.FromErr(err)
+		return diag.FromErr(
+			fmt.Errorf("error marshaling policy to json : %v", err))
 	}
 
-	policyFromAPI := string(jsonBytes)
+	policyAsString := string(jsonBytes)
+	log.Printf(
+		"[INFO] Successfully retrieved policy %d: %s",
+		d.Id(),
+		policyAsString)
 
-	log.Printf("[INFO] Successfully retrieved policy %d: %s", policyID, policyFromAPI)
-	d.Set("policy", policyFromAPI)
+	d.Set("policy", policyAsString)
 
-	return diags
+	return diag.Diagnostics{}
 }
 
-// ResourcePolicyUpdate - Add/Delete/Update rules in the current policy and deploy it to a target platform
-func ResourcePolicyUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+// ResourcePolicyUpdate adds/deletes/updates rules in the current policy and
+// deploys the modified policy to a target platform
+func ResourcePolicyUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
 	return ResourcePolicyCreate(ctx, d, m)
 }
 
-// ResourcePolicyDelete - Create a new empty placeholder policy and deploy it to a target platform instead of actual deletion.
-func ResourcePolicyDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-
-	policy := d.Get("policy").(string)
-
-	// pull out platform from existing policy
-	policyMap := make(map[string]interface{})
-	json.Unmarshal([]byte(policy), &policyMap)
-
-	platform := policyMap["platform"].(string)
-
-	// You can't actually delete policies, so we will instead
-	// create a placeholder empty policy for the customer for the given platform and policy type
-	timestamp := time.Now().Format(time.RFC3339)
-	emptyPolicyJSON := fmt.Sprintf(emptyPolicyFormat, timestamp, platform, timestamp)
-
-	err := addPolicy(emptyPolicyJSON, true, d, m)
+// ResourcePolicyDelete creates a new empty placeholder policy and deploys it to
+// a target platform instead of actual deletion.
+func ResourcePolicyDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// We will retrieve a fresh copy of the policy to prevent
+	// sending an empty policy to the wrong platform
+	policy, err := getPolicy(m, d)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	return diags
+	// pull out platform from existing policy
+	platform := policy["platform"].(string)
+
+	// You can't actually delete policies, so we will instead create a
+	// placeholder empty policy for the customer for the given platform and
+	// policy type
+	timestamp := time.Now().Format(time.RFC3339)
+	emptyPolicyJSON := fmt.Sprintf(
+		emptyPolicyFormat,
+		timestamp,
+		platform,
+		timestamp)
+
+	err = addPolicy(emptyPolicyJSON, true, d, m)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return diag.Diagnostics{}
 }
 
 func cleanPolicy(policyMap map[string]interface{}) {
@@ -171,7 +181,7 @@ func cleanPolicy(policyMap map[string]interface{}) {
 	delete(policyMap, "@id")
 	delete(policyMap, "@type")
 	delete(policyMap, "policy_type")
-	delete(policyMap, "state") // will always be "locked"
+	delete(policyMap, "state") // will always have the value "locked"
 	delete(policyMap, "history")
 	delete(policyMap, "created_at")
 	delete(policyMap, "updated_at")
@@ -233,7 +243,8 @@ func cleanMatches(matches []interface{}) []map[string]interface{} {
 	return cleanedMatches
 }
 
-// change string arrays to space-separated strings and standardize keys to hyperion standard i.e. "-" -> "_"
+// change string arrays to space-separated strings and standardize keys to
+// hyperion standard i.e. "-" -> "_"
 func standardizeMatchFeature(matchFeatureMap map[string]interface{}) {
 	for k, v := range matchFeatureMap {
 		delete(matchFeatureMap, k)
@@ -248,7 +259,10 @@ func standardizeMatchFeature(matchFeatureMap map[string]interface{}) {
 	}
 }
 
-func getDeployRequestData(d *schema.ResourceData, policyID int) *api.AddDeployRequest {
+func getDeployRequestData(
+	d *schema.ResourceData,
+	policyID int,
+) *api.AddDeployRequest {
 	return &api.AddDeployRequest{
 		Message:     "Auto-submitted policy",
 		PolicyID:    policyID,
@@ -256,16 +270,48 @@ func getDeployRequestData(d *schema.ResourceData, policyID int) *api.AddDeployRe
 	}
 }
 
-func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m interface{}) error {
+func getPolicy(
+	m interface{},
+	d *schema.ResourceData,
+) (map[string]interface{}, error) {
 	config := m.(**api.ClientConfig)
+	(*config).AccountNumber = d.Get("account_number").(string)
+	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
+	portalTypeID := d.Get("portaltypeid").(string)
+	customerUserID := d.Get("customeruserid").(string)
+	policyID, err := strconv.Atoi(d.Id())
 
-	customerid := d.Get("account_number").(string)
-	portaltypeid := d.Get("portaltypeid").(string) //1:mcc 2:pcc 3:whole 4:uber 5:opencdn
-	customeruserid := d.Get("customeruserid").(string)
+	if err != nil {
+		return nil,
+			fmt.Errorf("error parsing Policy ID from state file: %v", err)
+	}
+
+	log.Printf("[INFO] Retrieving policy %d", policyID)
+	client := api.NewRulesEngineAPIClient(*config)
+
+	return client.GetPolicy(
+		(**config).AccountNumber,
+		customerUserID,
+		portalTypeID,
+		policyID)
+}
+
+func addPolicy(
+	policy string,
+	isEmptyPolicy bool,
+	d *schema.ResourceData,
+	m interface{},
+) error {
+	config := m.(**api.ClientConfig)
+	customerID := d.Get("account_number").(string)
+	customerUserID := d.Get("customeruserid").(string)
+
+	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
+	portalTypeID := d.Get("portaltypeid").(string)
 
 	reClient := api.NewRulesEngineAPIClient(*config)
-
-	parsedResponse, err := reClient.AddPolicy(policy, customerid, portaltypeid, customeruserid)
+	parsedResponse, err :=
+		reClient.AddPolicy(policy, customerID, portalTypeID, customerUserID)
 	if err != nil {
 		return fmt.Errorf("addPolicy: %v", err)
 	}
@@ -281,16 +327,28 @@ func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m inte
 	}
 
 	deployRequest := getDeployRequestData(d, policyID)
-	log.Printf("[INFO] Deploying new policy for Account %s: %+v", customerid, deployRequest)
+	log.Printf(
+		"[INFO] Deploying new policy for Account %s: %+v",
+		customerID,
+		deployRequest)
 
-	deployResponse, deployErr := reClient.DeployPolicy(deployRequest, customerid, portaltypeid, customeruserid)
+	deployResponse, deployErr := reClient.DeployPolicy(
+		deployRequest,
+		customerID,
+		portalTypeID,
+		customerUserID)
 
 	if deployErr != nil {
-		log.Printf("[WARN] Deploying new policy for Account %s failed", customerid)
+		log.Printf(
+			"[WARN] Deploying new policy for Account %s failed",
+			customerID)
 		return fmt.Errorf("addPolicy: %v", deployErr)
 	}
 
-	log.Printf("[INFO] Successfully deployed new policy for Account %s: %+v", customerid, deployResponse)
+	log.Printf(
+		"[INFO] Successfully deployed new policy for Account %s: %+v",
+		customerID,
+		deployResponse)
 
 	if isEmptyPolicy {
 		d.SetId("") // indicates "delete" happened
@@ -299,4 +357,18 @@ func addPolicy(policy string, isEmptyPolicy bool, d *schema.ResourceData, m inte
 	}
 
 	return nil
+}
+
+func cleanPolicyForTerrafomState(val interface{}) string {
+	policy := val.(string)
+	policyMap := make(map[string]interface{})
+	json.Unmarshal([]byte(policy), &policyMap)
+
+	// remove unneeded metadata the user may have input
+	cleanPolicy(policyMap)
+	jsonBytes, err := json.Marshal(policyMap)
+	if err != nil {
+		panic(fmt.Errorf("cleanPolicyForTerrafomState: %v", err))
+	}
+	return string(jsonBytes)
 }
