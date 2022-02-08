@@ -1,4 +1,4 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
 // See LICENSE file in project root for terms.
 
 package rulesengine
@@ -17,6 +17,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 const emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"Placeholder rule created by the Edgecast Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"Empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"Placeholder Rule\"}],\"state\":\"locked\"}"
@@ -44,7 +45,11 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 			"deploy_to": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The desired environment for the provided policy. Valid values are `production` and `staging`"},
+				Description: "The desired environment for the provided policy. Valid values are `production` and `staging`",
+				ValidateFunc: validation.StringInSlice(
+					[]string{"production", "staging"},
+					false),
+			},
 			"deploy_request_id": {
 				Type:     schema.TypeString,
 				Computed: true},
@@ -53,6 +58,10 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 				Required:    true,
 				Description: "A Rules Engine Policy in JSON format",
 				StateFunc:   cleanPolicyForTerrafomState,
+				ValidateFunc: validation.All(
+					validation.StringIsNotWhiteSpace,
+					validation.StringIsJSON,
+				),
 			},
 		},
 	}
@@ -120,7 +129,7 @@ func ResourcePolicyRead(
 
 	policyAsString := string(jsonBytes)
 	log.Printf(
-		"[INFO] Successfully retrieved policy %d: %s",
+		"[INFO] Successfully retrieved policy %s: %s",
 		d.Id(),
 		policyAsString)
 
@@ -361,6 +370,9 @@ func addPolicy(
 
 func cleanPolicyForTerrafomState(val interface{}) string {
 	policy := val.(string)
+	if len(policy) == 0 {
+		return policy
+	}
 	policyMap := make(map[string]interface{})
 	json.Unmarshal([]byte(policy), &policyMap)
 
