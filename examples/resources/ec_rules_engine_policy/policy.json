@@ -1,18 +1,18 @@
 {
-    "name": "test policy-02152021-4",
-    "description": "This is a test policy of PolicyCreate.",
-    "platform": "adn",
+    "name": "test policy 2022-02-08.2",
+    "description": "This is a test policy!",
+    "platform": "http_large",
     "rules": [
         {
             "name": "rule1",
-            "description": "This is a test rule4.",
+            "description": "This is a test rule.",
             "matches": [
                 {
                     "type": "match.always",
                     "features": [
                         {
                             "type": "feature.comment",
-                            "value": "test4"
+                            "value": "Update this comment!"
                         }
                     ]
                 }
