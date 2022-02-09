@@ -13,13 +13,13 @@ Please refer to the [official documentation](https://developer.edgecast.com/cdn/
 
 ```terraform
 resource "ec_rules_engine_policy" "my_policy" {
-  policy    = file("my-policy.json")
-  deploy_to = "production"
+  policy    = file("policy.json")
+  deploy_to = "staging" # Valid values are "production" and "staging"
 
-  # for PCC users, otherwise will be ignored
-  account_number = "A12345"
-  customeruserid = 1
-  portaltypeid   = 1
+  # Below are optional arguments when using PCC credentials
+  # account_number = "A12345"
+  # customeruserid = 1
+  # portaltypeid   = 1
 }
 ```
 
