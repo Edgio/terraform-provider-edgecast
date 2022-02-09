@@ -61,6 +61,7 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 				ValidateFunc: validation.All(
 					validation.StringIsNotWhiteSpace,
 					validation.StringIsJSON,
+					helper.StringIsNotEmptyJSON,
 				),
 			},
 		},

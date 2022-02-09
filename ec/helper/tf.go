@@ -3,6 +3,7 @@
 package helper
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math"
@@ -170,6 +171,37 @@ func ConvertToStringMapPointer(v interface{}, excludeEmpty bool) *map[string]str
 		return &result
 	}
 	return nil
+}
+
+// StringIsNotEmptyJSON is a custom validator function that can be used as a
+// schema attribute validator function.
+func StringIsNotEmptyJSON(
+	i interface{},
+	k string,
+) (warnings []string, errors []error) {
+	v, ok := i.(string)
+	if !ok {
+		errors = append(
+			errors,
+			fmt.Errorf("expected type of %s to be string", k))
+		return warnings, errors
+	}
+
+	var data map[string]interface{}
+	if err := json.Unmarshal([]byte(v), &data); err != nil {
+		errors = append(
+			errors,
+			fmt.Errorf("%q contains invalid JSON: %s", k, err))
+		return warnings, errors
+	}
+
+	if len(data) == 0 {
+		errors = append(
+			errors,
+			fmt.Errorf("%q contains empty JSON: '%s'", k, v))
+	}
+
+	return warnings, errors
 }
 
 // dummySetFunc is to be used when imitating Terraform
