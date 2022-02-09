@@ -173,8 +173,8 @@ func ConvertToStringMapPointer(v interface{}, excludeEmpty bool) *map[string]str
 	return nil
 }
 
-// StringIsNotEmptyJSON is a custom validator function that can be used as a
-// schema attribute validator function.
+// StringIsNotEmptyJSON is a SchemaValidateFunc which tests to make sure the
+// supplied string is not an empty JSON object i.e. "{}"
 func StringIsNotEmptyJSON(
 	i interface{},
 	k string,
