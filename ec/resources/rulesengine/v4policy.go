@@ -15,6 +15,7 @@ import (
 	"terraform-provider-ec/ec/api"
 	"terraform-provider-ec/ec/helper"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -115,7 +116,7 @@ func ResourcePolicyRead(
 	// set id to policy id from body
 	d.SetId(policy["id"].(string))
 
-	// Remove unneeded policy and rule  metadata - this metadata interferes with
+	// Remove unneeded policy and rule metadata - this metadata interferes with
 	// terraform diffs
 	cleanPolicy(policy)
 
@@ -272,8 +273,8 @@ func standardizeMatchFeature(matchFeatureMap map[string]interface{}) {
 func getDeployRequestData(
 	d *schema.ResourceData,
 	policyID int,
-) *api.AddDeployRequest {
-	return &api.AddDeployRequest{
+) *rulesengine.SubmitDeployRequest {
+	return &rulesengine.SubmitDeployRequest{
 		Message:     "Auto-submitted policy",
 		PolicyID:    policyID,
 		Environment: d.Get("deploy_to").(string),
@@ -284,10 +285,10 @@ func getPolicy(
 	m interface{},
 	d *schema.ResourceData,
 ) (map[string]interface{}, error) {
+	// Retrieve data needed by API call
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = d.Get("account_number").(string)
-	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
-	portalTypeID := d.Get("portaltypeid").(string)
+	accountNumber := d.Get("account_number").(string)
+	portalTypeID := d.Get("portaltypeid").(string) // 1=MCC 2=PCC 3=WCC 4=UCC
 	customerUserID := d.Get("customeruserid").(string)
 	policyID, err := strconv.Atoi(d.Id())
 
@@ -297,13 +298,22 @@ func getPolicy(
 	}
 
 	log.Printf("[INFO] Retrieving policy %d", policyID)
-	client := api.NewRulesEngineAPIClient(*config)
 
-	return client.GetPolicy(
-		(**config).AccountNumber,
-		customerUserID,
-		portalTypeID,
-		policyID)
+	// Initialize Rules Engine Service
+	rulesengineService, err := buildRulesEngineService(**config)
+	if err != nil {
+		d.SetId("")
+		return nil, fmt.Errorf("addPolicy: buildRulesEngineService: %v", err)
+	}
+
+	// Call Add Policy API
+	params := rulesengine.NewGetPolicyParams()
+	params.AccountNumber = accountNumber
+	params.CustomerUserID = customerUserID
+	params.PortalTypeID = portalTypeID
+	params.PolicyID = policyID
+
+	return rulesengineService.GetPolicy(*params)
 }
 
 func addPolicy(
@@ -312,20 +322,32 @@ func addPolicy(
 	d *schema.ResourceData,
 	m interface{},
 ) error {
+	// Retrieve data needed by API calls
 	config := m.(**api.ClientConfig)
-	customerID := d.Get("account_number").(string)
+	accountNumber := d.Get("account_number").(string)
 	customerUserID := d.Get("customeruserid").(string)
+	portalTypeID := d.Get("portaltypeid").(string) // 1=MCC 2=PCC 3=WCC 4=UCC
 
-	// Portal Type IDs: 1=MCC 2=PCC 3=WCC 4=WCC 5=opencdn
-	portalTypeID := d.Get("portaltypeid").(string)
+	// Initialize Rules Engine Service
+	rulesengineService, err := buildRulesEngineService(**config)
+	if err != nil {
+		d.SetId("")
+		return fmt.Errorf("addPolicy: buildRulesEngineService: %v", err)
+	}
 
-	reClient := api.NewRulesEngineAPIClient(*config)
-	parsedResponse, err :=
-		reClient.AddPolicy(policy, customerID, portalTypeID, customerUserID)
+	// Call Add Policy API
+	policyParams := rulesengine.NewAddPolicyParams()
+	policyParams.AccountNumber = accountNumber
+	policyParams.CustomerUserID = customerUserID
+	policyParams.PortalTypeID = portalTypeID
+	policyParams.PolicyAsString = policy
+
+	parsedResponse, err := rulesengineService.AddPolicy(*policyParams)
 	if err != nil {
 		return fmt.Errorf("addPolicy: %v", err)
 	}
 
+	// Process response data and prepare Deploy Request
 	policyID, err := strconv.Atoi(parsedResponse.ID)
 	if err != nil {
 		return fmt.Errorf("addPolicy: parsing policy ID: %v", err)
@@ -339,25 +361,31 @@ func addPolicy(
 	deployRequest := getDeployRequestData(d, policyID)
 	log.Printf(
 		"[INFO] Deploying new policy for Account %s: %+v",
-		customerID,
-		deployRequest)
-
-	deployResponse, deployErr := reClient.DeployPolicy(
+		accountNumber,
 		deployRequest,
-		customerID,
-		portalTypeID,
-		customerUserID)
+	)
+
+	// Call Submit Deploy Request API
+	deployRequestParams := rulesengine.NewSubmitDeployRequestParams()
+	deployRequestParams.AccountNumber = accountNumber
+	deployRequestParams.CustomerUserID = customerUserID
+	deployRequestParams.PortalTypeID = portalTypeID
+	deployRequestParams.DeployRequest = *deployRequest
+
+	deployResponse, deployErr := rulesengineService.SubmitDeployRequest(
+		*deployRequestParams,
+	)
 
 	if deployErr != nil {
 		log.Printf(
 			"[WARN] Deploying new policy for Account %s failed",
-			customerID)
+			accountNumber)
 		return fmt.Errorf("addPolicy: %v", deployErr)
 	}
 
 	log.Printf(
 		"[INFO] Successfully deployed new policy for Account %s: %+v",
-		customerID,
+		accountNumber,
 		deployResponse)
 
 	if isEmptyPolicy {
