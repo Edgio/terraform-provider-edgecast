@@ -79,10 +79,10 @@ func ResourcePolicyCreate(
 		tf-[customer_account_id]-[platform]-[deploy_to]-[timestamp(utc)]`,
 			policyMap["name"])
 	}
-	policyMap["name"] = fmt.Sprintf("tf-%s-%s-%s-%s",
+	policyMap["name"] = fmt.Sprintf("tf-%s-%s-%s-%d",
 		d.Get("account_number").(string),
 		d.Get("deploy_to").(string), policyMap["platform"],
-		time.Now().UTC().Format(time.RFC3339))
+		time.Now().UTC().Unix())
 
 	policyBytes, err := json.Marshal(policyMap)
 	if err != nil {
