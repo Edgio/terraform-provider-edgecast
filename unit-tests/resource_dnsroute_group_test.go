@@ -43,7 +43,6 @@ func TestUT_Group_basic(t *testing.T) {
 
 		// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
 		terraform.InitAndApply(t, terraformOptions)
-
 	}
 }
 

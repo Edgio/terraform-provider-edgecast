@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"terraform-provider-ec/ec/helper"
 
 	"terraform-provider-ec/ec/api"
 
@@ -24,6 +25,8 @@ func ResourceZone() *schema.Resource {
 		ReadContext:   ResourceZoneRead,
 		UpdateContext: ResourceZoneUpdate,
 		DeleteContext: ResourceZoneDelete,
+
+		Importer: helper.AccountIDImporter(ResourceZoneRead),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

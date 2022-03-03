@@ -24,6 +24,7 @@ func ResourceAccessRule() *schema.Resource {
 		ReadContext:   ResourceAccessRuleRead,
 		UpdateContext: ResourceAccessRuleUpdate,
 		DeleteContext: ResourceAccessRuleDelete,
+		Importer:      helper.AccountIDImporter(ResourceAccessRuleRead),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

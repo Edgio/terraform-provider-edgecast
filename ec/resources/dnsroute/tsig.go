@@ -8,6 +8,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"terraform-provider-ec/ec/helper"
 
 	"terraform-provider-ec/ec/api"
 
@@ -21,6 +22,7 @@ func ResourceTsig() *schema.Resource {
 		ReadContext:   ResourceTsigRead,
 		UpdateContext: ResourceTsigUpdate,
 		DeleteContext: ResourceTsigDelete,
+		Importer:      helper.AccountIDImporter(ResourceTsigRead),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

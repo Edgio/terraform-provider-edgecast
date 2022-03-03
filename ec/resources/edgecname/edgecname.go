@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"terraform-provider-ec/ec/helper"
 
 	"terraform-provider-ec/ec/api"
 
@@ -22,6 +23,7 @@ func ResourceEdgeCname() *schema.Resource {
 		UpdateContext: ResourceEdgeCnameUpdate,
 		DeleteContext: ResourceEdgeCnameDelete,
 
+		Importer: helper.AccountIDImporter(ResourceEdgeCnameRead),
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:     schema.TypeString,

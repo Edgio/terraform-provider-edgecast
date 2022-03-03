@@ -17,6 +17,9 @@ import (
 func DataSourceCustomerServices() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceCustomerServicesRead,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"services": {
 				Type:     schema.TypeList,

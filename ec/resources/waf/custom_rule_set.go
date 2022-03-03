@@ -24,6 +24,7 @@ func ResourceCustomRuleSet() *schema.Resource {
 		ReadContext:   ResourceCustomRuleSetRead,
 		UpdateContext: ResourceCustomRuleSetUpdate,
 		DeleteContext: ResourceCustomRuleSetDelete,
+		Importer:      helper.AccountKeyImporter("customer_id", ResourceCustomRuleSetRead),
 
 		Schema: map[string]*schema.Schema{
 			"customer_id": {
