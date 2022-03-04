@@ -154,6 +154,6 @@ point before using this provider.
 to this documentation. It contains all of the available operations as well as 
 their inputs and outputs.
 
-[Examples](https://github.com/EdgeCast/terraform-provider-ec/tree/Master/examples) - Examples to get started can be found here.
+[Examples](https://github.com/EdgeCast/terraform-provider-edgecast/tree/Master/examples) - Examples to get started can be found here.
 
-[Submit an Issue](https://github.com/EdgeCast/terraform-provider-ec/issues) - Found a bug? Want to request a feature? Please do so here.
+[Submit an Issue](https://github.com/EdgeCast/terraform-provider-edgecast/issues) - Found a bug? Want to request a feature? Please do so here.

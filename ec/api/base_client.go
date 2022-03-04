@@ -13,7 +13,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/ec/helper"
 	"time"
 
 	"github.com/hashicorp/go-retryablehttp"

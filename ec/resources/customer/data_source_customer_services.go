@@ -6,7 +6,7 @@ package customer
 import (
 	"context"
 	"strconv"
-	"terraform-provider-ec/ec/api"
+	"terraform-provider-edgecast/ec/api"
 
 	"time"
 
