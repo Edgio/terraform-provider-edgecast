@@ -11,6 +11,7 @@ import (
 
 	"terraform-provider-ec/ec/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -550,180 +551,197 @@ func ResourceGroup() *schema.Resource {
 	}
 }
 
-func ResourceGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
+func ResourceGroupCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Construct Group Object
 	name := d.Get("name").(string)
 
-	groupID := d.Get("group_id").(int)
-	if groupID == 0 {
-		groupID = -1
-	}
-	fixedGroupID := d.Get("fixed_group_id").(int)
-	if fixedGroupID == 0 {
-		fixedGroupID = -1
-	}
-	zoneID := d.Get("zone_id").(int)
-	if zoneID == 0 {
-		zoneID = -1
-	}
-	fixedZoneID := d.Get("fixed_zone_id").(int)
-	if fixedZoneID == 0 {
-		fixedZoneID = -1
-	}
 	groupProductType := d.Get("group_product_type").(string)
-	groupProductTypeID := api.GroupProductType_NoGroup
+	groupProductTypeID := routedns.NoGroup
 	if groupProductType == "failover" {
-		groupProductTypeID = api.GroupProductType_Failover
+		groupProductTypeID = routedns.Failover
 	} else if groupProductType == "loadbalancing" {
-		groupProductTypeID = api.GroupProductType_LoadBalancing
+		groupProductTypeID = routedns.LoadBalancing
 	} else {
-		return diag.FromErr(fmt.Errorf("invalid group_product_type: %s. It should be failover or loadbalancing.", groupProductType))
+		d.SetId("")
+		return diag.FromErr(
+			fmt.Errorf(
+				`invalid group_product_type: %s. It should be failover or 
+				loadbalancing.`,
+				groupProductType,
+			),
+		)
 	}
 
 	dnsAs := d.Get("a").([]interface{})
 	arrayAs, err := toGroupRecords(&dnsAs)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 	dnsAAAAs := d.Get("aaaa").([]interface{})
 	arrayAAAAs, err := toGroupRecords(&dnsAAAAs)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 	dnsCnames := d.Get("cname").([]interface{})
 	arrayCnames, err := toGroupRecords(&dnsCnames)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
 	groupType := d.Get("group_type").(string)
-	groupTypeID := api.GroupType_Zone
+	groupTypeID := routedns.PrimaryZone
 	if strings.ToLower(groupType) == "cname" {
-		groupTypeID = api.GroupType_CName
+		groupTypeID = routedns.CName
 	} else if strings.ToLower(groupType) == "subdomain" {
-		groupTypeID = api.GroupType_SubDomain
+		groupTypeID = routedns.SubDomain
 	}
 
-	groupComposition := api.DNSGroupRecords{
+	groupComposition := routedns.DNSGroupRecords{
 		A:     *arrayAs,
 		AAAA:  *arrayAAAAs,
-		CName: *arrayCnames,
+		CNAME: *arrayCnames,
 	}
 
-	group := api.DnsRouteGroup{
-		GroupID:            groupID,
-		FixedGroupID:       fixedGroupID,
-		ZoneId:             zoneID,
-		FixedZoneID:        fixedGroupID,
-		Name:               name,
-		GroupTypeID:        groupTypeID,
-		GroupProductTypeID: groupProductTypeID,
-		GroupComposition:   groupComposition,
+	group := routedns.DnsRouteGroup{
+		Name:             name,
+		GroupTypeID:      groupTypeID,
+		GroupProductType: groupProductTypeID,
+		GroupComposition: groupComposition,
 	}
-	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
+	group.Name = name
+	group.GroupTypeID = groupTypeID
+	group.GroupProductType = groupProductTypeID
+	group.GroupComposition = groupComposition
 
-	newGroupID, err := dnsrouteClient.AddGroup(&group)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	d.SetId(strconv.Itoa(newGroupID))
-
-	return ResourceGroupRead(ctx, d, m)
-}
-
-func ResourceGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	groupID, err := strconv.Atoi(d.Id())
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	groupProductType := d.Get("group_product_type").(string)
-	gType := "nogroup"
-	if strings.ToLower(groupProductType) == "failover" {
-		gType = "fo"
-	} else if strings.ToLower(groupProductType) == "loadbalancing" {
-		gType = "lb"
-	}
-
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
 
-	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
-	resp, err := dnsRouteClient.GetGroup(groupID, gType)
+	// Call Add Group API
+	params := routedns.NewAddGroupParams()
+	params.AccountNumber = accountNumber
+	params.Group = group
+
+	groupID, err := routeDNSService.AddGroup(*params)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	d.Set("account_number", accountNumber)
-	d.Set("group_id", groupID)
+	d.SetId(strconv.Itoa(*groupID))
 
+	return ResourceGroupRead(ctx, d, m)
+}
+
+func ResourceGroupRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Construct Group Get Object
+	groupID, err := strconv.Atoi(d.Id())
+	accountNumber := d.Get("account_number").(string)
+	rawGroupProductType := d.Get("group_product_type").(string)
+	groupProductType := routedns.NoGroup
+	if strings.ToLower(rawGroupProductType) == "failover" {
+		groupProductType = routedns.Failover
+	} else if strings.ToLower(rawGroupProductType) == "loadbalancing" {
+		groupProductType = routedns.LoadBalancing
+	}
+	config := m.(**api.ClientConfig)
+
+	// Initialize Route DNS Service
+	routeDNSService, err := buildRouteDNSService(**config)
+
+	// Call Get Group API
+	params := routedns.NewGetGroupParams()
+	params.AccountNumber = accountNumber
+	params.GroupID = groupID
+	params.GroupProductType = groupProductType
+	resp, err := routeDNSService.GetGroup(*params)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Update Terraform state with retrieved Group data
+	d.Set("group_id", groupID)
 	d.Set("fixed_group_id", resp.FixedGroupID)
 	d.Set("fixed_zone_id", resp.FixedZoneID)
-	d.Set("group_product_type_id", resp.GroupProductTypeID)
-	if resp.GroupProductTypeID == api.GroupProductType_Failover {
+	d.Set("group_product_type_id", resp.GroupProductType)
+	if resp.GroupProductType == routedns.Failover {
 		d.Set("group_product_type", "failover")
-	} else if resp.GroupProductTypeID == api.GroupProductType_LoadBalancing {
+	} else if resp.GroupProductType == routedns.LoadBalancing {
 		d.Set("group_product_type", "loadbalancing")
 	}
 	d.Set("group_type_id", resp.GroupTypeID)
-	if resp.GroupTypeID == api.GroupType_CName {
+	if resp.GroupTypeID == routedns.CName {
 		d.Set("group_type", "cname")
-	} else if resp.GroupTypeID == api.GroupType_SubDomain {
+	} else if resp.GroupTypeID == routedns.SubDomain {
 		d.Set("group_type", "subdomain")
 	}
 
 	d.Set("name", resp.Name)
-	d.Set("zone_id", resp.ZoneId)
+	d.Set("zone_id", resp.ZoneID)
 
 	d.Set("a", flattenGroupDNSs(&resp.GroupComposition.A))
 	d.Set("aaaa", flattenGroupDNSs(&resp.GroupComposition.AAAA))
-	d.Set("cname", flattenGroupDNSs(&resp.GroupComposition.CName))
+	d.Set("cname", flattenGroupDNSs(&resp.GroupComposition.CNAME))
 
-	return diags
+	return diag.Diagnostics{}
 }
 
-func ResourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceGroupUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
 
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Construct Group Update Data
 	name := d.Get("name").(string)
 
 	groupID := d.Get("group_id").(int)
 	if groupID == 0 {
 		groupID = -1
 	}
-	fixedGroupID := d.Get("fixed_group_id").(int)
-	if fixedGroupID == 0 {
-		fixedGroupID = -1
+	rawGroupType := d.Get("group_type").(string)
+	groupType := routedns.PrimaryZone
+	if strings.ToLower(rawGroupType) == "cname" {
+		groupType = routedns.CName
+	} else if strings.ToLower(rawGroupType) == "subdomain" {
+		groupType = routedns.SubDomain
 	}
-	zoneID := d.Get("zone_id").(int)
-	if zoneID == 0 {
-		zoneID = -1
-	}
-	fixedZoneID := d.Get("fixed_zone_id").(int)
-	if fixedZoneID == 0 {
-		fixedZoneID = -1
-	}
-	groupType := d.Get("group_type").(string)
-	groupTypeID := api.GroupType_Zone
-	if strings.ToLower(groupType) == "cname" {
-		groupTypeID = api.GroupType_CName
-	} else if strings.ToLower(groupType) == "subdomain" {
-		groupTypeID = api.GroupType_SubDomain
-	}
-	groupProductType := d.Get("group_product_type").(string)
-	groupProductTypeID := api.GroupProductType_NoGroup
-	if groupProductType == "failover" {
-		groupProductTypeID = api.GroupProductType_Failover
-	} else if groupProductType == "loadbalancing" {
-		groupProductTypeID = api.GroupProductType_LoadBalancing
+	rawGroupProductType := d.Get("group_product_type").(string)
+	groupProductType := routedns.NoGroup
+	if rawGroupProductType == "failover" {
+		groupProductType = routedns.Failover
+	} else if rawGroupProductType == "loadbalancing" {
+		groupProductType = routedns.LoadBalancing
 	} else {
-		return diag.FromErr(fmt.Errorf("invalid group_product_type: %s. It should be failover or loadbalancing.", groupProductType))
+		return diag.FromErr(
+			fmt.Errorf(
+				`invalid group_product_type: %s. It should be failover or 
+				loadbalancing.`,
+				rawGroupProductType,
+			),
+		)
 	}
 
 	dnsAs := d.Get("a").([]interface{})
@@ -742,54 +760,84 @@ func ResourceGroupUpdate(ctx context.Context, d *schema.ResourceData, m interfac
 		return diag.FromErr(err)
 	}
 
-	groupComposition := api.DNSGroupRecords{
-		A:     *arrayAs,
-		AAAA:  *arrayAAAAs,
-		CName: *arrayCnames,
-	}
-
-	group := api.DnsRouteGroup{
-		GroupID:            groupID,
-		FixedGroupID:       fixedGroupID,
-		ZoneId:             zoneID,
-		FixedZoneID:        fixedGroupID,
-		Name:               name,
-		GroupTypeID:        groupTypeID,
-		GroupProductTypeID: groupProductTypeID,
-		GroupComposition:   groupComposition,
-	}
-
-	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
-
-	err = dnsrouteClient.UpdateGroup(&group)
+	// Call Get Group API
+	getParams := routedns.NewGetGroupParams()
+	getParams.AccountNumber = accountNumber
+	getParams.GroupID = groupID
+	getParams.GroupProductType = groupProductType
+	groupObj, err := routeDNSService.GetGroup(*getParams)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.SetId(strconv.Itoa(groupID))
+	// Update retrieved Group object
+	groupObj.Name = name
+	groupObj.GroupTypeID = groupType
+	groupObj.GroupProductType = groupProductType
+	groupObj.GroupComposition.A = *arrayAs
+	groupObj.GroupComposition.AAAA = *arrayAAAAs
+	groupObj.GroupComposition.CNAME = *arrayCnames
+
+	// Call Update Group API
+	updateParams := routedns.NewUpdateGroupParams()
+	updateParams.AccountNumber = accountNumber
+	updateParams.Group = groupObj
+	err = routeDNSService.UpdateGroup(updateParams)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	d.SetId(strconv.Itoa(groupObj.GroupID)) // Group ID changes on update
 
 	return ResourceGroupRead(ctx, d, m)
 }
 
-func ResourceGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	accountNumber := d.Get("account_number").(string)
-	groupProductTypeID := d.Get("group_product_type_id").(int)
-	groupProductType := ""
-	if groupProductTypeID == api.GroupProductType_Failover {
-		groupProductType = "fo"
-	} else if groupProductTypeID == api.GroupProductType_LoadBalancing {
-		groupProductType = "lb"
+func ResourceGroupDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Obtain group product type
+	rawGroupProductType := d.Get("group_product_type").(string)
+	groupProductType := routedns.NoGroup
+	if rawGroupProductType == "failover" {
+		groupProductType = routedns.Failover
+	} else if rawGroupProductType == "loadbalancing" {
+		groupProductType = routedns.LoadBalancing
+	} else {
+		return diag.FromErr(
+			fmt.Errorf(
+				`invalid group_product_type: %s. It should be failover or 
+				loadbalancing.`,
+				rawGroupProductType,
+			),
+		)
 	}
+
+	// Initialize Route DNS Service
+	accountNumber := d.Get("account_number").(string)
+	groupID := d.Get("group_id").(int)
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
 
-	dnsRouteAPIClient := api.NewDNSRouteAPIClient(*config)
+	// Call Get Group API
+	getParams := routedns.NewGetGroupParams()
+	getParams.AccountNumber = accountNumber
+	getParams.GroupID = groupID
+	getParams.GroupProductType = groupProductType
+	groupObj, err := routeDNSService.GetGroup(*getParams)
 
-	groupID, _ := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	err := dnsRouteAPIClient.DeleteGroup(groupID, groupProductType)
+	// Call Delete Group API
+	deleteParams := routedns.NewDeleteGroupParams()
+	deleteParams.AccountNumber = accountNumber
+	deleteParams.Group = *groupObj
+	err = routeDNSService.DeleteGroup(*deleteParams)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -797,5 +845,5 @@ func ResourceGroupDelete(ctx context.Context, d *schema.ResourceData, m interfac
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }

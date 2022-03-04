@@ -10,6 +10,7 @@ import (
 
 	"terraform-provider-ec/ec/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -111,41 +112,42 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 	}
 }
 
-func ResourceSecondaryZoneGroupCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ResourceSecondaryZoneGroupCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	name := d.Get("name").(string)
-
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
 
+	// Construct Secondary Zone Group Object
+	name := d.Get("name").(string)
 	zoneComposition := d.Get("zone_composition").([]interface{})
 	zc := zoneComposition[0].(map[string]interface{})
 	masterGroupID := zc["master_group_id"].(int)
 	zones := zc["zones"].([]interface{})
-	zoneArr := []api.SecondaryZoneRequest{}
+	zoneArr := []routedns.SecondaryZone{}
 	for _, item := range zones {
 		curr := item.(map[string]interface{})
 
 		domainName := curr["domain_name"].(string)
 		status := curr["status"].(int)
-		zoneType := curr["zone_type"].(int)
 		comment := curr["comment"].(string)
 		if len(comment) == 0 {
 			comment = ""
 		}
-		secondaryZone := api.SecondaryZoneRequest{
-			DomainName:      domainName,
-			Status:          status,
-			ZoneType:        zoneType,
-			Comment:         comment,
-			IsCustomerOwned: true,
+		secondaryZone := routedns.SecondaryZone{
+			DomainName: domainName,
+			Status:     status,
+			Comment:    comment,
 		}
 		zoneArr = append(zoneArr, secondaryZone)
 	}
 
 	mst := zc["master_server_tsigs"].([]interface{})
-	mstArr := []api.MasterServerTsigRequest{}
+	mstArr := []routedns.MasterServerTSIGIDs{}
 	for _, item := range mst {
 		curr := item.(map[string]interface{})
 
@@ -155,117 +157,136 @@ func ResourceSecondaryZoneGroupCreate(ctx context.Context, d *schema.ResourceDat
 		s := server[0].(map[string]interface{})
 		sID := s["master_server_id"].(int)
 
-		ms := api.MasterServerRequest{
+		ms := routedns.MasterServerID{
 			ID: sID,
 		}
 
 		t := tsig[0].(map[string]interface{})
 		tID := t["tsig_id"].(int)
-		ts := api.TsigRequest{
+		ts := routedns.TSIGID{
 			ID: tID,
 		}
 
-		mstItem := api.MasterServerTsigRequest{
+		mstItem := routedns.MasterServerTSIGIDs{
 			MasterServer: ms,
-			Tsig:         ts,
+			TSIG:         ts,
 		}
 		mstArr = append(mstArr, mstItem)
 	}
 
-	zcr := api.DnsZoneCompositionRequest{
+	zcr := routedns.ZoneComposition{
 		MasterGroupID:     masterGroupID,
-		MasterServerTsigs: mstArr,
+		MasterServerTSIGs: mstArr,
 		Zones:             zoneArr,
 	}
 
-	secondaryZoneGroupRequest := &api.DnsRouteSecondaryZoneGroupRequest{
-		ID:              -1,
+	secondaryZoneGroup := routedns.SecondaryZoneGroup{
 		Name:            name,
 		ZoneComposition: zcr,
-		CustomerID:      -1,
 	}
 
-	log.Printf("[INFO] Creating a new Secondary Zone Group for Account '%s': %+v", accountNumber, secondaryZoneGroupRequest)
+	// Call Create Secondary Zone Group API
+	log.Printf(
+		"[INFO] Creating a new Secondary Zone Group for Account '%s': %+v",
+		accountNumber,
+		secondaryZoneGroup,
+	)
+	params := routedns.NewAddSecondaryZoneGroupParams()
+	params.AccountNumber = accountNumber
+	params.SecondaryZoneGroup = secondaryZoneGroup
 
-	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
-
-	resp, err := dnsrouteClient.AddSecondaryZoneGroup(secondaryZoneGroupRequest)
-
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	log.Printf("[INFO] Create successful - New Secondary Zone Group ID: %d", resp)
-	d.SetId(strconv.Itoa(resp))
-
-	ResourceSecondaryZoneGroupRead(ctx, d, m)
-
-	return diags
-}
-
-func ResourceSecondaryZoneGroupRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	secondaryZoneGroupId, err := strconv.Atoi(d.Id())
-	accountNumber := d.Get("account_number").(string)
-
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
-	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
-
-	log.Printf("[INFO] Retrieving Secondary Zone Group by zoneID: %d", secondaryZoneGroupId)
-
-	resp, err := dnsRouteClient.GetSecondaryZoneGroup(secondaryZoneGroupId)
+	resp, err := routeDNSService.AddSecondaryZoneGroup(*params)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
+	log.Printf(
+		"[INFO] Create successful - New Secondary Zone Group ID: %d",
+		resp,
+	)
+
+	d.SetId(strconv.Itoa(resp.ID))
+
+	return ResourceSecondaryZoneGroupRead(ctx, d, m)
+}
+
+func ResourceSecondaryZoneGroupRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
+	secondaryZoneGroupID, err := strconv.Atoi(d.Id())
+	accountNumber := d.Get("account_number").(string)
+	config := m.(**api.ClientConfig)
+	routeDNSService, err := buildRouteDNSService(**config)
+
+	// Call Get Secondary Zone Group API
+	params := routedns.NewGetSecondaryZoneGroupParams()
+	params.AccountNumber = accountNumber
+	params.ID = secondaryZoneGroupID
+
+	log.Printf(
+		"[INFO] Retrieving Secondary Zone Group by zoneID: %d",
+		secondaryZoneGroupID,
+	)
+
+	resp, err := routeDNSService.GetSecondaryZoneGroup(*params)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	log.Printf("[INFO] Retrieved Secondary Zone Group: %+v", resp)
+
+	// Update Terraform state with retrieved Secondary Zone Group data
 	newID := strconv.Itoa(resp.ID)
 	d.Set("name", resp.Name)
 	d.Set("account_number", accountNumber)
+	//TODO: Properly process zone composition into terraform state
 	//d.Set("ZoneComposition", resp.ZoneComposition)
 	d.SetId(newID)
-	return diags
+	return diag.Diagnostics{}
 }
 
-func ResourceSecondaryZoneGroupUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceSecondaryZoneGroupUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	secondaryZoneGroupID, err := strconv.Atoi(d.Id())
 	accountNumber := d.Get("account_number").(string)
-	name := d.Get("name").(string)
-
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
 
+	// Construct Secondary Zone Group Update Object
+	name := d.Get("name").(string)
 	zoneComposition := d.Get("zone_composition").([]interface{})
 	zc := zoneComposition[0].(map[string]interface{})
 	masterGroupID := zc["master_group_id"].(int)
 	zones := zc["zones"].([]interface{})
-	zoneArr := []api.SecondaryZoneRequest{}
+	zoneArr := []routedns.SecondaryZoneResponse{}
 	for _, item := range zones {
 		curr := item.(map[string]interface{})
 
 		domainName := curr["domain_name"].(string)
 		status := curr["status"].(int)
-		zoneType := curr["zone_type"].(int)
 		comment := curr["comment"].(string)
 		if len(comment) == 0 {
 			comment = " "
 		}
-		secondaryZone := api.SecondaryZoneRequest{
-			DomainName:      domainName,
-			Status:          status,
-			ZoneType:        zoneType,
-			Comment:         comment,
-			IsCustomerOwned: true,
-		}
+		secondaryZone := routedns.SecondaryZoneResponse{}
+		secondaryZone.DomainName = domainName
+		secondaryZone.Status = status
+		secondaryZone.Comment = comment
 		zoneArr = append(zoneArr, secondaryZone)
 	}
 
 	mst := zc["master_server_tsigs"].([]interface{})
-	mstArr := []api.MasterServerTsigRequest{}
+	mstArr := []routedns.MasterServerTSIG{}
 	for _, item := range mst {
 		curr := item.(map[string]interface{})
 
@@ -275,38 +296,45 @@ func ResourceSecondaryZoneGroupUpdate(ctx context.Context, d *schema.ResourceDat
 		s := server[0].(map[string]interface{})
 		sID := s["master_server_id"].(int)
 
-		ms := api.MasterServerRequest{
+		ms := routedns.MasterServer{
 			ID: sID,
 		}
 
 		t := tsig[0].(map[string]interface{})
 		tID := t["tsig_id"].(int)
-		ts := api.TsigRequest{
+		ts := routedns.TSIGGetOK{
 			ID: tID,
 		}
 
-		mstItem := api.MasterServerTsigRequest{
+		mstItem := routedns.MasterServerTSIG{
 			MasterServer: ms,
-			Tsig:         ts,
+			TSIG:         ts,
 		}
 		mstArr = append(mstArr, mstItem)
 	}
 
-	zcr := api.DnsZoneCompositionRequest{
+	zcr := routedns.ZoneCompositionResponse{
 		MasterGroupID:     masterGroupID,
 		MasterServerTsigs: mstArr,
 		Zones:             zoneArr,
 	}
 
-	secondaryZoneGroupRequest := &api.DnsRouteSecondaryZoneGroupRequest{
-		ID:              secondaryZoneGroupID,
-		Name:            name,
-		ZoneComposition: zcr,
-		CustomerID:      -1,
-	}
+	// Retrieve Existing Secondary Zone Group Object
+	getParams := routedns.NewGetSecondaryZoneGroupParams()
+	getParams.AccountNumber = accountNumber
+	getParams.ID = secondaryZoneGroupID
+	groupObj, err := routeDNSService.GetSecondaryZoneGroup(*getParams)
 
-	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
-	err = dnsRouteClient.UpdateSecondaryZoneGroup(secondaryZoneGroupRequest)
+	// Update Secondary Zone Group Object
+	groupObj.Name = name
+	groupObj.ZoneComposition = zcr
+
+	// Call Update Secondary Zone Group API
+	updateParams := routedns.NewUpdateSecondaryZoneGroupParams()
+	updateParams.AccountNumber = accountNumber
+	updateParams.SecondaryZoneGroup = *groupObj
+
+	err = routeDNSService.UpdateSecondaryZoneGroup(*updateParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -314,17 +342,31 @@ func ResourceSecondaryZoneGroupUpdate(ctx context.Context, d *schema.ResourceDat
 	return ResourceSecondaryZoneGroupRead(ctx, d, m)
 }
 
-func ResourceSecondaryZoneGroupDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ResourceSecondaryZoneGroupDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
+	secondaryZoneGroupID, err := strconv.Atoi(d.Id())
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
 
-	dnsRouteAPIClient := api.NewDNSRouteAPIClient(*config)
+	// Call Get Secondary Zone Group API
+	getParams := routedns.NewGetSecondaryZoneGroupParams()
+	getParams.AccountNumber = accountNumber
+	getParams.ID = secondaryZoneGroupID
+	groupObj, err := routeDNSService.GetSecondaryZoneGroup(*getParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	szgID, _ := strconv.Atoi(d.Id())
-
-	err := dnsRouteAPIClient.DeleteSecondaryZoneGroup(szgID)
+	// Call Delete Secondary Zone Group API
+	deleteParams := routedns.NewDeleteSecondaryZoneGroupParams()
+	deleteParams.AccountNumber = accountNumber
+	deleteParams.SecondaryZoneGroup = *groupObj
+	err = routeDNSService.DeleteSecondaryZoneGroup(*deleteParams)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -332,5 +374,5 @@ func ResourceSecondaryZoneGroupDelete(ctx context.Context, d *schema.ResourceDat
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }

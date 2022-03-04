@@ -342,3 +342,9 @@ func FormatURLAddPartnerID(originalURL string, partnerID int) string {
 
 	return originalURL
 }
+
+// LiteralResponse -
+// TODO: Delete this in final refactor to remove base_client.
+type LiteralResponse struct {
+	Value interface{}
+}
