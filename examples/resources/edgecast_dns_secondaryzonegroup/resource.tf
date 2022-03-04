@@ -19,7 +19,7 @@ resource "edgecast_dns_masterservergroup" "master_server_group"{
         }
 }
 
-resource "ec_dns_secondaryzonegroup" "backup" {
+resource "edgecast_dns_secondaryzonegroup" "backup" {
       account_number = "DE0B"
       name="second48"
       zone_composition {
