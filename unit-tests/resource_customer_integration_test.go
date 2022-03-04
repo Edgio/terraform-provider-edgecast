@@ -3,7 +3,7 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -11,7 +11,7 @@ import (
 
 // Test cases for storage account name conversion logic
 var tcCustomer = map[string]model.ResourceNewCustomer{
-	"terratest.testing.ec.customer": {
+	"terratest.testing.edgecast.customer": {
 		CustomerInfo: model.NewCustomerInfo{
 			CompanyName:      "Terraform test customer02192021-4",
 			ServiceLevelCode: "STND",
@@ -37,7 +37,7 @@ func TestUT_Customer_basic(t *testing.T) {
 	for _, input := range tcCustomer {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/ec_customer",
+			TerraformDir: "../examples/resources/edgecast_customer",
 			Vars: map[string]interface{}{
 				"new_customer_info": map[string]interface{}{
 					"company_name":       input.CustomerInfo.CompanyName,

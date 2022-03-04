@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strconv"
 
-	"terraform-provider-ec/ec/api"
+	"terraform-provider-edgecast/edgecast/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"

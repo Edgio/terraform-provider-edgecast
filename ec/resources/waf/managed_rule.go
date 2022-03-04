@@ -8,8 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"terraform-provider-ec/ec/api"
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/helper"
 
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 

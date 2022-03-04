@@ -1,7 +1,7 @@
 package helper_test
 
 import (
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 )
 

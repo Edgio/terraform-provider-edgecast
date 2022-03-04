@@ -1,18 +1,18 @@
 // Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
 // See LICENSE file in project root for terms.
-package ec
+package edgecast
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"terraform-provider-ec/ec/api"
-	"terraform-provider-ec/ec/resources/customer"
-	"terraform-provider-ec/ec/resources/dnsroute"
-	"terraform-provider-ec/ec/resources/edgecname"
-	"terraform-provider-ec/ec/resources/origin"
-	"terraform-provider-ec/ec/resources/rulesengine"
-	"terraform-provider-ec/ec/resources/waf"
+	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/resources/customer"
+	"terraform-provider-edgecast/edgecast/resources/dnsroute"
+	"terraform-provider-edgecast/edgecast/resources/edgecname"
+	"terraform-provider-edgecast/edgecast/resources/origin"
+	"terraform-provider-edgecast/edgecast/resources/rulesengine"
+	"terraform-provider-edgecast/edgecast/resources/waf"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -91,24 +91,24 @@ func Provider() *schema.Provider {
 				Default:     apiURLProdLegacy},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ec_origin":                 origin.ResourceOrigin(),
-			"ec_edgecname":              edgecname.ResourceEdgeCname(),
-			"ec_customer":               customer.ResourceCustomer(),
-			"ec_customer_user":          customer.ResourceCustomerUser(),
-			"ec_rules_engine_policy":    rulesengine.ResourceRulesEngineV4Policy(),
-			"ec_dns_masterservergroup":  dnsroute.ResourceMasterServerGroup(),
-			"ec_dns_zone":               dnsroute.ResourceZone(),
-			"ec_dns_group":              dnsroute.ResourceGroup(),
-			"ec_dns_tsig":               dnsroute.ResourceTsig(),
-			"ec_dns_secondaryzonegroup": dnsroute.ResourceSecondaryZoneGroup(),
-			"ec_waf_access_rule":        waf.ResourceAccessRule(),
-			"ec_waf_rate_rule":          waf.ResourceRateRule(),
-			"ec_waf_managed_rule":       waf.ResourceManagedRule(),
-			"ec_waf_custom_rule_set":    waf.ResourceCustomRuleSet(),
-			"ec_waf_scopes":             waf.ResourceScopes(),
+			"edgecast_origin":                origin.ResourceOrigin(),
+			"edgecast_edgecname":             edgecname.ResourceEdgeCname(),
+			"edgecast_customer":              customer.ResourceCustomer(),
+			"edgecast_customer_user":         customer.ResourceCustomerUser(),
+			"edgecast_rules_engine_policy":   rulesengine.ResourceRulesEngineV4Policy(),
+			"edgecast_dns_masterservergroup": dnsroute.ResourceMasterServerGroup(),
+			"edgecast_dns_zone":              dnsroute.ResourceZone(),
+			"edgecast_dns_group":             dnsroute.ResourceGroup(),
+			"edgecast_dns_tsig":              dnsroute.ResourceTsig(),
+			"ec_dns_secondaryzonegroup":      dnsroute.ResourceSecondaryZoneGroup(),
+			"edgecast_waf_access_rule":       waf.ResourceAccessRule(),
+			"edgecast_waf_rate_rule":         waf.ResourceRateRule(),
+			"edgecast_waf_managed_rule":      waf.ResourceManagedRule(),
+			"edgecast_waf_custom_rule_set":   waf.ResourceCustomRuleSet(),
+			"edgecast_waf_scopes":            waf.ResourceScopes(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"ec_customer_services": customer.DataSourceCustomerServices(),
+			"edgecast_customer_services": customer.DataSourceCustomerServices(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}

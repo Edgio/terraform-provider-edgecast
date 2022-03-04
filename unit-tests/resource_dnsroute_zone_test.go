@@ -3,8 +3,8 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/helper"
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/helper"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -22,7 +22,7 @@ func TestUT_Zone_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/ec_dns_zone",
+			TerraformDir: "../examples/resources/edgecast_dns_zone",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":         input.ApiToken,
@@ -55,7 +55,7 @@ func getZoneTestCases() (*map[string]model.Credentials, error) {
 		return nil, err
 	}
 
-	tc["terratest.testing.ec.msg1"] = credential
+	tc["terratest.testing.edgecast.msg1"] = credential
 
 	return &tc, nil
 }

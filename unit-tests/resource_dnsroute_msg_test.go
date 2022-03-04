@@ -3,8 +3,8 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/helper"
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/helper"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -55,7 +55,7 @@ func getMSGTestCases() (*map[string]model.Credentials, error) {
 		return nil, err
 	}
 
-	tc["terratest.testing.ec.msg1"] = credential
+	tc["terratest.testing.edgecast.msg1"] = credential
 
 	return &tc, nil
 }

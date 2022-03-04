@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 	"log"
-	"terraform-provider-ec/ec/api"
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/helper"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"

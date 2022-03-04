@@ -3,8 +3,8 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/helper"
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/helper"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -22,7 +22,7 @@ func TestUT_AccessRule_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../../examples/resources/ec_waf_access_rule",
+			TerraformDir: "../../examples/resources/edgecast_waf_access_rule",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":          input.ApiToken,
@@ -56,7 +56,7 @@ func getTestCases() (*map[string]model.Credentials, error) {
 		return nil, err
 	}
 
-	tc["terratest.testing.ec.acl1"] = credential
+	tc["terratest.testing.edgecast.acl1"] = credential
 
 	return &tc, nil
 }

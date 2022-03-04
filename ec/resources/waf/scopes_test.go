@@ -3,7 +3,7 @@
 package waf
 
 import (
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"

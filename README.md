@@ -30,9 +30,9 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 ```
 terraform {
   required_providers {
-    ec = {
+    edgecast = {
       version = "0.4.4"
-      source  = "EdgeCast/ec"
+      source  = "EdgeCast/edgecast"
     }
   }
 }
@@ -40,7 +40,7 @@ terraform {
 
 Then, use it in a provider block, passing in any credentials provided to you:
 ```
-provider "ec" {
+provider "edgecast" {
   api_token          = "YOUR_API_TOKEN"
   ids_client_secret  = "IDS_SECRET"
   ids_client_id      = "IDS_CLIENT_ID"
@@ -50,7 +50,7 @@ provider "ec" {
 
 Below this, you can start defining resources. For example:
 ```
-resource "ec_origin" "origin_images" {
+resource "edgecast_origin" "origin_images" {
     account_number = "A1234"
     directory_name = "images"
     media_type = "httplarge"
@@ -100,16 +100,16 @@ Terraform Registry instead of using your locally installed provider.
 
 Make note of the version that is used from within the the `Makefile` or 
 `install_win.bat`. You must use the same version within your Terraform 
-configuration file. Also, use `"github.com/terraform-providers/ec"` as the
+configuration file. Also, use `"github.com/terraform-providers/edgecast"` as the
 source.
 
 Example:
 ```
 terraform {
   required_providers {
-    ec = {
+    edgecast = {
       version = "0.4.4"
-      source  = "github.com/terraform-providers/ec"
+      source  = "github.com/terraform-providers/edgecast"
     }
   }
 }
@@ -154,6 +154,6 @@ point before using this provider.
 to this documentation. It contains all of the available operations as well as 
 their inputs and outputs.
 
-[Examples](https://github.com/EdgeCast/terraform-provider-ec/tree/Master/examples) - Examples to get started can be found here.
+[Examples](https://github.com/EdgeCast/terraform-provider-edgecast/tree/Master/examples) - Examples to get started can be found here.
 
-[Submit an Issue](https://github.com/EdgeCast/terraform-provider-ec/issues) - Found a bug? Want to request a feature? Please do so here.
+[Submit an Issue](https://github.com/EdgeCast/terraform-provider-edgecast/issues) - Found a bug? Want to request a feature? Please do so here.
