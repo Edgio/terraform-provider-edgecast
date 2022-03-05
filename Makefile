@@ -1,7 +1,7 @@
 TEST?=$$(go list ./... | grep -v 'vendor')
 HOSTNAME=github.com
 NAMESPACE=terraform-providers
-NAME=ec
+NAME=edgecast
 BINARY=terraform-provider-${NAME}
 VERSION=0.4.8
 OS_ARCH=darwin_amd64

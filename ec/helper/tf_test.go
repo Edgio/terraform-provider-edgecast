@@ -3,7 +3,7 @@ package helper_test
 import (
 	"math"
 	"reflect"
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/ec/helper"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/random"

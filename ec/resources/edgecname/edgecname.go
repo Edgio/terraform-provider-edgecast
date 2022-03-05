@@ -8,7 +8,7 @@ import (
 	"log"
 	"strconv"
 
-	"terraform-provider-ec/ec/api"
+	"terraform-provider-edgecast/ec/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"

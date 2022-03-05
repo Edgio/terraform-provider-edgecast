@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"terraform-provider-ec/ec/api"
+	"terraform-provider-edgecast/ec/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
