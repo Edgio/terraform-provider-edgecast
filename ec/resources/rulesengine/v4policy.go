@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"terraform-provider-ec/ec/api"
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/ec/api"
+	"terraform-provider-edgecast/ec/helper"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"

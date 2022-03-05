@@ -3,8 +3,8 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/helper"
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/helper"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
