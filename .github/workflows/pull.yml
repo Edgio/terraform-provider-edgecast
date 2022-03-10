@@ -4,7 +4,7 @@ on:
 permissions:
   contents: read
 jobs:
-  golangci:
+  pull:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-go@v2
