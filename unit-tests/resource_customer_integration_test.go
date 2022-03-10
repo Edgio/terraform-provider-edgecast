@@ -33,6 +33,7 @@ var tcCustomer = map[string]model.ResourceNewCustomer{
 
 func TestUT_Customer_basic(t *testing.T) {
 	t.Parallel()
+	t.Skip("test is not ready for unit testing")
 
 	for _, input := range tcCustomer {
 		// Specify the test case folder and "-var" options

@@ -12,6 +12,7 @@ import (
 
 func TestUT_AccessRule_basic(t *testing.T) {
 	t.Parallel()
+	t.Skip("test is not ready for unit testing")
 
 	// // Test cases for storage account name conversion logic
 	tc, err := getTestCases()
