@@ -250,6 +250,10 @@ func ResourceMSGDelete(
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	msgID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return diag.FromErr(err)

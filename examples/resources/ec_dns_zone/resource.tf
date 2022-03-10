@@ -90,9 +90,9 @@ resource "ec_dns_zone" "anyl" {
         email_notification_address="notice@glory1.com"
         failed_check_threshold=10
         http_method_id=1
-        ip_address=""
+        # ip_address="" # IP address only required when check_type_id 3,4
         ip_version=1
-        port_number="80"
+        # port_number=80 # Port only required when check_type_id 3,4
         reintegration_method_id=1
         status= 4
         status_name="Unknown"

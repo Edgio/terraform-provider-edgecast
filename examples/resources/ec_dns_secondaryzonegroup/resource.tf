@@ -27,7 +27,7 @@ resource "ec_dns_secondaryzonegroup" "backup" {
             zones {
                   domain_name = "second48.com"
                   status=1
-                  zone_type= 2
+                  zone_type=2
                   comment="comment2"
             }
             master_server_tsigs{

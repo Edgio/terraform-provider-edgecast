@@ -22,6 +22,7 @@ variable credentials {
     ids_scope = string
     api_address = string
     ids_address = string
+    api_address_legacy = string
   })
 }
 
@@ -36,6 +37,7 @@ provider "ec" {
     ids_scope = var.credentials.ids_scope
     ids_address = var.credentials.ids_address
     api_address = var.credentials.api_address
+    api_address_legacy = var.credentials.api_address_legacy
 }
 
 

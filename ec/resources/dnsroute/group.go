@@ -18,6 +18,156 @@ import (
 
 // DNS Master Server Group
 func ResourceGroup() *schema.Resource {
+	groupRecord := map[string]*schema.Schema{
+		"health_check": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"fixed_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"check_interval": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+					"check_type_id": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+					"content_verification": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"email_notification_address": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"failed_check_threshold": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+					"http_method_id": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"record_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"fixed_record_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"group_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"ip_address": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"ip_version": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"port_number": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"reintegration_method_id": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+					"status": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"status_name": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+					"timeout": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"uri": {
+						Type:     schema.TypeString,
+						Optional: true,
+					},
+				},
+			},
+		},
+		"weight": {
+			Type:     schema.TypeInt,
+			Required: true,
+		},
+		"record": {
+			Type: schema.TypeList,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"record_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"ttl": {
+						Type:     schema.TypeInt,
+						Required: true,
+					},
+					"rdata": {
+						Type:     schema.TypeString,
+						Required: true,
+					},
+					"verify_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"fixed_group_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"group_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"fixed_record_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"zone_id": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"fixed_zone_id": {
+						Type:     schema.TypeInt,
+						Optional: true,
+					},
+					"record_type_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"record_type_name": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"is_delete": {
+						Type:     schema.TypeBool,
+						Optional: true,
+					},
+				},
+			},
+			Required: true,
+		},
+	}
 
 	return &schema.Resource{
 		CreateContext: ResourceGroupCreate,
@@ -45,7 +195,7 @@ func ResourceGroup() *schema.Resource {
 			},
 			"group_type_id": {
 				Type:     schema.TypeInt,
-				Optional: true,
+				Computed: true,
 			},
 			"group_product_type": {
 				Type:     schema.TypeString,
@@ -53,7 +203,7 @@ func ResourceGroup() *schema.Resource {
 			},
 			"group_product_type_id": {
 				Type:     schema.TypeInt,
-				Optional: true,
+				Computed: true,
 			},
 			"name": {
 				Type:     schema.TypeString,
@@ -71,480 +221,21 @@ func ResourceGroup() *schema.Resource {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"health_check": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"fixed_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"check_interval": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"check_type_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"content_verification": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"email_notification_address": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"failed_check_threshold": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"http_method_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"fixed_record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"group_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"ip_address": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"ip_version": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"port_number": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"reintegration_method_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"status_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"timeout": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"uri": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"record": {
-							Type: schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"ttl": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"rdata": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"verify_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_group_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"group_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_record_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"zone_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_zone_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"record_type_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"record_type_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"is_delete": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-								},
-							},
-							Required: true,
-						},
-					},
+					Schema: groupRecord,
 				},
 			},
 			"aaaa": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"health_check": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"fixed_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"check_interval": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"check_type_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"content_verification": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"email_notification_address": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"failed_check_threshold": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"http_method_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"fixed_record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"group_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"ip_address": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"ip_version": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"port_number": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"reintegration_method_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"status_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"timeout": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"uri": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"record": {
-							Type: schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"ttl": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"rdata": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"verify_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_group_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"group_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_record_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"zone_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_zone_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"record_type_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"record_type_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"is_delete": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-								},
-							},
-							Required: true,
-						},
-					},
+					Schema: groupRecord,
 				},
 			},
 			"cname": {
 				Type:     schema.TypeList,
 				Optional: true,
 				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"health_check": {
-							Type:     schema.TypeList,
-							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"fixed_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"check_interval": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"check_type_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"content_verification": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"email_notification_address": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"failed_check_threshold": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"http_method_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"fixed_record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"group_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"ip_address": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"ip_version": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"port_number": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"reintegration_method_id": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"status_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"timeout": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"uri": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-								},
-							},
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"record": {
-							Type: schema.TypeList,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"record_id": {
-										Type:     schema.TypeInt,
-										Computed: true,
-									},
-									"name": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"ttl": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"rdata": {
-										Type:     schema.TypeString,
-										Required: true,
-									},
-									"verify_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_group_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"group_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_record_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"zone_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"fixed_zone_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"record_type_id": {
-										Type:     schema.TypeInt,
-										Optional: true,
-									},
-									"record_type_name": {
-										Type:     schema.TypeString,
-										Optional: true,
-									},
-									"is_delete": {
-										Type:     schema.TypeBool,
-										Optional: true,
-									},
-								},
-							},
-							Required: true,
-						},
-					},
+					Schema: groupRecord,
 				},
 			},
 		},
@@ -570,7 +261,7 @@ func ResourceGroupCreate(
 		return diag.FromErr(
 			fmt.Errorf(
 				`invalid group_product_type: %s. It should be failover or 
-				loadbalancing.`,
+				loadbalancing`,
 				groupProductType,
 			),
 		)
@@ -624,6 +315,10 @@ func ResourceGroupCreate(
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
 
 	// Call Add Group API
 	params := routedns.NewAddGroupParams()
@@ -649,6 +344,10 @@ func ResourceGroupRead(
 ) diag.Diagnostics {
 	// Construct Group Get Object
 	groupID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	accountNumber := d.Get("account_number").(string)
 	rawGroupProductType := d.Get("group_product_type").(string)
 	groupProductType := routedns.NoGroup
@@ -661,6 +360,9 @@ func ResourceGroupRead(
 
 	// Initialize Route DNS Service
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Call Get Group API
 	params := routedns.NewGetGroupParams()
@@ -738,7 +440,7 @@ func ResourceGroupUpdate(
 		return diag.FromErr(
 			fmt.Errorf(
 				`invalid group_product_type: %s. It should be failover or 
-				loadbalancing.`,
+				loadbalancing`,
 				rawGroupProductType,
 			),
 		)
@@ -810,7 +512,7 @@ func ResourceGroupDelete(
 		return diag.FromErr(
 			fmt.Errorf(
 				`invalid group_product_type: %s. It should be failover or 
-				loadbalancing.`,
+				loadbalancing`,
 				rawGroupProductType,
 			),
 		)
@@ -821,6 +523,9 @@ func ResourceGroupDelete(
 	groupID := d.Get("group_id").(int)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Call Get Group API
 	getParams := routedns.NewGetGroupParams()

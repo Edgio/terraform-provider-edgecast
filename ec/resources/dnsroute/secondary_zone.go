@@ -121,6 +121,10 @@ func ResourceSecondaryZoneGroupCreate(
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
 
 	// Construct Secondary Zone Group Object
 	name := d.Get("name").(string)
@@ -204,7 +208,7 @@ func ResourceSecondaryZoneGroupCreate(
 
 	log.Printf(
 		"[INFO] Create successful - New Secondary Zone Group ID: %d",
-		resp,
+		resp.ID,
 	)
 
 	d.SetId(strconv.Itoa(resp.ID))
@@ -219,9 +223,16 @@ func ResourceSecondaryZoneGroupRead(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	secondaryZoneGroupID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Call Get Secondary Zone Group API
 	params := routedns.NewGetSecondaryZoneGroupParams()
@@ -258,9 +269,16 @@ func ResourceSecondaryZoneGroupUpdate(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	secondaryZoneGroupID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Construct Secondary Zone Group Update Object
 	name := d.Get("name").(string)
@@ -324,6 +342,9 @@ func ResourceSecondaryZoneGroupUpdate(
 	getParams.AccountNumber = accountNumber
 	getParams.ID = secondaryZoneGroupID
 	groupObj, err := routeDNSService.GetSecondaryZoneGroup(*getParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Update Secondary Zone Group Object
 	groupObj.Name = name
@@ -349,9 +370,16 @@ func ResourceSecondaryZoneGroupDelete(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	secondaryZoneGroupID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Call Get Secondary Zone Group API
 	getParams := routedns.NewGetSecondaryZoneGroupParams()

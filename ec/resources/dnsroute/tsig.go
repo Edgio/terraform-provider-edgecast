@@ -59,6 +59,10 @@ func ResourceTsigCreate(
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
 
 	// Construct TSIG Object
 	alias := d.Get("alias").(string)
@@ -118,6 +122,10 @@ func ResourceTsigRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	tsigID, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
@@ -150,8 +158,15 @@ func ResourceTsigUpdate(
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
 	tsigID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Construct TSIG Update Object
 	alias := d.Get("alias").(string)
@@ -212,8 +227,15 @@ func ResourceTsigDelete(
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
 	tsigID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	config := m.(**api.ClientConfig)
 	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	// Get Existing TSIG Object
 	getParams := routedns.NewGetTSIGParams()
