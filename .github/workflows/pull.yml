@@ -15,6 +15,7 @@ jobs:
       - name: lint
         uses: reviewdog/action-golangci-lint@v2
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           reporter: github-check
           reviewdog_flags: -diff="git diff FETCH_HEAD"
       - name: test
