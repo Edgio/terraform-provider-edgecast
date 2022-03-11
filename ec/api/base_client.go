@@ -16,7 +16,7 @@ import (
 	"terraform-provider-edgecast/ec/helper"
 	"time"
 
-	"github.com/hashicorp/go-retryablehttp"
+	retryablehttp "github.com/hashicorp/go-retryablehttp"
 )
 
 const (
