@@ -23,6 +23,8 @@ func ResourceRateRule() *schema.Resource {
 		ReadContext:   ResourceRateRuleRead,
 		UpdateContext: ResourceRateRuleUpdate,
 		DeleteContext: ResourceRateRuleDelete,
+		Importer:      helper.AccountIDImporter(ResourceRateRuleRead),
+
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:        schema.TypeString,
