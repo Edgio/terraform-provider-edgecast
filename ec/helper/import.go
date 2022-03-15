@@ -18,6 +18,7 @@ func parseKeys(s string) []string {
 	return strings.Split(s, ":")
 }
 
+// Import provides a schema.ResourceImporter to parse keys using the ReadContextFunc
 func Import(read schema.ReadContextFunc, keys ...string) *schema.ResourceImporter {
 	return &schema.ResourceImporter{
 		StateContext: func(ctx context.Context, d *schema.ResourceData, m interface{}) ([]*schema.ResourceData, error) {
