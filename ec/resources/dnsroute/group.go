@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"terraform-provider-edgecast/ec/helper"
 
 	"terraform-provider-edgecast/ec/api"
 
@@ -23,7 +24,7 @@ func ResourceGroup() *schema.Resource {
 		ReadContext:   ResourceGroupRead,
 		UpdateContext: ResourceGroupUpdate,
 		DeleteContext: ResourceGroupDelete,
-
+		Importer: helper.Import(ResourceGroupRead, "account_number", "group_product_type", "id"),
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:        schema.TypeString,

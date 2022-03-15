@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"terraform-provider-edgecast/ec/helper"
 
 	"terraform-provider-edgecast/ec/api"
 
@@ -58,6 +59,7 @@ func ResourceOrigin() *schema.Resource {
 		ReadContext:   ResourceOriginRead,
 		UpdateContext: ResourceOriginUpdate,
 		DeleteContext: ResourceOriginDelete,
+		Importer:      helper.Import(ResourceOriginRead, "account_number", "media_type_id", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

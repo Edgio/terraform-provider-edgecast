@@ -28,3 +28,6 @@ unit-tests/**/credential_ucc.json
 .terraform/*
 **/*.copy
 docs_current/
+dist
+bin
+.idea

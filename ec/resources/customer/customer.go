@@ -22,7 +22,9 @@ func ResourceCustomer() *schema.Resource {
 		ReadContext:   ResourceCustomerRead,
 		UpdateContext: ResourceCustomerUpdate,
 		DeleteContext: ResourceCustomerDelete,
-
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"company_name": {
 				Type:     schema.TypeString,
