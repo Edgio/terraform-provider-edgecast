@@ -22,7 +22,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 		ReadContext:   ResourceSecondaryZoneGroupRead,
 		UpdateContext: ResourceSecondaryZoneGroupUpdate,
 		DeleteContext: ResourceSecondaryZoneGroupDelete,
-		Importer:      helper.AccountIDImporter(ResourceSecondaryZoneGroupRead),
+		Importer:      helper.Import(ResourceSecondaryZoneGroupRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

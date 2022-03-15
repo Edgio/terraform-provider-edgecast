@@ -19,7 +19,7 @@ func ResourceScopes() *schema.Resource {
 		ReadContext:   ResourceScopesRead,
 		UpdateContext: ResourceScopesUpdate,
 		DeleteContext: ResourceScopesDelete,
-		Importer:      helper.AccountIDImporter(ResourceScopesRead),
+		Importer:      helper.Import(ResourceScopesRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

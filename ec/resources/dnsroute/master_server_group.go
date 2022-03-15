@@ -23,7 +23,7 @@ func ResourceMasterServerGroup() *schema.Resource {
 		ReadContext:   ResourceMSGRead,
 		UpdateContext: ResourceMSGUpdate,
 		DeleteContext: ResourceMSGDelete,
-		Importer:      helper.AccountIDImporter(ResourceMSGRead),
+		Importer:      helper.Import(ResourceMSGRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

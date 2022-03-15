@@ -24,7 +24,7 @@ func ResourceManagedRule() *schema.Resource {
 		ReadContext:   ResourceManagedRuleRead,
 		UpdateContext: ResourceManagedRuleUpdate,
 		DeleteContext: ResourceManagedRuleDelete,
-		Importer:      helper.AccountIDImporter(ResourceManagedRuleRead),
+		Importer:      helper.Import(ResourceManagedRuleRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

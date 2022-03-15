@@ -23,7 +23,7 @@ func ResourceCustomerUser() *schema.Resource {
 		ReadContext:   ResourceCustomerUserRead,
 		UpdateContext: ResourceCustomerUserUpdate,
 		DeleteContext: ResourceCustomerUserDelete,
-		Importer:      helper.AccountIDImporter(ResourceCustomerUserRead),
+		Importer:      helper.Import(ResourceCustomerUserRead, "account_number", "id"),
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:         schema.TypeString,

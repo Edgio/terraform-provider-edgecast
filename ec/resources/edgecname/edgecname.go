@@ -22,8 +22,7 @@ func ResourceEdgeCname() *schema.Resource {
 		ReadContext:   ResourceEdgeCnameRead,
 		UpdateContext: ResourceEdgeCnameUpdate,
 		DeleteContext: ResourceEdgeCnameDelete,
-
-		Importer: helper.AccountIDImporter(ResourceEdgeCnameRead),
+		Importer:      helper.Import(ResourceEdgeCnameRead, "account_number", "id"),
 		Schema: map[string]*schema.Schema{
 			"account_number": {
 				Type:     schema.TypeString,

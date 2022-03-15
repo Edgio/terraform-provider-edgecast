@@ -22,7 +22,7 @@ func ResourceTsig() *schema.Resource {
 		ReadContext:   ResourceTsigRead,
 		UpdateContext: ResourceTsigUpdate,
 		DeleteContext: ResourceTsigDelete,
-		Importer:      helper.AccountIDImporter(ResourceTsigRead),
+		Importer:      helper.Import(ResourceTsigRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
