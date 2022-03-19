@@ -20,7 +20,7 @@ import (
 func ResourceGroup() *schema.Resource {
 	groupRecord := map[string]*schema.Schema{
 		"health_check": {
-			Type:     schema.TypeList,
+			Type:     schema.TypeSet,
 			Optional: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -86,11 +86,11 @@ func ResourceGroup() *schema.Resource {
 					},
 					"status": {
 						Type:     schema.TypeInt,
-						Optional: true,
+						Computed: true,
 					},
 					"status_name": {
 						Type:     schema.TypeString,
-						Optional: true,
+						Computed: true,
 					},
 					"timeout": {
 						Type:     schema.TypeInt,
@@ -163,6 +163,10 @@ func ResourceGroup() *schema.Resource {
 						Type:     schema.TypeBool,
 						Optional: true,
 					},
+					"weight": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
 				},
 			},
 			Required: true,
@@ -218,21 +222,21 @@ func ResourceGroup() *schema.Resource {
 				Computed: true,
 			},
 			"a": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: groupRecord,
 				},
 			},
 			"aaaa": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: groupRecord,
 				},
 			},
 			"cname": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: groupRecord,
@@ -267,20 +271,20 @@ func ResourceGroupCreate(
 		)
 	}
 
-	dnsAs := d.Get("a").([]interface{})
-	arrayAs, err := toGroupRecords(&dnsAs)
+	dnsAs := d.Get("a").(*schema.Set).List()
+	arrayAs, err := expandGroupRecords(&dnsAs, false)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
-	dnsAAAAs := d.Get("aaaa").([]interface{})
-	arrayAAAAs, err := toGroupRecords(&dnsAAAAs)
+	dnsAAAAs := d.Get("aaaa").(*schema.Set).List()
+	arrayAAAAs, err := expandGroupRecords(&dnsAAAAs, false)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
-	dnsCnames := d.Get("cname").([]interface{})
-	arrayCnames, err := toGroupRecords(&dnsCnames)
+	dnsCnames := d.Get("cname").(*schema.Set).List()
+	arrayCnames, err := expandGroupRecords(&dnsCnames, false)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -395,9 +399,22 @@ func ResourceGroupRead(
 	d.Set("name", resp.Name)
 	d.Set("zone_id", resp.ZoneID)
 
-	d.Set("a", flattenGroupDNSs(&resp.GroupComposition.A))
-	d.Set("aaaa", flattenGroupDNSs(&resp.GroupComposition.AAAA))
-	d.Set("cname", flattenGroupDNSs(&resp.GroupComposition.CNAME))
+	if err := d.Set(
+		"a", flattenGroupDNSs(&resp.GroupComposition.A),
+	); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set(
+		"aaaa", flattenGroupDNSs(&resp.GroupComposition.AAAA),
+	); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set(
+		"cname", flattenGroupDNSs(&resp.GroupComposition.CNAME),
+	); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return diag.Diagnostics{}
 }
@@ -446,18 +463,19 @@ func ResourceGroupUpdate(
 		)
 	}
 
-	dnsAs := d.Get("a").([]interface{})
-	arrayAs, err := toGroupRecords(&dnsAs)
+	dnsAs := d.Get("a").(*schema.Set).List()
+
+	arrayAs, err := expandGroupRecords(&dnsAs, false)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	dnsAAAAs := d.Get("aaaa").([]interface{})
-	arrayAAAAs, err := toGroupRecords(&dnsAAAAs)
+	dnsAAAAs := d.Get("aaaa").(*schema.Set).List()
+	arrayAAAAs, err := expandGroupRecords(&dnsAAAAs, false)
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	dnsCnames := d.Get("cname").([]interface{})
-	arrayCnames, err := toGroupRecords(&dnsCnames)
+	dnsCnames := d.Get("cname").(*schema.Set).List()
+	arrayCnames, err := expandGroupRecords(&dnsCnames, false)
 	if err != nil {
 		return diag.FromErr(err)
 	}

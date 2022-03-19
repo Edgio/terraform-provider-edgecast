@@ -1,10 +1,10 @@
 resource "ec_dns_zone" "anyl" {
   account_number = "DE0B"
 	domain_name = "anyl.com."
-  status = 1
-	zone_type = 1
-	is_customer_owned = true
-	comment = "test chang"
+  status = 1 # 1: active, 2: inactive
+	zone_type = 1 # 1: Primary zone. This value should always be 1.
+	is_customer_owned = true # This value should always be true
+	comment = "test comment"
 	record_a {
     name="mail"
     ttl=3600
@@ -35,6 +35,7 @@ resource "ec_dns_zone" "anyl" {
     ttl=3600
     rdata="10 mail.cooler.com"
   }
+
   dnsroute_group {
     group_type="zone"
     group_product_type="failover"
@@ -42,7 +43,6 @@ resource "ec_dns_zone" "anyl" {
     a {
       weight=100
       record {
-        name="hot1"
         ttl=300
         rdata="10.10.1.11"
       }
@@ -50,12 +50,12 @@ resource "ec_dns_zone" "anyl" {
     a {
       weight=0
       record {
-        name="cold1"
         ttl=300
-        rdata="10.10.1.22"
+        rdata="10.10.1.12"
       }
     }
   }
+
   dnsroute_group {
     group_type="zone"
     group_product_type="failover"
@@ -63,20 +63,19 @@ resource "ec_dns_zone" "anyl" {
     a {
       weight=100
       record {
-        name="hot3"
         ttl=300
-        rdata="10.10.2.3"
+        rdata="10.10.2.21"
       }
     }
     a {
       weight=0
       record {
-        name="cold4"
         ttl=300
-        rdata="10.10.2.4"
+        rdata="10.10.2.22"
       }
     }
   }
+
   dnsroute_group {
     group_type="zone"
     group_product_type="loadbalancing"
@@ -85,24 +84,22 @@ resource "ec_dns_zone" "anyl" {
       weight=33
       health_check {
         check_interval=300
-        check_type_id=1
+        check_type_id=1 # 1: HTTP, 2: HTTPS, 3: TCP Open, 4: TCP SSL
         content_verification="10"
         email_notification_address="notice@glory1.com"
         failed_check_threshold=10
-        http_method_id=1
+        http_method_id=1 # 1: GET, 2: POST
         # ip_address="" # IP address only required when check_type_id 3,4
-        ip_version=1
+        ip_version=1 # 1: IPv4, 2: IPv6
         # port_number=80 # Port only required when check_type_id 3,4
-        reintegration_method_id=1
-        status= 4
-        status_name="Unknown"
+        reintegration_method_id=1 # 1: Automatic, 2: Manual
         uri="www.yahoo.com"
         timeout=100
       }
       record {
         name="lbg1"
         ttl=300
-        rdata="10.10.3.5"
+        rdata="10.10.3.1"
       }
     }
     a {
@@ -110,7 +107,7 @@ resource "ec_dns_zone" "anyl" {
       record {
         name="lbg2"
         ttl=300
-        rdata="10.10.3.6"
+        rdata="10.10.3.2"
       }
     }
   }

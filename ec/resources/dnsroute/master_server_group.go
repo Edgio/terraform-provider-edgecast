@@ -292,7 +292,7 @@ func flattenMasterServerGroupData(
 	mstGroup routedns.MasterServerGroupAddGetOK,
 ) []interface{} {
 	if mstGroup.Masters != nil {
-		svgs := make([]interface{}, len(mstGroup.Masters), len(mstGroup.Masters))
+		svgs := make([]interface{}, len(mstGroup.Masters))
 
 		for i, masterServer := range mstGroup.Masters {
 			oi := make(map[string]interface{})
