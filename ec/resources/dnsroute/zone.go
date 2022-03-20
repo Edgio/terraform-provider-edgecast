@@ -22,86 +22,139 @@ func ResourceZone() *schema.Resource {
 			"health_check": {
 				// We use a 1-item TypeSet as a workaround since TypeMap
 				// doesn't support schema.Resource as a child element type (yet)
-				Type:     schema.TypeSet,
-				MaxItems: 1,
-				Optional: true,
+				Type:        schema.TypeSet,
+				MaxItems:    1,
+				Optional:    true,
+				Description: `Define a record's health check configuration`,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies the health check by its 
+							system-defined ID.`,
 						},
 						"fixed_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Reserved for future use.",
 						},
 						"check_interval": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Description: `Defines the number of seconds between 
+							health checks.`,
 						},
 						"check_type_id": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Description: `Defines the type of health check by 
+							its system-defined ID. The following values are 
+							supported: 1 - HTTP | 2 - HTTPS | 3 - TCP Open | 
+							4 - TCP SSL. Please refer to the following URL for 
+							additional information: 
+							https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm`,
 						},
 						"content_verification": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the text that will be used to 
+							verify the success of the health check.`,
 						},
 						"email_notification_address": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the e-mail address to which 
+							health check notifications will be sent.`,
 						},
 						"failed_check_threshold": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Description: `Defines the number of consecutive 
+							times that the same result must be returned before 
+							a health check agent will indicate a change in 
+							status.`,
 						},
 						"http_method_id": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Description: `Defines an HTTP method by its 
+							system-defined ID. An HTTP method is only used by 
+							HTTP/HTTPs health checks. Supported values are: 
+							1 - GET, 2 - POST. Refer to the following URL for 
+							additional information: 
+							https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HTTP_Methods.htm`,
 						},
 						"record_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Defines the DNS record ID this health 
+							check is associated with.`,
 						},
 						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Reserved for future use.",
 						},
 						"group_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Defines the Group ID this health check 
+							is associated with.`,
 						},
 						"ip_address": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Description: `Defines the IP address (IPv4 or IPv6) 
+							to which TCP health checks will be directed. IP 
+							address is required when check_type_id is 3 or 4`,
 						},
 						"ip_version": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Description: `Defines an IP version by its 
+							system-defined ID. This IP version is only used by 
+							HTTP/HTTPs health checks. Supported values are: 
+							1 - IPv4, 2 - IPv6. Refer to the following URL for 
+							additional information:
+							https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_IP_Versions_HC.htm`,
 						},
 						"port_number": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Description: `Defines the port to which TCP health 
+							checks will be directed.`,
 						},
 						"reintegration_method_id": {
 							Type:     schema.TypeInt,
 							Required: true,
+							Description: `Indicates the method through which an 
+							unhealthy server/hostname will be integrated back 
+							into a group. Supported values are: 1 - Automatic | 
+							2 - Manual`,
 						},
 						"status": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Indicates the server/hostname's health 
+							check status by its system-defined ID.`,
 						},
 						"status_name": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Description: `Indicates the server/hostname's health 
+							check status.`,
 						},
 						"timeout": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: `Reserved for future use.`,
 						},
 						"uri": {
 							Type:     schema.TypeString,
 							Optional: true,
+							Description: `Defines the URI to which HTTP/HTTPs 
+							health checks will be directed.`,
 						},
 					},
 				},
@@ -109,66 +162,91 @@ func ResourceZone() *schema.Resource {
 			"weight": {
 				Type:     schema.TypeInt,
 				Required: true,
+				Description: `Defines a record's weight. Used to denote 
+				preference for a load balancing or failover group.`,
 			},
 			"record": {
 				Type: schema.TypeList,
+				Description: `Defines a DNS record that will be associated with 
+				the zone.`,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"record_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies a DNS Record by its 
+							system-defined ID.`,
 						},
 						"name": {
-							Type:     schema.TypeString,
-							Computed: true,
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: `Defines a record's name.`,
 						},
 						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: `Defines a record's TTL.`,
 						},
 						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: `Defines a record's value.`,
 						},
 						"verify_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"group_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies the group this record is 
+							assoicated with by its system-defined ID.`,
 						},
 						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: `Reserved for future use.`,
 						},
 						"fixed_zone_id": {
 							Type:     schema.TypeInt,
 							Optional: true,
+							Description: `Identifies a zone by its 
+							system-defined ID.`,
 						},
 						"record_type_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Indicates the system-defined ID 
+							assigned to the record type.`,
 						},
 						"record_type_name": {
 							Type:     schema.TypeString,
 							Computed: true,
+							Description: `Indicates the name of the record 
+							type.`,
 						},
 						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: `Reserved for future use.`,
 						},
 						"weight": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Defines a record's weight. Used to 
+							denote preference for a load balancing or failover 
+							group.`,
 						},
 					},
 				},
@@ -179,60 +257,75 @@ func ResourceZone() *schema.Resource {
 	singleRecordSchema := &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"record_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Identifies a DNS Record by its system-defined ID.`,
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: `Defines a record's name.`,
 			},
 			"ttl": {
-				Type:     schema.TypeInt,
-				Required: true,
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: `Defines a record's TTL.`,
 			},
 			"rdata": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: `Defines a record's value.`,
 			},
 			"verify_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
 			},
 			"fixed_group_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
 			},
 			"group_id": {
 				Type:     schema.TypeInt,
 				Computed: true,
 			},
 			"fixed_record_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
 			},
 			"zone_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
 			},
 			"fixed_zone_id": {
-				Type:     schema.TypeInt,
-				Computed: true,
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
 			},
 			"weight": {
 				Type:     schema.TypeInt,
 				Optional: true,
+				Description: `Defines a record's weight. Used to denote 
+				preference for a load balancing or failover group.`,
 			},
 			"record_type_id": {
 				Type:     schema.TypeInt,
 				Computed: true,
+				Description: `Indicates the system-defined ID assigned to the 
+				record type.`,
 			},
 			"record_type_name": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: `Indicates the name of the record type.`,
 			},
 			"is_delete": {
-				Type:     schema.TypeBool,
-				Optional: true,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: `Reserved for future use.`,
 			},
 		},
 	}
@@ -247,48 +340,52 @@ func ResourceZone() *schema.Resource {
 			"account_number": {
 				Type:     schema.TypeString,
 				Required: true,
-				Description: `Account Number for the customer if not already 
-				specified in the provider configuration.`,
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`,
 			},
 			"zone_type": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "Zone Type.",
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: `Indicates that a primary zone will be created. Set 
+				this request parameter to "1".`,
 			},
 			"zone_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "ZoneID",
+				Description: `Reserved for future use.`,
 			},
 			"fixed_zone_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "FixedZoneID",
+				Description: "Identifies a zone by its system-defined ID.",
 			},
 			"domain_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Domain Name.",
+				Description: "Indicates a zone's name.",
 			},
 			"status": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "Status.",
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: `Indicates a zone's status by its system-defined 
+				ID. Valid Values: 1 - Active | 2 - Inactive`,
 			},
 			"status_name": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Status.",
+				Description: "Indicates a zone's status by its name.",
 			},
 			"is_customer_owned": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "is customer owned",
+				Type:     schema.TypeBool,
+				Optional: true,
+				Description: `This parameter is reserved for future use. The 
+				only supported value for this parameter is "true."`,
 			},
 			"comment": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Comment",
+				Description: "Indicates the comment associated with a zone.",
 			},
 
 			"record_a": {
@@ -407,57 +504,80 @@ func ResourceZone() *schema.Resource {
 						"group_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies the group by its 
+							system-defined ID.`,
 						},
 						"id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies the group by its 
+							system-defined ID.`,
 						},
 						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"group_type": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the group type. Valid values 
+							are: zone`,
 						},
 						"group_type_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Defines the group type by its 
+							system-defined ID`,
 						},
 						"group_product_type": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the group product type. Valid 
+							values are: loadbalancing | failover`,
 						},
 						"group_product_type_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Defines the group product type by its 
+							system-defined ID`,
 						},
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the name of the failover or 
+							load balancing group.`,
 						},
 						"zone_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"a": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem:     groupRecordSchema,
+							Description: `Defines a set of A records associated 
+							with this group.`,
 						},
 						"aaaa": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem:     groupRecordSchema,
+							Description: `Defines a set of AAAA records 
+							associated with this group.`,
 						},
 						"cname": {
 							Type:     schema.TypeList,
 							Optional: true,
 							Elem:     groupRecordSchema,
+							Description: `Defines a set of CNAME records 
+							associated with this group.`,
 						},
 					},
 				},

@@ -27,13 +27,17 @@ resource "ec_dns_tsig" "tsig1" {
 
 ### Required
 
-- **account_number** (String) Account Number for the customer if not already 
-				specified in the provider configuration.
-- **algorithm_name** (String) tsig encryption type:[HMAC-MD5,HMAC-SHA1,
-				HMAC-SHA256,HMAC-SHA384,HMAC-SHA224,HMAC-SHA512]
-- **alias** (String) Alias.
-- **key_name** (String) tsig key name
-- **key_value** (String) tsig value
+- **account_number** (String) Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.
+- **algorithm_name** (String) Identifies a cryptographic hash function name. 
+				Options: HMAC-MD5 | HMAC-SHA1 | HMAC-SHA256 | HMAC-SHA384 | 
+				HMAC-SHA224 | HMAC-SHA512
+- **alias** (String) Indicates a brief description for the TSIG key.
+- **key_name** (String) Identifies the key on the master name server and 
+				our Route name servers. This name must be unique.
+- **key_value** (String) Identifies a hash value through which our name 
+				servers will be authenticated to a master name server.
 
 ### Optional
 

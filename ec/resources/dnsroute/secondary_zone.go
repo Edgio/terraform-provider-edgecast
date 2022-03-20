@@ -25,17 +25,21 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Account Number for the customer if not already specified in the provider configuration."},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Secondary Group Name."},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Indicates the name assigned to the new secondary 
+				zone group.`},
 			"zone_composition": {
-				Type:        schema.TypeList,
-				Required:    true,
-				Description: "Collection of Secondary Zone Info",
+				Type:     schema.TypeList,
+				Required: true,
+				Description: `ZoneCompositionResponse defines parameters of the 
+				secondary zone group.`,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"zones": {
@@ -44,36 +48,52 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"domain_name": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "secondary domain zone name",
+										Type:     schema.TypeString,
+										Required: true,
+										Description: `Identifies a secondary 
+										zone by its zone name 
+										(e.g., example.com). Edgecast name 
+										servers will request a zone transfer for 
+										this zone. This name must match the one 
+										defined on the master name server(s) 
+										associated with this secondary zone 
+										group.`,
 									},
 									"status": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "1:Active",
+										Type:     schema.TypeInt,
+										Required: true,
+										Description: `Defines whether the zone 
+										is enabled or disabled. Valid values 
+										are: 1 - Enabled, 2 - Disabled`,
 									},
 									"zone_type": {
-										Type:        schema.TypeInt,
-										Required:    true,
-										Description: "2:SecondaryZone",
+										Type:     schema.TypeInt,
+										Required: true,
+										Description: `This parameter is reserved 
+										for future use. The only supported value 
+										for this parameter is "2".`,
 									},
 									"comment": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Comment, at least provide an empty string.",
+										Type:     schema.TypeString,
+										Required: true,
+										Description: `Comment about this 
+										secondary zone.`,
 									},
 								},
 							},
 						},
 						"master_group_id": {
-							Type:        schema.TypeInt,
-							Required:    true,
-							Description: "master group id",
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: `Associates a master server group, as 
+							identified by its system-defined ID, with the 
+							secondary zone group.`,
 						},
 						"master_server_tsigs": {
 							Type:     schema.TypeList,
 							Required: true,
+							Description: `Defines TSIG keys to the desired 
+							master name servers in the master server group.`,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"master_server": {
@@ -82,9 +102,11 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"master_server_id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "Referenced master server id",
+													Type:     schema.TypeInt,
+													Required: true,
+													Description: `Identifies the 
+													master name server to which 
+													a TSIG key will be assigned.`,
 												},
 											},
 										},
@@ -95,9 +117,13 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tsig_id": {
-													Type:        schema.TypeInt,
-													Required:    true,
-													Description: "Referenced tsig id",
+													Type:     schema.TypeInt,
+													Required: true,
+													Description: `Identifies the 
+													TSIG key that will be 
+													assigned to the master name 
+													server identified by the 
+													MasterServer object.`,
 												},
 											},
 										},

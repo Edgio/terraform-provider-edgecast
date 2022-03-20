@@ -27,25 +27,29 @@ func ResourceTsig() *schema.Resource {
 			"account_number": {
 				Type:     schema.TypeString,
 				Required: true,
-				Description: `Account Number for the customer if not already 
-				specified in the provider configuration.`},
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`},
 			"alias": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Alias."},
+				Description: "Indicates a brief description for the TSIG key."},
 			"key_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "tsig key name"},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Identifies the key on the master name server and 
+				our Route name servers. This name must be unique.`},
 			"key_value": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "tsig value"},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Identifies a hash value through which our name 
+				servers will be authenticated to a master name server.`},
 			"algorithm_name": {
 				Type:     schema.TypeString,
 				Required: true,
-				Description: `tsig encryption type:[HMAC-MD5,HMAC-SHA1,
-				HMAC-SHA256,HMAC-SHA384,HMAC-SHA224,HMAC-SHA512]`},
+				Description: `Identifies a cryptographic hash function name. 
+				Options: HMAC-MD5 | HMAC-SHA1 | HMAC-SHA256 | HMAC-SHA384 | 
+				HMAC-SHA224 | HMAC-SHA512`},
 		},
 	}
 }

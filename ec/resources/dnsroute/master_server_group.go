@@ -28,16 +28,19 @@ func ResourceMasterServerGroup() *schema.Resource {
 			"account_number": {
 				Type:     schema.TypeString,
 				Required: true,
-				Description: `Account Number for the customer if not already 
-				specified in the provider configuration.`},
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`},
 			"master_group_id": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Master Server GroupID."},
+				Type:     schema.TypeInt,
+				Computed: true,
+				Description: `Indicates the system-defined ID assigned to a 
+				master server group.`},
 			"master_server_group_name": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Master Server Group Name"},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Indicates the name that will be assigned to the 
+				new master server group.`},
 			"masters": {
 				Type:     schema.TypeList,
 				Computed: false,
@@ -46,20 +49,33 @@ func ResourceMasterServerGroup() *schema.Resource {
 						"id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Indicates the system-defined ID 
+							assigned to an existing master name server that will 
+							be associated with the master server group being 
+							created.`,
 						},
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Indicates the name that will be 
+							assigned to a new master name server that will be 
+							associated with the master server group being 
+							created.`,
 						},
 						"ipaddress": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Indicates the IP address that will be 
+							assigned to a new master name server that will be 
+							associated with the master server group being 
+							created.`,
 						},
 					},
 				},
 				Required: true,
-				Description: `List of Master Server in the Master Server 
-				Group`},
+				Description: `Contains the master name servers associated with 
+				a master server group.`,
+			},
 		},
 	}
 }
