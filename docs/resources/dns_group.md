@@ -7,8 +7,20 @@ description: |-
 ---
 
 # ec_dns_group (Resource)
+**NOTE: Route DNS feature support via Terraform is currently in Beta status.**
 
+Create a DNS load balancing or DNS failover group. 
 
+A load balancing configuration allows our authoritative DNS servers to 
+distribute requests across various servers or CNAMEs.
+
+A failover configuration establishes a primary and backup relationship between 
+two servers or domains. Our authoritative name servers will send all traffic to 
+the primary server/domain until it fails a majority of its health checks. At 
+which point, all traffic will be redirected to the backup server/domain.
+
+For more information, please visit the Route Help Center
+https://docs.whitecdn.com/dns/index.html#Route/Welcome_to_the_Help_Center.htm
 
 ## Example Usage
 
@@ -481,5 +493,6 @@ Read-Only:
 						check status by its system-defined ID.
 - **status_name** (String) Indicates the server/hostname's health 
 						check status.
+
 
 

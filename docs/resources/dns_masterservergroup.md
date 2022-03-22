@@ -7,8 +7,13 @@ description: |-
 ---
 
 # ec_dns_masterservergroup (Resource)
+**NOTE: Route DNS feature support via Terraform is currently in Beta status.**
 
+A master server group allows you to group and manage master name servers from a 
+single location instead of from each secondary zone group or secondary zone.
 
+For more information, please visit the Route Help Center
+https://docs.whitecdn.com/dns/index.html#Route/Administration/SD_Master_Server_Group_Administration.htm
 
 ## Example Usage
 

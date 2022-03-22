@@ -7,8 +7,18 @@ description: |-
 ---
 
 # ec_dns_secondaryzonegroup (Resource)
+**NOTE: Route DNS feature support via Terraform is currently in Beta status.**
 
+The purpose of a secondary zone group is to define one or more secondary zones. 
+A secondary zone will be created for each zone defined in a secondary zone 
+group. These secondary zones will be populated with:
 
+* A default set of records that identify our vanity name servers.
+* The set of records associated with the original zone. These records are 
+retrieved via a full zone transfer (AXFR).
+
+For more information, please visit the Route Help Center
+https://docs.whitecdn.com/dns/index.html#Route/Administration/Secondary_Zone_Group_Administration.htm
 
 ## Example Usage
 
@@ -147,5 +157,6 @@ Required:
 - **zone_type** (Number) This parameter is reserved 
 										for future use. The only supported value 
 										for this parameter is "2".
+
 
 
