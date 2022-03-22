@@ -836,7 +836,7 @@ func ResourceZoneUpdate(
 
 	// Not using HasChange before GetChange because we need to send the whole
 	// Zone for any change, not just the changed records. This should be
-	// reworked when we have PATCH ability in the API. processRecordDeletion
+	// reworked when we have PATCH ability in the API. findDeletedRecords
 	// handles handles empty sets.
 	recordsA, deletesA := findDeletedRecords(d.GetChange("record_a"))
 	recordsAAAA, deletesAAAA := findDeletedRecords(
@@ -1141,23 +1141,23 @@ func expandDNSRouteGroups(
 func expandCreateDNSGroups(
 	groups *[]routedns.DnsRouteGroupOK,
 ) *[]routedns.DnsRouteGroup {
-	newgroups := make([]routedns.DnsRouteGroup, 0)
+	groupsArr := make([]routedns.DnsRouteGroup, 0)
 	for _, group := range *groups {
-		newgroup := routedns.DnsRouteGroup{
+		g := routedns.DnsRouteGroup{
 			Name:             group.Name,
 			GroupTypeID:      group.GroupTypeID,
 			GroupProductType: group.GroupProductType,
 			GroupComposition: group.GroupComposition,
 		}
-		newgroups = append(newgroups, newgroup)
+		groupsArr = append(groupsArr, g)
 	}
 
-	return &newgroups
+	return &groupsArr
 }
 
 func expandGroupRecords(
 	input *[]interface{},
-	delete bool,
+	toDelete bool,
 ) (*[]routedns.DNSGroupRecord, error) {
 	records := make([]routedns.DNSGroupRecord, 0)
 
@@ -1186,7 +1186,7 @@ func expandGroupRecords(
 
 		if val, ok := curr["record"]; ok {
 			rc := val.([]interface{})
-			dnsRecord, err = expandDNSRouteZoneRecord(&rc, weight, delete)
+			dnsRecord, err = expandDNSRouteZoneRecord(&rc, weight, toDelete)
 			if err != nil {
 				return nil, err
 			}
@@ -1267,7 +1267,7 @@ func expandHealthCheck(
 func expandDNSRouteZoneRecord(
 	items *[]interface{},
 	weight int,
-	delete bool,
+	toDelete bool,
 ) (*routedns.DNSRecord, error) {
 	if *items != nil && len(*items) > 0 {
 		for _, element := range *items {
@@ -1281,7 +1281,7 @@ func expandDNSRouteZoneRecord(
 					item["record_type_id"].(int)),
 				RecordTypeName: item["record_type_name"].(string),
 				GroupID:        item["group_id"].(int),
-				IsDeleted:      delete,
+				IsDeleted:      toDelete,
 				Name:           item["name"].(string),
 				TTL:            item["ttl"].(int),
 				Rdata:          item["rdata"].(string),
@@ -1327,8 +1327,9 @@ func flattenDNSGroups(groupItems *[]routedns.DnsRouteGroupOK) []interface{} {
 		for i, group := range *groupItems {
 			item := make(map[string]interface{})
 
-			item["group_id"] = group.GroupID
+			// Setting ID to GroupID as the API only cares about GroupID
 			item["id"] = group.GroupID
+			item["group_id"] = group.GroupID
 			item["fixed_group_id"] = group.FixedGroupID
 			item["fixed_zone_id"] = group.FixedZoneID
 			item["group_product_type_id"] = group.GroupProductType

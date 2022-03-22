@@ -231,7 +231,6 @@ func ResourceMSGUpdate(
 			ID:        id,
 			Name:      name,
 			IPAddress: ipaddress,
-			//MasterGroupID: groupID,
 		}
 
 		masterServers = append(masterServers, master)
