@@ -234,14 +234,14 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Creating WAF Managed Rule for Account >> %s", accountNumber)
 
-	managedRuleRequest := sdkwaf.AddManagedRuleRequest{}
+	managedRule := sdkwaf.ManagedRule{}
 
-	managedRuleRequest.Name = d.Get("name").(string)
-	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
-	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
+	managedRule.Name = d.Get("name").(string)
+	managedRule.RulesetID = d.Get("ruleset_id").(string)
+	managedRule.RulesetVersion = d.Get("ruleset_version").(string)
 
 	if policies, ok := helper.ConvertToStrings(d.Get("policies")); ok {
-		managedRuleRequest.Policies = policies
+		managedRule.Policies = policies
 	} else {
 		return diag.Errorf("Error reading 'policies'")
 	}
@@ -253,7 +253,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.Errorf("error parsing disabled_rule: %+v", err)
 	}
 
-	managedRuleRequest.DisabledRules = *disabledRules
+	managedRule.DisabledRules = *disabledRules
 
 	// Rule Target Updates
 	ruleTargetUpdates, err := ExpandRuleTargetUpdates(d.Get("rule_target_update"))
@@ -262,12 +262,12 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.Errorf("error parsing rule_target_update: %+v", err)
 	}
 
-	managedRuleRequest.RuleTargetUpdates = *ruleTargetUpdates
+	managedRule.RuleTargetUpdates = *ruleTargetUpdates
 
 	// General Settings
 	if v, ok := d.GetOk("general_settings"); ok {
 		if generalSettings, err := ExpandGeneralSettings(v); err == nil {
-			managedRuleRequest.GeneralSettings = *generalSettings
+			managedRule.GeneralSettings = *generalSettings
 		} else {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -277,13 +277,13 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		}
 	}
 
-	log.Printf("[DEBUG] Name: %+v\n", managedRuleRequest.Name)
-	log.Printf("[DEBUG] RulesetID: %+v\n", managedRuleRequest.RulesetID)
-	log.Printf("[DEBUG] Ruleset Version: %+v\n", managedRuleRequest.RulesetVersion)
-	log.Printf("[DEBUG] Disabled Rules: %+v\n", managedRuleRequest.DisabledRules)
-	log.Printf("[DEBUG] General Settings: %+v\n", managedRuleRequest.GeneralSettings)
-	log.Printf("[DEBUG] Policies: %+v\n", managedRuleRequest.Policies)
-	log.Printf("[DEBUG] Rule Target Updates: %+v\n", managedRuleRequest.RuleTargetUpdates)
+	log.Printf("[DEBUG] Name: %+v\n", managedRule.Name)
+	log.Printf("[DEBUG] RulesetID: %+v\n", managedRule.RulesetID)
+	log.Printf("[DEBUG] Ruleset Version: %+v\n", managedRule.RulesetVersion)
+	log.Printf("[DEBUG] Disabled Rules: %+v\n", managedRule.DisabledRules)
+	log.Printf("[DEBUG] General Settings: %+v\n", managedRule.GeneralSettings)
+	log.Printf("[DEBUG] Policies: %+v\n", managedRule.Policies)
+	log.Printf("[DEBUG] Rule Target Updates: %+v\n", managedRule.RuleTargetUpdates)
 
 	if diags.HasError() {
 		return diags
@@ -297,7 +297,10 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.AddManagedRule(managedRuleRequest, accountNumber)
+	params := sdkwaf.NewAddManagedRuleParams()
+	params.AccountNumber = accountNumber
+	params.ManagedRule = managedRule
+	resp, err := wafService.AddManagedRule(*params)
 
 	if err != nil {
 		d.SetId("")
@@ -306,7 +309,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Successfully created WAF Managed Rule: %+v", resp)
 
-	d.SetId(resp.ID)
+	d.SetId(resp)
 
 	return ResourceManagedRuleRead(ctx, d, m)
 }
@@ -329,7 +332,10 @@ func ResourceManagedRuleRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	// Retrieve Managed Rule
-	resp, err := wafService.GetManagedRule(accountNumber, ruleID)
+	params := sdkwaf.NewGetManagedRuleParams()
+	params.AccountNumber = accountNumber
+	params.ManagedRuleID = ruleID
+	resp, err := wafService.GetManagedRule(*params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -370,14 +376,14 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Updating WAF Managed Rule ID %s for Account >> %s", managedRuleID, accountNumber)
 
-	managedRuleRequest := sdkwaf.UpdateManagedRuleRequest{}
+	managedRule := sdkwaf.ManagedRule{}
 
-	managedRuleRequest.Name = d.Get("name").(string)
-	managedRuleRequest.RulesetID = d.Get("ruleset_id").(string)
-	managedRuleRequest.RulesetVersion = d.Get("ruleset_version").(string)
+	managedRule.Name = d.Get("name").(string)
+	managedRule.RulesetID = d.Get("ruleset_id").(string)
+	managedRule.RulesetVersion = d.Get("ruleset_version").(string)
 
 	if policies, ok := helper.ConvertToStrings(d.Get("policies")); ok {
-		managedRuleRequest.Policies = policies
+		managedRule.Policies = policies
 	} else {
 		return diag.Errorf("Error reading 'policies'")
 	}
@@ -389,7 +395,7 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.Errorf("error parsing disabled_rule: %+v", err)
 	}
 
-	managedRuleRequest.DisabledRules = *disabledRules
+	managedRule.DisabledRules = *disabledRules
 
 	// Rule Target Updates
 	ruleTargetUpdates, err := ExpandRuleTargetUpdates(d.Get("rule_target_update"))
@@ -398,12 +404,12 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.Errorf("error parsing rule_target_update: %+v", err)
 	}
 
-	managedRuleRequest.RuleTargetUpdates = *ruleTargetUpdates
+	managedRule.RuleTargetUpdates = *ruleTargetUpdates
 
 	// General Settings
 	if v, ok := d.GetOk("general_settings"); ok {
 		if generalSettings, err := ExpandGeneralSettings(v); err == nil {
-			managedRuleRequest.GeneralSettings = *generalSettings
+			managedRule.GeneralSettings = *generalSettings
 		} else {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
@@ -413,13 +419,13 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 		}
 	}
 
-	log.Printf("[DEBUG] Name: %+v\n", managedRuleRequest.Name)
-	log.Printf("[DEBUG] RulesetID: %+v\n", managedRuleRequest.RulesetID)
-	log.Printf("[DEBUG] Ruleset Version: %+v\n", managedRuleRequest.RulesetVersion)
-	log.Printf("[DEBUG] Disabled Rules: %+v\n", managedRuleRequest.DisabledRules)
-	log.Printf("[DEBUG] General Settings: %+v\n", managedRuleRequest.GeneralSettings)
-	log.Printf("[DEBUG] Policies: %+v\n", managedRuleRequest.Policies)
-	log.Printf("[DEBUG] Rule Target Updates: %+v\n", managedRuleRequest.RuleTargetUpdates)
+	log.Printf("[DEBUG] Name: %+v\n", managedRule.Name)
+	log.Printf("[DEBUG] RulesetID: %+v\n", managedRule.RulesetID)
+	log.Printf("[DEBUG] Ruleset Version: %+v\n", managedRule.RulesetVersion)
+	log.Printf("[DEBUG] Disabled Rules: %+v\n", managedRule.DisabledRules)
+	log.Printf("[DEBUG] General Settings: %+v\n", managedRule.GeneralSettings)
+	log.Printf("[DEBUG] Policies: %+v\n", managedRule.Policies)
+	log.Printf("[DEBUG] Rule Target Updates: %+v\n", managedRule.RuleTargetUpdates)
 
 	if diags.HasError() {
 		return diags
@@ -433,16 +439,18 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.UpdateManagedRule(accountNumber, managedRuleID, managedRuleRequest)
+	params := sdkwaf.NewUpdateManagedRuleParams()
+	params.AccountNumber = accountNumber
+	params.ManagedRuleID = managedRuleID
+	params.ManagedRule = managedRule
+	err = wafService.UpdateManagedRule(*params)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully updated WAF Managed Rule: %+v", resp)
-
-	d.SetId(resp.ID)
+	log.Printf("[INFO] Successfully updated WAF Managed Rule: %+v", managedRule)
 
 	return ResourceManagedRuleRead(ctx, d, m)
 }
@@ -463,13 +471,17 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.DeleteManagedRule(accountNumber, managedRuleID)
+	params := sdkwaf.NewDeleteManagedRuleParams()
+	params.AccountNumber = accountNumber
+	params.ManagedRuleID = managedRuleID
+	err = wafService.DeleteManagedRule(*params)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully deleted WAF Managed Rule: %+v", resp)
+	log.Printf(
+		"[INFO] Successfully deleted WAF Managed Rule ID: %+v", managedRuleID)
 
 	d.SetId("")
 

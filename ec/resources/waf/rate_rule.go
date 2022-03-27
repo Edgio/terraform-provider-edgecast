@@ -182,6 +182,7 @@ func ResourceRateRuleCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	wafService, err := buildWAFService(**config)
 
@@ -205,7 +206,10 @@ func ResourceRateRuleCreate(
 	log.Printf("[DEBUG] Keys: %+v\n", rule.Keys)
 	log.Printf("[DEBUG] ConditionGroups: %+v\n", rule.ConditionGroups)
 
-	resp, err := wafService.AddRateRule(*rule)
+	params := sdkwaf.NewAddRateRuleParams()
+	params.AccountNumber = accountNumber
+	params.RateRule = *rule
+	resp, err := wafService.AddRateRule(*params)
 
 	if err != nil {
 		d.SetId("")
@@ -213,7 +217,7 @@ func ResourceRateRuleCreate(
 	}
 
 	log.Printf("[INFO] %+v", resp)
-	d.SetId(resp.ID)
+	d.SetId(resp)
 	return ResourceRateRuleRead(ctx, d, m)
 }
 
@@ -236,10 +240,12 @@ func ResourceRateRuleRead(
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.GetRateRule(accountNumber, ruleID)
+	params := sdkwaf.NewGetRateRuleParams()
+	params.AccountNumber = accountNumber
+	params.RateRuleID = ruleID
+	resp, err := wafService.GetRateRule(*params)
 
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
@@ -253,6 +259,7 @@ func ResourceRateRuleRead(
 	d.Set("keys", resp.Keys)
 	flattenedConditionGroups := flattenConditionGroups(resp.ConditionGroups)
 	d.Set("condition_group", flattenedConditionGroups)
+
 	return diags
 }
 
@@ -261,6 +268,7 @@ func ResourceRateRuleUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
 	wafService, err := buildWAFService(**config)
 
@@ -285,13 +293,16 @@ func ResourceRateRuleUpdate(
 	log.Printf("[DEBUG] Keys: %+v\n", rule.Keys)
 	log.Printf("[DEBUG] ConditionGroups: %+v\n", rule.ConditionGroups)
 
-	resp, err := wafService.UpdateRateRule(*rule, ruleID)
+	params := sdkwaf.NewUpdateRateRuleParams()
+	params.AccountNumber = accountNumber
+	params.RateRule = *rule
+	err = wafService.UpdateRateRule(*params)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] %+v", resp)
+	log.Printf("[INFO] Rate Rule Updated Successfully: %+v", rule)
 	return ResourceRateRuleRead(ctx, d, m)
 }
 
@@ -310,21 +321,13 @@ func ResourceRateRuleDelete(
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.DeleteRateRuleByID(accountNumber, ruleID)
+	params := sdkwaf.NewDeleteRateRuleParams()
+	params.AccountNumber = accountNumber
+	params.RateRuleID = ruleID
+	err = wafService.DeleteRateRule(*params)
 
 	if err != nil {
 		return diag.FromErr(err)
-	}
-	if !resp.Success || len(resp.Errors) > 0 {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error Deleting Rate Rule %s", ruleID),
-			Detail: fmt.Sprintf(
-				"Status Code:%s, Msg: %s",
-				resp.Errors[0].Code,
-				resp.Errors[0].Message),
-		})
-		return diags
 	}
 
 	d.SetId("")
