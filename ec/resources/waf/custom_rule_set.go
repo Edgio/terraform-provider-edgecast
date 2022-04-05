@@ -7,8 +7,8 @@ import (
 	"context"
 	"errors"
 	"log"
-	"terraform-provider-ec/ec/api"
-	"terraform-provider-ec/ec/helper"
+	"terraform-provider-edgecast/ec/api"
+	"terraform-provider-edgecast/ec/helper"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"

@@ -1,21 +1,21 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
 // license. See LICENSE file in project root for terms.
 
-package customer
+package rulesengine
 
 import (
 	"terraform-provider-edgecast/ec/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/auth"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
 )
 
-// buildCustomerService builds the SDK Customer service to manage Customer
+// buildRulesEngineService builds the SDK Rules Engine service to manage Rule
 // resources
-func buildCustomerService(
+func buildRulesEngineService(
 	config api.ClientConfig,
-) (*customer.CustomerService, error) {
+) (*rulesengine.RulesEngineService, error) {
 
 	idsCredentials := auth.OAuth2Credentials{
 		ClientID:     config.IdsClientID,
@@ -29,5 +29,5 @@ func buildCustomerService(
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
 
-	return customer.New(sdkConfig)
+	return rulesengine.New(sdkConfig)
 }

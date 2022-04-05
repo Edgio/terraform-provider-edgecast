@@ -3,8 +3,8 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/helper"
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/helper"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -12,6 +12,7 @@ import (
 
 func TestUT_Zone_basic(t *testing.T) {
 	t.Parallel()
+	t.Skip("test is not ready for unit testing")
 
 	// // Test cases for storage account name conversion logic
 	tc, err := getZoneTestCases()

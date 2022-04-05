@@ -3,7 +3,7 @@
 package test
 
 import (
-	"terraform-provider-ec/unit-tests/model"
+	"terraform-provider-edgecast/unit-tests/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
@@ -33,6 +33,7 @@ var tcCustomer = map[string]model.ResourceNewCustomer{
 
 func TestUT_Customer_basic(t *testing.T) {
 	t.Parallel()
+	t.Skip("test is not ready for unit testing")
 
 	for _, input := range tcCustomer {
 		// Specify the test case folder and "-var" options

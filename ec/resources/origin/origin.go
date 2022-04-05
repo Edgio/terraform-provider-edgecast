@@ -9,7 +9,7 @@ import (
 	"log"
 	"strconv"
 
-	"terraform-provider-ec/ec/api"
+	"terraform-provider-edgecast/ec/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/origin"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/shared/enums"
