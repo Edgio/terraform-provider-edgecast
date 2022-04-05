@@ -8,13 +8,15 @@ A Terraform provider for the Edgecast Platform.
 - [Development](#development)
 - [Usage](#usage)
 - [Security](#security)
+- [Structure](#structure)
 - [Contribute](#contribute)
 - [License](#license)
 
 ## Background
 
 Terraform is a tool for developing, changing and versioning infrastructure 
-safely and efficiently. It allows the management of infrastructure as code. With Terraform, you can store and version your configuration in GitHub (or your 
+safely and efficiently. It allows the management of infrastructure as code. 
+With Terraform, you can store and version your configuration in GitHub (or your 
 source code control system of choice). Thanks to Terraform's configuration 
 syntax, there is no need to write custom code to use APIs. Simply describe your
 infrastructure in a file and Terraform will figure out the rest.
@@ -116,30 +118,77 @@ terraform {
 ```
 
 ## Logging
-You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable logging for Terraform. See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) for details.
+You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable 
+logging for Terraform. 
+See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) 
+for details.
 
-For example, on MAC OS, running the following two commands will enable logging **for your current terminal session**:
+For example, on MAC OS, running the following two commands will enable logging 
+**for your current terminal session**:
 ```
 export TF_LOG=TRACE
 export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 ```
 
 ## Usage
-The detailed documentation for the provider and specific resources can be found on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/ec/latest/docs).
+The detailed documentation for the provider and specific resources can be found 
+on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/ec/latest/docs).
 
 ## Security
 
-For those users who have been granted specific permission(s) by an account administrator to use the Edgecast Platform, each usage requires the inclusion of a user specific token. Tokens can be created or revoked by the user via the Portal to ensure token security.
+For those users who have been granted specific permission(s) by an account 
+administrator to use the Edgecast Platform, each usage requires the inclusion of 
+a user specific token. Tokens can be created or revoked by the user via the 
+Portal to ensure token security.
+See [Authentication and Authorization](https://developer.edgecast.com/cdn/api/index.html#Introduction/Authentication.htm) 
+for more details on the type of token required, and how to acquire a token.
+
+
+## Structure
+
+```
+.
+├── ec
+    package containing edgecast terraform provider resources and functionality 
+    to manage and provision edgecast configurations in terraform
+│   ├── api
+        base client and service specific client files needed for the provider 
+        to interact with EdgeCast APIs
+        please add new service specific client files here
+│   ├── helper
+        package containing helper methods
+        please add new helper methods here
+│   ├── resources
+        resource files for individual services
+        please add new service specific resource files here
+│   └── provider
+        edgecast terraform provider
+├── examples
+    example files to get started managing and provisioning edgecast 
+    configurations in terraform
+├── docs
+    holds detailed documentation for resources and steps 
+    to manage and provision edgecast configurations in terraform
+├── templates
+    holds terraform templates
+│   ├── data-sources
+│   └── resources
+├── tools
+    package containing build, terraform-docs and other plug in tools
+└── unit-tests
+    package containing unit test files
+```
 
 ## Contribute
 
-Please refer to [the contributing.md file](Contributing.md) for information about how to get involved. We welcome issues, questions, and pull requests.
+Please refer to [the contributing.md file](Contributing.md) for information 
+about how to get involved. We welcome issues, questions, and pull requests.
 
 ## Maintainers
-- Changgyu Oh: changgyu.oh@edgecast.com
 - Steven Paz: steven.paz@edgecast.com
 - Shikha Saluja: shikha.saluja@edgecast.com
 - Frank Contreras: frank.contreras@edgecast.com
+- Hector Gray: hector.gray@edgecast.com
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](LICENSE) open 
@@ -150,10 +199,13 @@ source license.
 is a useful resource for learning about the EdgeCast CDN. It is a good starting 
 point before using this provider.
 
-[API Documentation](https://docs.edgecast.com/cdn/index.html#REST-API.htm%3FTocPath%3D_____8) - For developers that want to interact directly with the EdgeCast CDN API, refer 
+[API Documentation](https://docs.edgecast.com/cdn/index.html#REST-API.htm%3FTocPath%3D_____8) 
+- For developers that want to interact directly with the EdgeCast CDN API, refer 
 to this documentation. It contains all of the available operations as well as 
 their inputs and outputs.
 
-[Examples](https://github.com/EdgeCast/terraform-provider-ec/tree/Master/examples) - Examples to get started can be found here.
+[Examples](https://github.com/EdgeCast/terraform-provider-ec/tree/Master/examples) 
+- Examples to get started can be found here.
 
-[Submit an Issue](https://github.com/EdgeCast/terraform-provider-ec/issues) - Found a bug? Want to request a feature? Please do so here.
+[Submit an Issue](https://github.com/EdgeCast/terraform-provider-ec/issues) 
+- Found a bug? Want to request a feature? Please do so here.
