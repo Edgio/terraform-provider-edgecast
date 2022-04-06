@@ -120,7 +120,7 @@ terraform {
 ## Logging
 You can set the `TF_LOG` and `TF_LOG_PATH` environment variables to enable 
 logging for Terraform. 
-See the [official documentation](https://www.terraform.io/docs/internals/debugging.html) 
+See the [official documentation](https://www.terraform.io/internals/debugging) 
 for details.
 
 For example, on MAC OS, running the following two commands will enable logging 
