@@ -209,7 +209,7 @@ func ResourceRateRuleCreate(
 	params := sdkwaf.NewAddRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRule = *rule
-	resp, err := wafService.AddRateRule(*params)
+	resp, err := wafService.AddRateRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -243,7 +243,7 @@ func ResourceRateRuleRead(
 	params := sdkwaf.NewGetRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRuleID = ruleID
-	resp, err := wafService.GetRateRule(*params)
+	resp, err := wafService.GetRateRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -296,7 +296,8 @@ func ResourceRateRuleUpdate(
 	params := sdkwaf.NewUpdateRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRule = *rule
-	err = wafService.UpdateRateRule(*params)
+	params.RateRuleID = ruleID
+	err = wafService.UpdateRateRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -324,7 +325,7 @@ func ResourceRateRuleDelete(
 	params := sdkwaf.NewDeleteRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRuleID = ruleID
-	err = wafService.DeleteRateRule(*params)
+	err = wafService.DeleteRateRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)

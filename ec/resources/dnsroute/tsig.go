@@ -69,33 +69,7 @@ func ResourceTsigCreate(
 	}
 
 	// Construct TSIG Object
-	alias := d.Get("alias").(string)
-	keyName := d.Get("key_name").(string)
-	keyValue := d.Get("key_value").(string)
-	rawAlgorithm := strings.ToLower(d.Get("algorithm_name").(string))
-	var algorithm routedns.TSIGAlgorithmType
-
-	switch rawAlgorithm {
-	case "hmac-md5":
-		algorithm = routedns.HMAC_MD5
-	case "hmac-sha1":
-		algorithm = routedns.HMAC_SHA1
-	case "hmac-sha256":
-		algorithm = routedns.HMAC_SHA256
-	case "hmac-sha384":
-		algorithm = routedns.HMAC_SHA384
-	case "hmac-sha224":
-		algorithm = routedns.HMAC_SHA224
-	case "hmac-sha512":
-		algorithm = routedns.HMAC_SHA512
-	}
-
-	tsig := routedns.TSIG{
-		Alias:       alias,
-		KeyName:     keyName,
-		KeyValue:    keyValue,
-		AlgorithmID: algorithm,
-	}
+	tsig := expandTSIG(d)
 
 	log.Printf(
 		"[INFO] Creating a new TSIG for Account '%s': %+v",
@@ -148,8 +122,10 @@ func ResourceTsigRead(ctx context.Context, d *schema.ResourceData, m interface{}
 	}
 
 	log.Printf("[INFO] Retrieved TSIG %+v", tsigObj)
-
-	// TODO: Add handling to process TSIG data into terraform state file
+	d.Set("alias", tsigObj.Alias)
+	d.Set("key_name", tsigObj.KeyName)
+	d.Set("key_value", tsigObj.KeyValue)
+	d.Set("algorithm_name", getAlgorithmNameFromID(*tsigObj))
 
 	return diag.Diagnostics{}
 }
@@ -173,26 +149,7 @@ func ResourceTsigUpdate(
 	}
 
 	// Construct TSIG Update Object
-	alias := d.Get("alias").(string)
-	keyName := d.Get("key_name").(string)
-	keyValue := d.Get("key_value").(string)
-	rawAlgorithm := strings.ToLower(d.Get("algorithm_name").(string))
-	var algorithm routedns.TSIGAlgorithmType
-
-	switch rawAlgorithm {
-	case "hmac-md5":
-		algorithm = routedns.HMAC_MD5
-	case "hmac-sha1":
-		algorithm = routedns.HMAC_SHA1
-	case "hmac-sha256":
-		algorithm = routedns.HMAC_SHA256
-	case "hmac-sha384":
-		algorithm = routedns.HMAC_SHA384
-	case "hmac-sha224":
-		algorithm = routedns.HMAC_SHA224
-	case "hmac-sha512":
-		algorithm = routedns.HMAC_SHA512
-	}
+	updatedTsigObj := expandTSIG(d)
 
 	// Get Existing TSIG Object
 	getParams := routedns.NewGetTSIGParams()
@@ -205,10 +162,10 @@ func ResourceTsigUpdate(
 	}
 
 	// Apply updated TSIG data
-	tsigObj.Alias = alias
-	tsigObj.KeyName = keyName
-	tsigObj.KeyValue = keyValue
-	tsigObj.AlgorithmID = algorithm
+	tsigObj.Alias = updatedTsigObj.Alias
+	tsigObj.KeyName = updatedTsigObj.KeyName
+	tsigObj.KeyValue = updatedTsigObj.KeyValue
+	tsigObj.AlgorithmID = updatedTsigObj.AlgorithmID
 
 	// Call Update TSIG API
 	updateParams := routedns.NewUpdateTSIGParams()
@@ -264,4 +221,60 @@ func ResourceTsigDelete(
 	d.SetId("")
 
 	return diag.Diagnostics{}
+}
+
+func expandTSIG(d *schema.ResourceData) routedns.TSIG {
+	alias := d.Get("alias").(string)
+	keyName := d.Get("key_name").(string)
+	keyValue := d.Get("key_value").(string)
+
+	// Convert Algorithm Name to Algorithm ID needed by API
+	rawAlgorithm := strings.ToUpper(d.Get("algorithm_name").(string))
+	var algorithm routedns.TSIGAlgorithmType
+
+	switch rawAlgorithm {
+	case "HMAC-MD5":
+		algorithm = routedns.HMAC_MD5
+	case "HMAC-SHA1":
+		algorithm = routedns.HMAC_SHA1
+	case "HMAC-SHA256":
+		algorithm = routedns.HMAC_SHA256
+	case "HMAC-SHA384":
+		algorithm = routedns.HMAC_SHA384
+	case "HMAC-SHA224":
+		algorithm = routedns.HMAC_SHA224
+	case "HMAC-SHA512":
+		algorithm = routedns.HMAC_SHA512
+	}
+
+	tsig := routedns.TSIG{
+		Alias:       alias,
+		KeyName:     keyName,
+		KeyValue:    keyValue,
+		AlgorithmID: algorithm,
+	}
+
+	return tsig
+}
+
+func getAlgorithmNameFromID(tsig routedns.TSIGGetOK) string {
+	// Convert Algorithm ID to Algorithm Name used in resource file
+	var algorithmName string
+
+	switch tsig.AlgorithmID {
+	case routedns.HMAC_MD5:
+		algorithmName = "HMAC-MD5"
+	case routedns.HMAC_SHA1:
+		algorithmName = "HMAC-SHA1"
+	case routedns.HMAC_SHA256:
+		algorithmName = "HMAC-SHA256"
+	case routedns.HMAC_SHA384:
+		algorithmName = "HMAC-SHA384"
+	case routedns.HMAC_SHA224:
+		algorithmName = "HMAC-SHA224"
+	case routedns.HMAC_SHA512:
+		algorithmName = "HMAC-SHA512"
+	}
+
+	return algorithmName
 }

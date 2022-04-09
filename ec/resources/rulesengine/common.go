@@ -23,10 +23,8 @@ func buildRulesEngineService(
 	}
 
 	sdkConfig := edgecast.NewSDKConfig()
-	sdkConfig.APIToken = config.APIToken
 	sdkConfig.IDSCredentials = idsCredentials
 	sdkConfig.BaseAPIURL = *config.APIURL
-	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
 
 	return rulesengine.New(sdkConfig)

@@ -148,7 +148,7 @@ func ResourceCustomerUserUpdate(
 		return diag.FromErr(err)
 	}
 
-	// Retrieve Customer object from API
+	// Retrieve Customer User object from API
 	getCustomerUserParams := customer.NewGetCustomerUserParams()
 	getCustomerUserParams.Customer = *customerObj
 	getCustomerUserParams.CustomerUserID = customerUserID

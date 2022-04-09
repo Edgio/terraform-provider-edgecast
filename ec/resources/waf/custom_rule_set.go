@@ -392,7 +392,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 	params := sdkwaf.NewAddCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSet = customRuleSet
-	resp, err := wafService.AddCustomRuleSet(*params)
+	resp, err := wafService.AddCustomRuleSet(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -430,7 +430,7 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 	params := sdkwaf.NewGetCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSetID = ruleID
-	resp, err := wafService.GetCustomRuleSet(*params)
+	resp, err := wafService.GetCustomRuleSet(params)
 
 	if err != nil {
 		d.SetId("")
@@ -485,7 +485,8 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 	params := sdkwaf.NewUpdateCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSet = customRuleSetRequest
-	err = wafService.UpdateCustomRuleSet(*params)
+	params.CustomRuleSetID = customRuleSetID
+	err = wafService.UpdateCustomRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -522,7 +523,7 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 	params := sdkwaf.NewDeleteCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSetID = customRuleID
-	err = wafService.DeleteCustomRuleSet(*params)
+	err = wafService.DeleteCustomRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}

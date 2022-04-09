@@ -38,6 +38,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 			"zone_composition": {
 				Type:     schema.TypeList,
 				Required: true,
+				MaxItems: 1,
 				Description: `ZoneCompositionResponse defines parameters of the 
 				secondary zone group.`,
 				Elem: &schema.Resource{
@@ -99,6 +100,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 									"master_server": {
 										Type:     schema.TypeList,
 										Required: true,
+										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"master_server_id": {
@@ -114,6 +116,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 									"tsig": {
 										Type:     schema.TypeList,
 										Required: true,
+										MaxItems: 1,
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"tsig_id": {
@@ -154,65 +157,17 @@ func ResourceSecondaryZoneGroupCreate(
 
 	// Construct Secondary Zone Group Object
 	name := d.Get("name").(string)
-	zoneComposition := d.Get("zone_composition").([]interface{})
-	zc := zoneComposition[0].(map[string]interface{})
-	masterGroupID := zc["master_group_id"].(int)
-	zones := zc["zones"].([]interface{})
-	zoneArr := []routedns.SecondaryZone{}
-	for _, item := range zones {
-		curr := item.(map[string]interface{})
-
-		domainName := curr["domain_name"].(string)
-		status := curr["status"].(int)
-		comment := curr["comment"].(string)
-		if len(comment) == 0 {
-			comment = ""
-		}
-		secondaryZone := routedns.SecondaryZone{
-			DomainName: domainName,
-			Status:     status,
-			Comment:    comment,
-		}
-		zoneArr = append(zoneArr, secondaryZone)
-	}
-
-	mst := zc["master_server_tsigs"].([]interface{})
-	mstArr := []routedns.MasterServerTSIGIDs{}
-	for _, item := range mst {
-		curr := item.(map[string]interface{})
-
-		server := curr["master_server"].([]interface{})
-		tsig := curr["tsig"].([]interface{})
-
-		s := server[0].(map[string]interface{})
-		sID := s["master_server_id"].(int)
-
-		ms := routedns.MasterServerID{
-			ID: sID,
-		}
-
-		t := tsig[0].(map[string]interface{})
-		tID := t["tsig_id"].(int)
-		ts := routedns.TSIGID{
-			ID: tID,
-		}
-
-		mstItem := routedns.MasterServerTSIGIDs{
-			MasterServer: ms,
-			TSIG:         ts,
-		}
-		mstArr = append(mstArr, mstItem)
-	}
-
-	zcr := routedns.ZoneComposition{
-		MasterGroupID:     masterGroupID,
-		MasterServerTSIGs: mstArr,
-		Zones:             zoneArr,
+	zoneComposition, err := expandZoneCompositionCreate(
+		d.Get("zone_composition"),
+	)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
 	}
 
 	secondaryZoneGroup := routedns.SecondaryZoneGroup{
 		Name:            name,
-		ZoneComposition: zcr,
+		ZoneComposition: *zoneComposition,
 	}
 
 	// Call Create Secondary Zone Group API
@@ -281,9 +236,8 @@ func ResourceSecondaryZoneGroupRead(
 	// Update Terraform state with retrieved Secondary Zone Group data
 	newID := strconv.Itoa(resp.ID)
 	d.Set("name", resp.Name)
-	d.Set("account_number", accountNumber)
-	//TODO: Properly process zone composition into terraform state
-	//d.Set("ZoneComposition", resp.ZoneComposition)
+	zoneComposition := flattenZoneComposition(resp.ZoneComposition)
+	d.Set("zone_composition", zoneComposition)
 	d.SetId(newID)
 	return diag.Diagnostics{}
 }
@@ -308,59 +262,11 @@ func ResourceSecondaryZoneGroupUpdate(
 
 	// Construct Secondary Zone Group Update Object
 	name := d.Get("name").(string)
-	zoneComposition := d.Get("zone_composition").([]interface{})
-	zc := zoneComposition[0].(map[string]interface{})
-	masterGroupID := zc["master_group_id"].(int)
-	zones := zc["zones"].([]interface{})
-	zoneArr := []routedns.SecondaryZoneResponse{}
-	for _, item := range zones {
-		curr := item.(map[string]interface{})
-
-		domainName := curr["domain_name"].(string)
-		status := curr["status"].(int)
-		comment := curr["comment"].(string)
-		if len(comment) == 0 {
-			comment = " "
-		}
-		secondaryZone := routedns.SecondaryZoneResponse{}
-		secondaryZone.DomainName = domainName
-		secondaryZone.Status = status
-		secondaryZone.Comment = comment
-		zoneArr = append(zoneArr, secondaryZone)
-	}
-
-	mst := zc["master_server_tsigs"].([]interface{})
-	mstArr := []routedns.MasterServerTSIG{}
-	for _, item := range mst {
-		curr := item.(map[string]interface{})
-
-		server := curr["master_server"].([]interface{})
-		tsig := curr["tsig"].([]interface{})
-
-		s := server[0].(map[string]interface{})
-		sID := s["master_server_id"].(int)
-
-		ms := routedns.MasterServer{
-			ID: sID,
-		}
-
-		t := tsig[0].(map[string]interface{})
-		tID := t["tsig_id"].(int)
-		ts := routedns.TSIGGetOK{
-			ID: tID,
-		}
-
-		mstItem := routedns.MasterServerTSIG{
-			MasterServer: ms,
-			TSIG:         ts,
-		}
-		mstArr = append(mstArr, mstItem)
-	}
-
-	zcr := routedns.ZoneCompositionResponse{
-		MasterGroupID:     masterGroupID,
-		MasterServerTsigs: mstArr,
-		Zones:             zoneArr,
+	zoneComposition, err := expandZoneCompositionUpdate(
+		d.Get("zone_composition"),
+	)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
 	// Retrieve Existing Secondary Zone Group Object
@@ -374,7 +280,7 @@ func ResourceSecondaryZoneGroupUpdate(
 
 	// Update Secondary Zone Group Object
 	groupObj.Name = name
-	groupObj.ZoneComposition = zcr
+	groupObj.ZoneComposition = *zoneComposition
 
 	// Call Update Secondary Zone Group API
 	updateParams := routedns.NewUpdateSecondaryZoneGroupParams()
@@ -429,4 +335,194 @@ func ResourceSecondaryZoneGroupDelete(
 	d.SetId("")
 
 	return diag.Diagnostics{}
+}
+
+func expandZoneCompositionCreate(zoneCompositionList interface{},
+) (*routedns.ZoneComposition, error) {
+	// This is a list of length one, restricted in the schema definition
+	// TODO: Review if this should be a set of type one
+	zcl := zoneCompositionList.([]interface{})
+	zoneComposition := zcl[0].(map[string]interface{})
+
+	masterGroupID := zoneComposition["master_group_id"].(int)
+	zones := expandZones(zoneComposition["zones"].([]interface{}))
+	masterServerTSIGs, err := expandMasterServerTSIGs(
+		zoneComposition["master_server_tsigs"].([]interface{}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	zc := routedns.ZoneComposition{
+		MasterGroupID:     masterGroupID,
+		MasterServerTSIGs: *masterServerTSIGs,
+		Zones:             zones,
+	}
+	return &zc, nil
+}
+
+// Due to differences in the payload requirements for Secondary Zone API Add vs
+// Update requests, it is necessary to construct a different object. Using the
+// same expand methods for reusability and transforming the data for updates.
+func expandZoneCompositionUpdate(zoneCompositionList interface{},
+) (*routedns.ZoneCompositionResponse, error) {
+	// This is a list of length one, restricted in the schema definition
+	// TODO: Review if this should be a set of type one
+	zcl := zoneCompositionList.([]interface{})
+	zoneComposition := zcl[0].(map[string]interface{})
+
+	masterGroupID := zoneComposition["master_group_id"].(int)
+	zones := expandZones(zoneComposition["zones"].([]interface{}))
+	masterServerTSIGs, err := expandMasterServerTSIGs(
+		zoneComposition["master_server_tsigs"].([]interface{}),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert routedns.SecondaryZone to routedns.SecondaryZoneResponse
+	// Update operation API requires a different payload
+	updateZones := make([]routedns.SecondaryZoneResponse, 0)
+	for _, zone := range zones {
+		secondaryZone := routedns.SecondaryZoneResponse{
+			SecondaryZone: routedns.SecondaryZone{
+				Comment:    zone.Comment,
+				DomainName: zone.DomainName,
+				Status:     zone.Status,
+			},
+		}
+		updateZones = append(updateZones, secondaryZone)
+	}
+
+	// Convert routedns.MasterServerTSIGIDs to routedns.MasterServerTSIG
+	// Update operation API requires a different payload
+	updateTSIGs := make([]routedns.MasterServerTSIG, 0)
+	for _, tsig := range *masterServerTSIGs {
+		tsig := routedns.MasterServerTSIG{
+			MasterServer: routedns.MasterServer{
+				ID: tsig.MasterServer.ID,
+			},
+			TSIG: routedns.TSIGGetOK{
+				ID: tsig.TSIG.ID,
+			},
+		}
+		updateTSIGs = append(updateTSIGs, tsig)
+	}
+
+	zc := routedns.ZoneCompositionResponse{
+		MasterGroupID:     masterGroupID,
+		MasterServerTsigs: updateTSIGs,
+		Zones:             updateZones,
+	}
+	return &zc, nil
+}
+
+func expandZones(zones []interface{}) []routedns.SecondaryZone {
+	secondaryZones := []routedns.SecondaryZone{}
+	for _, item := range zones {
+		curr := item.(map[string]interface{})
+
+		domainName := curr["domain_name"].(string)
+		status := curr["status"].(int)
+		comment := curr["comment"].(string)
+		// TODO: Determine if this logic is required
+		if len(comment) == 0 {
+			comment = ""
+		}
+		secondaryZone := routedns.SecondaryZone{
+			DomainName: domainName,
+			Status:     status,
+			Comment:    comment,
+		}
+		secondaryZones = append(secondaryZones, secondaryZone)
+	}
+
+	return secondaryZones
+}
+
+func expandMasterServerTSIGs(
+	tsigs []interface{},
+) (*[]routedns.MasterServerTSIGIDs, error) {
+	masterServerTSIGs := []routedns.MasterServerTSIGIDs{}
+	for _, item := range tsigs {
+		curr := item.(map[string]interface{})
+
+		// This is a list of length one, restricted in the schema definition
+		// TODO: Review if this should be a set of type one
+		s := curr["master_server"].([]interface{})
+		server := s[0].(map[string]interface{})
+
+		serverID := server["master_server_id"].(int)
+		ms := routedns.MasterServerID{
+			ID: serverID,
+		}
+
+		// This is a list of length one, restricted in the schema definition
+		// TODO: Review if this should be a set of type one
+		t := curr["tsig"].([]interface{})
+		tsig := t[0].(map[string]interface{})
+		tsigID := tsig["tsig_id"].(int)
+		ts := routedns.TSIGID{
+			ID: tsigID,
+		}
+
+		masterServerTSIGIDs := routedns.MasterServerTSIGIDs{
+			MasterServer: ms,
+			TSIG:         ts,
+		}
+		masterServerTSIGs = append(masterServerTSIGs, masterServerTSIGIDs)
+	}
+	return &masterServerTSIGs, nil
+}
+
+func flattenZones(
+	secondaryZones []routedns.SecondaryZoneResponse,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, zone := range secondaryZones {
+		z := make(map[string]interface{}, 0)
+		z["comment"] = zone.Comment
+		z["domain_name"] = zone.DomainName
+		z["status"] = zone.Status
+		flattened = append(flattened, z)
+	}
+	return flattened
+}
+
+func flattenMasterServerTSIGs(
+	masterServerTSIGs []routedns.MasterServerTSIG,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, tsig := range masterServerTSIGs {
+		masterServerTSIG := make(map[string]interface{}, 0)
+
+		msID := make(map[string]interface{}, 0)
+		msID["master_server_id"] = tsig.MasterServer.ID
+		masterServerTSIG["master_server"] = msID
+
+		tsID := make(map[string]interface{}, 0)
+		tsID["tsig_id"] = tsig.TSIG.ID
+		masterServerTSIG["tsig"] = tsID
+
+		flattened = append(flattened, masterServerTSIG)
+	}
+
+	return flattened
+}
+
+func flattenZoneComposition(
+	secondaryZoneGroup routedns.ZoneCompositionResponse,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+	zc := make(map[string]interface{})
+	zc["master_group_id"] = secondaryZoneGroup.MasterGroupID
+	zc["zones"] = flattenZones(secondaryZoneGroup.Zones)
+	zc["master_server_tsigs"] = flattenMasterServerTSIGs(
+		secondaryZoneGroup.MasterServerTsigs,
+	)
+
+	flattened = append(flattened, zc)
+	return flattened
 }

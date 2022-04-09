@@ -300,7 +300,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	params := sdkwaf.NewAddManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRule = managedRule
-	resp, err := wafService.AddManagedRule(*params)
+	resp, err := wafService.AddManagedRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -335,7 +335,7 @@ func ResourceManagedRuleRead(ctx context.Context, d *schema.ResourceData, m inte
 	params := sdkwaf.NewGetManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRuleID = ruleID
-	resp, err := wafService.GetManagedRule(*params)
+	resp, err := wafService.GetManagedRule(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -443,7 +443,7 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 	params.AccountNumber = accountNumber
 	params.ManagedRuleID = managedRuleID
 	params.ManagedRule = managedRule
-	err = wafService.UpdateManagedRule(*params)
+	err = wafService.UpdateManagedRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -474,7 +474,7 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 	params := sdkwaf.NewDeleteManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRuleID = managedRuleID
-	err = wafService.DeleteManagedRule(*params)
+	err = wafService.DeleteManagedRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
