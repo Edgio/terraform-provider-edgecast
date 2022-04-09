@@ -96,28 +96,11 @@ func ResourceMSGCreate(
 	}
 
 	// Construct Master Server Group Object
-	newMSGName := d.Get("master_server_group_name").(string)
-	masters := d.Get("masters").([]interface{})
-	masterServers := []routedns.MasterServer{}
-
-	for _, item := range masters {
-		curr := item.(map[string]interface{})
-
-		id := curr["id"].(int)
-		name := curr["name"].(string)
-		ipaddress := curr["ipaddress"].(string)
-
-		master := routedns.MasterServer{
-			ID:        id,
-			Name:      name,
-			IPAddress: ipaddress,
-		}
-
-		masterServers = append(masterServers, master)
-	}
+	masterServerGroupName := d.Get("master_server_group_name").(string)
+	masterServers := expandMasterServers(d.Get("masters").([]interface{}))
 
 	masterServerGroup := &routedns.MasterServerGroupAddRequest{
-		Name:    newMSGName,
+		Name:    masterServerGroupName,
 		Masters: masterServers,
 	}
 
@@ -181,7 +164,7 @@ func ResourceMSGRead(
 
 	// Update Terraform state with retrieved Master Server Group data
 	log.Printf("[INFO] Retrieved Master Server Group: %+v", resp)
-	msg := flattenMasterServerGroupData(*resp)
+	msg := flattenMasterServers(*resp)
 	newId := strconv.Itoa(resp.MasterGroupID)
 
 	d.SetId(newId)
@@ -215,31 +198,13 @@ func ResourceMSGUpdate(
 	}
 
 	// Construct Master Server Group Update Data
-	masters := d.Get("masters").([]interface{})
-	masterGroupName := d.Get("master_server_group_name").(string)
-
-	masterServers := []routedns.MasterServer{}
-
-	for _, item := range masters {
-		curr := item.(map[string]interface{})
-
-		id := curr["id"].(int)
-		name := curr["name"].(string)
-		ipaddress := curr["ipaddress"].(string)
-
-		master := routedns.MasterServer{
-			ID:        id,
-			Name:      name,
-			IPAddress: ipaddress,
-		}
-
-		masterServers = append(masterServers, master)
-	}
+	masterServerGroupName := d.Get("master_server_group_name").(string)
+	masterServers := expandMasterServers(d.Get("masters").([]interface{}))
 
 	masterServerGroupUpdateRequest := routedns.MasterServerGroupUpdateRequest{
 		MasterGroupID: groupID,
 		MasterServerGroup: routedns.MasterServerGroup{
-			Name:    masterGroupName,
+			Name:    masterServerGroupName,
 			Masters: masterServers,
 		},
 	}
@@ -303,7 +268,28 @@ func ResourceMSGDelete(
 	return diag.Diagnostics{}
 }
 
-func flattenMasterServerGroupData(
+func expandMasterServers(masters []interface{}) []routedns.MasterServer {
+	masterServers := []routedns.MasterServer{}
+
+	for _, item := range masters {
+		curr := item.(map[string]interface{})
+
+		id := curr["id"].(int)
+		name := curr["name"].(string)
+		ipaddress := curr["ipaddress"].(string)
+
+		master := routedns.MasterServer{
+			ID:        id,
+			Name:      name,
+			IPAddress: ipaddress,
+		}
+
+		masterServers = append(masterServers, master)
+	}
+	return masterServers
+}
+
+func flattenMasterServers(
 	mstGroup routedns.MasterServerGroupAddGetOK,
 ) []interface{} {
 	if mstGroup.Masters != nil {

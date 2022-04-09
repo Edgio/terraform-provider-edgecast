@@ -6,7 +6,7 @@ module terraform-provider-edgecast
 go 1.17
 
 require (
-	github.com/EdgeCast/ec-sdk-go v0.1.15
+	github.com/EdgeCast/ec-sdk-go v0.1.16
 	github.com/go-test/deep v1.0.3
 	github.com/google/uuid v1.2.0
 	github.com/gruntwork-io/terratest v0.35.7
@@ -78,9 +78,9 @@ require (
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
 	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/net v0.0.0-20210421230115-4e50805a0758 // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
 	golang.org/x/oauth2 v0.0.0-20200902213428-5d25da1a8d43 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.0.0-20201110201400-7099162a900a // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
