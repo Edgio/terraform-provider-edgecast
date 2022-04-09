@@ -340,7 +340,7 @@ func ResourceSecondaryZoneGroupDelete(
 func expandZoneCompositionCreate(zoneCompositionList interface{},
 ) (*routedns.ZoneComposition, error) {
 	// This is a list of length one, restricted in the schema definition
-	// TODO: Review if this should be a set of type one
+	// TODO: Review if this should be a set of length one
 	zcl := zoneCompositionList.([]interface{})
 	zoneComposition := zcl[0].(map[string]interface{})
 
@@ -367,7 +367,7 @@ func expandZoneCompositionCreate(zoneCompositionList interface{},
 func expandZoneCompositionUpdate(zoneCompositionList interface{},
 ) (*routedns.ZoneCompositionResponse, error) {
 	// This is a list of length one, restricted in the schema definition
-	// TODO: Review if this should be a set of type one
+	// TODO: Review if this should be a set of length one
 	zcl := zoneCompositionList.([]interface{})
 	zoneComposition := zcl[0].(map[string]interface{})
 
@@ -448,7 +448,7 @@ func expandMasterServerTSIGs(
 		curr := item.(map[string]interface{})
 
 		// This is a list of length one, restricted in the schema definition
-		// TODO: Review if this should be a set of type one
+		// TODO: Review if this should be a set of length one
 		s := curr["master_server"].([]interface{})
 		server := s[0].(map[string]interface{})
 
@@ -458,7 +458,7 @@ func expandMasterServerTSIGs(
 		}
 
 		// This is a list of length one, restricted in the schema definition
-		// TODO: Review if this should be a set of type one
+		// TODO: Review if this should be a set of length one
 		t := curr["tsig"].([]interface{})
 		tsig := t[0].(map[string]interface{})
 		tsigID := tsig["tsig_id"].(int)
