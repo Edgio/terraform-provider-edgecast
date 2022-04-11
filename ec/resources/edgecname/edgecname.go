@@ -52,8 +52,9 @@ func ResourceEdgeCname() *schema.Resource {
 			"account_number": {
 				Type:     schema.TypeString,
 				Required: true,
-				Description: `Account Number for the customer if not already
-					specified in the provider configuration.`,
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`,
 			},
 			"name": {
 				Type:     schema.TypeString,

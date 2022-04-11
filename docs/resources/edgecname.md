@@ -37,8 +37,9 @@ resource "ec_edgecname" "edgecname_customer_origin" {
 
 ### Required
 
-- **account_number** (String) Account Number for the customer if not already
-					specified in the provider configuration.
+- **account_number** (String) Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.
 - **media_type_id** (Number) Identifies the Delivery Platform on which the
 					edge CNAME will be created. 
 					3:Http Large, 8:HTTP Small, 14: ADN

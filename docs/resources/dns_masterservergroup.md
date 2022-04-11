@@ -7,8 +7,13 @@ description: |-
 ---
 
 # ec_dns_masterservergroup (Resource)
+**NOTE: Route DNS feature support via Terraform is currently in Beta status.**
 
+A master server group allows you to group and manage master name servers from a 
+single location instead of from each secondary zone group or secondary zone.
 
+For more information, please visit the Route Help Center
+https://docs.whitecdn.com/dns/index.html#Route/Administration/SD_Master_Server_Group_Administration.htm
 
 ## Example Usage
 
@@ -40,28 +45,42 @@ resource "ec_dns_masterservergroup" "master_server_group"{
 
 ### Required
 
-- **account_number** (String) Account Number for the customer if not already specified in the provider configuration.
-- **masters** (Block List, Min: 1) List of Master Server in the Master Server Group (see [below for nested schema](#nestedblock--masters))
+- **account_number** (String) Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.
+- **master_server_group_name** (String) Indicates the name that will be assigned to the 
+				new master server group.
+- **masters** (Block List, Min: 1) Contains the master name servers associated with 
+				a master server group. (see [below for nested schema](#nestedblock--masters))
 
 ### Optional
 
 - **id** (String) The ID of this resource.
-- **master_server_group_name** (String) Master Server Group Name
 
 ### Read-Only
 
-- **master_group_id** (Number) Master Server GroupID.
+- **master_group_id** (Number) Indicates the system-defined ID assigned to a 
+				master server group.
 
 <a id="nestedblock--masters"></a>
 ### Nested Schema for `masters`
 
 Required:
 
-- **ipaddress** (String)
-- **name** (String)
+- **ipaddress** (String) Indicates the IP address that will be 
+							assigned to a new master name server that will be 
+							associated with the master server group being 
+							created.
+- **name** (String) Indicates the name that will be 
+							assigned to a new master name server that will be 
+							associated with the master server group being 
+							created.
 
 Read-Only:
 
-- **id** (Number) The ID of this resource.
+- **id** (Number) Indicates the system-defined ID 
+							assigned to an existing master name server that will 
+							be associated with the master server group being 
+							created.
 
 

@@ -232,7 +232,7 @@ func ResourceCustomerCreate(
 	// Call Add Customer API
 	addCustomerParams := customer.NewAddCustomerParams()
 	addCustomerParams.Customer = *newCustomer
-	accountNumber, err := customerService.AddCustomer(*addCustomerParams)
+	accountNumber, err := customerService.AddCustomer(addCustomerParams)
 
 	if err != nil {
 		d.SetId("") // Terraform requires an empty ID for failed creation

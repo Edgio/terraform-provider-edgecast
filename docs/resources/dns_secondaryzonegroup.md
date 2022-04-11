@@ -7,8 +7,18 @@ description: |-
 ---
 
 # ec_dns_secondaryzonegroup (Resource)
+**NOTE: Route DNS feature support via Terraform is currently in Beta status.**
 
+The purpose of a secondary zone group is to define one or more secondary zones. 
+A secondary zone will be created for each zone defined in a secondary zone 
+group. These secondary zones will be populated with:
 
+* A default set of records that identify our vanity name servers.
+* The set of records associated with the original zone. These records are 
+retrieved via a full zone transfer (AXFR).
+
+For more information, please visit the Route Help Center
+https://docs.whitecdn.com/dns/index.html#Route/Administration/Secondary_Zone_Group_Administration.htm
 
 ## Example Usage
 
@@ -42,7 +52,7 @@ resource "ec_dns_secondaryzonegroup" "backup" {
             zones {
                   domain_name = "second48.com"
                   status=1
-                  zone_type= 2
+                  zone_type=2
                   comment="comment2"
             }
             master_server_tsigs{
@@ -71,9 +81,13 @@ resource "ec_dns_secondaryzonegroup" "backup" {
 
 ### Required
 
-- **account_number** (String) Account Number for the customer if not already specified in the provider configuration.
-- **name** (String) Secondary Group Name.
-- **zone_composition** (Block List, Min: 1) Collection of Secondary Zone Info (see [below for nested schema](#nestedblock--zone_composition))
+- **account_number** (String) Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.
+- **name** (String) Indicates the name assigned to the new secondary 
+				zone group.
+- **zone_composition** (Block List, Min: 1) ZoneCompositionResponse defines parameters of the 
+				secondary zone group. (see [below for nested schema](#nestedblock--zone_composition))
 
 ### Optional
 
@@ -84,8 +98,11 @@ resource "ec_dns_secondaryzonegroup" "backup" {
 
 Required:
 
-- **master_group_id** (Number) master group id
-- **master_server_tsigs** (Block List, Min: 1) (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs))
+- **master_group_id** (Number) Associates a master server group, as 
+							identified by its system-defined ID, with the 
+							secondary zone group.
+- **master_server_tsigs** (Block List, Min: 1) Defines TSIG keys to the desired 
+							master name servers in the master server group. (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs))
 - **zones** (Block List, Min: 1) (see [below for nested schema](#nestedblock--zone_composition--zones))
 
 <a id="nestedblock--zone_composition--master_server_tsigs"></a>
@@ -101,7 +118,9 @@ Required:
 
 Required:
 
-- **master_server_id** (Number) Referenced master server id
+- **master_server_id** (Number) Identifies the 
+													master name server to which 
+													a TSIG key will be assigned.
 
 
 <a id="nestedblock--zone_composition--master_server_tsigs--tsig"></a>
@@ -109,7 +128,11 @@ Required:
 
 Required:
 
-- **tsig_id** (Number) Referenced tsig id
+- **tsig_id** (Number) Identifies the 
+													TSIG key that will be 
+													assigned to the master name 
+													server identified by the 
+													MasterServer object.
 
 
 
@@ -118,9 +141,22 @@ Required:
 
 Required:
 
-- **comment** (String) Comment, at least provide an empty string.
-- **domain_name** (String) secondary domain zone name
-- **status** (Number) 1:Active
-- **zone_type** (Number) 2:SecondaryZone
+- **comment** (String) Comment about this 
+										secondary zone.
+- **domain_name** (String) Identifies a secondary 
+										zone by its zone name 
+										(e.g., example.com). Edgecast name 
+										servers will request a zone transfer for 
+										this zone. This name must match the one 
+										defined on the master name server(s) 
+										associated with this secondary zone 
+										group.
+- **status** (Number) Defines whether the zone 
+										is enabled or disabled. Valid values 
+										are: 1 - Enabled, 2 - Disabled
+- **zone_type** (Number) This parameter is reserved 
+										for future use. The only supported value 
+										for this parameter is "2".
+
 
 
