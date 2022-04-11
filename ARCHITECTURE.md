@@ -16,7 +16,7 @@ provider.
 is consumed by the Terraform Registry and can be viewed
 [here](https://registry.terraform.io/providers/EdgeCast/ec/latest/docs).
 - `ec` is the folder that contains all of the provider and resource Go code.
-- `examples` contains example Terraform configuration files to server as a
+- `examples` contains example Terraform configuration files to serve as a
 starting point or as a reference to consumers of this provider. The examples are
 organized by resource.
 - `templates` contains the `tfplugindocs` templates from which the documents
