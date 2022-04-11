@@ -1,0 +1,27 @@
+name: pull
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Lint
+        uses: reviewdog/action-golangci-lint@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          reporter: github-check
+          reviewdog_flags: -diff="git diff FETCH_HEAD"
+      - name: Test
+        run: go test -v ./...
+      - name: Build
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          version: latest
+          args: build --rm-dist --snapshot

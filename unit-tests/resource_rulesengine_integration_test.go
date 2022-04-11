@@ -60,6 +60,7 @@ var tsRulesEngine = map[string]model.ResourceREV4{
 
 func TestUT_RulesEngine_basic(t *testing.T) {
 	t.Parallel()
+	t.Skip("test is not ready for unit testing")
 
 	for expected, input := range tsRulesEngine {
 		// Specify the test case folder and "-var" options

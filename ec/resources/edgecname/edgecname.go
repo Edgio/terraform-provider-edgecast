@@ -1,10 +1,11 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
 // license. See LICENSE file in project root for terms.
 
 package edgecname
 
 import (
 	"context"
+	"errors"
 	"log"
 	"strconv"
 
@@ -12,6 +13,7 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -21,6 +23,30 @@ func ResourceEdgeCname() *schema.Resource {
 		ReadContext:   ResourceEdgeCnameRead,
 		UpdateContext: ResourceEdgeCnameUpdate,
 		DeleteContext: ResourceEdgeCnameDelete,
+
+		CustomizeDiff: customdiff.ValidateChange(
+			"media_type_id",
+			func(
+				ctx context.Context,
+				oldValue,
+				newValue,
+				meta interface{},
+			) error {
+				if oldValue.(int) == 0 {
+					// stop the check if this is a new resource
+					return nil
+				}
+
+				// throw an error when changing media_type_id
+				if oldValue.(int) != newValue.(int) {
+					return errors.New(
+						"media_type_id cannot be modified after creation")
+				}
+
+				// No change to media_type_id
+				return nil
+			},
+		),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
