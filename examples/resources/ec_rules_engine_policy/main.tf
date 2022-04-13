@@ -4,7 +4,7 @@
 terraform {
   required_providers {
     ec = {
-      version = "0.4.8"
+      version = "0.5.0"
       source  = "EdgeCast/ec"
     }
   }
