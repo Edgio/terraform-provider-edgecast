@@ -375,7 +375,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
 
-	customRuleSet := sdkwaf.CustomRuleSetDetail{
+	customRuleSet := sdkwaf.CustomRuleSet{
 		Name: d.Get("name").(string),
 	}
 
@@ -389,7 +389,10 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 	log.Printf("[DEBUG] Name: %+v\n", customRuleSet.Name)
 	log.Printf("[DEBUG] Directive(s): %+v\n", customRuleSet.Directives)
 
-	resp, err := wafService.AddCustomRuleSet(customRuleSet, accountNumber)
+	params := sdkwaf.NewAddCustomRuleSetParams()
+	params.AccountNumber = accountNumber
+	params.CustomRuleSet = customRuleSet
+	resp, err := wafService.AddCustomRuleSet(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -397,7 +400,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	log.Printf("[INFO] %+v", resp)
 
-	d.SetId(resp.ID)
+	d.SetId(resp)
 
 	return ResourceCustomRuleSetRead(ctx, d, m)
 }
@@ -424,7 +427,10 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.GetCustomRuleSet(accountNumber, ruleID)
+	params := sdkwaf.NewGetCustomRuleSetParams()
+	params.AccountNumber = accountNumber
+	params.CustomRuleSetID = ruleID
+	resp, err := wafService.GetCustomRuleSet(params)
 
 	if err != nil {
 		d.SetId("")
@@ -457,7 +463,7 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 		accountNumber,
 	)
 
-	customRuleSetRequest := sdkwaf.UpdateCustomRuleSetRequest{}
+	customRuleSetRequest := sdkwaf.CustomRuleSet{}
 	customRuleSetRequest.Name = d.Get("name").(string)
 
 	directives, err := expandDirectives(d.Get("directive"))
@@ -476,17 +482,18 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.UpdateCustomRuleSet(accountNumber,
-		customRuleSetID,
-		customRuleSetRequest,
-	)
+	params := sdkwaf.NewUpdateCustomRuleSetParams()
+	params.AccountNumber = accountNumber
+	params.CustomRuleSet = customRuleSetRequest
+	params.CustomRuleSetID = customRuleSetID
+	err = wafService.UpdateCustomRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully updated WAF Custom Rule Set: %+v", resp)
-
-	d.SetId(resp.ID)
+	log.Printf(
+		"[INFO] Successfully updated WAF Custom Rule Set: %+v",
+		customRuleSetRequest)
 
 	return ResourceCustomRuleSetRead(ctx, d, m)
 }
@@ -513,12 +520,16 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.DeleteCustomRuleSet(accountNumber, customRuleID)
+	params := sdkwaf.NewDeleteCustomRuleSetParams()
+	params.AccountNumber = accountNumber
+	params.CustomRuleSetID = customRuleID
+	err = wafService.DeleteCustomRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully deleted WAF Custom Rule Set: %+v", resp)
+	log.Printf(
+		"[INFO] Successfully deleted WAF Custom Rule Set: %+v", customRuleID)
 
 	d.SetId("")
 

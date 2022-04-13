@@ -11,6 +11,7 @@ import (
 
 	"terraform-provider-edgecast/ec/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -24,145 +25,154 @@ func ResourceTsig() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Account Number for the customer if not already specified in the provider configuration."},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`},
 			"alias": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Alias."},
+				Description: "Indicates a brief description for the TSIG key."},
 			"key_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "tsig key name"},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Identifies the key on the master name server and 
+				our Route name servers. This name must be unique.`},
 			"key_value": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "tsig value"},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Identifies a hash value through which our name 
+				servers will be authenticated to a master name server.`},
 			"algorithm_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "tsig encryption type:[HMAC-MD5,HMAC-SHA1,HMAC-SHA256,HMAC-SHA384,HMAC-SHA224,HMAC-SHA512]"},
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Identifies a cryptographic hash function name. 
+				Options: HMAC-MD5 | HMAC-SHA1 | HMAC-SHA256 | HMAC-SHA384 | 
+				HMAC-SHA224 | HMAC-SHA512`},
 		},
 	}
 }
 
-func ResourceTsigCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ResourceTsigCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	alias := d.Get("alias").(string)
-	keyName := d.Get("key_name").(string)
-	keyValue := d.Get("key_value").(string)
-	algorithm := strings.ToLower(d.Get("algorithm_name").(string))
-	algorithmID := 0
-
-	switch algorithm {
-	case "hmac-md5":
-		algorithmID = api.TsigAlgorithm_HMAC_MD5
-	case "hmac-sha1":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA1
-	case "hmac-sha256":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA256
-	case "hmac-sha384":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA384
-	case "hmac-sha224":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA224
-	case "hmac-sha512":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA512
-	}
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
-	tsigRequest := &api.DnsRouteTsig{
-		ID:            -1,
-		Alias:         alias,
-		KeyName:       keyName,
-		KeyValue:      keyValue,
-		AlgorithmID:   algorithmID,
-		AlgorithmName: algorithm,
-	}
-
-	log.Printf("[INFO] Creating a new TSig for Account '%s': %+v", accountNumber, tsigRequest)
-
-	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
-
-	resp, err := dnsrouteClient.AddTsig(tsigRequest)
-
+	routeDNSService, err := buildRouteDNSService(**config)
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Create successful - New TSig ID: %d", resp)
-	d.SetId(strconv.Itoa(resp))
+	// Construct TSIG Object
+	tsig := expandTSIG(d)
 
-	ResourceTsigRead(ctx, d, m)
+	log.Printf(
+		"[INFO] Creating a new TSIG for Account '%s': %+v",
+		accountNumber,
+		tsig,
+	)
 
-	return diags
-}
+	// Call add TSIG API
+	params := routedns.NewAddTSIGParams()
+	params.AccountNumber = accountNumber
+	params.TSIG = tsig
 
-func ResourceTsigRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	tsigID, err := strconv.Atoi(d.Id())
-	accountNumber := d.Get("account_number").(string)
-
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
-	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
-
-	log.Printf("[INFO] Retrieving Master Server Group by tsigID: %d", tsigID)
-
-	resp, err := dnsRouteClient.GetTsig(tsigID)
+	tsigID, err := routeDNSService.AddTSIG(*params)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	newId := strconv.Itoa(resp.ID)
+	log.Printf("[INFO] Create successful - New TSIG ID: %d", tsigID)
+	d.SetId(strconv.Itoa(*tsigID))
 
-	d.SetId(newId)
-	return diags
+	return ResourceTsigRead(ctx, d, m)
 }
 
-func ResourceTsigUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	tsigID, err := strconv.Atoi(d.Id())
+func ResourceTsigRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	alias := d.Get("alias").(string)
-	keyName := d.Get("key_name").(string)
-	keyValue := d.Get("key_value").(string)
-	algorithm := strings.ToLower(d.Get("algorithm_name").(string))
-	algorithmID := 0
-
-	switch algorithm {
-	case "hmac-md5":
-		algorithmID = api.TsigAlgorithm_HMAC_MD5
-	case "hmac-sha1":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA1
-	case "hmac-sha256":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA256
-	case "hmac-sha384":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA384
-	case "hmac-sha224":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA224
-	case "hmac-sha512":
-		algorithmID = api.TsigAlgorithm_HMAC_SHA512
-	}
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-
-	tsigRequest := &api.DnsRouteTsig{
-		ID:            tsigID,
-		Alias:         alias,
-		KeyName:       keyName,
-		KeyValue:      keyValue,
-		AlgorithmID:   algorithmID,
-		AlgorithmName: algorithm,
+	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
 	}
 
-	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
+	tsigID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	err = dnsRouteClient.UpdateTsig(tsigRequest)
+	// Call get TSIG API
+	log.Printf("[INFO] Retrieving TSIG by TSIGID: %d", tsigID)
+	params := routedns.NewGetTSIGParams()
+	params.AccountNumber = accountNumber
+	params.TSIGID = tsigID
+
+	tsigObj, err := routeDNSService.GetTSIG(*params)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Retrieved TSIG %+v", tsigObj)
+	d.Set("alias", tsigObj.Alias)
+	d.Set("key_name", tsigObj.KeyName)
+	d.Set("key_value", tsigObj.KeyValue)
+	d.Set("algorithm_name", getAlgorithmNameFromID(*tsigObj))
+
+	return diag.Diagnostics{}
+}
+
+func ResourceTsigUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
+	accountNumber := d.Get("account_number").(string)
+	tsigID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	config := m.(**api.ClientConfig)
+	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Construct TSIG Update Object
+	updatedTsigObj := expandTSIG(d)
+
+	// Get Existing TSIG Object
+	getParams := routedns.NewGetTSIGParams()
+	getParams.AccountNumber = accountNumber
+	getParams.TSIGID = tsigID
+
+	tsigObj, err := routeDNSService.GetTSIG(*getParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Apply updated TSIG data
+	tsigObj.Alias = updatedTsigObj.Alias
+	tsigObj.KeyName = updatedTsigObj.KeyName
+	tsigObj.KeyValue = updatedTsigObj.KeyValue
+	tsigObj.AlgorithmID = updatedTsigObj.AlgorithmID
+
+	// Call Update TSIG API
+	updateParams := routedns.NewUpdateTSIGParams()
+	updateParams.AccountNumber = accountNumber
+	updateParams.TSIG = *tsigObj
+	err = routeDNSService.UpdateTSIG(*updateParams)
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -170,23 +180,101 @@ func ResourceTsigUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	return ResourceTsigRead(ctx, d, m)
 }
 
-func ResourceTsigDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ResourceTsigDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
+	tsigID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	dnsRouteAPIClient := api.NewDNSRouteAPIClient(*config)
+	// Get Existing TSIG Object
+	getParams := routedns.NewGetTSIGParams()
+	getParams.AccountNumber = accountNumber
+	getParams.TSIGID = tsigID
 
-	tsigID, _ := strconv.Atoi(d.Id())
+	tsigObj, err := routeDNSService.GetTSIG(*getParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	err := dnsRouteAPIClient.DeleteTsig(tsigID)
+	// Delete Existing TSIG Object
+	deleteParams := routedns.NewDeleteTSIGParams()
+	deleteParams.AccountNumber = accountNumber
+	deleteParams.TSIG = *tsigObj
 
+	err = routeDNSService.DeleteTSIG(*deleteParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
+}
+
+func expandTSIG(d *schema.ResourceData) routedns.TSIG {
+	alias := d.Get("alias").(string)
+	keyName := d.Get("key_name").(string)
+	keyValue := d.Get("key_value").(string)
+
+	// Convert Algorithm Name to Algorithm ID needed by API
+	rawAlgorithm := strings.ToUpper(d.Get("algorithm_name").(string))
+	var algorithm routedns.TSIGAlgorithmType
+
+	switch rawAlgorithm {
+	case "HMAC-MD5":
+		algorithm = routedns.HMAC_MD5
+	case "HMAC-SHA1":
+		algorithm = routedns.HMAC_SHA1
+	case "HMAC-SHA256":
+		algorithm = routedns.HMAC_SHA256
+	case "HMAC-SHA384":
+		algorithm = routedns.HMAC_SHA384
+	case "HMAC-SHA224":
+		algorithm = routedns.HMAC_SHA224
+	case "HMAC-SHA512":
+		algorithm = routedns.HMAC_SHA512
+	}
+
+	tsig := routedns.TSIG{
+		Alias:       alias,
+		KeyName:     keyName,
+		KeyValue:    keyValue,
+		AlgorithmID: algorithm,
+	}
+
+	return tsig
+}
+
+func getAlgorithmNameFromID(tsig routedns.TSIGGetOK) string {
+	// Convert Algorithm ID to Algorithm Name used in resource file
+	var algorithmName string
+
+	switch tsig.AlgorithmID {
+	case routedns.HMAC_MD5:
+		algorithmName = "HMAC-MD5"
+	case routedns.HMAC_SHA1:
+		algorithmName = "HMAC-SHA1"
+	case routedns.HMAC_SHA256:
+		algorithmName = "HMAC-SHA256"
+	case routedns.HMAC_SHA384:
+		algorithmName = "HMAC-SHA384"
+	case routedns.HMAC_SHA224:
+		algorithmName = "HMAC-SHA224"
+	case routedns.HMAC_SHA512:
+		algorithmName = "HMAC-SHA512"
+	}
+
+	return algorithmName
 }

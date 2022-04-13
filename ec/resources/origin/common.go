@@ -7,7 +7,6 @@ import (
 	"terraform-provider-edgecast/ec/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/auth"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/origin"
 )
 
@@ -17,14 +16,15 @@ func buildOriginService(
 	config api.ClientConfig,
 ) (*origin.OriginService, error) {
 
-	idsCredentials := auth.OAuth2Credentials{
+	idsCredentials := edgecast.IDSCredentials{
 		ClientID:     config.IdsClientID,
 		ClientSecret: config.IdsClientSecret,
 		Scope:        config.IdsScope,
 	}
 
-	sdkConfig := edgecast.NewSDKConfig(config.APIToken, idsCredentials)
-
+	sdkConfig := edgecast.NewSDKConfig()
+	sdkConfig.APIToken = config.APIToken
+	sdkConfig.IDSCredentials = idsCredentials
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL

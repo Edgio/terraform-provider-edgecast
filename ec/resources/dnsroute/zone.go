@@ -1,5 +1,5 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
-// See LICENSE file in project root for terms.
+// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// license. See LICENSE file in project root for terms.
 
 package dnsroute
 
@@ -10,14 +10,325 @@ import (
 
 	"terraform-provider-edgecast/ec/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 // DNS Master Server Group
 func ResourceZone() *schema.Resource {
-	// For debugging purpose
-	//time.Sleep(10 * time.Second)
+	groupRecordSchema := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"health_check": {
+				// We use a 1-item TypeSet as a workaround since TypeMap
+				// doesn't support schema.Resource as a child element type (yet)
+				Type:        schema.TypeSet,
+				MaxItems:    1,
+				Optional:    true,
+				Description: `Define a record's health check configuration`,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Identifies the health check by its 
+							system-defined ID.`,
+						},
+						"fixed_id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Reserved for future use.",
+						},
+						"check_interval": {
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: `Defines the number of seconds between 
+							health checks.`,
+						},
+						"check_type_id": {
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: `Defines the type of health check by 
+							its system-defined ID. The following values are 
+							supported: 1 - HTTP | 2 - HTTPS | 3 - TCP Open | 
+							4 - TCP SSL. Please refer to the following URL for 
+							additional information: 
+							https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm`,
+						},
+						"content_verification": {
+							Type:     schema.TypeString,
+							Required: true,
+							Description: `Defines the text that will be used to 
+							verify the success of the health check.`,
+						},
+						"email_notification_address": {
+							Type:     schema.TypeString,
+							Required: true,
+							Description: `Defines the e-mail address to which 
+							health check notifications will be sent.`,
+						},
+						"failed_check_threshold": {
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: `Defines the number of consecutive 
+							times that the same result must be returned before 
+							a health check agent will indicate a change in 
+							status.`,
+						},
+						"http_method_id": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Description: `Defines an HTTP method by its 
+							system-defined ID. An HTTP method is only used by 
+							HTTP/HTTPs health checks. Supported values are: 
+							1 - GET, 2 - POST. Refer to the following URL for 
+							additional information: 
+							https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HTTP_Methods.htm`,
+						},
+						"record_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Defines the DNS record ID this health 
+							check is associated with.`,
+						},
+						"fixed_record_id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: "Reserved for future use.",
+						},
+						"group_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Defines the Group ID this health check 
+							is associated with.`,
+						},
+						"ip_address": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: `Defines the IP address (IPv4 or IPv6) 
+							to which TCP health checks will be directed. IP 
+							address is required when check_type_id is 3 or 4`,
+						},
+						"ip_version": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Description: `Defines an IP version by its 
+							system-defined ID. This IP version is only used by 
+							HTTP/HTTPs health checks. Supported values are: 
+							1 - IPv4, 2 - IPv6. Refer to the following URL for 
+							additional information:
+							https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_IP_Versions_HC.htm`,
+						},
+						"port_number": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Description: `Defines the port to which TCP health 
+							checks will be directed.`,
+						},
+						"reintegration_method_id": {
+							Type:     schema.TypeInt,
+							Required: true,
+							Description: `Indicates the method through which an 
+							unhealthy server/hostname will be integrated back 
+							into a group. Supported values are: 1 - Automatic | 
+							2 - Manual`,
+						},
+						"status": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Indicates the server/hostname's health 
+							check status by its system-defined ID.`,
+						},
+						"status_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+							Description: `Indicates the server/hostname's health 
+							check status.`,
+						},
+						"timeout": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: `Reserved for future use.`,
+						},
+						"uri": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Description: `Defines the URI to which HTTP/HTTPs 
+							health checks will be directed.`,
+						},
+					},
+				},
+			},
+			"weight": {
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: `Defines a record's weight. Used to denote 
+				preference for a load balancing or failover group.`,
+			},
+			"record": {
+				Type: schema.TypeList,
+				Description: `Defines a DNS record that will be associated with 
+				the zone.`,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"record_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Identifies a DNS Record by its 
+							system-defined ID.`,
+						},
+						"name": {
+							Type:        schema.TypeString,
+							Computed:    true,
+							Description: `Defines a record's name.`,
+						},
+						"ttl": {
+							Type:        schema.TypeInt,
+							Required:    true,
+							Description: `Defines a record's TTL.`,
+						},
+						"rdata": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: `Defines a record's value.`,
+						},
+						"verify_id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
+						},
+						"fixed_group_id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
+						},
+						"group_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Identifies the group this record is 
+							assoicated with by its system-defined ID.`,
+						},
+						"fixed_record_id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
+						},
+						"zone_id": {
+							Type:        schema.TypeInt,
+							Optional:    true,
+							Description: `Reserved for future use.`,
+						},
+						"fixed_zone_id": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Description: `Identifies a zone by its 
+							system-defined ID.`,
+						},
+						"record_type_id": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Indicates the system-defined ID 
+							assigned to the record type.`,
+						},
+						"record_type_name": {
+							Type:     schema.TypeString,
+							Computed: true,
+							Description: `Indicates the name of the record 
+							type.`,
+						},
+						"is_delete": {
+							Type:        schema.TypeBool,
+							Optional:    true,
+							Description: `Reserved for future use.`,
+						},
+						"weight": {
+							Type:     schema.TypeInt,
+							Computed: true,
+							Description: `Defines a record's weight. Used to 
+							denote preference for a load balancing or failover 
+							group.`,
+						},
+					},
+				},
+				Required: true,
+			},
+		},
+	}
+	singleRecordSchema := &schema.Resource{
+		Schema: map[string]*schema.Schema{
+			"record_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Identifies a DNS Record by its system-defined ID.`,
+			},
+			"name": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: `Defines a record's name.`,
+			},
+			"ttl": {
+				Type:        schema.TypeInt,
+				Required:    true,
+				Description: `Defines a record's TTL.`,
+			},
+			"rdata": {
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: `Defines a record's value.`,
+			},
+			"verify_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
+			},
+			"fixed_group_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
+			},
+			"group_id": {
+				Type:     schema.TypeInt,
+				Computed: true,
+			},
+			"fixed_record_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
+			},
+			"zone_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
+			},
+			"fixed_zone_id": {
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: `Reserved for future use.`,
+			},
+			"weight": {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Description: `Defines a record's weight. Used to denote 
+				preference for a load balancing or failover group.`,
+			},
+			"record_type_id": {
+				Type:     schema.TypeInt,
+				Computed: true,
+				Description: `Indicates the system-defined ID assigned to the 
+				record type.`,
+			},
+			"record_type_name": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: `Indicates the name of the record type.`,
+			},
+			"is_delete": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: `Reserved for future use.`,
+			},
+		},
+	}
 
 	return &schema.Resource{
 		CreateContext: ResourceZoneCreate,
@@ -27,1745 +338,246 @@ func ResourceZone() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Account Number for the customer if not already specified in the provider configuration.",
+				Type:     schema.TypeString,
+				Required: true,
+				Description: `Account Number associated with the customer whose 
+				resources you wish to manage. This account number may be found 
+				in the upper right-hand corner of the MCC.`,
 			},
 			"zone_type": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "Zone Type.",
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: `Indicates that a primary zone will be created. Set 
+				this request parameter to "1".`,
 			},
 			"zone_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "ZoneID",
+				Description: `Reserved for future use.`,
 			},
 			"fixed_zone_id": {
 				Type:        schema.TypeInt,
 				Computed:    true,
-				Description: "FixedZoneID",
+				Description: "Identifies a zone by its system-defined ID.",
 			},
 			"domain_name": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Domain Name.",
+				Description: "Indicates a zone's name.",
 			},
 			"status": {
-				Type:        schema.TypeInt,
-				Required:    true,
-				Description: "Status.",
+				Type:     schema.TypeInt,
+				Required: true,
+				Description: `Indicates a zone's status by its system-defined 
+				ID. Valid Values: 1 - Active | 2 - Inactive`,
 			},
 			"status_name": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Status.",
+				Computed:    true,
+				Description: "Indicates a zone's status by its name.",
 			},
 			"is_customer_owned": {
-				Type:        schema.TypeBool,
-				Optional:    true,
-				Description: "is customer owned",
+				Type:     schema.TypeBool,
+				Optional: true,
+				Description: `This parameter is reserved for future use. The 
+				only supported value for this parameter is "true."`,
 			},
 			"comment": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Comment",
+				Description: "Indicates the comment associated with a zone.",
 			},
 
 			"record_a": {
-				Type:     schema.TypeList,
-				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Optional:    true,
+				Elem:        singleRecordSchema,
 				Description: "List of A records",
 			},
 			"record_aaaa": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of AAAA records",
 			},
 			"record_cname": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of CNAME records",
 			},
 			"record_mx": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of MX records",
 			},
 			"record_ns": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of NS records",
 			},
 			"record_ptr": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of PTR records",
 			},
 			"record_soa": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of SOA records",
 			},
 			"record_spf": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of SPF records",
 			},
 			"record_srv": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of SRV records",
 			},
 			"record_txt": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of TXT records",
 			},
 			"record_dnskey": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of DNSKEY records",
 			},
 			"record_rrsig": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of RRSIG records",
 			},
 			"record_ds": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of DS records",
 			},
 			"record_nsec": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of NSEC records",
 			},
 			"record_nsec3": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of NSEC3 records",
 			},
 			"record_nsec3param": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of NSEC3PARAM records",
 			},
 			"record_dlv": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of DLV records",
 			},
 			"record_caa": {
-				Type: schema.TypeList,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"record_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
-						},
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"ttl": {
-							Type:     schema.TypeInt,
-							Required: true,
-						},
-						"rdata": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"verify_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"group_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_record_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-						},
-						"record_type_name": {
-							Type:     schema.TypeString,
-							Optional: true,
-						},
-						"is_delete": {
-							Type:     schema.TypeBool,
-							Optional: true,
-						},
-					},
-				},
+				Type:        schema.TypeSet,
+				Elem:        singleRecordSchema,
 				Optional:    true,
-				Description: "List of A records",
+				Description: "List of CAA records",
 			},
 			"dnsroute_group": {
-				Type:     schema.TypeList,
+				Type:     schema.TypeSet,
 				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"group_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies the group by its 
+							system-defined ID.`,
 						},
 						"id": {
-							Type:     schema.TypeString,
-							Computed: true,
-						},
-						"fixed_group_id": {
 							Type:     schema.TypeInt,
 							Computed: true,
+							Description: `Identifies the group by its 
+							system-defined ID.`,
+						},
+						"fixed_group_id": {
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"group_type": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the group type. Valid values 
+							are: zone`,
 						},
 						"group_type_id": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
+							Description: `Defines the group type by its 
+							system-defined ID`,
 						},
 						"group_product_type": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the group product type. Valid 
+							values are: loadbalancing | failover`,
 						},
 						"group_product_type_id": {
 							Type:     schema.TypeInt,
-							Optional: true,
+							Computed: true,
+							Description: `Defines the group product type by its 
+							system-defined ID`,
 						},
 						"name": {
 							Type:     schema.TypeString,
 							Required: true,
+							Description: `Defines the name of the failover or 
+							load balancing group.`,
 						},
 						"zone_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"fixed_zone_id": {
-							Type:     schema.TypeInt,
-							Computed: true,
+							Type:        schema.TypeInt,
+							Computed:    true,
+							Description: `Reserved for future use.`,
 						},
 						"a": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"health_check": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"fixed_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"check_interval": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"check_type_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"content_verification": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"email_notification_address": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"failed_check_threshold": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"http_method_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"fixed_record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"group_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"ip_address": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"ip_version": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"port_number": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"reintegration_method_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"status": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"status_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"timeout": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"uri": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-											},
-										},
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"record": {
-										Type: schema.TypeList,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"name": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"ttl": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"rdata": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"verify_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_group_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"group_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_record_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"zone_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_zone_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"weight": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"record_type_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"record_type_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"is_delete": {
-													Type:     schema.TypeBool,
-													Optional: true,
-												},
-											},
-										},
-										Required: true,
-									},
-								},
-							},
+							Elem:     groupRecordSchema,
+							Description: `Defines a set of A records associated 
+							with this group.`,
 						},
 						"aaaa": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"health_check": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"fixed_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"check_interval": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"check_type_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"content_verification": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"email_notification_address": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"failed_check_threshold": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"http_method_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"fixed_record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"group_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"ip_address": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"ip_version": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"port_number": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"reintegration_method_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"status": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"status_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"timeout": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"uri": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-											},
-										},
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"record": {
-										Type: schema.TypeList,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"name": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"ttl": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"rdata": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"verify_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_group_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"group_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_record_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"zone_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_zone_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"weight": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"record_type_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"record_type_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"is_delete": {
-													Type:     schema.TypeBool,
-													Optional: true,
-												},
-											},
-										},
-										Required: true,
-									},
-								},
-							},
+							Elem:     groupRecordSchema,
+							Description: `Defines a set of AAAA records 
+							associated with this group.`,
 						},
 						"cname": {
 							Type:     schema.TypeList,
 							Optional: true,
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"health_check": {
-										Type:     schema.TypeList,
-										Optional: true,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"fixed_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"check_interval": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"check_type_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"content_verification": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"email_notification_address": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"failed_check_threshold": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"http_method_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"fixed_record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"group_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"ip_address": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"ip_version": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"port_number": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"reintegration_method_id": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"status": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"status_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"timeout": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"uri": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-											},
-										},
-									},
-									"weight": {
-										Type:     schema.TypeInt,
-										Required: true,
-									},
-									"record": {
-										Type: schema.TypeList,
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"record_id": {
-													Type:     schema.TypeInt,
-													Computed: true,
-												},
-												"name": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"ttl": {
-													Type:     schema.TypeInt,
-													Required: true,
-												},
-												"rdata": {
-													Type:     schema.TypeString,
-													Required: true,
-												},
-												"verify_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_group_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"group_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_record_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"zone_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"fixed_zone_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"weight": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"record_type_id": {
-													Type:     schema.TypeInt,
-													Optional: true,
-												},
-												"record_type_name": {
-													Type:     schema.TypeString,
-													Optional: true,
-												},
-												"is_delete": {
-													Type:     schema.TypeBool,
-													Optional: true,
-												},
-											},
-										},
-										Required: true,
-									},
-								},
-							},
+							Elem:     groupRecordSchema,
+							Description: `Defines a set of CNAME records 
+							associated with this group.`,
 						},
 					},
 				},
@@ -1774,384 +586,339 @@ func ResourceZone() *schema.Resource {
 	}
 }
 
-func ResourceZoneCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceZoneCreate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	domainName := d.Get("domain_name").(string)
-	status := d.Get("status").(int)
-	zoneType := d.Get("zone_type").(int)
-	is_customer_owned := d.Get("is_customer_owned").(bool)
-	comment := d.Get("comment").(string)
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-	recordA := d.Get("record_a").([]interface{})
-	recordAAAA := d.Get("record_aaaa").([]interface{})
-	recordCNAME := d.Get("record_cname").([]interface{})
-	recordMX := d.Get("record_mx").([]interface{})
-	recordNS := d.Get("record_ns").([]interface{})
-	recordPTR := d.Get("record_ptr").([]interface{})
-	recordSOA := d.Get("record_soa").([]interface{})
-	recordSPF := d.Get("record_spf").([]interface{})
-	recordSRV := d.Get("record_srv").([]interface{})
-	recordTXT := d.Get("record_txt").([]interface{})
-	recordDNSKEY := d.Get("record_dnskey").([]interface{})
-	recordRRSIG := d.Get("record_rrsig").([]interface{})
-	recordDS := d.Get("record_ds").([]interface{})
-	recordNSEC := d.Get("record_nsec").([]interface{})
-	recordNSEC3 := d.Get("record_nsec3").([]interface{})
-	recordNSEC3PARAM := d.Get("record_nsec3param").([]interface{})
-	recordDLV := d.Get("record_dlv").([]interface{})
-	recordCAA := d.Get("record_caa").([]interface{})
-
-	zoneRequest := api.Zone{
-		FixedZoneID:     -1,
-		ZoneID:          -1,
-		DomainName:      domainName,
-		Status:          status,
-		ZoneType:        zoneType,
-		IsCustomerOwned: is_customer_owned,
-		Comment:         comment,
-	}
-
-	aRecords := toDNSRecords("A", &recordA)
-	if len(*aRecords) > 0 {
-		zoneRequest.Records.A = *aRecords
-	}
-	aaaaRecords := toDNSRecords("AAAA", &recordAAAA)
-	if len(*aaaaRecords) > 0 {
-		zoneRequest.Records.AAAA = *aaaaRecords
-	}
-	cnameRecords := toDNSRecords("Cname", &recordCNAME)
-	if len(*cnameRecords) > 0 {
-		zoneRequest.Records.CName = *cnameRecords
-	}
-	mxRecords := toDNSRecords("MX", &recordMX)
-	if len(*mxRecords) > 0 {
-		zoneRequest.Records.MX = *mxRecords
-	}
-	nsRecords := toDNSRecords("NS", &recordNS)
-	if len(*nsRecords) > 0 {
-		zoneRequest.Records.NS = *nsRecords
-	}
-	ptrRecords := toDNSRecords("PTR", &recordPTR)
-	if len(*ptrRecords) > 0 {
-		zoneRequest.Records.PTR = *ptrRecords
-	}
-	soaRecords := toDNSRecords("SOA", &recordSOA)
-	if len(*soaRecords) > 0 {
-		zoneRequest.Records.SOA = *soaRecords
-	}
-	spfRecords := toDNSRecords("SPF", &recordSPF)
-	if len(*spfRecords) > 0 {
-		zoneRequest.Records.SPF = *spfRecords
-	}
-	srvRecords := toDNSRecords("SRV", &recordSRV)
-	if len(*srvRecords) > 0 {
-		zoneRequest.Records.SRV = *srvRecords
-	}
-	txtRecords := toDNSRecords("TXT", &recordTXT)
-	if len(*txtRecords) > 0 {
-		zoneRequest.Records.TXT = *txtRecords
-	}
-	dnsKeyRecords := toDNSRecords("DNSKEY", &recordDNSKEY)
-	if len(*dnsKeyRecords) > 0 {
-		zoneRequest.Records.DNSKEY = *dnsKeyRecords
-	}
-	rrsigRecords := toDNSRecords("RRSIG", &recordRRSIG)
-	if len(*rrsigRecords) > 0 {
-		zoneRequest.Records.RRSIG = *rrsigRecords
-	}
-	dsRecords := toDNSRecords("DS", &recordDS)
-	if len(*dsRecords) > 0 {
-		zoneRequest.Records.DS = *dsRecords
-	}
-	nsecRecords := toDNSRecords("NSEC", &recordNSEC)
-	if len(*nsecRecords) > 0 {
-		zoneRequest.Records.NSEC = *nsecRecords
-	}
-	nsec3Records := toDNSRecords("NSEC3", &recordNSEC3)
-	if len(*nsec3Records) > 0 {
-		zoneRequest.Records.NSEC3 = *nsec3Records
-	}
-	nsec3paramRecords := toDNSRecords("NSEC3PARAM", &recordNSEC3PARAM)
-	if len(*nsec3paramRecords) > 0 {
-		zoneRequest.Records.NSEC3PARAM = *nsec3paramRecords
-	}
-	dlvRecords := toDNSRecords("DLV", &recordDLV)
-	if len(*dlvRecords) > 0 {
-		zoneRequest.Records.DLV = *dlvRecords
-	}
-	caaRecords := toDNSRecords("CAA", &recordCAA)
-	if len(*caaRecords) > 0 {
-		zoneRequest.Records.CAA = *caaRecords
-	}
-
-	dnsGroups := d.Get("dnsroute_group").([]interface{})
-
-	groups, err := toDNSRouteGroups(&dnsGroups)
+	routeDNSService, err := buildRouteDNSService(**config)
 	if err != nil {
-		diag.FromErr(err)
-	}
-	if groups != nil && len(*groups) > 0 {
-		zoneRequest.Groups = *groups
-	}
-	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
-
-	newZoneID, err := dnsrouteClient.AddZone(&zoneRequest)
-
-	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	d.SetId(strconv.Itoa(newZoneID))
+	// Retrieve Zone data from Resource file
+	domainName := d.Get("domain_name").(string)
+	status := d.Get("status").(int)
+	zoneType := d.Get("zone_type").(int)
+	comment := d.Get("comment").(string)
+	recordsA := d.Get("record_a").(*schema.Set).List()
+	recordsAAAA := d.Get("record_aaaa").(*schema.Set).List()
+	recordsCNAME := d.Get("record_cname").(*schema.Set).List()
+	recordsMX := d.Get("record_mx").(*schema.Set).List()
+	recordsNS := d.Get("record_ns").(*schema.Set).List()
+	recordsPTR := d.Get("record_ptr").(*schema.Set).List()
+	recordsSOA := d.Get("record_soa").(*schema.Set).List()
+	recordsSPF := d.Get("record_spf").(*schema.Set).List()
+	recordsSRV := d.Get("record_srv").(*schema.Set).List()
+	recordsTXT := d.Get("record_txt").(*schema.Set).List()
+	recordsDNSKEY := d.Get("record_dnskey").(*schema.Set).List()
+	recordsRRSIG := d.Get("record_rrsig").(*schema.Set).List()
+	recordsDS := d.Get("record_ds").(*schema.Set).List()
+	recordsNSEC := d.Get("record_nsec").(*schema.Set).List()
+	recordsNSEC3 := d.Get("record_nsec3").(*schema.Set).List()
+	recordsNSEC3PARAM := d.Get("record_nsec3param").(*schema.Set).List()
+	recordsDLV := d.Get("record_dlv").(*schema.Set).List()
+	recordsCAA := d.Get("record_caa").(*schema.Set).List()
+	dnsGroups := d.Get("dnsroute_group").(*schema.Set).List()
 
-	return ResourceZoneRead(ctx, d, m)
-}
+	// Build Zone Object
+	zoneObj := routedns.Zone{
+		DomainName: domainName,
+		Status:     status,
+		ZoneType:   zoneType,
+		Comment:    comment,
+	}
 
-func ResourceZoneRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
-	zoneID, err := strconv.Atoi(d.Id())
-	accountNumber := d.Get("account_number").(string)
+	zoneObj.Records.A = *expandDNSRecords("A", &recordsA, nil)
+	zoneObj.Records.AAAA = *expandDNSRecords("AAAA", &recordsAAAA, nil)
+	zoneObj.Records.CNAME = *expandDNSRecords("Cname", &recordsCNAME, nil)
+	zoneObj.Records.MX = *expandDNSRecords("MX", &recordsMX, nil)
+	zoneObj.Records.NS = *expandDNSRecords("NS", &recordsNS, nil)
+	zoneObj.Records.PTR = *expandDNSRecords("PTR", &recordsPTR, nil)
+	zoneObj.Records.SOA = *expandDNSRecords("SOA", &recordsSOA, nil)
+	zoneObj.Records.SPF = *expandDNSRecords("SPF", &recordsSPF, nil)
+	zoneObj.Records.SRV = *expandDNSRecords("SRV", &recordsSRV, nil)
+	zoneObj.Records.TXT = *expandDNSRecords("TXT", &recordsTXT, nil)
+	zoneObj.Records.DNSKEY = *expandDNSRecords("DNSKEY", &recordsDNSKEY, nil)
+	zoneObj.Records.RRSIG = *expandDNSRecords("RRSIG", &recordsRRSIG, nil)
+	zoneObj.Records.DS = *expandDNSRecords("DS", &recordsDS, nil)
+	zoneObj.Records.NSEC = *expandDNSRecords("NSEC", &recordsNSEC, nil)
+	zoneObj.Records.NSEC3 = *expandDNSRecords("NSEC3", &recordsNSEC3, nil)
+	zoneObj.Records.NSEC3PARAM = *expandDNSRecords(
+		"NSEC3PARAM", &recordsNSEC3PARAM, nil)
+	zoneObj.Records.DLV = *expandDNSRecords("DLV", &recordsDLV, nil)
+	zoneObj.Records.CAA = *expandDNSRecords("CAA", &recordsCAA, nil)
 
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	groups, err := expandDNSRouteGroups(&dnsGroups, nil)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(err)
+	}
+	if groups != nil {
+		zoneObj.Groups = *expandCreateDNSGroups(groups)
+	}
 
-	dnsRouteClient := api.NewDNSRouteAPIClient(*config)
-	resp, err := dnsRouteClient.GetZone(zoneID)
+	// Call add Zone API
+	params := routedns.NewAddZoneParams()
+	params.AccountNumber = accountNumber
+	params.Zone = zoneObj
+	zoneID, err := routeDNSService.AddZone(*params)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	d.Set("account_number", accountNumber)
-	d.Set("domain_name", resp.DomainName)
-	d.Set("status", resp.Status)
-	d.Set("zone_type", resp.ZoneType)
-	d.Set("is_customer_owned", resp.IsCustomerOwned)
-	d.Set("comment", resp.Comment)
-	d.Set("zone_id", zoneID)
-	d.Set("status", resp.Status)
-	d.Set("status_name", resp.StatusName)
-	d.Set("is_customer_owned", resp.IsCustomerOwned)
+	d.SetId(strconv.Itoa(*zoneID))
 
-	recordAs := flattenDnsRecords(&resp.Records.A)
+	return ResourceZoneRead(ctx, d, m)
+}
+
+func ResourceZoneRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
+	accountNumber := d.Get("account_number").(string)
+	zoneID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	config := m.(**api.ClientConfig)
+	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Call Get Zone API
+	params := routedns.NewGetZoneParams()
+	params.AccountNumber = accountNumber
+	params.ZoneID = zoneID
+	zoneObj, err := routeDNSService.GetZone(*params)
+
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Update Terraform state with retrieved Zone data
+	d.Set("account_number", accountNumber)
+	d.Set("domain_name", zoneObj.DomainName)
+	d.Set("zone_type", zoneObj.ZoneType)
+	d.Set("is_customer_owned", zoneObj.IsCustomerOwned)
+	d.Set("comment", zoneObj.Comment)
+	d.Set("zone_id", zoneID)
+	d.Set("status", zoneObj.Status)
+	d.Set("status_name", zoneObj.StatusName)
+
+	recordAs := flattenDNSRecords(&zoneObj.Records.A)
 	if err := d.Set("record_a", recordAs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordAAAAs := flattenDnsRecords(&resp.Records.AAAA)
+	recordAAAAs := flattenDNSRecords(&zoneObj.Records.AAAA)
 	if err := d.Set("record_aaaa", recordAAAAs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordCNames := flattenDnsRecords(&resp.Records.CName)
+	recordCNames := flattenDNSRecords(&zoneObj.Records.CNAME)
 	if err := d.Set("record_cname", recordCNames); err != nil {
 		return diag.FromErr(err)
 	}
-	recordDLVs := flattenDnsRecords(&resp.Records.DLV)
+	recordDLVs := flattenDNSRecords(&zoneObj.Records.DLV)
 	if err := d.Set("record_dlv", recordDLVs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordDNSKEYs := flattenDnsRecords(&resp.Records.DNSKEY)
+	recordDNSKEYs := flattenDNSRecords(&zoneObj.Records.DNSKEY)
 	if err := d.Set("record_dnskey", recordDNSKEYs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordDSs := flattenDnsRecords(&resp.Records.DS)
+	recordDSs := flattenDNSRecords(&zoneObj.Records.DS)
 	if err := d.Set("record_ds", recordDSs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordMXs := flattenDnsRecords(&resp.Records.MX)
+	recordMXs := flattenDNSRecords(&zoneObj.Records.MX)
 	if err := d.Set("record_mx", recordMXs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordNSs := flattenDnsRecords(&resp.Records.NS)
+	recordNSs := flattenDNSRecords(&zoneObj.Records.NS)
 	if err := d.Set("record_ns", recordNSs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordNSECs := flattenDnsRecords(&resp.Records.NSEC)
+	recordNSECs := flattenDNSRecords(&zoneObj.Records.NSEC)
 	if err := d.Set("record_nsec", recordNSECs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordNSEC3s := flattenDnsRecords(&resp.Records.NSEC3)
+	recordNSEC3s := flattenDNSRecords(&zoneObj.Records.NSEC3)
 	if err := d.Set("record_nsec3", recordNSEC3s); err != nil {
 		return diag.FromErr(err)
 	}
-	recordNSEC3PARAMs := flattenDnsRecords(&resp.Records.NSEC3PARAM)
+	recordNSEC3PARAMs := flattenDNSRecords(&zoneObj.Records.NSEC3PARAM)
 	if err := d.Set("record_nsec3param", recordNSEC3PARAMs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordPTRs := flattenDnsRecords(&resp.Records.PTR)
+	recordPTRs := flattenDNSRecords(&zoneObj.Records.PTR)
 	if err := d.Set("record_ptr", recordPTRs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordRRSIGs := flattenDnsRecords(&resp.Records.RRSIG)
+	recordRRSIGs := flattenDNSRecords(&zoneObj.Records.RRSIG)
 	if err := d.Set("record_rrsig", recordRRSIGs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordSOAs := flattenDnsRecords(&resp.Records.SOA)
+	recordSOAs := flattenDNSRecords(&zoneObj.Records.SOA)
 	if err := d.Set("record_soa", recordSOAs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordSPFs := flattenDnsRecords(&resp.Records.SPF)
+	recordSPFs := flattenDNSRecords(&zoneObj.Records.SPF)
 	if err := d.Set("record_spf", recordSPFs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordSRVs := flattenDnsRecords(&resp.Records.SRV)
+	recordSRVs := flattenDNSRecords(&zoneObj.Records.SRV)
 	if err := d.Set("record_srv", recordSRVs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordTXTs := flattenDnsRecords(&resp.Records.TXT)
+	recordTXTs := flattenDNSRecords(&zoneObj.Records.TXT)
 	if err := d.Set("record_txt", recordTXTs); err != nil {
 		return diag.FromErr(err)
 	}
-	recordCAAs := flattenDnsRecords(&resp.Records.CAA)
+	recordCAAs := flattenDNSRecords(&zoneObj.Records.CAA)
 	if err := d.Set("record_caa", recordCAAs); err != nil {
 		return diag.FromErr(err)
 	}
 
-	dnsGroups := flattenDnsGroups(&resp.Groups)
+	dnsGroups := flattenDNSGroups(&zoneObj.Groups)
 
 	if dnsGroups != nil {
 		if err := d.Set("dnsroute_group", dnsGroups); err != nil {
 			return diag.FromErr(err)
 		}
 	}
-	d.SetId(strconv.Itoa(resp.FixedZoneID))
-	return diags
+
+	return diag.Diagnostics{}
 }
 
-func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
+func ResourceZoneUpdate(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
+	zoneID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	config := m.(**api.ClientConfig)
+	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Call Get Zone API
+	getParams := routedns.NewGetZoneParams()
+	getParams.AccountNumber = accountNumber
+	getParams.ZoneID = zoneID
+	zoneObj, err := routeDNSService.GetZone(*getParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Build Zone Update Data
 	domainName := d.Get("domain_name").(string)
 	status := d.Get("status").(int)
 	zoneType := d.Get("zone_type").(int)
 	is_customer_owned := d.Get("is_customer_owned").(bool)
 	comment := d.Get("comment").(string)
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
-	recordA := d.Get("record_a").([]interface{})
-	recordAAAA := d.Get("record_aaaa").([]interface{})
-	recordCNAME := d.Get("record_cname").([]interface{})
-	recordMX := d.Get("record_mx").([]interface{})
-	recordNS := d.Get("record_ns").([]interface{})
-	recordPTR := d.Get("record_ptr").([]interface{})
-	recordSOA := d.Get("record_soa").([]interface{})
-	recordSPF := d.Get("record_spf").([]interface{})
-	recordSRV := d.Get("record_srv").([]interface{})
-	recordTXT := d.Get("record_txt").([]interface{})
-	recordDNSKEY := d.Get("record_dnskey").([]interface{})
-	recordRRSIG := d.Get("record_rrsig").([]interface{})
-	recordDS := d.Get("record_ds").([]interface{})
-	recordNSEC := d.Get("record_nsec").([]interface{})
-	recordNSEC3 := d.Get("record_nsec3").([]interface{})
-	recordNSEC3PARAM := d.Get("record_nsec3param").([]interface{})
-	recordDLV := d.Get("record_dlv").([]interface{})
-	recordCAA := d.Get("record_caa").([]interface{})
 
-	zoneRequest := api.Zone{
-		FixedZoneID:     -1,
-		ZoneID:          -1,
-		DomainName:      domainName,
-		Status:          status,
-		ZoneType:        zoneType,
-		IsCustomerOwned: is_customer_owned,
-		Comment:         comment,
-	}
-	zoneID, err := strconv.Atoi(d.Id())
-	if err != nil {
-		return diag.FromErr(err)
-	}
-	zoneRequest.FixedZoneID = zoneID
-
-	aRecords := toDNSRecords("A", &recordA)
-	if len(*aRecords) > 0 {
-		zoneRequest.Records.A = *aRecords
-	}
-	aaaaRecords := toDNSRecords("AAAA", &recordAAAA)
-	if len(*aaaaRecords) > 0 {
-		zoneRequest.Records.AAAA = *aaaaRecords
-	}
-	cnameRecords := toDNSRecords("Cname", &recordCNAME)
-	if len(*cnameRecords) > 0 {
-		zoneRequest.Records.CName = *cnameRecords
-	}
-	mxRecords := toDNSRecords("MX", &recordMX)
-	if len(*mxRecords) > 0 {
-		zoneRequest.Records.MX = *mxRecords
-	}
-	nsRecords := toDNSRecords("NS", &recordNS)
-	if len(*nsRecords) > 0 {
-		zoneRequest.Records.NS = *nsRecords
-	}
-	ptrRecords := toDNSRecords("PTR", &recordPTR)
-	if len(*ptrRecords) > 0 {
-		zoneRequest.Records.PTR = *ptrRecords
-	}
-	soaRecords := toDNSRecords("SOA", &recordSOA)
-	if len(*soaRecords) > 0 {
-		zoneRequest.Records.SOA = *soaRecords
-	}
-	spfRecords := toDNSRecords("SPF", &recordSPF)
-	if len(*spfRecords) > 0 {
-		zoneRequest.Records.SPF = *spfRecords
-	}
-	srvRecords := toDNSRecords("SRV", &recordSRV)
-	if len(*srvRecords) > 0 {
-		zoneRequest.Records.SRV = *srvRecords
-	}
-	txtRecords := toDNSRecords("TXT", &recordTXT)
-	if len(*txtRecords) > 0 {
-		zoneRequest.Records.TXT = *txtRecords
-	}
-	dnsKeyRecords := toDNSRecords("DNSKEY", &recordDNSKEY)
-	if len(*dnsKeyRecords) > 0 {
-		zoneRequest.Records.DNSKEY = *dnsKeyRecords
-	}
-	rrsigRecords := toDNSRecords("RRSIG", &recordRRSIG)
-	if len(*rrsigRecords) > 0 {
-		zoneRequest.Records.RRSIG = *rrsigRecords
-	}
-	dsRecords := toDNSRecords("DS", &recordDS)
-	if len(*dsRecords) > 0 {
-		zoneRequest.Records.DS = *dsRecords
-	}
-	nsecRecords := toDNSRecords("NSEC", &recordNSEC)
-	if len(*nsecRecords) > 0 {
-		zoneRequest.Records.NSEC = *nsecRecords
-	}
-	nsec3Records := toDNSRecords("NSEC3", &recordNSEC3)
-	if len(*nsec3Records) > 0 {
-		zoneRequest.Records.NSEC3 = *nsec3Records
-	}
-	nsec3paramRecords := toDNSRecords("NSEC3PARAM", &recordNSEC3PARAM)
-	if len(*nsec3paramRecords) > 0 {
-		zoneRequest.Records.NSEC3PARAM = *nsec3paramRecords
-	}
-	dlvRecords := toDNSRecords("DLV", &recordDLV)
-	if len(*dlvRecords) > 0 {
-		zoneRequest.Records.DLV = *dlvRecords
-	}
-	caaRecords := toDNSRecords("CAA", &recordCAA)
-	if len(*caaRecords) > 0 {
-		zoneRequest.Records.CAA = *caaRecords
-	}
-
-	dnsGroups := d.Get("dnsroute_group").([]interface{})
-
-	groups, err := toDNSRouteGroups(&dnsGroups)
+	// Not using HasChange before GetChange because we need to send the whole
+	// Zone for any change, not just the changed records. This should be
+	// reworked when we have PATCH ability in the API. findDeletedRecords
+	// handles handles empty sets.
+	recordsA, deletesA := findDeletedRecords(d.GetChange("record_a"))
+	recordsAAAA, deletesAAAA := findDeletedRecords(
+		d.GetChange("record_aaaa"))
+	recordsCNAME, deletesCNAME := findDeletedRecords(
+		d.GetChange("record_cname"))
+	recordsMX, deletesMX := findDeletedRecords(d.GetChange("record_mx"))
+	recordsNS, deletesNS := findDeletedRecords(d.GetChange("record_ns"))
+	recordsPTR, deletesPTR := findDeletedRecords(d.GetChange("record_ptr"))
+	recordsSOA, deletesSOA := findDeletedRecords(d.GetChange("record_soa"))
+	recordsSPF, deletesSPF := findDeletedRecords(d.GetChange("record_spf"))
+	recordsSRV, deletesSRV := findDeletedRecords(d.GetChange("record_srv"))
+	recordsTXT, deletesTXT := findDeletedRecords(d.GetChange("record_txt"))
+	recordsDNSKEY, deletesDNSKEY := findDeletedRecords(
+		d.GetChange("record_dnskey"))
+	recordsRRSIG, deletesRRSIG := findDeletedRecords(
+		d.GetChange("record_rrsig"))
+	recordsDS, deletesDS := findDeletedRecords(d.GetChange("record_ds"))
+	recordsNSEC, deletesNSEC := findDeletedRecords(
+		d.GetChange("record_nsec"))
+	recordsNSEC3, deletesNSEC3 := findDeletedRecords(
+		d.GetChange("record_nsec3"))
+	recordsNSEC3PARAM, deletesNSEC3PARAM := findDeletedRecords(
+		d.GetChange("record_nsec3param"))
+	recordsDLV, deletesDLV := findDeletedRecords(d.GetChange("record_dlv"))
+	recordsCAA, deletesCAA := findDeletedRecords(d.GetChange("record_caa"))
+	recordsGroups, deletesGroups := findDeletedRecords(d.GetChange(
+		"dnsroute_group"))
+	groups, err := expandDNSRouteGroups(&recordsGroups, deletesGroups)
 	if err != nil {
 		diag.FromErr(err)
 	}
-	if groups != nil && len(*groups) > 0 {
-		zoneRequest.Groups = *groups
-	}
-	dnsrouteClient := api.NewDNSRouteAPIClient(*config)
-	resp, err := dnsrouteClient.GetZone(zoneID)
-	if err != nil {
-		return diag.FromErr(err)
-	}
 
-	updateIds(&zoneRequest, resp)
-	err = dnsrouteClient.UpdateZone(resp)
+	// Update Zone Object
+	zoneObj.DomainName = domainName
+	zoneObj.Status = status
+	zoneObj.ZoneType = zoneType
+	zoneObj.IsCustomerOwned = is_customer_owned
+	zoneObj.Comment = comment
+	zoneObj.Records.A = *expandDNSRecords(
+		"A", &recordsA, deletesA)
+	zoneObj.Records.AAAA = *expandDNSRecords(
+		"AAAA", &recordsAAAA, deletesAAAA)
+	zoneObj.Records.CNAME = *expandDNSRecords(
+		"Cname", &recordsCNAME, deletesCNAME)
+	zoneObj.Records.MX = *expandDNSRecords(
+		"MX", &recordsMX, deletesMX)
+	zoneObj.Records.NS = *expandDNSRecords(
+		"NS", &recordsNS, deletesNS)
+	zoneObj.Records.PTR = *expandDNSRecords(
+		"PTR", &recordsPTR, deletesPTR)
+	zoneObj.Records.SOA = *expandDNSRecords(
+		"SOA", &recordsSOA, deletesSOA)
+	zoneObj.Records.SPF = *expandDNSRecords(
+		"SPF", &recordsSPF, deletesSPF)
+	zoneObj.Records.SRV = *expandDNSRecords(
+		"SRV", &recordsSRV, deletesSRV)
+	zoneObj.Records.TXT = *expandDNSRecords(
+		"TXT", &recordsTXT, deletesTXT)
+	zoneObj.Records.DNSKEY = *expandDNSRecords(
+		"DNSKEY", &recordsDNSKEY, deletesDNSKEY)
+	zoneObj.Records.RRSIG = *expandDNSRecords(
+		"RRSIG", &recordsRRSIG, deletesRRSIG)
+	zoneObj.Records.DS = *expandDNSRecords(
+		"DS", &recordsDS, deletesDS)
+	zoneObj.Records.NSEC = *expandDNSRecords(
+		"NSEC", &recordsNSEC, deletesNSEC)
+	zoneObj.Records.NSEC3 = *expandDNSRecords(
+		"NSEC3", &recordsNSEC3, deletesNSEC3)
+	zoneObj.Records.NSEC3PARAM = *expandDNSRecords(
+		"NSEC3PARAM", &recordsNSEC3PARAM, deletesNSEC3PARAM)
+	zoneObj.Records.DLV = *expandDNSRecords(
+		"DLV", &recordsDLV, deletesDLV)
+	zoneObj.Records.CAA = *expandDNSRecords(
+		"CAA", &recordsCAA, deletesCAA)
+	zoneObj.Groups = *groups
 
+	// Call update Zone API
+	updateParams := routedns.NewUpdateZoneParams()
+	updateParams.AccountNumber = accountNumber
+	updateParams.Zone = *zoneObj
+	err = routeDNSService.UpdateZone(*updateParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -2159,36 +926,88 @@ func ResourceZoneUpdate(ctx context.Context, d *schema.ResourceData, m interface
 	return ResourceZoneRead(ctx, d, m)
 }
 
-func ResourceZoneDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	var diags diag.Diagnostics
+func ResourceZoneDelete(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
 	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	routeDNSService, err := buildRouteDNSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	dnsRouteAPIClient := api.NewDNSRouteAPIClient(*config)
+	zoneID, err := strconv.Atoi(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	zoneID, _ := strconv.Atoi(d.Id())
+	// Call Get Zone API
+	getParams := routedns.NewGetZoneParams()
+	getParams.AccountNumber = accountNumber
+	getParams.ZoneID = zoneID
+	zoneObj, err := routeDNSService.GetZone(*getParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
-	err := dnsRouteAPIClient.DeleteZone(zoneID)
-
+	// Call Delete Zone API
+	deleteParams := routedns.NewDeleteZoneParams()
+	deleteParams.AccountNumber = accountNumber
+	deleteParams.Zone = *zoneObj
+	err = routeDNSService.DeleteZone(*deleteParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	d.SetId("")
 
-	return diags
+	return diag.Diagnostics{}
 }
 
-//1. to[Func]s: These functions are used to generate Zone request body
-func toDNSRecords(recodeType string, input *[]interface{}) *[]api.DNSRecord {
+// findDeletedRecords identifies records deleted from the resource file and
+// returns two arrays. One array contains new and old (all) records. One array
+// contains only the deleted records. Route APIs require that deleted records
+// are submitted with is_deleted=true instead of simply removing deleted records
+// from the paylod.
+func findDeletedRecords(
+	old interface{},
+	new interface{},
+) ([]interface{}, []interface{}) {
+	// Represents current resource, state prior to latest Terraform apply
+	os := old.(*schema.Set)
+	// Repesents desired resource state
+	ns := new.(*schema.Set)
+	// Set with records only present in the old set (now deleted)
+	toDelete := os.Difference(ns).List()
+	// All records, new and old, to allow upstream function to process changes
+	allRecords := os.Union(ns).List()
 
-	records := make([]api.DNSRecord, 0)
+	return allRecords, toDelete
+}
+
+func expandDNSRecords(
+	recodeType string,
+	input *[]interface{},
+	toDelete []interface{},
+) *[]routedns.DNSRecord {
+	records := make([]routedns.DNSRecord, 0)
 
 	for _, item := range *input {
 		curr := item.(map[string]interface{})
 
 		name := curr["name"].(string)
+
+		isDeleted := false
+		for _, deleteItem := range toDelete {
+			deleteMap := deleteItem.(map[string]interface{})
+			if name == deleteMap["name"] {
+				isDeleted = true
+			}
+		}
+
 		ttl := curr["ttl"].(int)
 		rdata := curr["rdata"].(string)
 		verifyID := curr["verify_id"].(int)
@@ -2196,11 +1015,10 @@ func toDNSRecords(recodeType string, input *[]interface{}) *[]api.DNSRecord {
 		fixedRecordID := curr["fixed_record_id"].(int)
 		fixedGroupID := curr["fixed_group_id"].(int)
 		groupID := curr["group_id"].(int)
-		isDeleted := curr["is_delete"].(bool)
 		weight := curr["weight"].(int)
 		recordTypeID := curr["record_type_id"].(int)
 		recordTypeName := curr["record_type_name"].(string)
-		record := api.DNSRecord{
+		record := routedns.DNSRecord{
 			RecordID:       recordID,
 			FixedRecordID:  fixedRecordID,
 			FixedGroupID:   fixedGroupID,
@@ -2210,7 +1028,7 @@ func toDNSRecords(recodeType string, input *[]interface{}) *[]api.DNSRecord {
 			TTL:            ttl,
 			Rdata:          rdata,
 			Weight:         weight,
-			RecordTypeID:   recordTypeID,
+			RecordTypeID:   routedns.RecordType(recordTypeID),
 			RecordTypeName: recordTypeName,
 			VerifyID:       verifyID,
 		}
@@ -2220,24 +1038,42 @@ func toDNSRecords(recodeType string, input *[]interface{}) *[]api.DNSRecord {
 	return &records
 }
 
-func toDNSRouteGroups(input *[]interface{}) (*[]api.DnsRouteGroup, error) {
+func expandDNSRouteGroups(
+	input *[]interface{},
+	toDelete []interface{},
+) (*[]routedns.DnsRouteGroupOK, error) {
 	if *input == nil || len(*input) == 0 {
 		return nil, nil
 	}
-	groups := make([]api.DnsRouteGroup, 0)
+	groups := make([]routedns.DnsRouteGroupOK, 0)
 
 	for _, item := range *input {
+
 		curr := item.(map[string]interface{})
 
-		name := curr["name"].(string)
-		groupType := curr["group_type"].(string)
-		if groupType != "zone" {
-			return nil, fmt.Errorf("invalid group_type: %s. It should be zone.", groupType)
-		}
 		groupID := curr["group_id"].(int)
 		if groupID == 0 {
 			groupID = -1
 		}
+
+		deleteGroup := false
+		for _, delItem := range toDelete {
+			delMap := delItem.(map[string]interface{})
+			delID := delMap["group_id"].(int)
+
+			if groupID == delID {
+				deleteGroup = true
+			}
+		}
+
+		name := curr["name"].(string)
+		groupType := curr["group_type"].(string)
+		if groupType != "zone" {
+			return nil, fmt.Errorf(
+				"invalid group_type: %s. It should be zone", groupType,
+			)
+		}
+
 		fixedGroupID := curr["fixed_group_id"].(int)
 		if fixedGroupID == 0 {
 			fixedGroupID = -1
@@ -2251,45 +1087,50 @@ func toDNSRouteGroups(input *[]interface{}) (*[]api.DnsRouteGroup, error) {
 			fixedZoneID = -1
 		}
 		groupProductType := curr["group_product_type"].(string)
-		groupProductTypeID := api.GroupProductType_NoGroup
+		groupProductTypeID := routedns.NoGroup
 		if groupProductType == "failover" {
-			groupProductTypeID = api.GroupProductType_Failover
+			groupProductTypeID = routedns.Failover
 		} else if groupProductType == "loadbalancing" {
-			groupProductTypeID = api.GroupProductType_LoadBalancing
+			groupProductTypeID = routedns.LoadBalancing
 		} else {
-			return nil, fmt.Errorf("invalid group_product_type: %s. It should be failover or loadbalancing.", groupProductType)
+			return nil, fmt.Errorf(
+				`invalid group_product_type: %s. It should be failover or 
+				loadbalancing`, groupProductType,
+			)
 		}
 
 		dnsAs := curr["a"].([]interface{})
-		arrayAs, err := toGroupRecords(&dnsAs)
+		arrayAs, err := expandGroupRecords(&dnsAs, deleteGroup)
 		if err != nil {
 			return nil, err
 		}
 		dnsAAAAs := curr["aaaa"].([]interface{})
-		arrayAAAAs, err := toGroupRecords(&dnsAAAAs)
+		arrayAAAAs, err := expandGroupRecords(&dnsAAAAs, deleteGroup)
 		if err != nil {
 			return nil, err
 		}
 		dnsCnames := curr["cname"].([]interface{})
-		arrayCnames, err := toGroupRecords(&dnsCnames)
+		arrayCnames, err := expandGroupRecords(&dnsCnames, deleteGroup)
 		if err != nil {
 			return nil, err
 		}
 
-		groupComposition := api.DNSGroupRecords{
+		groupComposition := routedns.DNSGroupRecords{
 			A:     *arrayAs,
 			AAAA:  *arrayAAAAs,
-			CName: *arrayCnames,
+			CNAME: *arrayCnames,
 		}
-		group := api.DnsRouteGroup{
-			GroupID:            groupID,
-			FixedGroupID:       fixedGroupID,
-			ZoneId:             zoneID,
-			FixedZoneID:        fixedGroupID,
-			Name:               name,
-			GroupTypeID:        api.GroupType_Zone,
-			GroupProductTypeID: groupProductTypeID,
-			GroupComposition:   groupComposition,
+		group := routedns.DnsRouteGroupOK{
+			GroupID:      groupID,
+			FixedGroupID: fixedGroupID,
+			ZoneID:       zoneID,
+			FixedZoneID:  fixedZoneID,
+			DnsRouteGroup: routedns.DnsRouteGroup{
+				Name:             name,
+				GroupTypeID:      routedns.PrimaryZone,
+				GroupProductType: groupProductTypeID,
+				GroupComposition: groupComposition,
+			},
 		}
 		groups = append(groups, group)
 	}
@@ -2297,41 +1138,64 @@ func toDNSRouteGroups(input *[]interface{}) (*[]api.DnsRouteGroup, error) {
 	return &groups, nil
 }
 
-func toGroupRecords(input *[]interface{}) (*[]api.DnsRouteGroupRecord, error) {
-	records := make([]api.DnsRouteGroupRecord, 0)
+func expandCreateDNSGroups(
+	groups *[]routedns.DnsRouteGroupOK,
+) *[]routedns.DnsRouteGroup {
+	groupsArr := make([]routedns.DnsRouteGroup, 0)
+	for _, group := range *groups {
+		g := routedns.DnsRouteGroup{
+			Name:             group.Name,
+			GroupTypeID:      group.GroupTypeID,
+			GroupProductType: group.GroupProductType,
+			GroupComposition: group.GroupComposition,
+		}
+		groupsArr = append(groupsArr, g)
+	}
+
+	return &groupsArr
+}
+
+func expandGroupRecords(
+	input *[]interface{},
+	toDelete bool,
+) (*[]routedns.DNSGroupRecord, error) {
+	records := make([]routedns.DNSGroupRecord, 0)
 
 	for _, item := range *input {
 		curr := item.(map[string]interface{})
-		var healthCheck *api.HealthCheck = nil
+		var healthCheck *routedns.HealthCheck
 		var err error
-		if val, ok := curr["health_check"]; ok {
 
-			hc := val.([]interface{})
-			healthCheck, err = toHealthCheck(&hc)
-			if err != nil {
-				return nil, err
+		if val, ok := curr["health_check"]; ok {
+			hc := val.(*schema.Set).List()
+			if len(hc) != 0 {
+				healthCheck, err = expandHealthCheck(&hc)
+				if err != nil {
+					return nil, err
+				}
 			}
-			if healthCheck == nil || (api.HealthCheck{}) == *healthCheck {
+
+			if healthCheck == nil || (routedns.HealthCheck{}) == *healthCheck {
 				healthCheck = nil
 			}
 		}
 
 		weight := curr["weight"].(int)
 
-		var dnsRecord *api.DNSRecord = nil
+		var dnsRecord *routedns.DNSRecord = nil
 
 		if val, ok := curr["record"]; ok {
 			rc := val.([]interface{})
-			dnsRecord, err = toDNSRouteZoneRecord(&rc, weight)
+			dnsRecord, err = expandDNSRouteZoneRecord(&rc, weight, toDelete)
 			if err != nil {
 				return nil, err
 			}
-			if (api.DNSRecord{}) == *dnsRecord {
+			if (routedns.DNSRecord{}) == *dnsRecord {
 				dnsRecord = nil
 			}
 		}
 
-		record := api.DnsRouteGroupRecord{
+		record := routedns.DNSGroupRecord{
 			HealthCheck: healthCheck,
 			Record:      *dnsRecord,
 		}
@@ -2341,70 +1205,83 @@ func toGroupRecords(input *[]interface{}) (*[]api.DnsRouteGroupRecord, error) {
 	return &records, nil
 }
 
-func toHealthCheck(input *[]interface{}) (*api.HealthCheck, error) {
-	if *input != nil && len(*input) > 0 {
-		for _, element := range *input {
-			item := element.(map[string]interface{})
-			healthCheck := api.HealthCheck{}
-			if item["check_interval"] != nil {
-				healthCheck.CheckInterval = item["check_interval"].(int)
-			}
-			if item["content_verification"] != nil {
-				healthCheck.ContentVerification = item["content_verification"].(string)
-			}
-			if item["email_notification_address"] != nil {
-				healthCheck.EmailNotificationAddress = item["email_notification_address"].(string)
-			}
-			if item["check_type_id"] != nil {
-				healthCheck.CheckTypeID = item["check_type_id"].(int)
-			}
-			if item["failed_check_threshold"] != nil {
-				healthCheck.FailedCheckThreshold = item["failed_check_threshold"].(int)
-			}
-			if item["http_method_id"] != nil {
-				healthCheck.HTTPMethodID = item["http_method_id"].(int)
-			}
-			if item["ip_address"] != nil {
-				healthCheck.IPAddress = item["ip_address"].(string)
-			}
-			if item["ip_version"] != nil {
-				healthCheck.IPVersion = item["ip_version"].(int)
-			}
-			if item["port_number"] != nil {
-				healthCheck.PortNumber = item["port_number"].(string)
-			}
-			if item["reintegration_method_id"] != nil {
-				methodID := item["reintegration_method_id"].(int)
-				healthCheck.ReintegrationMethodID = methodID
-			}
-			if item["status"] != nil {
-				healthCheck.Status = item["status"].(int)
-			}
-			if item["status_name"] != nil {
-				healthCheck.StatusName = item["status_name"].(string)
-			}
-			if item["uri"] != nil {
-				healthCheck.Uri = item["uri"].(string)
-			}
-			return &healthCheck, nil
-		}
+func expandHealthCheck(
+	healthChecks *[]interface{},
+) (*routedns.HealthCheck, error) {
+	if len(*healthChecks) > 1 {
+		return nil, fmt.Errorf(
+			"only one health_check may be defined per record",
+		)
 	}
-	return nil, nil
+
+	healthCheckObj := routedns.HealthCheck{}
+	healthCheckMap := (*healthChecks)[0].(map[string]interface{})
+
+	if healthCheckMap["check_interval"] != nil {
+		healthCheckObj.CheckInterval = healthCheckMap["check_interval"].(int)
+	}
+	if healthCheckMap["content_verification"] != nil {
+		healthCheckObj.ContentVerification = healthCheckMap["content_verification"].(string)
+	}
+	if healthCheckMap["email_notification_address"] != nil {
+		healthCheckObj.EmailNotificationAddress = healthCheckMap["email_notification_address"].(string)
+	}
+	if healthCheckMap["check_type_id"] != nil {
+		healthCheckObj.CheckTypeID = healthCheckMap["check_type_id"].(int)
+	}
+	if healthCheckMap["failed_check_threshold"] != nil {
+		healthCheckObj.FailedCheckThreshold = healthCheckMap["failed_check_threshold"].(int)
+	}
+	if healthCheckMap["http_method_id"] != nil {
+		healthCheckObj.HTTPMethodID = healthCheckMap["http_method_id"].(int)
+	}
+	if healthCheckMap["ip_address"] != nil {
+		healthCheckObj.IPAddress = healthCheckMap["ip_address"].(string)
+	}
+	if healthCheckMap["ip_version"] != nil {
+		healthCheckObj.IPVersion = healthCheckMap["ip_version"].(int)
+	}
+	if healthCheckMap["port_number"] != nil {
+		healthCheckObj.PortNumber = healthCheckMap["port_number"].(int)
+	}
+	if healthCheckMap["reintegration_method_id"] != nil {
+		methodID := healthCheckMap["reintegration_method_id"].(int)
+		healthCheckObj.ReintegrationMethodID = methodID
+	}
+	if healthCheckMap["status"] != nil {
+		healthCheckObj.Status = healthCheckMap["status"].(int)
+	}
+	if healthCheckMap["status_name"] != nil {
+		healthCheckObj.StatusName = healthCheckMap["status_name"].(string)
+	}
+	if healthCheckMap["uri"] != nil {
+		healthCheckObj.Uri = healthCheckMap["uri"].(string)
+	}
+	if healthCheckMap["timeout"] != nil {
+		healthCheckObj.Timeout = healthCheckMap["timeout"].(int)
+	}
+
+	return &healthCheckObj, nil
 }
 
-func toDNSRouteZoneRecord(items *[]interface{}, weight int) (*api.DNSRecord, error) {
+func expandDNSRouteZoneRecord(
+	items *[]interface{},
+	weight int,
+	toDelete bool,
+) (*routedns.DNSRecord, error) {
 	if *items != nil && len(*items) > 0 {
 		for _, element := range *items {
 			item := element.(map[string]interface{})
-			record := api.DNSRecord{
-				FixedRecordID:  item["fixed_record_id"].(int),
-				FixedGroupID:   item["fixed_group_id"].(int),
-				RecordID:       item["record_id"].(int),
-				Weight:         weight,
-				RecordTypeID:   item["record_type_id"].(int),
+			record := routedns.DNSRecord{
+				FixedRecordID: item["fixed_record_id"].(int),
+				FixedGroupID:  item["fixed_group_id"].(int),
+				RecordID:      item["record_id"].(int),
+				Weight:        weight,
+				RecordTypeID: routedns.RecordType(
+					item["record_type_id"].(int)),
 				RecordTypeName: item["record_type_name"].(string),
 				GroupID:        item["group_id"].(int),
-				IsDeleted:      item["is_delete"].(bool),
+				IsDeleted:      toDelete,
 				Name:           item["name"].(string),
 				TTL:            item["ttl"].(int),
 				Rdata:          item["rdata"].(string),
@@ -2417,12 +1294,9 @@ func toDNSRouteZoneRecord(items *[]interface{}, weight int) (*api.DNSRecord, err
 	return nil, nil
 }
 
-//end 1.____________________________________________________________________________________
-
-//2. flatten[func]s are used to save Zone State from API READ API reponse
-func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
+func flattenDNSRecords(recordItems *[]routedns.DNSRecord) []interface{} {
 	if *recordItems != nil && len(*recordItems) > 0 {
-		dnsRecords := make([]interface{}, len(*recordItems), len(*recordItems))
+		dnsRecords := make([]interface{}, len(*recordItems))
 
 		for i, dns := range *recordItems {
 			item := make(map[string]interface{})
@@ -2437,6 +1311,7 @@ func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
 			item["ttl"] = dns.TTL
 			item["rdata"] = dns.Rdata
 			item["verify_id"] = dns.VerifyID
+			item["record_id"] = dns.RecordID
 
 			dnsRecords[i] = item
 		}
@@ -2445,33 +1320,34 @@ func flattenDnsRecords(recordItems *[]api.DNSRecord) []interface{} {
 	return nil
 }
 
-func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
+func flattenDNSGroups(groupItems *[]routedns.DnsRouteGroupOK) []interface{} {
 	if *groupItems != nil && len(*groupItems) > 0 {
-		groupArr := make([]interface{}, len(*groupItems), len(*groupItems))
+		groupArr := make([]interface{}, len(*groupItems))
 
 		for i, group := range *groupItems {
 			item := make(map[string]interface{})
 
+			// Setting ID to GroupID as the API only cares about GroupID
+			item["id"] = group.GroupID
 			item["group_id"] = group.GroupID
-			item["id"] = group.ID
 			item["fixed_group_id"] = group.FixedGroupID
 			item["fixed_zone_id"] = group.FixedZoneID
-			item["group_product_type_id"] = group.GroupProductTypeID
-			if group.GroupProductTypeID == api.GroupProductType_Failover {
+			item["group_product_type_id"] = group.GroupProductType
+			if group.GroupProductType == routedns.Failover {
 				item["group_product_type"] = "failover"
-			} else if group.GroupProductTypeID == api.GroupProductType_LoadBalancing {
+			} else if group.GroupProductType == routedns.LoadBalancing {
 				item["group_product_type"] = "loadbalancing"
 			}
 			item["group_type_id"] = group.GroupTypeID
-			if group.GroupTypeID == api.GroupType_Zone {
+			if group.GroupTypeID == routedns.PrimaryZone {
 				item["group_type"] = "zone"
 			}
 			item["name"] = group.Name
-			item["zone_id"] = group.ZoneId
+			item["zone_id"] = group.ZoneID
 
 			item["a"] = flattenGroupDNSs(&group.GroupComposition.A)
 			item["aaaa"] = flattenGroupDNSs(&group.GroupComposition.AAAA)
-			item["cname"] = flattenGroupDNSs(&group.GroupComposition.CName)
+			item["cname"] = flattenGroupDNSs(&group.GroupComposition.CNAME)
 
 			groupArr[i] = item
 		}
@@ -2480,17 +1356,16 @@ func flattenDnsGroups(groupItems *[]api.DnsRouteGroup) []interface{} {
 	return nil
 }
 
-func flattenGroupDNSs(dnsItems *[]api.DnsRouteGroupRecord) []interface{} {
+func flattenGroupDNSs(dnsItems *[]routedns.DNSGroupRecord) []interface{} {
 	if *dnsItems != nil && len(*dnsItems) > 0 {
 
-		dnsArr := make([]interface{}, len(*dnsItems), len(*dnsItems))
+		dnsArr := make([]interface{}, len(*dnsItems))
 
 		for i, dns := range *dnsItems {
 			item := make(map[string]interface{})
 
 			item["weight"] = dns.Record.Weight
-			//item["id"] = dns.ID
-			record := flattenGroupDnsRecord(&dns.Record)
+			record := flattenGroupDNSRecord(&dns.Record)
 
 			if record != nil {
 				item["record"] = record
@@ -2509,9 +1384,9 @@ func flattenGroupDNSs(dnsItems *[]api.DnsRouteGroupRecord) []interface{} {
 	return nil
 }
 
-func flattenGroupDnsRecord(dns *api.DNSRecord) []interface{} {
-	if dns != nil && (*dns != api.DNSRecord{}) {
-		record := make([]interface{}, 1, 1)
+func flattenGroupDNSRecord(dns *routedns.DNSRecord) []interface{} {
+	if dns != nil && (*dns != routedns.DNSRecord{}) {
+		record := make([]interface{}, 1)
 		m := make(map[string]interface{})
 		m["fixed_record_id"] = dns.FixedRecordID
 		m["fixed_group_id"] = dns.FixedGroupID
@@ -2531,9 +1406,9 @@ func flattenGroupDnsRecord(dns *api.DNSRecord) []interface{} {
 	return nil
 }
 
-func flattenHealthCheck(hc *api.HealthCheck) []interface{} {
-	if hc != nil && (*hc != api.HealthCheck{}) {
-		record := make([]interface{}, 1, 1)
+func flattenHealthCheck(hc *routedns.HealthCheck) interface{} {
+	if hc != nil && (*hc != routedns.HealthCheck{}) {
+		record := make([]interface{}, 1)
 		healthCheck := make(map[string]interface{})
 
 		healthCheck["check_interval"] = hc.CheckInterval
@@ -2542,7 +1417,6 @@ func flattenHealthCheck(hc *api.HealthCheck) []interface{} {
 		healthCheck["email_notification_address"] = hc.EmailNotificationAddress
 		healthCheck["failed_check_threshold"] = hc.FailedCheckThreshold
 		healthCheck["fixed_id"] = hc.FixedID
-		//healthCheck["fixed_group_id"] = hc.FixedGroupID
 		healthCheck["fixed_record_id"] = hc.FixedRecordID
 		healthCheck["group_id"] = hc.GroupID
 		healthCheck["id"] = hc.ID
@@ -2554,283 +1428,11 @@ func flattenHealthCheck(hc *api.HealthCheck) []interface{} {
 		healthCheck["reintegration_method_id"] = hc.ReintegrationMethodID
 		healthCheck["status"] = hc.Status
 		healthCheck["status_name"] = hc.StatusName
-		healthCheck["timeout"] = hc.TimeOut
+		healthCheck["timeout"] = hc.Timeout
 		healthCheck["uri"] = hc.Uri
-		//healthCheck["user_id"] = hc.UserID
-		//healthCheck[""] = hc.WhiteListedHc
 
 		record[0] = healthCheck
 		return record
 	}
 	return nil
-}
-
-//end 2.____________________________________________________________________________________
-
-/*
-	When terraform tracks state of zone, following bug exists:
-	Scenario: two failover groups and a loadbalancing group
-	Initial state:
-	fo1: id=1 A[{firstA[id=1], content{computedid=1, dataFromResource=1}}, {secondA[id=2],content{computedid=2, dataFromResource=2}}]
-	fo2: id=2 A[{firstA[id=3], content{computedid=3, dataFromResource=3}}, {secondA[id=4],content{computedid=4, dataFromResource=4}}]
-	lb1: id=3 A[{firstA[id=5], content{computedid=5, dataFromResource=5}}, {secondA[id=6],content{computedid=6, dataFromResource=6}}]
-	When fo2 group was removed, following unexpected result was recorded in tfstate.
-	TFState:
-	fo1: id=1 A[{firstA[id=1], content{computedid=1, dataFromResource=1}}, {secondA[id=2],content{computedid=2, dataFromResource=2}}]
-	fo2: id=2 A[{firstA[id=3], content{computedid=3, dataFromResource=5}}, {secondA[id=4],content{computedid=4, dataFromResource=6}}]
-
-	Note that even though fo2 was deleted, lb1 was gone but its dataFromResource exists in fo2.
-
-	So,
-	1. if the number of groups in the resource file  == the number of groups from API
-	   => normal update operation
-	2. otherwise,
-	   => delete all existing groups in db and create new groups from resource file
-*/
-func updateIds(local *api.Zone, remote *api.Zone) {
-	if local == nil || remote == nil {
-		return
-	}
-	local.StatusName = remote.StatusName
-	records := applyDnsReordChanges(local.Records.A, remote.Records.A)
-	remote.Records.A = records
-	records = applyDnsReordChanges(local.Records.AAAA, remote.Records.AAAA)
-	remote.Records.AAAA = records
-	records = applyDnsReordChanges(local.Records.CName, remote.Records.CName)
-	remote.Records.CName = records
-	records = applyDnsReordChanges(local.Records.CAA, remote.Records.CAA)
-	remote.Records.CAA = records
-	records = applyDnsReordChanges(local.Records.DLV, remote.Records.DLV)
-	remote.Records.DLV = records
-	records = applyDnsReordChanges(local.Records.DNSKEY, remote.Records.DNSKEY)
-	remote.Records.DNSKEY = records
-	records = applyDnsReordChanges(local.Records.DS, remote.Records.DS)
-	remote.Records.DS = records
-	records = applyDnsReordChanges(local.Records.MX, remote.Records.MX)
-	remote.Records.MX = records
-	records = applyDnsReordChanges(local.Records.NS, remote.Records.NS)
-	remote.Records.NS = records
-	records = applyDnsReordChanges(local.Records.NSEC, remote.Records.NSEC)
-	remote.Records.NSEC = records
-	records = applyDnsReordChanges(local.Records.NSEC3, remote.Records.NSEC3)
-	remote.Records.NSEC3 = records
-	records = applyDnsReordChanges(local.Records.NSEC3PARAM, remote.Records.NSEC3PARAM)
-	remote.Records.NSEC3PARAM = records
-	records = applyDnsReordChanges(local.Records.PTR, remote.Records.PTR)
-	remote.Records.PTR = records
-	records = applyDnsReordChanges(local.Records.RRSIG, remote.Records.RRSIG)
-	remote.Records.RRSIG = records
-	records = applyDnsReordChanges(local.Records.SOA, remote.Records.SOA)
-	remote.Records.SOA = records
-	records = applyDnsReordChanges(local.Records.SPF, remote.Records.SPF)
-	remote.Records.SPF = records
-	records = applyDnsReordChanges(local.Records.SRV, remote.Records.SRV)
-	remote.Records.SRV = records
-	records = applyDnsReordChanges(local.Records.TXT, remote.Records.TXT)
-	remote.Records.TXT = records
-
-	//GROUP-------------------------------------------------------
-	if local.Groups == nil || len(local.Groups) == 0 {
-		// if db has records but update one has empty, delete db records
-		for i := 0; i < len(remote.Groups); i++ {
-			markItAsDeleted(remote.Groups[i].GroupComposition.A)
-			markItAsDeleted(remote.Groups[i].GroupComposition.AAAA)
-			markItAsDeleted(remote.Groups[i].GroupComposition.CName)
-		}
-	} else if remote.Groups == nil || len(remote.Groups) == 0 {
-		// if db doesn't have anything...
-		remote.Groups = append(remote.Groups, local.Groups...)
-	} else {
-		// else both local and remote has groups.
-		// 1. if found the same group, copy content from update-ones to db values
-		if len(local.Groups) != len(remote.Groups) {
-			swapGroupsFromLocalToRemote(remote, local)
-		} else {
-			for i := 0; i < len(local.Groups); i++ {
-				for j := 0; j < len(remote.Groups); j++ {
-					if local.Groups[i].FixedGroupID == remote.Groups[j].FixedGroupID {
-						copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.A, remote.Groups[j].GroupComposition.A)
-						copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.AAAA, remote.Groups[j].GroupComposition.AAAA)
-						copyDnsRouteGroupRecordAllIDs(local.Groups[i].GroupComposition.CName, remote.Groups[j].GroupComposition.CName)
-						break
-					}
-				}
-			}
-		}
-	}
-}
-
-func applyDnsReordChanges(local []api.DNSRecord, remote []api.DNSRecord) []api.DNSRecord {
-
-	// modify
-	for i := 0; i < len(remote); i++ {
-
-	}
-	for i, a1 := range remote {
-		for j, a2 := range local {
-			if a1.Name == a2.Name {
-				a1 = copyDnsRecordContent(&remote[i], &local[j])
-				break
-			}
-		}
-	}
-
-	// delete
-	for i, _ := range remote {
-		isDeleted := true
-		for j, _ := range local {
-			if remote[i].Name == local[j].Name {
-
-				isDeleted = false
-				remote[i].IsDeleted = false
-				break
-			}
-		}
-		if isDeleted {
-			remote[i].IsDeleted = true
-		}
-	}
-
-	// add
-	addList := make([]api.DNSRecord, len(local))
-	i := 0
-	for _, a1 := range local {
-		isFound := false
-		for _, a2 := range remote {
-			if a1.Name == a2.Name {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			addList[i] = a1
-			i++
-		}
-	}
-	if i > 0 {
-		addList = addList[:i]
-		remote = append(remote, addList...)
-	}
-	return remote
-}
-
-func markItAsDeleted(dnsArr []api.DnsRouteGroupRecord) {
-	if dnsArr != nil && len(dnsArr) > 0 {
-		for i := 0; i < len(dnsArr); i++ {
-			dnsArr[i].Record.IsDeleted = true
-		}
-	}
-}
-
-func swapGroupsFromLocalToRemote(remote *api.Zone, local *api.Zone) {
-	for i := 0; i < len(remote.Groups); i++ {
-		if len(remote.Groups[i].GroupComposition.A) > 0 {
-			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
-				remote.Groups[i].GroupComposition.A[j].Record.IsDeleted = true
-			}
-		}
-		if len(remote.Groups[i].GroupComposition.AAAA) > 0 {
-			for j := 0; j < len(remote.Groups[i].GroupComposition.A); j++ {
-				remote.Groups[i].GroupComposition.AAAA[j].Record.IsDeleted = true
-			}
-		}
-		if len(remote.Groups[i].GroupComposition.CName) > 0 {
-			for j := 0; j < len(remote.Groups[i].GroupComposition.CName); j++ {
-				remote.Groups[i].GroupComposition.CName[j].Record.IsDeleted = true
-			}
-		}
-	}
-
-	for i := 0; i < len(local.Groups); i++ {
-		local.Groups[i].FixedGroupID = 0
-		local.Groups[i].FixedZoneID = 0
-		local.Groups[i].GroupID = 0
-		if len(local.Groups[i].GroupComposition.A) > 0 {
-			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
-				local.Groups[i].GroupComposition.A[j].Record.FixedGroupID = 0
-				local.Groups[i].GroupComposition.A[j].Record.FixedRecordID = 0
-				local.Groups[i].GroupComposition.A[j].Record.RecordID = 0
-			}
-		}
-		if len(local.Groups[i].GroupComposition.AAAA) > 0 {
-			for j := 0; j < len(local.Groups[i].GroupComposition.A); j++ {
-				local.Groups[i].GroupComposition.AAAA[j].Record.FixedGroupID = 0
-				local.Groups[i].GroupComposition.AAAA[j].Record.FixedRecordID = 0
-				local.Groups[i].GroupComposition.AAAA[j].Record.RecordID = 0
-			}
-		}
-		if len(local.Groups[i].GroupComposition.CName) > 0 {
-			for j := 0; j < len(local.Groups[i].GroupComposition.CName); j++ {
-				local.Groups[i].GroupComposition.CName[j].Record.FixedGroupID = 0
-				local.Groups[i].GroupComposition.CName[j].Record.FixedRecordID = 0
-				local.Groups[i].GroupComposition.CName[j].Record.RecordID = 0
-			}
-		}
-	}
-	remote.Groups = append(remote.Groups, local.Groups...)
-}
-
-func copyDnsRouteGroupRecordAllIDs(from []api.DnsRouteGroupRecord, to []api.DnsRouteGroupRecord) []api.DnsRouteGroupRecord {
-	// modify
-	for i := 0; i < len(to); i++ {
-		for j := 0; j < len(from); j++ {
-			if to[i].Record.RecordID == from[j].Record.RecordID {
-				to[i].Record = copyDnsRecordContent(&to[i].Record, &from[j].Record)
-				if to[i].HealthCheck != nil && from[j].HealthCheck != nil {
-					copyHealthCheckIDs(to[i].HealthCheck, from[j].HealthCheck)
-				} else if from[i].HealthCheck != nil {
-					to[i].HealthCheck = from[j].HealthCheck
-				}
-
-				break
-			}
-		}
-	}
-	// delete
-	for i := 0; i < len(to); i++ {
-		isDelete := true
-		for j := 0; j < len(from); j++ {
-			if to[i].Record.RecordID == from[j].Record.RecordID {
-				to[i].Record.IsDeleted = false
-				isDelete = false
-				break
-			}
-		}
-		if isDelete {
-			to[i].Record.IsDeleted = true
-		}
-	}
-
-	// add
-	for _, a1 := range from {
-		isFound := false
-		for _, a2 := range to {
-			if a1.Record.RecordID == a2.Record.RecordID {
-				isFound = true
-				break
-			}
-		}
-		if !isFound {
-			to = append(to, a1)
-		}
-	}
-
-	return to
-}
-
-func copyDnsRecordContent(a1 *api.DNSRecord, a2 *api.DNSRecord) api.DNSRecord {
-	a1.Weight = a2.Weight
-	a1.Rdata = a2.Rdata
-	a1.TTL = a2.TTL
-	a1.Name = a2.Name
-	return *a1
-}
-
-func copyHealthCheckIDs(hc1 *api.HealthCheck, hc2 *api.HealthCheck) {
-	if hc1 == nil {
-		hc1 = hc2
-	} else if hc1 != nil && hc2 != nil {
-		hc1.PortNumber = hc2.PortNumber
-		hc1.TimeOut = hc2.TimeOut
-	}
 }

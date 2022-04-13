@@ -299,6 +299,7 @@ func ResourceAccessRuleCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	accountNumber := d.Get("account_number").(string)
 	accessRule, diags := ExpandAccessRule(d)
 
 	if len(diags) > 0 {
@@ -315,10 +316,14 @@ func ResourceAccessRuleCreate(
 	wafService, err := buildWAFService(**config)
 
 	if err != nil {
+		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.AddAccessRule(accessRule)
+	params := sdkwaf.NewAddAccessRuleParams()
+	params.AccountNumber = accountNumber
+	params.AccessRule = accessRule
+	resp, err := wafService.AddAccessRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -326,7 +331,8 @@ func ResourceAccessRuleCreate(
 	}
 
 	log.Printf("[INFO] Successfully created WAF Access Rule: %+v", resp)
-	d.SetId(resp.ID)
+	d.SetId(resp)
+
 	return ResourceAccessRuleRead(ctx, d, m)
 }
 
@@ -352,7 +358,10 @@ func ResourceAccessRuleRead(
 		ruleID,
 		accountNumber)
 
-	resp, err := wafService.GetAccessRuleByID(accountNumber, ruleID)
+	params := sdkwaf.NewGetAccessRuleParams()
+	params.AccessRuleID = ruleID
+	params.AccountNumber = accountNumber
+	resp, err := wafService.GetAccessRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -393,11 +402,10 @@ func ResourceAccessRuleUpdate(
 	m interface{},
 ) diag.Diagnostics {
 	ruleID := d.Id()
-
+	accountNumber := d.Get("account_number").(string)
 	accessRule, diags := ExpandAccessRule(d)
 
 	if len(diags) > 0 {
-		d.SetId("")
 		return diags
 	}
 
@@ -414,14 +422,17 @@ func ResourceAccessRuleUpdate(
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.UpdateAccessRule(accessRule, ruleID)
+	params := sdkwaf.NewUpdateAccessRuleParams()
+	params.AccountNumber = accountNumber
+	params.AccessRuleID = ruleID
+	params.AccessRule = accessRule
+	err = wafService.UpdateAccessRule(params)
 
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully updated WAF Access Rule: %+v", resp)
+	log.Printf("[INFO] Successfully updated WAF Access Rule: %+v", ruleID)
 
 	return ResourceAccessRuleRead(ctx, d, m)
 }
@@ -447,7 +458,10 @@ func ResourceAccessRuleDelete(
 		return diag.FromErr(err)
 	}
 
-	resp, err := wafService.DeleteAccessRuleByID(accountNumber, ruleID)
+	params := sdkwaf.NewDeleteAccessRuleParams()
+	params.AccountNumber = accountNumber
+	params.AccessRuleID = ruleID
+	err = wafService.DeleteAccessRule(params)
 
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -455,16 +469,7 @@ func ResourceAccessRuleDelete(
 			Summary:  fmt.Sprintf("Error Deleting Access Rule %s", ruleID),
 			Detail:   err.Error(),
 		})
-	}
-	if !resp.Success || len(resp.Errors) > 0 {
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("Error Deleting Access Rule %s", ruleID),
-			Detail: fmt.Sprintf(
-				"Status Code:%s, Msg: %s",
-				resp.Errors[0].Code,
-				resp.Errors[0].Message),
-		})
+		return diags
 	}
 
 	d.SetId("")
