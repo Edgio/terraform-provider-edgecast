@@ -1,0 +1,22 @@
+{
+    "description": "This is a test policy of PolicyCreate.",
+    "platform": "http_large",
+    "rules": [
+        {
+            "name": "Deny POST",
+            "description": "Deny POST updated description twice.",
+            "matches": [
+                {
+                    "type": "match.request.request-method.literal",
+                    "value" : "POST",
+                    "features": [
+                        {
+                            "type": "feature.access.deny-access",
+                            "enabled": "true"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
