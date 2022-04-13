@@ -43,3 +43,6 @@ feature. For example, all WAF resources lie within `ec/resources/waf`.
 Ultimately, these are referenced in `ec/provider.go`. Each Resource's CRUD 
 function has the provider configuration injected into it via the `m interface{}` 
 parameter.
+
+### Provider Diagram
+![Provider Diagram](docs/terraform-provider-edgecast_architecture.png)
