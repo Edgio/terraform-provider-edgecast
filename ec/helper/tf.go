@@ -173,7 +173,7 @@ func ConvertToStringMapPointer(v interface{}, excludeEmpty bool) *map[string]str
 	return nil
 }
 
-// StringIsNotEmptyJSON is a SchemaValidateFunc which tests to make sure the
+// StringIsNotEmptyJSON is a SchemaValidateFunc which defaults to make sure the
 // supplied string is not an empty JSON object i.e. "{}"
 func StringIsNotEmptyJSON(
 	i interface{},
@@ -205,7 +205,7 @@ func StringIsNotEmptyJSON(
 }
 
 // dummySetFunc is to be used when imitating Terraform
-// in unit tests by using schema.NewSet
+// in unit defaults by using schema.NewSet
 func dummySetFunc(i interface{}) int {
 	return random.Random(math.MinInt32, math.MaxInt32)
 }

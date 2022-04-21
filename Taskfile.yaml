@@ -1,0 +1,14 @@
+# https://taskfile.dev
+
+version: '3'
+
+includes:
+  test:
+    taskfile: ./test/integration/Taskfile.yaml
+    dir: ./test/integration
+
+
+tasks:
+  default:
+    cmds:
+      - task test:default

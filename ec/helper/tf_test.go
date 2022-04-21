@@ -569,7 +569,7 @@ func TestConvertToStringMapPointer(t *testing.T) {
 }
 
 // dummySetFunc is to be used when imitating Terraform
-// in unit tests by using schema.NewSet
+// in unit defaults by using schema.NewSet
 func dummySetFunc(i interface{}) int {
 	return random.Random(math.MinInt32, math.MaxInt32)
 }

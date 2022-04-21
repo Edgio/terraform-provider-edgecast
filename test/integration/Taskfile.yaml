@@ -1,0 +1,86 @@
+# https://taskfile.dev
+
+version: '3'
+
+dotenv: ['.env']
+
+includes:
+  customer:
+    taskfile: ./resources/ec_customer_user/Taskfile.yaml
+    dir: ./resources/ec_customer_user
+
+  customer_user:
+    taskfile: ./resources/ec_customer_user/Taskfile.yaml
+    dir: ./resources/ec_customer_user
+
+  dns_group:
+    taskfile: ./resources/ec_dns_group/Taskfile.yaml
+    dir: ./resources/ec_dns_group
+
+  dns_masterservergroup:
+    taskfile: ./resources/ec_dns_masterservergroup/Taskfile.yaml
+    dir: ./resources/ec_dns_masterservergroup
+
+  dns_secondaryzonegroup:
+    taskfile: ./resources/ec_dns_secondaryzonegroup/Taskfile.yaml
+    dir: ./resources/ec_dns_secondaryzonegroup
+
+  dns_tsig:
+    taskfile: ./resources/ec_dns_tsig/Taskfile.yaml
+    dir: ./resources/ec_dns_tsig
+
+  dns_zone:
+    taskfile: ./resources/ec_dns_zone/Taskfile.yaml
+    dir: ./resources/ec_dns_zone
+
+  edgecname:
+    taskfile: ./resources/ec_edgecname/Taskfile.yaml
+    dir: ./resources/ec_edgecname
+
+  origin:
+    taskfile: ./resources/ec_origin/Taskfile.yaml
+    dir: ./resources/ec_origin
+
+  rules_engine_policy:
+    taskfile: ./resources/ec_rules_engine_policy/Taskfile.yaml
+    dir: ./resources/ec_rules_engine_policy
+
+  waf_access_rule:
+    taskfile: ./resources/ec_waf_access_rule/Taskfile.yaml
+    dir: ./resources/ec_waf_access_rule
+
+  waf_custom_rule_set:
+    taskfile: ./resources/ec_waf_custom_rule_set/Taskfile.yaml
+    dir: ./resources/ec_waf_custom_rule_set
+
+  waf_managed_rule:
+    taskfile: ./resources/ec_waf_managed_rule/Taskfile.yaml
+    dir: ./resources/ec_waf_managed_rule
+
+  waf_scopes:
+    taskfile: ./resources/ec_waf_scopes/Taskfile.yaml
+    dir: ./resources/ec_waf_scopes
+
+  waf_rate_rule:
+    taskfile: ./resources/ec_waf_rate_rule/Taskfile.yaml
+    dir: ./resources/ec_waf_rate_rule
+
+tasks:
+  default:
+    cmds:
+      #- terraform test
+      - task: customer_user:default
+      - task: dns_group:default
+      - task: dns_masterservergroup:default
+      - task: dns_secondaryzonegroup:default
+      - task: dns_tsig:default
+      - task: dns_zone:default
+      - task: edgecname:default
+      - task: origin:default
+      - task: rules_engine_policy:default
+      - task: waf_access_rule:default
+      - task: waf_custom_rule_set:default
+      - task: waf_managed_rule:default
+      - task: waf_rate_rule:default
+      - task: waf_scopes:default
+
