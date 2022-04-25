@@ -3,19 +3,12 @@
 version: '3'
 
 silent: true
-env:
-  API_TOKEN:
-  IDS_CLIENT_SECRET:
-  IDS_CLIENT_ID:
-  IDS_SCOPE:
-  API_ADDRESS:
-  API_ADDRESS_LEGACY:
-  IDS_ADDRESS:
 
 tasks:
   create:
     cmds:
       - cp create.tf.step resource.tf
+
   update:
     cmds:
       - cp update.tf.step resource.tf
@@ -23,15 +16,16 @@ tasks:
   clean:
     cmds:
       - rm -f resource.tf
+
   default:
     cmds:
       - task: clean
       - terraform init
       - task: create
       - terraform validate
-      - terraform plan -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+      - terraform $MODE -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
       - task: update
-      - terraform plan -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+      - terraform $MODE -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
       - terraform apply -auto-approve -destroy -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
       - task: clean
 

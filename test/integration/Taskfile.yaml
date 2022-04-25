@@ -2,6 +2,8 @@
 
 version: '3'
 
+env:
+  MODE: plan
 
 includes:
   customer:
@@ -67,7 +69,7 @@ includes:
 tasks:
   default:
     cmds:
-      #- terraform test
+      - task: customer:default
       - task: customer_user:default
       - task: dns_group:default
       - task: dns_masterservergroup:default
