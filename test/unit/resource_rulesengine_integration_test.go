@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"terraform-provider-edgecast/unit-tests/model"
+	"terraform-provider-edgecast/test/unit/model"
 	"testing"
 
 	"github.com/google/uuid"
