@@ -69,17 +69,9 @@ Refer to the "Testing Your Local Code" section of the [readme](README.md).
 
 ### Debugging
 Debugging Terraform code is a bit more complicated than just clicking Run and 
-Debug in VS Code. You must start the debugger and have it listen before running
-terraform.
-
-1. Create a launch.json profile to run `go` with the `debug` flag
-2. Start a `delve` session
-3. Set the `TF_REATTACH_PROVIDERS` environment variable using the output of the
-`delve` command.
-4. Run `terraform` as usual.
-
+Debug in VS Code. 
 Please carefully read through 
-[Hashicorp's article on debugging](https://www.terraform.io/plugin/sdkv2/debugging)
+[Hashicorp's article on debugging](https://www.terraform.io/plugin/debugging#visual-studio-code)
 as these instructions may change.
 
 ### Default Environment Configuration
