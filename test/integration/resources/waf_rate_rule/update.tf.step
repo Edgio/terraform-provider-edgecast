@@ -17,7 +17,7 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
       op {
         is_case_insensitive = false
         is_negated          = false
-        type                = "IPMATCH"                  # only use op.type=IPMATCH when target.type=REMOTE_ADDR
+        type                = "IPMATCH"                               # only use op.type=IPMATCH when target.type=REMOTE_ADDR
         values              = ["10.10.2.3", "10.10.2.4", "10.10.2.5"] # values array property is required when op.type=EM or op.type=IPMATCH
       }
     }
@@ -48,7 +48,7 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
       }
     }
   }
-  
+
   condition_group {
     name = "Group 2"
 

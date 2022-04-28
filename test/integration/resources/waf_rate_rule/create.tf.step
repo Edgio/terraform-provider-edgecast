@@ -48,7 +48,7 @@ resource "ec_waf_rate_rule" "rate_rule_1" {
       }
     }
   }
-  
+
   condition_group {
     name = "Group 2"
 
