@@ -1,19 +1,22 @@
 # https://taskfile.dev
-
 version: '3'
 
+
 output: prefixed
+
 
 env:
   MODE: plan
 
+
 vars:
   CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+
 
 includes:
   customer:
     taskfile: Integration.Taskfile.yaml
-    dir: ./resources/customer_user
+    dir: resources/customer_user
 
   customer_user:
     taskfile: Integration.Taskfile.yaml
@@ -67,19 +70,16 @@ includes:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_scopes
     vars:
-      ACCOUNT_NUMBER: -var "account_number=\"$ACCOUNT_NUMBER\""
-
+      ACCOUNT_NUMBER: -var account_number="$ACCOUNT_NUMBER"
 
   waf_rate_rule:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_rate_rule
 
-tasks:
-  test:
-    cmds:
-      - task: waf_scopes:account_number
 
-  default:
+tasks:
+  run:
+    desc: "run will execute the entire integration test suite"
     cmds:
       - task: customer:default
       - task: customer_user:default
@@ -97,3 +97,6 @@ tasks:
       - task: waf_rate_rule:default
       - task: waf_scopes:default
 
+  default:
+    cmds:
+      - task: run

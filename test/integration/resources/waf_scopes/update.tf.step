@@ -98,5 +98,4 @@ resource "ec_waf_scopes" "scopes1" {
       valid_for_sec = 60
     }
   }
-
 }
