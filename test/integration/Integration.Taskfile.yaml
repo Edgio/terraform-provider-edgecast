@@ -1,0 +1,18 @@
+# https://taskfile.dev
+
+version: '3'
+
+silent: true
+
+tasks:
+  default:
+    cmds:
+      - defer: rm -f resource.tf
+      - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT_NUMBER}}
+      - rm -f resource.tf
+      - terraform init
+      - cp create.tf.step resource.tf
+      - terraform validate
+      - terraform $MODE {{.CREDS}} {{.ACCOUNT_NUMBER}}
+      - cp update.tf.step resource.tf
+      - terraform $MODE {{.CREDS}} {{.ACCOUNT_NUMBER}}

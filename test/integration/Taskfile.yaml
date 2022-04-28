@@ -2,71 +2,83 @@
 
 version: '3'
 
+output: prefixed
+
 env:
   MODE: plan
 
+vars:
+  CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+
 includes:
   customer:
-    taskfile: ./resources/customer_user/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/customer_user
 
   customer_user:
-    taskfile: ./resources/customer_user/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/customer_user
 
   dns_group:
-    taskfile: ./resources/dns_group/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/dns_group
 
   dns_masterservergroup:
-    taskfile: ./resources/dns_masterservergroup/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/dns_masterservergroup
 
   dns_secondaryzonegroup:
-    taskfile: ./resources/dns_secondaryzonegroup/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/dns_secondaryzonegroup
 
   dns_tsig:
-    taskfile: ./resources/dns_tsig/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/dns_tsig
 
   dns_zone:
-    taskfile: ./resources/dns_zone/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/dns_zone
 
   edgecname:
-    taskfile: ./resources/edgecname/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/edgecname
 
   origin:
-    taskfile: ./resources/origin/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/origin
 
   rules_engine_policy:
-    taskfile: ./resources/rules_engine_policy/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/rules_engine_policy
 
   waf_access_rule:
-    taskfile: ./resources/waf_access_rule/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_access_rule
 
   waf_custom_rule_set:
-    taskfile: ./resources/waf_custom_rule_set/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_custom_rule_set
 
   waf_managed_rule:
-    taskfile: ./resources/waf_managed_rule/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_managed_rule
 
   waf_scopes:
-    taskfile: ./resources/waf_scopes/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_scopes
+    vars:
+      ACCOUNT_NUMBER: -var "account_number=\"$ACCOUNT_NUMBER\""
+
 
   waf_rate_rule:
-    taskfile: ./resources/waf_rate_rule/Taskfile.yaml
+    taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_rate_rule
 
 tasks:
+  test:
+    cmds:
+      - task: waf_scopes:account_number
+
   default:
     cmds:
       - task: customer:default
