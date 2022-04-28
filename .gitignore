@@ -30,3 +30,4 @@ unit-tests/**/credential_ucc.json
 docs_current/
 
 .idea
+.env

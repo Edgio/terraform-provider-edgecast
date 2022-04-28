@@ -10,7 +10,7 @@ env:
 
 
 vars:
-  CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+  CREDS: -var 'credentials={"api_token":"$API_TOKEN","ids_client_secret":"$IDS_CLIENT_SECRET","ids_client_id":"$IDS_CLIENT_ID","ids_scope":"$IDS_SCOPE","api_address":"$API_ADDRESS","api_address_legacy":"$API_ADDRESS_LEGACY","ids_address":"$IDS_ADDRESS"}'
 
 
 includes:
@@ -66,15 +66,13 @@ includes:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_managed_rule
 
-  waf_scopes:
-    taskfile: Integration.Taskfile.yaml
-    dir: ./resources/waf_scopes
-    vars:
-      ACCOUNT_NUMBER: -var account_number="$ACCOUNT_NUMBER"
-
   waf_rate_rule:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_rate_rule
+
+  waf_scopes:
+    dir: ./resources/waf_scopes
+    taskfile: Integration.Taskfile.yaml
 
 
 tasks:
@@ -96,6 +94,8 @@ tasks:
       - task: waf_managed_rule:default
       - task: waf_rate_rule:default
       - task: waf_scopes:default
+        vars:
+          ACCOUNT_NUMBER: -var 'account_number="$ACCOUNT_NUMBER"'
 
   default:
     cmds:
