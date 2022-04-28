@@ -1,7 +1,25 @@
 # Integration Tests
 
+## Configuration
+You can specify the environment you wish to run the tests against by specifying configuration values in the `.env` in the root of this project. 
+
+
+```bash
+  ACCOUNT_NUMBER      = ""
+  
+  API_ADDRESS         = ""
+  API_ADDRESS_LEGACY  = ""
+  API_TOKEN           = ""
+  
+  IDS_ADDRESS         = ""
+  IDS_CLIENT_ID       = ""
+  IDS_CLIENT_SECRET   = ""
+  IDS_SCOPE           = ""
+
+```
+
 ## Usage
-Integration tests are run with the following command in the `test/integration` directory:
+Integration tests are run with the following command in the root directory of the project:
 
 ```
 task
@@ -15,7 +33,7 @@ These are the steps for adding a new test to the integration test suite.
 
 #### Creating the test directory
 
-Create a directory for the resource you wish to test within the `resources` directory. 
+Create a directory for the resource you wish to test within the `/test/integration/resources` directory. 
 
 ```shell
 $ ls -l resources
@@ -77,7 +95,7 @@ Within the newly-created directory, perform the following steps:
     }
 
    ```
-_an example of a typical `main.tf`, you can find more examples within the `/examples` directory._ 
+_An example of a typical `main.tf`, you can find more examples within the `/examples` directory._ 
 
 If applicable include an `outputs.tf` file declaring any expected output values, for example:
 ```terraform
@@ -97,7 +115,7 @@ If applicable include an `outputs.tf` file declaring any expected output values,
       algorithm_name = "HMAC-SHA512"
     }
 ```
-_a `create.tf.step` file for `dns_tsig`._
+_A `create.tf.step` file for `dns_tsig`._
 
 
 3. **Include Update Step**: create an `update.tf.step` file. This should contain an updated state of the resource, for example:
@@ -110,7 +128,7 @@ _a `create.tf.step` file for `dns_tsig`._
       algorithm_name = "HMAC-SHA512"
     }
 ```
-_an `updated.tf.step` file for `dns_tsig`._
+_An `updated.tf.step` file for `dns_tsig`._
 
 4. **Include test into the integration test suite**: Modify the `Taskfile.yaml` to include the newly created test directory, for example:
 ```yaml
