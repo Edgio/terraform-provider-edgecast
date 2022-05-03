@@ -8,11 +8,12 @@ tasks:
   default:
     cmds:
       - defer: rm -f resource.tf
-      - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT_NUMBER}}
+      - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
       - rm -f resource.tf
       - terraform init
       - cp create.tf.step resource.tf
       - terraform validate
-      - terraform $MODE {{.CREDS}} {{.ACCOUNT_NUMBER}}
+      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}
       - cp update.tf.step resource.tf
-      - terraform $MODE {{.CREDS}} {{.ACCOUNT_NUMBER}}
+      - terraform validate
+      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}

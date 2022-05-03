@@ -6,17 +6,17 @@ output: prefixed
 
 
 env:
-  MODE: plan
+  MODE: apply
 
 
 vars:
-  CREDS: -var 'credentials={"api_token":"$API_TOKEN","ids_client_secret":"$IDS_CLIENT_SECRET","ids_client_id":"$IDS_CLIENT_ID","ids_scope":"$IDS_SCOPE","api_address":"$API_ADDRESS","api_address_legacy":"$API_ADDRESS_LEGACY","ids_address":"$IDS_ADDRESS"}'
+  CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
 
 
 includes:
   customer:
     taskfile: Integration.Taskfile.yaml
-    dir: resources/customer_user
+    dir: resources/customer
 
   customer_user:
     taskfile: Integration.Taskfile.yaml
@@ -79,9 +79,9 @@ tasks:
   run:
     desc: "run will execute the entire integration test suite"
     cmds:
-      - task: customer:default
+      #- task: customer:default
       - task: customer_user:default
-      - task: dns_group:default
+      #- task: dns_group:default
       - task: dns_masterservergroup:default
       - task: dns_secondaryzonegroup:default
       - task: dns_tsig:default
@@ -95,7 +95,7 @@ tasks:
       - task: waf_rate_rule:default
       - task: waf_scopes:default
         vars:
-          ACCOUNT_NUMBER: -var 'account_number="$ACCOUNT_NUMBER"'
+          ACCOUNT: -var 'account_number="$ACCOUNT_NUMBER"'
 
   default:
     cmds:

@@ -21,23 +21,6 @@ variable "credentials" {
   })
 }
 
-variable "new_admin_user" {
-  type = object({
-    customer_account_number = string
-    first_name              = string
-    last_name               = string
-    email                   = string
-    is_admin                = bool
-  })
-  default = {
-    customer_account_number = ""
-    first_name              = "admin"
-    last_name               = "user"
-    email                   = ""
-    is_admin                = true
-  }
-}
-
 ##########################################
 # Providers
 ##########################################
@@ -51,14 +34,4 @@ provider "ec" {
   ids_address        = var.credentials.ids_address
   partner_id         = 3249
   partner_user_id    = 7613
-}
-##########################################
-# Resources
-##########################################
-resource "ec_customer_user" "test_customer_noadmin1" {
-  account_number = "D9127"
-  first_name     = var.new_admin_user.first_name
-  last_name      = var.new_admin_user.last_name
-  email          = "admin+1@test20252021-3.com"
-  is_admin       = false
 }
