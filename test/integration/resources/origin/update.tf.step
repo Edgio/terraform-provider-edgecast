@@ -1,5 +1,5 @@
 resource "ec_origin" "origin_images_httplarge" {
-  account_number             = "A1234"
+  account_number             = var.account_number
   directory_name             = "images"
   host_header                = "images.exampleorigin.com:443"
   media_type_id              = 3    # 3: HTTP Large, 8: HTTP Small, 14: ADN

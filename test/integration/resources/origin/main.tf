@@ -26,6 +26,10 @@ variable "credentials" {
   })
 }
 
+variable "account_number" {
+  type = string
+}
+
 ##########################################
 # Providers
 ##########################################

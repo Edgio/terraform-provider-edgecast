@@ -1,5 +1,5 @@
 resource "ec_dns_group" "failover1" {
-  account_number     = "16B02E"
+  account_number = var.account_number
   group_type         = "cname"
   group_product_type = "failover"
   name               = "failover-101"
@@ -62,7 +62,7 @@ resource "ec_dns_group" "loadbalancing1" {
 }
 
 resource "ec_dns_group" "loadbalancing2" {
-  account_number     = ""
+  account_number = var.account_number
   group_type         = "cname"
   group_product_type = "loadbalancing"
   name               = "loadbal-300"

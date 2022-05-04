@@ -1,5 +1,5 @@
 resource "ec_dns_zone" "anyl" {
-  account_number    = "DE0B"
+  account_number    = var.account_number
   domain_name       = "anyl.com."
   status            = 1    # 1: active, 2: inactive
   zone_type         = 1    # 1: Primary zone. This value should always be 1.

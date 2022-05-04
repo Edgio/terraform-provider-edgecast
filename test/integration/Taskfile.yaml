@@ -11,6 +11,7 @@ env:
 
 vars:
   CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+  ACCOUNT: -var "account_number=$ACCOUNT_NUMBER"
 
 
 includes:
@@ -80,22 +81,20 @@ tasks:
     desc: "run will execute the entire integration test suite"
     cmds:
       #- task: customer:default
-      - task: customer_user:default
+      #- task: customer_user:default
       #- task: dns_group:default
       - task: dns_masterservergroup:default
       - task: dns_secondaryzonegroup:default
       - task: dns_tsig:default
-      - task: dns_zone:default
-      - task: edgecname:default
-      - task: origin:default
-      - task: rules_engine_policy:default
-      - task: waf_access_rule:default
-      - task: waf_custom_rule_set:default
-      - task: waf_managed_rule:default
+      #- task: dns_zone:default
+      #- task: edgecname:default
+      #- task: origin:default
+      #- task: rules_engine_policy:default
+      #- task: waf_access_rule:default
+      #- task: waf_custom_rule_set:default
+      #- task: waf_managed_rule:default
       - task: waf_rate_rule:default
-      - task: waf_scopes:default
-        vars:
-          ACCOUNT: -var 'account_number="$ACCOUNT_NUMBER"'
+      #- task: waf_scopes:default
 
   default:
     cmds:

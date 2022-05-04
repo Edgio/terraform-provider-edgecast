@@ -25,6 +25,10 @@ variable "credentials" {
   sensitive = true
 }
 
+variable "account_number" {
+  type = string
+}
+
 ##########################################
 # Providers
 ##########################################

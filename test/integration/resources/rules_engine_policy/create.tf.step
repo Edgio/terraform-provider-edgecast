@@ -3,7 +3,7 @@ resource "ec_rules_engine_policy" "my_policy" {
   deploy_to = "staging" # Valid values are "production" and "staging"
 
   # Below are optional arguments when using PCC credentials
-  # account_number = "A12345"
-  # customeruserid = 1
-  # portaltypeid   = 1
+  account_number = var.account_number
+  customeruserid = 1
+  portaltypeid   = 1
 }
