@@ -3,19 +3,18 @@
 package test
 
 import (
-	"terraform-provider-edgecast/unit-tests/helper"
-	"terraform-provider-edgecast/unit-tests/model"
+	"terraform-provider-edgecast/test/unit/helper"
+	"terraform-provider-edgecast/test/unit/model"
 	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
 
-func TestUT_MasterServerGroup_basic(t *testing.T) {
+func TestUT_Group_basic(t *testing.T) {
 	t.Parallel()
 	t.Skip("test is not ready for unit testing")
-
 	// // Test cases for storage account name conversion logic
-	tc, err := getMSGTestCases()
+	tc, err := getGroupTestCases()
 	if err != nil {
 		t.Errorf("Reading credential_ucc.json file error:%s", err)
 	}
@@ -23,7 +22,7 @@ func TestUT_MasterServerGroup_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/ec_dns_master_server_group",
+			TerraformDir: "../examples/resources/ec_dns_group",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":         input.ApiToken,
@@ -44,11 +43,10 @@ func TestUT_MasterServerGroup_basic(t *testing.T) {
 
 		// Run `terraform init` and `terraform apply`. Fail the test if there are any errors.
 		terraform.InitAndApply(t, terraformOptions)
-
 	}
 }
 
-func getMSGTestCases() (*map[string]model.Credentials, error) {
+func getGroupTestCases() (*map[string]model.Credentials, error) {
 	tc := make(map[string]model.Credentials)
 	credential := model.Credentials{}
 	err := helper.ReadCredentialJsonfile("credential_ucc.json", &credential)

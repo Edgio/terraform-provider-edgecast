@@ -1,0 +1,7 @@
+resource "ec_dns_tsig" "tsig1" {
+  account_number = var.account_number
+  alias          = "Test terraform keys"
+  key_name       = "key1"
+  key_value      = "001122334455"
+  algorithm_name = "HMAC-SHA512"
+}

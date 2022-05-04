@@ -6,7 +6,7 @@ package helper
 import (
 	"encoding/json"
 	"io/ioutil"
-	"terraform-provider-edgecast/unit-tests/model"
+	"terraform-provider-edgecast/test/unit/model"
 )
 
 // Users struct which contains

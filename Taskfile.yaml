@@ -1,0 +1,16 @@
+# https://taskfile.dev
+
+version: '3'
+
+dotenv: ['.env']
+
+includes:
+  test:
+    desc: runs all integration tests
+    taskfile: ./test/integration/Taskfile.yaml
+    dir: ./test/integration
+
+tasks:
+  default:
+    cmds:
+      - task: test:default
