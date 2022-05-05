@@ -1,4 +1,4 @@
-resource "ec_customer_user" "my_customer_user" {
+resource "edgecast_customer_user" "my_customer_user" {
   account_number = var.account_number
   first_name     = "Admin_First_Name"
   last_name      = "Admin_Last_Name"

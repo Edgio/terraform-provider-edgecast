@@ -55,7 +55,7 @@ provider "ec" {
 ##########################################
 # Resources
 ##########################################
-resource "ec_customer_user" "test_customer_noadmin1" {
+resource "edgecast_customer_user" "test_customer_noadmin1" {
   account_number = "D9127"
   first_name = var.new_admin_user.first_name
   last_name = var.new_admin_user.last_name

@@ -1,4 +1,4 @@
-resource "ec_dns_masterservergroup" "master_server_group"{
+resource "edgecast_dns_masterservergroup" "master_server_group"{
   account_number = "DE0B"
   master_server_group_name = "msg99"
   masters {

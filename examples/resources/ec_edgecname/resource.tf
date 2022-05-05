@@ -1,4 +1,4 @@
-resource "ec_edgecname" "edgecname_edgecast_origin" {
+resource "edgecast_edgecname" "edgecname_edgecast_origin" {
     account_number = "<account_number>"
     name = "<cname_url>"
     dir_path = "/ec/origin/path"
@@ -7,7 +7,7 @@ resource "ec_edgecname" "edgecname_edgecast_origin" {
     origin_id = -1
 }
 
-resource "ec_edgecname" "edgecname_customer_origin" {
+resource "edgecast_edgecname" "edgecname_customer_origin" {
     account_number = "<account_number>"
     name = "<cname_url>"
     dir_path = "/origin/path/to/content"

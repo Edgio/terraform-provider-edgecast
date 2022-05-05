@@ -1,4 +1,4 @@
-resource "ec_dns_group" "failover1" {
+resource "edgecast_dns_group" "failover1" {
   account_number = ""
     group_type="cname"
     group_product_type="failover"
@@ -19,7 +19,7 @@ resource "ec_dns_group" "failover1" {
     }
 }
 
-resource "ec_dns_group" "loadbalancing1" {
+resource "edgecast_dns_group" "loadbalancing1" {
   account_number = ""
   group_type="cname"
   group_product_type="loadbalancing"
@@ -61,7 +61,7 @@ resource "ec_dns_group" "loadbalancing1" {
   }
 }
 
-resource "ec_dns_group" "loadbalancing2" {
+resource "edgecast_dns_group" "loadbalancing2" {
   account_number = ""
   group_type="cname"
   group_product_type="loadbalancing"

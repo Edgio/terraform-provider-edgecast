@@ -22,7 +22,7 @@ func TestUT_Group_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../examples/resources/ec_dns_group",
+			TerraformDir: "../examples/resources/edgecast_dns_group",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":         input.ApiToken,

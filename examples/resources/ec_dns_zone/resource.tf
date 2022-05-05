@@ -1,4 +1,4 @@
-resource "ec_dns_zone" "anyl" {
+resource "edgecast_dns_zone" "anyl" {
   account_number = "DE0B"
 	domain_name = "anyl.com."
   status = 1 # 1: active, 2: inactive

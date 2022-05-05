@@ -1,5 +1,5 @@
 
-resource "ec_waf_custom_rule_set" "custom_rule_1" {
+resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
   customer_id = "<customer_id>"
   name        = "Custom Rule 1"
   

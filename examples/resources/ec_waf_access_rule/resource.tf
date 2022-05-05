@@ -1,4 +1,4 @@
-resource "ec_waf_access_rule" "access_rule_1" {
+resource "edgecast_waf_access_rule" "access_rule_1" {
   account_number                = "<Account Number>"
   name                          = "Access Rule #1"
   response_header_name          = "my-response-header-name"

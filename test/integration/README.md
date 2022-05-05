@@ -101,13 +101,13 @@ If applicable include an `outputs.tf` file declaring any expected output values,
 ```terraform
     output "waf_scopes_id" {
       description = "scopes_id"
-      value       = ec_waf_scopes.scopes1.*.id
+      value       = edgecast_waf_scopes.scopes1.*.id
     }
 ```
 
    2. **Include Create Step**: create a `create.tf.step` file. This should contain the initial state of the resource, for example:
 ```terraform
-    resource "ec_dns_tsig" "tsig1" {
+    resource "edgecast_dns_tsig" "tsig1" {
       account_number = "A1234"
       alias = "Test terraform keys"
       key_name = "key1"
@@ -120,7 +120,7 @@ _A `create.tf.step` file for `dns_tsig`._
 
 3. **Include Update Step**: create an `update.tf.step` file. This should contain an updated state of the resource, for example:
 ```terraform
-    resource "ec_dns_tsig" "tsig1" {
+    resource "edgecast_dns_tsig" "tsig1" {
       account_number = "A1234"
       alias = "updated"
       key_name = "key1"

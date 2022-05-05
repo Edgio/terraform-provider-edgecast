@@ -1,4 +1,4 @@
-resource "ec_dns_tsig" "tsig1" {
+resource "edgecast_dns_tsig" "tsig1" {
   account_number = "A1234"
   alias = "Test terraform keys"
   key_name = "key1"

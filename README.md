@@ -52,7 +52,7 @@ provider "ec" {
 
 Below this, you can start defining resources. For example:
 ```
-resource "ec_origin" "origin_images" {
+resource "edgecast_origin" "origin_images" {
     account_number = "A1234"
     directory_name = "images"
     media_type = "httplarge"

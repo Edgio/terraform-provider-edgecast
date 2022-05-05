@@ -1,4 +1,4 @@
-resource "ec_waf_rate_rule" "rate_rule_1" {
+resource "edgecast_waf_rate_rule" "rate_rule_1" {
   account_number = "<Account Number>"
   name           = "Rate Rule #1"
   duration_sec   = 1
