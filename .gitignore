@@ -31,3 +31,4 @@ docs_current/
 
 .idea
 .env
+terraform.tfstate.backup
