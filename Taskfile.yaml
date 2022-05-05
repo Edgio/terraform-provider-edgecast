@@ -2,15 +2,52 @@
 
 version: '3'
 
+
 dotenv: ['.env']
 
+
+vars:
+  HOSTNAME: github.com
+  NAMESPACE: terraform-providers
+  NAME: edgecast
+  BINARY: terraform-provider-{{.NAME}}
+  VERSION: 0.5.0
+  OS_ARCH: darwin_amd64
+
+
 includes:
-  test:
+  integration_test:
     desc: runs all integration tests
     taskfile: ./test/integration/Taskfile.yaml
     dir: ./test/integration
 
+
 tasks:
+  build:
+    desc: builds terraform-provider-edgecast
+    cmds:
+      - go build -o {{.BINARY}}
+
+  install:
+    desc: installs the source as the specified version of the terraform provider
+    cmds:
+      - task: build
+      - mkdir -p ~/.terraform.d/plugins/{{.HOSTNAME}}/{{.NAMESPACE}}/{{.NAME}}/{{.VERSION}}/{{.OS_ARCH}}
+      - mv {{.BINARY}} ~/.terraform.d/plugins/{{.HOSTNAME}}/{{.NAMESPACE}}/{{.NAME}}/{{.VERSION}}/{{.OS_ARCH}}
+
+  lint:
+    desc: runs lint against go files
+    cmds:
+      - golangci-lint run -v
+
+  test:
+    desc: runs go test aginst go files
+    cmds:
+      - go test -v -cover ./...
+
   default:
     cmds:
-      - task: test:default
+      - task: lint
+      - task: test
+      - task: integration_test:default
+      - task: install

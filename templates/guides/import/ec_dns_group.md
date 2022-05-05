@@ -1,0 +1,1 @@
+account_number:group_product_type:id

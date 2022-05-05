@@ -9,6 +9,7 @@ import (
 	"log"
 	"strconv"
 	"terraform-provider-edgecast/ec/api"
+	"terraform-provider-edgecast/ec/helper"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -22,6 +23,7 @@ func ResourceCustomerUser() *schema.Resource {
 		ReadContext:   ResourceCustomerUserRead,
 		UpdateContext: ResourceCustomerUserUpdate,
 		DeleteContext: ResourceCustomerUserDelete,
+		Importer:      helper.Import(ResourceCustomerUserRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

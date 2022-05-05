@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"log"
 	"strconv"
+	"terraform-provider-edgecast/ec/helper"
 
 	"terraform-provider-edgecast/ec/api"
 
@@ -23,6 +24,7 @@ func ResourceMasterServerGroup() *schema.Resource {
 		ReadContext:   ResourceMSGRead,
 		UpdateContext: ResourceMSGUpdate,
 		DeleteContext: ResourceMSGDelete,
+		Importer:      helper.Import(ResourceMSGRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
