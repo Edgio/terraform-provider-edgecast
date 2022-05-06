@@ -82,7 +82,7 @@ modifying the URLs in the provider configuration.
 
 For example:
 ```terraform
-provider "ec" {
+provider "edgecast" {
     api_token = "MY_API_TOKEN"
     ids_client_secret = "MY_IDS_SECRET"
     ids_client_id = "MY_IDS_ID"

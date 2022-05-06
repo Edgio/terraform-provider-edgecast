@@ -1,4 +1,4 @@
-resource "ec_waf_managed_rule" "managed_rule_1" {
+resource "edgecast_waf_managed_rule" "managed_rule_1" {
   account_number  = var.account_number
   name            = "Terraform Managed Rule #1"
   ruleset_id      = "ECRS"

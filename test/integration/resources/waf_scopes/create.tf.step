@@ -1,4 +1,4 @@
-resource "ec_waf_scopes" "scopes1" {
+resource "edgecast_waf_scopes" "scopes1" {
   account_number = var.account_number
 
   scope {

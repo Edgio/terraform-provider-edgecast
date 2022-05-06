@@ -1,3 +1,3 @@
 // output "Zone" {
-//   value = ec_dns_zone.north_com
+//   value = edgecast_dns_zone.north_com
 // }
