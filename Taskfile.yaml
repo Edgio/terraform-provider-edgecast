@@ -23,6 +23,11 @@ includes:
 
 
 tasks:
+  generate:
+    desc: generates all necessary code and documentation
+    cmds:
+      - go generate
+
   build:
     desc: builds terraform-provider-edgecast
     cmds:
