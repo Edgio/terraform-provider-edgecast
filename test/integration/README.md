@@ -87,7 +87,7 @@ Within the newly-created directory, perform the following steps:
     ##########################################
     # Providers
     ##########################################
-    provider "ec" {
+    provider "edgecast" {
       api_token         = var.credentials.api_token
       ids_client_secret = var.credentials.ids_client_secret
       ids_client_id     = var.credentials.ids_client_id

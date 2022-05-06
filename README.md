@@ -42,7 +42,7 @@ terraform {
 
 Then, use it in a provider block, passing in any credentials provided to you:
 ```
-provider "ec" {
+provider "edgecast" {
   api_token          = "YOUR_API_TOKEN"
   ids_client_secret  = "IDS_SECRET"
   ids_client_id      = "IDS_CLIENT_ID"
