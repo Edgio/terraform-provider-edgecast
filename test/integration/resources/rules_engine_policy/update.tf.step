@@ -1,4 +1,4 @@
-resource "ec_rules_engine_policy" "my_policy" {
+resource "edgecast_rules_engine_policy" "my_policy" {
   policy    = file("policy.json")
   deploy_to = "production" # Valid values are "production" and "staging"
 

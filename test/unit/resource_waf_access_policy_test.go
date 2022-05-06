@@ -23,7 +23,7 @@ func TestUT_AccessRule_basic(t *testing.T) {
 	for _, input := range *tc {
 		// Specify the test case folder and "-var" options
 		tfOptions := &terraform.Options{
-			TerraformDir: "../../examples/resources/ec_waf_access_rule",
+			TerraformDir: "../../examples/resources/edgecast_waf_access_rule",
 			Vars: map[string]interface{}{
 				"credentials": map[string]interface{}{
 					"api_token":          input.ApiToken,

@@ -1,4 +1,4 @@
-resource "ec_origin" "origin_images_httplarge" {
+resource "edgecast_origin" "origin_images_httplarge" {
   account_number             = var.account_number
   directory_name             = "images"
   host_header                = "images.exampleorigin.com:443"
@@ -35,7 +35,7 @@ resource "ec_origin" "origin_images_httplarge" {
   }
 }
 
-resource "ec_origin" "origin_cart_adn" {
+resource "edgecast_origin" "origin_cart_adn" {
   account_number             = "A1234"
   directory_name             = "shops"
   host_header                = "cart.exampleorigin.com:443"

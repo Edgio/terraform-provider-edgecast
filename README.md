@@ -32,9 +32,9 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 ```
 terraform {
   required_providers {
-    ec = {
+    edgecast = {
       version = "0.5.0"
-      source  = "EdgeCast/ec"
+      source  = "EdgeCast/edgecast"
     }
   }
 }
@@ -42,7 +42,7 @@ terraform {
 
 Then, use it in a provider block, passing in any credentials provided to you:
 ```
-provider "ec" {
+provider "edgecast" {
   api_token          = "YOUR_API_TOKEN"
   ids_client_secret  = "IDS_SECRET"
   ids_client_id      = "IDS_CLIENT_ID"
@@ -52,7 +52,7 @@ provider "ec" {
 
 Below this, you can start defining resources. For example:
 ```
-resource "ec_origin" "origin_images" {
+resource "edgecast_origin" "origin_images" {
     account_number = "A1234"
     directory_name = "images"
     media_type = "httplarge"
@@ -109,9 +109,9 @@ Example:
 ```
 terraform {
   required_providers {
-    ec = {
+    edgecast = {
       version = "0.5.0"
-      source  = "EdgeCast/ec"
+      source  = "EdgeCast/edgecast"
     }
   }
 }

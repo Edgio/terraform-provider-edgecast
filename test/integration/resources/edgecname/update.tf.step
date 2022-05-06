@@ -1,4 +1,4 @@
-resource "ec_edgecname" "edgecname_edgecast_origin" {
+resource "edgecast_edgecname" "edgecname_edgecast_origin" {
   account_number        = var.account_number
   name                  = "dev.enablement"
   dir_path              = "/ec/origin/path/v2"
@@ -7,7 +7,7 @@ resource "ec_edgecname" "edgecname_edgecast_origin" {
   origin_id             = 100
 }
 
-resource "ec_edgecname" "edgecname_customer_origin" {
+resource "edgecast_edgecname" "edgecname_customer_origin" {
   account_number        = var.account_number
   name                  = "dev.enablement"
   dir_path              = "/origin/path/to/content/v2"
