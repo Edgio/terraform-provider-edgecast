@@ -97,50 +97,50 @@ resource "edgecast_waf_managed_rule" "managed_rule_1" {
 
 ### Required
 
-- **general_settings** (Block Set, Min: 1, Max: 1) Contains settings that define the profile for a valid request. (see [below for nested schema](#nestedblock--general_settings))
-- **ruleset_id** (String) Indicates the ID for the rule set associated with this managed rule.
-- **ruleset_version** (String) Indicates the version of the rule set associated with this managed rule.
+- `general_settings` (Block Set, Min: 1, Max: 1) Contains settings that define the profile for a valid request. (see [below for nested schema](#nestedblock--general_settings))
+- `ruleset_id` (String) Indicates the ID for the rule set associated with this managed rule.
+- `ruleset_version` (String) Indicates the version of the rule set associated with this managed rule.
 
 ### Optional
 
-- **account_number** (String) Identifies your account by its customer account number.
-- **disabled_rule** (Block Set) This array identifies each rule that has been disabled using these properties (see [below for nested schema](#nestedblock--disabled_rule))
-- **id** (String) The ID of this resource.
-- **name** (String) Indicates the name of the custom rule.
-- **policies** (List of String) Contains a list of policies that have been enabled on this managed rule.
-- **rule_target_update** (Block Set) This array describes each target using these properties (see [below for nested schema](#nestedblock--rule_target_update))
+- `account_number` (String) Identifies your account by its customer account number.
+- `disabled_rule` (Block Set) This array identifies each rule that has been disabled using these properties (see [below for nested schema](#nestedblock--disabled_rule))
+- `id` (String) The ID of this resource.
+- `name` (String) Indicates the name of the custom rule.
+- `policies` (List of String) Contains a list of policies that have been enabled on this managed rule.
+- `rule_target_update` (Block Set) This array describes each target using these properties (see [below for nested schema](#nestedblock--rule_target_update))
 
 ### Read-Only
 
-- **created_date** (String) Indicates the date and time at which the managed rule was created.
-- **customer_id** (String) Identifies your account by its customer account number.
-- **last_modified_by** (String) Reserved for future use.
-- **last_modified_date** (String) Indicates the date and time at which the managed rule was last modified.
-- **version** (String) Reserved for future use.
+- `created_date` (String) Indicates the date and time at which the managed rule was created.
+- `customer_id` (String) Identifies your account by its customer account number.
+- `last_modified_by` (String) Reserved for future use.
+- `last_modified_date` (String) Indicates the date and time at which the managed rule was last modified.
+- `version` (String) Reserved for future use.
 
 <a id="nestedblock--general_settings"></a>
 ### Nested Schema for `general_settings`
 
 Required:
 
-- **anomaly_threshold** (Number) Indicates the anomaly score threshold.
-- **arg_length** (Number) Indicates the maximum number of characters for any single query string parameter value.
-- **arg_name_length** (Number) Indicates the maximum number of characters for any single query string parameter name.
-- **max_num_args** (Number) Indicates the maximum number of query string parameters.
-- **total_arg_length** (Number) Indicates the maximum number of characters for the query string value.
+- `anomaly_threshold` (Number) Indicates the anomaly score threshold.
+- `arg_length` (Number) Indicates the maximum number of characters for any single query string parameter value.
+- `arg_name_length` (Number) Indicates the maximum number of characters for any single query string parameter name.
+- `max_num_args` (Number) Indicates the maximum number of query string parameters.
+- `total_arg_length` (Number) Indicates the maximum number of characters for the query string value.
 
 Optional:
 
-- **combined_file_sizes** (Number) Indicates the total file size for multipart message lengths.
-- **ignore_cookie** (List of String) Identifies each cookie that will be ignored for the purpose of determining whether a request is malicious traffic.
-- **ignore_header** (List of String) Identifies each request header that will be ignored for the purpose of determining whether a request is malicious traffic.
-- **ignore_query_args** (List of String) Identifies each query string argument that will be ignored for the purpose of determining whether a request is malicious traffic.
-- **json_parser** (Boolean) Determines whether JSON payloads will be inspected. Valid values are: true | false
-- **paranoia_level** (Number) Indicates the balance between the level of protection and false positives. Valid values are: 1 | 2 | 3 | 4
-- **process_request_body** (Boolean) Determines whether JSON payloads will be inspected.
-- **response_header_name** (String) Determines the name of the response header that will be included with blocked requests.
-- **validate_utf8_encoding** (Boolean) Indicates whether WAF may check whether a request variable (e.g., ARGS, ARGS_NAMES, and REQUEST_FILENAME) is a valid UTF-8 string.
-- **xml_parser** (Boolean) Determines whether XML payloads will be inspected.
+- `combined_file_sizes` (Number) Indicates the total file size for multipart message lengths.
+- `ignore_cookie` (List of String) Identifies each cookie that will be ignored for the purpose of determining whether a request is malicious traffic.
+- `ignore_header` (List of String) Identifies each request header that will be ignored for the purpose of determining whether a request is malicious traffic.
+- `ignore_query_args` (List of String) Identifies each query string argument that will be ignored for the purpose of determining whether a request is malicious traffic.
+- `json_parser` (Boolean) Determines whether JSON payloads will be inspected. Valid values are: true | false
+- `paranoia_level` (Number) Indicates the balance between the level of protection and false positives. Valid values are: 1 | 2 | 3 | 4
+- `process_request_body` (Boolean) Determines whether JSON payloads will be inspected.
+- `response_header_name` (String) Determines the name of the response header that will be included with blocked requests.
+- `validate_utf8_encoding` (Boolean) Indicates whether WAF may check whether a request variable (e.g., ARGS, ARGS_NAMES, and REQUEST_FILENAME) is a valid UTF-8 string.
+- `xml_parser` (Boolean) Determines whether XML payloads will be inspected.
 
 
 <a id="nestedblock--disabled_rule"></a>
@@ -148,8 +148,8 @@ Optional:
 
 Optional:
 
-- **policy_id** (String) Identifies a policy from which a rule will be disabled by its system-defined ID.
-- **rule_id** (String) Identifies a rule that will be disabled by its system-defined ID.
+- `policy_id` (String) Identifies a policy from which a rule will be disabled by its system-defined ID.
+- `rule_id` (String) Identifies a rule that will be disabled by its system-defined ID.
 
 
 <a id="nestedblock--rule_target_update"></a>
@@ -157,14 +157,14 @@ Optional:
 
 Required:
 
-- **is_regex** (Boolean) Identifies a rule that will be disabled by its system-defined ID.
-- **rule_id** (String) Identifies a rule by its system-defined ID.
-- **target** (String) Identifies the type of data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) for which a target will be created.
-- **target_match** (String) Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the target parameter.
+- `is_regex` (Boolean) Identifies a rule that will be disabled by its system-defined ID.
+- `rule_id` (String) Identifies a rule by its system-defined ID.
+- `target` (String) Identifies the type of data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) for which a target will be created.
+- `target_match` (String) Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the target parameter.
 
 Optional:
 
-- **is_negated** (Boolean) Determines whether the current target, as defined within this object, will be ignored when identifying threats.
-- **replace_target** (String) Defines the data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) that will be used instead of the one defined in the target parameter.
+- `is_negated` (Boolean) Determines whether the current target, as defined within this object, will be ignored when identifying threats.
+- `replace_target` (String) Defines the data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) that will be used instead of the one defined in the target parameter.
 
 

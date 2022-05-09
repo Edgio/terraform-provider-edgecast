@@ -39,29 +39,29 @@ resource "edgecast_customer_user" "my_customer_user" {
 
 ### Required
 
-- **account_number** (String)
+- `account_number` (String)
 
 ### Optional
 
-- **address1** (String)
-- **address2** (String)
-- **city** (String)
-- **country** (String)
-- **email** (String)
-- **fax** (String)
-- **first_name** (String)
-- **id** (String) The ID of this resource.
-- **is_admin** (Boolean)
-- **last_name** (String)
-- **mobile** (String)
-- **phone** (String)
-- **state** (String)
-- **title** (String)
-- **zip** (String)
+- `address1` (String)
+- `address2` (String)
+- `city` (String)
+- `country` (String)
+- `email` (String)
+- `fax` (String)
+- `first_name` (String)
+- `id` (String) The ID of this resource.
+- `is_admin` (Boolean)
+- `last_name` (String)
+- `mobile` (String)
+- `phone` (String)
+- `state` (String)
+- `title` (String)
+- `zip` (String)
 
 ### Read-Only
 
-- **custom_id** (String)
-- **last_login_date** (String)
+- `custom_id` (String)
+- `last_login_date` (String)
 
 

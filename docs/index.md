@@ -41,16 +41,16 @@ provider "edgecast" {
 
 ### Optional
 
-- **account_number** (String) Account Number to use when only managing a single customer's resources. If managing multiple customers, this parameter should be omitted.
-- **api_address** (String) The base url of Edgecast resource APIs. Omit to use the default url. For internal testing.
-- **api_address_legacy** (String) The base url of legacy Edgecast resource APIs. Omit to use the default url. For internal testing.
-- **api_token** (String) API Token for managing the following resources: Origin, CNAME, Customer, Customer User
-- **ids_address** (String) The base url of Edgecast identity APIs. Omit to use the default url. For internal testing.
-- **ids_client_id** (String) OAuth 2.0 Client ID for managing the following resources: Rules Engine Policy
-- **ids_client_secret** (String) OAuth 2.0 Client Secret for managing the following resources: Rules Engine Policy
-- **ids_scope** (String) OAuth 2.0 Scopes for managing the following resources: Rules Engine Policy
-- **partner_id** (Number) Partner ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored.
-- **partner_user_id** (Number) Partner User ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored.
+- `account_number` (String) Account Number to use when only managing a single customer's resources. If managing multiple customers, this parameter should be omitted.
+- `api_address` (String) The base url of Edgecast resource APIs. Omit to use the default url. For internal testing.
+- `api_address_legacy` (String) The base url of legacy Edgecast resource APIs. Omit to use the default url. For internal testing.
+- `api_token` (String) API Token for managing the following resources: Origin, CNAME, Customer, Customer User
+- `ids_address` (String) The base url of Edgecast identity APIs. Omit to use the default url. For internal testing.
+- `ids_client_id` (String) OAuth 2.0 Client ID for managing the following resources: Rules Engine Policy
+- `ids_client_secret` (String) OAuth 2.0 Client Secret for managing the following resources: Rules Engine Policy
+- `ids_scope` (String) OAuth 2.0 Scopes for managing the following resources: Rules Engine Policy
+- `partner_id` (Number) Partner ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored.
+- `partner_user_id` (Number) Partner User ID to impersonate. If using PCC or MCC credentials, this parameter will be ignored.
 
 **Note for Edgecast internal users:** `partner_id` and `partner_user_id` are required in addition to your credentials.
 

@@ -81,44 +81,44 @@ resource "edgecast_dns_secondaryzonegroup" "backup" {
 
 ### Required
 
-- **account_number** (String) Account Number associated with the customer whose 
+- `account_number` (String) Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
 				in the upper right-hand corner of the MCC.
-- **name** (String) Indicates the name assigned to the new secondary 
+- `name` (String) Indicates the name assigned to the new secondary 
 				zone group.
-- **zone_composition** (Block List, Min: 1) ZoneCompositionResponse defines parameters of the 
+- `zone_composition` (Block List, Min: 1, Max: 1) ZoneCompositionResponse defines parameters of the 
 				secondary zone group. (see [below for nested schema](#nestedblock--zone_composition))
 
 ### Optional
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--zone_composition"></a>
 ### Nested Schema for `zone_composition`
 
 Required:
 
-- **master_group_id** (Number) Associates a master server group, as 
+- `master_group_id` (Number) Associates a master server group, as 
 							identified by its system-defined ID, with the 
 							secondary zone group.
-- **master_server_tsigs** (Block List, Min: 1) Defines TSIG keys to the desired 
+- `master_server_tsigs` (Block List, Min: 1) Defines TSIG keys to the desired 
 							master name servers in the master server group. (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs))
-- **zones** (Block List, Min: 1) (see [below for nested schema](#nestedblock--zone_composition--zones))
+- `zones` (Block List, Min: 1) (see [below for nested schema](#nestedblock--zone_composition--zones))
 
 <a id="nestedblock--zone_composition--master_server_tsigs"></a>
 ### Nested Schema for `zone_composition.master_server_tsigs`
 
 Required:
 
-- **master_server** (Block List, Min: 1) (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs--master_server))
-- **tsig** (Block List, Min: 1) (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs--tsig))
+- `master_server` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs--master_server))
+- `tsig` (Block List, Min: 1, Max: 1) (see [below for nested schema](#nestedblock--zone_composition--master_server_tsigs--tsig))
 
 <a id="nestedblock--zone_composition--master_server_tsigs--master_server"></a>
 ### Nested Schema for `zone_composition.master_server_tsigs.master_server`
 
 Required:
 
-- **master_server_id** (Number) Identifies the 
+- `master_server_id` (Number) Identifies the 
 													master name server to which 
 													a TSIG key will be assigned.
 
@@ -128,7 +128,7 @@ Required:
 
 Required:
 
-- **tsig_id** (Number) Identifies the 
+- `tsig_id` (Number) Identifies the 
 													TSIG key that will be 
 													assigned to the master name 
 													server identified by the 
@@ -141,9 +141,9 @@ Required:
 
 Required:
 
-- **comment** (String) Comment about this 
+- `comment` (String) Comment about this 
 										secondary zone.
-- **domain_name** (String) Identifies a secondary 
+- `domain_name` (String) Identifies a secondary 
 										zone by its zone name 
 										(e.g., example.com). Edgecast name 
 										servers will request a zone transfer for 
@@ -151,10 +151,10 @@ Required:
 										defined on the master name server(s) 
 										associated with this secondary zone 
 										group.
-- **status** (Number) Defines whether the zone 
+- `status` (Number) Defines whether the zone 
 										is enabled or disabled. Valid values 
 										are: 1 - Enabled, 2 - Disabled
-- **zone_type** (Number) This parameter is reserved 
+- `zone_type` (Number) This parameter is reserved 
 										for future use. The only supported value 
 										for this parameter is "2".
 
