@@ -11,11 +11,12 @@ vars:
   NAMESPACE: terraform-providers
   NAME: edgecast
   BINARY: terraform-provider-{{.NAME}}
-  VERSION: 0.5.0
+  VERSION: 0.5.1
   OS:
     sh: uname -s | tr '[:upper:]' '[:lower:]'
   ARCH:
     sh: arch
+
 
 includes:
   integration_test:

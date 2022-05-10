@@ -7,9 +7,9 @@ silent: true
 tasks:
   default:
     cmds:
-      - defer: rm -f resource.tf
+      - defer: rm -rf resource.tf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup
       - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
-      - rm -f resource.tf
+      - rm -rf resource.tf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup
       - terraform init
       - cp create.tf.step resource.tf
       - terraform validate
