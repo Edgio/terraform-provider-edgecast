@@ -23,7 +23,7 @@ includes:
     desc: runs all integration tests
     taskfile: ./test/integration/Taskfile.yaml
     dir: ./test/integration
-
+  
 
 tasks:
   generate:

@@ -17,3 +17,4 @@ tasks:
       - cp update.tf.step resource.tf
       - terraform validate
       - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}
+      - terraform import -allow-missing-config {{.CREDS}} {{.ACCOUNT}} {{.RESOURCE_NAME}}.imported {{.IMPORT_ID}}

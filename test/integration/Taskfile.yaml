@@ -84,6 +84,9 @@ tasks:
       #- task: customer_user:default
       #- task: dns_group:default
       - task: dns_masterservergroup:default
+        vars:
+          RESOURCE_NAME: edgecast_dns_masterservergroup
+          IMPORT_ID: 1
       - task: dns_secondaryzonegroup:default
       - task: dns_tsig:default
       #- task: dns_zone:default
