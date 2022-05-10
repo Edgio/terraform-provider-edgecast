@@ -45,21 +45,21 @@ resource "edgecast_dns_masterservergroup" "master_server_group"{
 
 ### Required
 
-- **account_number** (String) Account Number associated with the customer whose 
+- `account_number` (String) Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
 				in the upper right-hand corner of the MCC.
-- **master_server_group_name** (String) Indicates the name that will be assigned to the 
+- `master_server_group_name` (String) Indicates the name that will be assigned to the 
 				new master server group.
-- **masters** (Block List, Min: 1) Contains the master name servers associated with 
+- `masters` (Block List, Min: 1) Contains the master name servers associated with 
 				a master server group. (see [below for nested schema](#nestedblock--masters))
 
 ### Optional
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 ### Read-Only
 
-- **master_group_id** (Number) Indicates the system-defined ID assigned to a 
+- `master_group_id` (Number) Indicates the system-defined ID assigned to a 
 				master server group.
 
 <a id="nestedblock--masters"></a>
@@ -67,18 +67,18 @@ resource "edgecast_dns_masterservergroup" "master_server_group"{
 
 Required:
 
-- **ipaddress** (String) Indicates the IP address that will be 
+- `ipaddress` (String) Indicates the IP address that will be 
 							assigned to a new master name server that will be 
 							associated with the master server group being 
 							created.
-- **name** (String) Indicates the name that will be 
+- `name` (String) Indicates the name that will be 
 							assigned to a new master name server that will be 
 							associated with the master server group being 
 							created.
 
 Read-Only:
 
-- **id** (Number) Indicates the system-defined ID 
+- `id` (Number) Indicates the system-defined ID 
 							assigned to an existing master name server that will 
 							be associated with the master server group being 
 							created.

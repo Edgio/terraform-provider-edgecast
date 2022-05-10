@@ -28,16 +28,16 @@ resource "edgecast_rules_engine_policy" "my_policy" {
 
 ### Required
 
-- **deploy_to** (String) The desired environment for the provided policy. Valid values are `production` and `staging`
-- **policy** (String) A Rules Engine Policy in JSON format
+- `deploy_to` (String) The desired environment for the provided policy. Valid values are `production` and `staging`
+- `policy` (String) A Rules Engine Policy in JSON format
 
 ### Optional
 
-- **account_number** (String) Account to impersonate. If using MCC credentials, this parameter will be ignored.
-- **customeruserid** (String) User ID to impersonate. If using MCC credentials, this parameter will be ignored
-- **id** (String) The ID of this resource.
-- **portaltypeid** (String) Portal Type ID to impersonate. If using MCC credentials, this parameter will be ignored.
+- `account_number` (String) Account to impersonate. If using MCC credentials, this parameter will be ignored.
+- `customeruserid` (String) User ID to impersonate. If using MCC credentials, this parameter will be ignored
+- `id` (String) The ID of this resource.
+- `portaltypeid` (String) Portal Type ID to impersonate. If using MCC credentials, this parameter will be ignored.
 
 ### Read-Only
 
-- **deploy_request_id** (String)
+- `deploy_request_id` (String)

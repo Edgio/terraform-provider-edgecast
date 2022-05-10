@@ -73,27 +73,27 @@ resource "edgecast_waf_access_rule" "access_rule_1" {
 
 ### Required
 
-- **name** (String) Assigns a name to this access rule.
+- `name` (String) Assigns a name to this access rule.
 
 ### Optional
 
-- **account_number** (String) Identifies your account by its customer account number.
-- **allowed_http_methods** (List of String) Identifies each allowed HTTP method (e.g., GET).
-- **allowed_request_content_types** (List of String) Identifies each allowed media type (e.g., application/json).
-- **asn** (Block Set, Max: 1) Contains access controls for autonomous system numbers (ASNs).  \
+- `account_number` (String) Identifies your account by its customer account number.
+- `allowed_http_methods` (List of String) Identifies each allowed HTTP method (e.g., GET).
+- `allowed_request_content_types` (List of String) Identifies each allowed media type (e.g., application/json).
+- `asn` (Block Set, Max: 1) Contains access controls for autonomous system numbers (ASNs).  \
 *Note: ASN access controls are integer values.* (see [below for nested schema](#nestedblock--asn))
-- **cookie** (Block Set, Max: 1) Contains access controls for cookies. (see [below for nested schema](#nestedblock--cookie))
-- **country** (Block Set, Max: 1) Contains access controls for countries. Specify each desired country using its country code. (see [below for nested schema](#nestedblock--country))
-- **disallowed_extensions** (List of String) Indicates each file extension for which WAF will send an alert or block the request.
-- **disallowed_headers** (List of String) Indicates each request header for which WAF will send an alert or block the request.
-- **id** (String) The ID of this resource.
-- **ip** (Block Set, Max: 1) Contains access controls for IPv4 and/or IPv6 addresses. Specify each desired IP address using standard IPv4/IPv6 and CIDR notation. (see [below for nested schema](#nestedblock--ip))
-- **referer** (Block Set, Max: 1) Contains access controls for referrers.  \
+- `cookie` (Block Set, Max: 1) Contains access controls for cookies. (see [below for nested schema](#nestedblock--cookie))
+- `country` (Block Set, Max: 1) Contains access controls for countries. Specify each desired country using its country code. (see [below for nested schema](#nestedblock--country))
+- `disallowed_extensions` (List of String) Indicates each file extension for which WAF will send an alert or block the request.
+- `disallowed_headers` (List of String) Indicates each request header for which WAF will send an alert or block the request.
+- `id` (String) The ID of this resource.
+- `ip` (Block Set, Max: 1) Contains access controls for IPv4 and/or IPv6 addresses. Specify each desired IP address using standard IPv4/IPv6 and CIDR notation. (see [below for nested schema](#nestedblock--ip))
+- `referer` (Block Set, Max: 1) Contains access controls for referrers.  \
 *Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.* (see [below for nested schema](#nestedblock--referer))
-- **response_header_name** (String) Determines the name of the response header that will be included with blocked requests.
-- **url** (Block Set, Max: 1) Contains access controls for URL paths. Specify a URL path pattern that starts directly after the hostname. Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin.  \
+- `response_header_name` (String) Determines the name of the response header that will be included with blocked requests.
+- `url` (Block Set, Max: 1) Contains access controls for URL paths. Specify a URL path pattern that starts directly after the hostname. Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin.  \
 *Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.* (see [below for nested schema](#nestedblock--url))
-- **user_agent** (Block Set, Max: 1) Contains access controls for user agents.  \
+- `user_agent` (Block Set, Max: 1) Contains access controls for user agents.  \
 *Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.* (see [below for nested schema](#nestedblock--user_agent))
 
 <a id="nestedblock--asn"></a>
@@ -101,9 +101,9 @@ resource "edgecast_waf_access_rule" "access_rule_1" {
 
 Optional:
 
-- **accesslist** (List of Number) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of Number) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of Number) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of Number) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of Number) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of Number) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 
 <a id="nestedblock--cookie"></a>
@@ -111,9 +111,9 @@ Optional:
 
 Optional:
 
-- **accesslist** (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 
 <a id="nestedblock--country"></a>
@@ -121,9 +121,9 @@ Optional:
 
 Optional:
 
-- **accesslist** (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 
 <a id="nestedblock--ip"></a>
@@ -131,9 +131,9 @@ Optional:
 
 Optional:
 
-- **accesslist** (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 
 <a id="nestedblock--referer"></a>
@@ -141,9 +141,9 @@ Optional:
 
 Optional:
 
-- **accesslist** (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 
 <a id="nestedblock--url"></a>
@@ -151,9 +151,9 @@ Optional:
 
 Optional:
 
-- **accesslist** (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 
 <a id="nestedblock--user_agent"></a>
@@ -161,8 +161,8 @@ Optional:
 
 Optional:
 
-- **accesslist** (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
-- **blacklist** (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
-- **whitelist** (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
+- `accesslist` (List of String) Contains entries that identify traffic that may access your content upon passing a threat assessment.
+- `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
+- `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
 

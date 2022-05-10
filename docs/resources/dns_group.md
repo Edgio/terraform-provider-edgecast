@@ -136,79 +136,79 @@ resource "edgecast_dns_group" "loadbalancing2" {
 
 ### Required
 
-- **account_number** (String) Account Number associated with the customer whose 
+- `account_number` (String) Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
 				in the upper right-hand corner of the MCC.
-- **group_product_type** (String) Defines the group product type. Valid values are:
+- `group_product_type` (String) Defines the group product type. Valid values are:
 				loadbalancing | failover
-- **group_type** (String) Defines the group type. Valid values are: cname | 
+- `group_type` (String) Defines the group type. Valid values are: cname | 
 				subdomain
-- **name** (String) Defines the name of the failover or load balancing 
+- `name` (String) Defines the name of the failover or load balancing 
 				group.
 
 ### Optional
 
-- **a** (Block Set) Defines a set of A records associated with this 
+- `a` (Block Set) Defines a set of A records associated with this 
 				group. (see [below for nested schema](#nestedblock--a))
-- **aaaa** (Block Set) Defines a set of AAAA records associated with this 
+- `aaaa` (Block Set) Defines a set of AAAA records associated with this 
 				group. (see [below for nested schema](#nestedblock--aaaa))
-- **cname** (Block Set) Defines a set of CNAME records associated with 
+- `cname` (Block Set) Defines a set of CNAME records associated with 
 				this group. (see [below for nested schema](#nestedblock--cname))
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 ### Read-Only
 
-- **fixed_group_id** (Number) Reserved for future use.
-- **fixed_zone_id** (Number) Reserved for future use.
-- **group_id** (Number) Identifies the group by its system-defined ID.
-- **group_product_type_id** (Number) Defines the group product type by its 
+- `fixed_group_id` (Number) Reserved for future use.
+- `fixed_zone_id` (Number) Reserved for future use.
+- `group_id` (Number) Identifies the group by its system-defined ID.
+- `group_product_type_id` (Number) Defines the group product type by its 
 				system-defined ID
-- **group_type_id** (Number) Defines the group type by its system-defined ID
-- **zone_id** (Number) Reserved for future use.
+- `group_type_id` (Number) Defines the group type by its system-defined ID
+- `zone_id` (Number) Reserved for future use.
 
 <a id="nestedblock--a"></a>
 ### Nested Schema for `a`
 
 Required:
 
-- **record** (Block List, Min: 1) Defines a DNS record that will be associated with the 
+- `record` (Block List, Min: 1) Defines a DNS record that will be associated with the 
 			zone. (see [below for nested schema](#nestedblock--a--record))
-- **weight** (Number) Defines a record's weight. Used to denote preference 
+- `weight` (Number) Defines a record's weight. Used to denote preference 
 			for a load balancing or failover group.
 
 Optional:
 
-- **health_check** (Block Set) Define a record's health check configuration (see [below for nested schema](#nestedblock--a--health_check))
+- `health_check` (Block Set) Define a record's health check configuration (see [below for nested schema](#nestedblock--a--health_check))
 
 <a id="nestedblock--a--record"></a>
 ### Nested Schema for `a.record`
 
 Required:
 
-- **rdata** (String) Defines a record's value.
-- **ttl** (Number) Defines a record's TTL.
+- `rdata` (String) Defines a record's value.
+- `ttl` (Number) Defines a record's TTL.
 
 Optional:
 
-- **fixed_zone_id** (Number) Identifies a zone by its system-defined 
+- `fixed_zone_id` (Number) Identifies a zone by its system-defined 
 						ID.
-- **is_delete** (Boolean) Reserved for future use.
-- **zone_id** (Number) Reserved for future use.
+- `is_delete` (Boolean) Reserved for future use.
+- `zone_id` (Number) Reserved for future use.
 
 Read-Only:
 
-- **fixed_group_id** (Number) Reserved for future use.
-- **fixed_record_id** (Number) Reserved for future use.
-- **group_id** (Number) Identifies the group this record is 
+- `fixed_group_id` (Number) Reserved for future use.
+- `fixed_record_id` (Number) Reserved for future use.
+- `group_id` (Number) Identifies the group this record is 
 						assoicated with by its system-defined ID.
-- **name** (String) Defines a record's name.
-- **record_id** (Number) Identifies a DNS Record by its 
+- `name` (String) Defines a record's name.
+- `record_id` (Number) Identifies a DNS Record by its 
 						system-defined ID.
-- **record_type_id** (Number) Indicates the system-defined ID assigned 
+- `record_type_id` (Number) Indicates the system-defined ID assigned 
 						to the record type.
-- **record_type_name** (String) Indicates the name of the record type.
-- **verify_id** (Number) Reserved for future use.
-- **weight** (Number) Defines a record's weight. Used to denote 
+- `record_type_name` (String) Indicates the name of the record type.
+- `verify_id` (Number) Reserved for future use.
+- `weight` (Number) Defines a record's weight. Used to denote 
 						preference for a load balancing or failover group.
 
 
@@ -217,61 +217,61 @@ Read-Only:
 
 Required:
 
-- **check_interval** (Number) Defines the number of seconds between 
+- `check_interval` (Number) Defines the number of seconds between 
 						health checks.
-- **check_type_id** (Number) Defines the type of health check by its 
+- `check_type_id` (Number) Defines the type of health check by its 
 						system-defined ID. The following values are supported: 
 						1 - HTTP | 2 - HTTPS | 3 - TCP Open | 4 - TCP SSL. 
 						Please refer to the following URL for additional 
 						information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm
-- **content_verification** (String) Defines the text that will be used to 
+- `content_verification` (String) Defines the text that will be used to 
 						verify the success of the health check.
-- **email_notification_address** (String) Defines the e-mail address to which 
+- `email_notification_address` (String) Defines the e-mail address to which 
 						health check notifications will be sent.
-- **failed_check_threshold** (Number) Defines the number of consecutive 
+- `failed_check_threshold` (Number) Defines the number of consecutive 
 						times that the same result must be returned before 
 						a health check agent will indicate a change in status.
-- **reintegration_method_id** (Number) Indicates the method through which an 
+- `reintegration_method_id` (Number) Indicates the method through which an 
 						unhealthy server/hostname will be integrated back into a 
 						group. Supported values are: 1 - Automatic | 2 - Manual
 
 Optional:
 
-- **http_method_id** (Number) Defines an HTTP method by its 
+- `http_method_id` (Number) Defines an HTTP method by its 
 						system-defined ID. An HTTP method is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
 						1 - GET, 2 - POST. Refer to the following URL for 
 						additional information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HTTP_Methods.htm
-- **ip_address** (String) Defines the IP address (IPv4 or IPv6) to 
+- `ip_address` (String) Defines the IP address (IPv4 or IPv6) to 
 						which TCP health checks will be directed. IP address is 
 						required when check_type_id is 3 or 4
-- **ip_version** (Number) Defines an IP version by its 
+- `ip_version` (Number) Defines an IP version by its 
 						system-defined ID. This IP version is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
 						1 - IPv4, 2 - IPv6. Refer to the following URL for 
 						additional information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_IP_Versions_HC.htm
-- **port_number** (Number) Defines the port to which TCP health 
+- `port_number` (Number) Defines the port to which TCP health 
 						checks will be directed.
-- **timeout** (Number) Reserved for future use.
-- **uri** (String) Defines the URI to which HTTP/HTTPs health 
+- `timeout` (Number) Reserved for future use.
+- `uri` (String) Defines the URI to which HTTP/HTTPs health 
 						checks will be directed.
 
 Read-Only:
 
-- **fixed_id** (Number) Reserved for future use.
-- **fixed_record_id** (Number) Reserved for future use.
-- **group_id** (Number) Defines the Group ID this health check 
+- `fixed_id` (Number) Reserved for future use.
+- `fixed_record_id` (Number) Reserved for future use.
+- `group_id` (Number) Defines the Group ID this health check 
 						is associated with.
-- **id** (Number) Identifies the health check by its 
+- `id` (Number) Identifies the health check by its 
 						system-defined ID.
-- **record_id** (Number) Defines the DNS record ID this health 
+- `record_id` (Number) Defines the DNS record ID this health 
 						check is associated with.
-- **status** (Number) Indicates the server/hostname's health 
+- `status` (Number) Indicates the server/hostname's health 
 						check status by its system-defined ID.
-- **status_name** (String) Indicates the server/hostname's health 
+- `status_name` (String) Indicates the server/hostname's health 
 						check status.
 
 
@@ -281,44 +281,44 @@ Read-Only:
 
 Required:
 
-- **record** (Block List, Min: 1) Defines a DNS record that will be associated with the 
+- `record` (Block List, Min: 1) Defines a DNS record that will be associated with the 
 			zone. (see [below for nested schema](#nestedblock--aaaa--record))
-- **weight** (Number) Defines a record's weight. Used to denote preference 
+- `weight` (Number) Defines a record's weight. Used to denote preference 
 			for a load balancing or failover group.
 
 Optional:
 
-- **health_check** (Block Set) Define a record's health check configuration (see [below for nested schema](#nestedblock--aaaa--health_check))
+- `health_check` (Block Set) Define a record's health check configuration (see [below for nested schema](#nestedblock--aaaa--health_check))
 
 <a id="nestedblock--aaaa--record"></a>
 ### Nested Schema for `aaaa.record`
 
 Required:
 
-- **rdata** (String) Defines a record's value.
-- **ttl** (Number) Defines a record's TTL.
+- `rdata` (String) Defines a record's value.
+- `ttl` (Number) Defines a record's TTL.
 
 Optional:
 
-- **fixed_zone_id** (Number) Identifies a zone by its system-defined 
+- `fixed_zone_id` (Number) Identifies a zone by its system-defined 
 						ID.
-- **is_delete** (Boolean) Reserved for future use.
-- **zone_id** (Number) Reserved for future use.
+- `is_delete` (Boolean) Reserved for future use.
+- `zone_id` (Number) Reserved for future use.
 
 Read-Only:
 
-- **fixed_group_id** (Number) Reserved for future use.
-- **fixed_record_id** (Number) Reserved for future use.
-- **group_id** (Number) Identifies the group this record is 
+- `fixed_group_id` (Number) Reserved for future use.
+- `fixed_record_id` (Number) Reserved for future use.
+- `group_id` (Number) Identifies the group this record is 
 						assoicated with by its system-defined ID.
-- **name** (String) Defines a record's name.
-- **record_id** (Number) Identifies a DNS Record by its 
+- `name` (String) Defines a record's name.
+- `record_id` (Number) Identifies a DNS Record by its 
 						system-defined ID.
-- **record_type_id** (Number) Indicates the system-defined ID assigned 
+- `record_type_id` (Number) Indicates the system-defined ID assigned 
 						to the record type.
-- **record_type_name** (String) Indicates the name of the record type.
-- **verify_id** (Number) Reserved for future use.
-- **weight** (Number) Defines a record's weight. Used to denote 
+- `record_type_name` (String) Indicates the name of the record type.
+- `verify_id` (Number) Reserved for future use.
+- `weight` (Number) Defines a record's weight. Used to denote 
 						preference for a load balancing or failover group.
 
 
@@ -327,61 +327,61 @@ Read-Only:
 
 Required:
 
-- **check_interval** (Number) Defines the number of seconds between 
+- `check_interval` (Number) Defines the number of seconds between 
 						health checks.
-- **check_type_id** (Number) Defines the type of health check by its 
+- `check_type_id` (Number) Defines the type of health check by its 
 						system-defined ID. The following values are supported: 
 						1 - HTTP | 2 - HTTPS | 3 - TCP Open | 4 - TCP SSL. 
 						Please refer to the following URL for additional 
 						information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm
-- **content_verification** (String) Defines the text that will be used to 
+- `content_verification` (String) Defines the text that will be used to 
 						verify the success of the health check.
-- **email_notification_address** (String) Defines the e-mail address to which 
+- `email_notification_address` (String) Defines the e-mail address to which 
 						health check notifications will be sent.
-- **failed_check_threshold** (Number) Defines the number of consecutive 
+- `failed_check_threshold` (Number) Defines the number of consecutive 
 						times that the same result must be returned before 
 						a health check agent will indicate a change in status.
-- **reintegration_method_id** (Number) Indicates the method through which an 
+- `reintegration_method_id` (Number) Indicates the method through which an 
 						unhealthy server/hostname will be integrated back into a 
 						group. Supported values are: 1 - Automatic | 2 - Manual
 
 Optional:
 
-- **http_method_id** (Number) Defines an HTTP method by its 
+- `http_method_id` (Number) Defines an HTTP method by its 
 						system-defined ID. An HTTP method is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
 						1 - GET, 2 - POST. Refer to the following URL for 
 						additional information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HTTP_Methods.htm
-- **ip_address** (String) Defines the IP address (IPv4 or IPv6) to 
+- `ip_address` (String) Defines the IP address (IPv4 or IPv6) to 
 						which TCP health checks will be directed. IP address is 
 						required when check_type_id is 3 or 4
-- **ip_version** (Number) Defines an IP version by its 
+- `ip_version` (Number) Defines an IP version by its 
 						system-defined ID. This IP version is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
 						1 - IPv4, 2 - IPv6. Refer to the following URL for 
 						additional information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_IP_Versions_HC.htm
-- **port_number** (Number) Defines the port to which TCP health 
+- `port_number` (Number) Defines the port to which TCP health 
 						checks will be directed.
-- **timeout** (Number) Reserved for future use.
-- **uri** (String) Defines the URI to which HTTP/HTTPs health 
+- `timeout` (Number) Reserved for future use.
+- `uri` (String) Defines the URI to which HTTP/HTTPs health 
 						checks will be directed.
 
 Read-Only:
 
-- **fixed_id** (Number) Reserved for future use.
-- **fixed_record_id** (Number) Reserved for future use.
-- **group_id** (Number) Defines the Group ID this health check 
+- `fixed_id` (Number) Reserved for future use.
+- `fixed_record_id` (Number) Reserved for future use.
+- `group_id` (Number) Defines the Group ID this health check 
 						is associated with.
-- **id** (Number) Identifies the health check by its 
+- `id` (Number) Identifies the health check by its 
 						system-defined ID.
-- **record_id** (Number) Defines the DNS record ID this health 
+- `record_id` (Number) Defines the DNS record ID this health 
 						check is associated with.
-- **status** (Number) Indicates the server/hostname's health 
+- `status` (Number) Indicates the server/hostname's health 
 						check status by its system-defined ID.
-- **status_name** (String) Indicates the server/hostname's health 
+- `status_name` (String) Indicates the server/hostname's health 
 						check status.
 
 
@@ -391,44 +391,44 @@ Read-Only:
 
 Required:
 
-- **record** (Block List, Min: 1) Defines a DNS record that will be associated with the 
+- `record` (Block List, Min: 1) Defines a DNS record that will be associated with the 
 			zone. (see [below for nested schema](#nestedblock--cname--record))
-- **weight** (Number) Defines a record's weight. Used to denote preference 
+- `weight` (Number) Defines a record's weight. Used to denote preference 
 			for a load balancing or failover group.
 
 Optional:
 
-- **health_check** (Block Set) Define a record's health check configuration (see [below for nested schema](#nestedblock--cname--health_check))
+- `health_check` (Block Set) Define a record's health check configuration (see [below for nested schema](#nestedblock--cname--health_check))
 
 <a id="nestedblock--cname--record"></a>
 ### Nested Schema for `cname.record`
 
 Required:
 
-- **rdata** (String) Defines a record's value.
-- **ttl** (Number) Defines a record's TTL.
+- `rdata` (String) Defines a record's value.
+- `ttl` (Number) Defines a record's TTL.
 
 Optional:
 
-- **fixed_zone_id** (Number) Identifies a zone by its system-defined 
+- `fixed_zone_id` (Number) Identifies a zone by its system-defined 
 						ID.
-- **is_delete** (Boolean) Reserved for future use.
-- **zone_id** (Number) Reserved for future use.
+- `is_delete` (Boolean) Reserved for future use.
+- `zone_id` (Number) Reserved for future use.
 
 Read-Only:
 
-- **fixed_group_id** (Number) Reserved for future use.
-- **fixed_record_id** (Number) Reserved for future use.
-- **group_id** (Number) Identifies the group this record is 
+- `fixed_group_id` (Number) Reserved for future use.
+- `fixed_record_id` (Number) Reserved for future use.
+- `group_id` (Number) Identifies the group this record is 
 						assoicated with by its system-defined ID.
-- **name** (String) Defines a record's name.
-- **record_id** (Number) Identifies a DNS Record by its 
+- `name` (String) Defines a record's name.
+- `record_id` (Number) Identifies a DNS Record by its 
 						system-defined ID.
-- **record_type_id** (Number) Indicates the system-defined ID assigned 
+- `record_type_id` (Number) Indicates the system-defined ID assigned 
 						to the record type.
-- **record_type_name** (String) Indicates the name of the record type.
-- **verify_id** (Number) Reserved for future use.
-- **weight** (Number) Defines a record's weight. Used to denote 
+- `record_type_name` (String) Indicates the name of the record type.
+- `verify_id` (Number) Reserved for future use.
+- `weight` (Number) Defines a record's weight. Used to denote 
 						preference for a load balancing or failover group.
 
 
@@ -437,61 +437,61 @@ Read-Only:
 
 Required:
 
-- **check_interval** (Number) Defines the number of seconds between 
+- `check_interval` (Number) Defines the number of seconds between 
 						health checks.
-- **check_type_id** (Number) Defines the type of health check by its 
+- `check_type_id` (Number) Defines the type of health check by its 
 						system-defined ID. The following values are supported: 
 						1 - HTTP | 2 - HTTPS | 3 - TCP Open | 4 - TCP SSL. 
 						Please refer to the following URL for additional 
 						information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm
-- **content_verification** (String) Defines the text that will be used to 
+- `content_verification` (String) Defines the text that will be used to 
 						verify the success of the health check.
-- **email_notification_address** (String) Defines the e-mail address to which 
+- `email_notification_address` (String) Defines the e-mail address to which 
 						health check notifications will be sent.
-- **failed_check_threshold** (Number) Defines the number of consecutive 
+- `failed_check_threshold` (Number) Defines the number of consecutive 
 						times that the same result must be returned before 
 						a health check agent will indicate a change in status.
-- **reintegration_method_id** (Number) Indicates the method through which an 
+- `reintegration_method_id` (Number) Indicates the method through which an 
 						unhealthy server/hostname will be integrated back into a 
 						group. Supported values are: 1 - Automatic | 2 - Manual
 
 Optional:
 
-- **http_method_id** (Number) Defines an HTTP method by its 
+- `http_method_id` (Number) Defines an HTTP method by its 
 						system-defined ID. An HTTP method is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
 						1 - GET, 2 - POST. Refer to the following URL for 
 						additional information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HTTP_Methods.htm
-- **ip_address** (String) Defines the IP address (IPv4 or IPv6) to 
+- `ip_address` (String) Defines the IP address (IPv4 or IPv6) to 
 						which TCP health checks will be directed. IP address is 
 						required when check_type_id is 3 or 4
-- **ip_version** (Number) Defines an IP version by its 
+- `ip_version` (Number) Defines an IP version by its 
 						system-defined ID. This IP version is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
 						1 - IPv4, 2 - IPv6. Refer to the following URL for 
 						additional information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_IP_Versions_HC.htm
-- **port_number** (Number) Defines the port to which TCP health 
+- `port_number` (Number) Defines the port to which TCP health 
 						checks will be directed.
-- **timeout** (Number) Reserved for future use.
-- **uri** (String) Defines the URI to which HTTP/HTTPs health 
+- `timeout` (Number) Reserved for future use.
+- `uri` (String) Defines the URI to which HTTP/HTTPs health 
 						checks will be directed.
 
 Read-Only:
 
-- **fixed_id** (Number) Reserved for future use.
-- **fixed_record_id** (Number) Reserved for future use.
-- **group_id** (Number) Defines the Group ID this health check 
+- `fixed_id` (Number) Reserved for future use.
+- `fixed_record_id` (Number) Reserved for future use.
+- `group_id` (Number) Defines the Group ID this health check 
 						is associated with.
-- **id** (Number) Identifies the health check by its 
+- `id` (Number) Identifies the health check by its 
 						system-defined ID.
-- **record_id** (Number) Defines the DNS record ID this health 
+- `record_id` (Number) Defines the DNS record ID this health 
 						check is associated with.
-- **status** (Number) Indicates the server/hostname's health 
+- `status` (Number) Indicates the server/hostname's health 
 						check status by its system-defined ID.
-- **status_name** (String) Indicates the server/hostname's health 
+- `status_name` (String) Indicates the server/hostname's health 
 						check status.
 
 

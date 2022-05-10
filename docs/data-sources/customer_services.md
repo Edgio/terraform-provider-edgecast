@@ -14,17 +14,17 @@ This data source is not ready for production use.
 
 ### Optional
 
-- **id** (String) The ID of this resource.
+- `id` (String) The ID of this resource.
 
 ### Read-Only
 
-- **services** (List of Object) (see [below for nested schema](#nestedatt--services))
+- `services` (List of Object) (see [below for nested schema](#nestedatt--services))
 
 <a id="nestedatt--services"></a>
 ### Nested Schema for `services`
 
 Read-Only:
 
-- **id** (Number)
-- **name** (String)
-- **parent_id** (Number)
+- `id` (Number)
+- `name` (String)
+- `parent_id` (Number)
