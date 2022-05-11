@@ -12,10 +12,6 @@ vars:
   NAME: edgecast
   BINARY: terraform-provider-{{.NAME}}
   VERSION: 0.5.1
-  OS:
-    sh: uname -s | tr '[:upper:]' '[:lower:]'
-  ARCH:
-    sh: arch
 
 
 includes:
@@ -23,7 +19,7 @@ includes:
     desc: runs all integration tests
     taskfile: ./test/integration/Taskfile.yaml
     dir: ./test/integration
-  
+
 
 tasks:
   generate:
@@ -40,8 +36,8 @@ tasks:
     desc: installs the source as the specified version of the terraform provider
     cmds:
       - task: build
-      - mkdir -p ~/.terraform.d/plugins/{{.HOSTNAME}}/{{.NAMESPACE}}/{{.NAME}}/{{.VERSION}}/{{.OS}}_{{.ARCH}}
-      - mv {{.BINARY}} ~/.terraform.d/plugins/{{.HOSTNAME}}/{{.NAMESPACE}}/{{.NAME}}/{{.VERSION}}/{{.OS}}_{{.ARCH}}
+      - mkdir -p ~/.terraform.d/plugins/{{.HOSTNAME}}/{{.NAMESPACE}}/{{.NAME}}/{{.VERSION}}/{{OS}}_{{ARCH}}
+      - mv {{.BINARY}} ~/.terraform.d/plugins/{{.HOSTNAME}}/{{.NAMESPACE}}/{{.NAME}}/{{.VERSION}}/{{OS}}_{{ARCH}}
 
   lint:
     desc: runs lint against go files
