@@ -29,7 +29,7 @@ func createResourceData(t *testing.T, keys ...string) (*schema.ResourceImporter,
 	return i, rd
 }
 
-func TestImporter_account_number_and_id(t *testing.T) {
+func TestImporter_AccountNumberWithID(t *testing.T) {
 	expect := assert.New(t)
 	i, rd := createResourceData(t, "account_number", "id")
 	expect.NotNil(i)
@@ -42,35 +42,37 @@ func TestImporter_account_number_and_id(t *testing.T) {
 	expect.Equal("123", rd.Get("account_number"))
 }
 
-func TestImporter_account_number_and_group_product_and_id(t *testing.T) {
+func TestImporter_OptionalKeys(t *testing.T) {
 	expect := assert.New(t)
-	i, rd := createResourceData(t, "account_number", "group_product_type", "id")
+	i, rd := createResourceData(t, "account_number", "id", "portal_type_id", "customer_user_id")
+	expect.NotNil(i)
+	expect.NotNil(rd)
+	rd.SetId("123:456")
+	rds, err := i.StateContext(context.Background(), rd, nil)
+	expect.NoError(err)
+	expect.NotNil(rds)
+	expect.Equal("456", rd.Id())
+	expect.Equal("123", rd.Get("account_number"))
+	expect.Equal("", rd.Get("portal_type_id"))
+	expect.Equal("", rd.Get("customer_user_id"))
+
+}
+
+func TestImporter_AccountNumberWithID_MediaType(t *testing.T) {
+	expect := assert.New(t)
+	i, rd := createResourceData(t, "account_number", "id", "media_type_id")
 	expect.NotNil(i)
 	expect.NotNil(rd)
 	rd.SetId("123:456:789")
 	rds, err := i.StateContext(context.Background(), rd, nil)
 	expect.NoError(err)
 	expect.NotNil(rds)
-	expect.Equal("789", rd.Id())
+	expect.Equal("456", rd.Id())
 	expect.Equal("123", rd.Get("account_number"))
-	expect.Equal("456", rd.Get("group_product_type"))
+	expect.Equal("789", rd.Get("media_type_id"))
 }
 
-func TestImporter_account_number_and_media_type_and_id(t *testing.T) {
-	expect := assert.New(t)
-	i, rd := createResourceData(t, "account_number", "media_type_id", "id")
-	expect.NotNil(i)
-	expect.NotNil(rd)
-	rd.SetId("123:456:789")
-	rds, err := i.StateContext(context.Background(), rd, nil)
-	expect.NoError(err)
-	expect.NotNil(rds)
-	expect.Equal("789", rd.Id())
-	expect.Equal("123", rd.Get("account_number"))
-	expect.Equal("456", rd.Get("media_type_id"))
-}
-
-func TestImporter_account_number(t *testing.T) {
+func TestImporter_AccountNumber(t *testing.T) {
 	expect := assert.New(t)
 	i, rd := createResourceData(t, "account_number")
 	expect.NotNil(i)
@@ -83,7 +85,7 @@ func TestImporter_account_number(t *testing.T) {
 	expect.Equal("123", rd.Get("account_number"))
 }
 
-func TestImporter_id(t *testing.T) {
+func TestImporter_ID(t *testing.T) {
 	expect := assert.New(t)
 	i, rd := createResourceData(t, "id")
 	expect.NotNil(i)
