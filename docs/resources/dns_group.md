@@ -496,3 +496,27 @@ Read-Only:
 
 
 
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_dns_group" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_dns_group.example ACCOUNT_NUMBER:ID:GROUP_PRODUCT_TYPE
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the DNS group ID is associated with. |
+| `ID` | The DNS group ID to import.                                       |
+| `GROUP_PRODUCT_TYPE`  | The group product type of the DNS group to import.               |
+
+As a result of the above command, the resource is recorded in the state file.

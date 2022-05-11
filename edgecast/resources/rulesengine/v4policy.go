@@ -29,7 +29,7 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 		ReadContext:   ResourcePolicyRead,
 		UpdateContext: ResourcePolicyUpdate,
 		DeleteContext: ResourcePolicyDelete,
-		Importer:      helper.Import(ResourcePolicyRead, "account_number", "portaltypeid", "customeruserid", "id"),
+		Importer:      helper.Import(ResourcePolicyRead, "account_number", "id", "portaltypeid", "customeruserid"),
 
 		Schema: map[string]*schema.Schema{
 			"customeruserid": {

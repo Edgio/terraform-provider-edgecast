@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_waf_rate_rule (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -193,4 +193,24 @@ Optional:
 Indicates the name of the request header through which requests will be identified. \
     Valid values are: `Host | Referer | User-Agent`
 
+## Import
 
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_rate_rule" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_rate_rule.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                          |
+|:----------------|----------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the WAF rate rule ID is associated with. |
+| `ID` | The ID of the WAF rate rule to import.                   |
+
+As a result of the above command, the resource is recorded in the state file.

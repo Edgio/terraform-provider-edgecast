@@ -59,7 +59,7 @@ func ResourceOrigin() *schema.Resource {
 		ReadContext:   ResourceOriginRead,
 		UpdateContext: ResourceOriginUpdate,
 		DeleteContext: ResourceOriginDelete,
-		Importer:      helper.Import(ResourceOriginRead, "account_number", "media_type_id", "id"),
+		Importer:      helper.Import(ResourceOriginRead, "account_number", "id", "media_type_id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

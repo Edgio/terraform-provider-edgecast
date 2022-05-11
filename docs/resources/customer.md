@@ -113,3 +113,26 @@ resource "edgecast_customer" "test_customer_01" {
 - `usage_limit_update_date` (String)
 - `wholesale_id` (Number)
 - `wholesale_name` (String)
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_customer" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+
+```shell
+terraform import edgecast_customer.example CUSTOMER_ID
+```
+|              |                                  |
+|:-------------|----------------------------------|
+| `CUSTOMER_ID` | The customer ID to import |
+
+
+As a result of the above command, the resource is recorded in the state file.

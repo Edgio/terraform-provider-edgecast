@@ -12,9 +12,6 @@ func parseKeys(s string) []string {
 	if s == "" {
 		return nil
 	}
-	if strings.Contains(s, ":") == false {
-		return []string{s}
-	}
 	return strings.Split(s, ":")
 }
 

@@ -58,3 +58,27 @@ resource "edgecast_dns_tsig" "tsig1" {
 
 - `id` (String) The ID of this resource.
 
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_dns_tsig" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_dns_tsig.example ACCOUNT_NUMBER:ID
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the DNS TSIG ID is associated with. |
+| `ID` | The DNS TSIG ID to import.                           |
+
+As a result of the above command, the resource is recorded in the state file.
+

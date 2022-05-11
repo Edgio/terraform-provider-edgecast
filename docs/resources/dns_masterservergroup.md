@@ -81,3 +81,27 @@ Read-Only:
 							created.
 
 
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_dns_masterservergroup" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_dns_masterservergroup.example ACCOUNT_NUMBER:ID
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the master server group ID is associated with. |
+| `ID` | The master server group ID to import.                             |
+
+As a result of the above command, the resource is recorded in the state file.
+

@@ -253,7 +253,7 @@ func ResourceGroup() *schema.Resource {
 		ReadContext:   ResourceGroupRead,
 		UpdateContext: ResourceGroupUpdate,
 		DeleteContext: ResourceGroupDelete,
-		Importer:      helper.Import(ResourceGroupRead, "account_number", "group_product_type", "id"),
+		Importer:      helper.Import(ResourceGroupRead, "account_number", "id", "group_product_type"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

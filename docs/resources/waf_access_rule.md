@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_waf_access_rule (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -168,4 +168,25 @@ Optional:
 - `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
 - `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_access_rule" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_access_rule.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                                  |
+|:----------------|------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the WAF access rule ID is associated with. |
+| `ID` | The WAF access rule ID to import.                                     |
+
+As a result of the above command, the resource is recorded in the state file.
 
