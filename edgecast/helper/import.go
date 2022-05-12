@@ -26,11 +26,11 @@ func Import(read schema.ReadContextFunc, keys ...string) *schema.ResourceImporte
 			}
 
 			for i, key := range keys {
-				if strings.EqualFold(key, "id") {
-					d.SetId(vals[i])
-					continue
-				}
 				if i < len(vals) {
+					if strings.EqualFold(key, "id") {
+						d.SetId(vals[i])
+						continue
+					}
 					_ = d.Set(key, vals[i])
 				}
 			}
