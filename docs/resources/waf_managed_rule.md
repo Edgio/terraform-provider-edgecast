@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_waf_managed_rule (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -105,7 +105,6 @@ resource "edgecast_waf_managed_rule" "managed_rule_1" {
 
 - `account_number` (String) Identifies your account by its customer account number.
 - `disabled_rule` (Block Set) This array identifies each rule that has been disabled using these properties (see [below for nested schema](#nestedblock--disabled_rule))
-- `id` (String) The ID of this resource.
 - `name` (String) Indicates the name of the custom rule.
 - `policies` (List of String) Contains a list of policies that have been enabled on this managed rule.
 - `rule_target_update` (Block Set) This array describes each target using these properties (see [below for nested schema](#nestedblock--rule_target_update))
@@ -114,6 +113,7 @@ resource "edgecast_waf_managed_rule" "managed_rule_1" {
 
 - `created_date` (String) Indicates the date and time at which the managed rule was created.
 - `customer_id` (String) Identifies your account by its customer account number.
+- `id` (String) The ID of this resource.
 - `last_modified_by` (String) Reserved for future use.
 - `last_modified_date` (String) Indicates the date and time at which the managed rule was last modified.
 - `version` (String) Reserved for future use.
@@ -167,4 +167,24 @@ Optional:
 - `is_negated` (Boolean) Determines whether the current target, as defined within this object, will be ignored when identifying threats.
 - `replace_target` (String) Defines the data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) that will be used instead of the one defined in the target parameter.
 
+## Import
 
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_managed_rule" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_managed_rule.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                                  |
+|:----------------|------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the WAF managed ID is associated with. |
+| `ID` | The ID of the WAF managed rule to import.                        |
+
+As a result of the above command, the resource is recorded in the state file.

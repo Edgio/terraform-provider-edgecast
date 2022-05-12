@@ -154,7 +154,6 @@ resource "edgecast_dns_group" "loadbalancing2" {
 				group. (see [below for nested schema](#nestedblock--aaaa))
 - `cname` (Block Set) Defines a set of CNAME records associated with 
 				this group. (see [below for nested schema](#nestedblock--cname))
-- `id` (String) The ID of this resource.
 
 ### Read-Only
 
@@ -164,6 +163,7 @@ resource "edgecast_dns_group" "loadbalancing2" {
 - `group_product_type_id` (Number) Defines the group product type by its 
 				system-defined ID
 - `group_type_id` (Number) Defines the group type by its system-defined ID
+- `id` (String) The ID of this resource.
 - `zone_id` (Number) Reserved for future use.
 
 <a id="nestedblock--a"></a>
@@ -496,3 +496,27 @@ Read-Only:
 
 
 
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_dns_group" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_dns_group.example ACCOUNT_NUMBER:ID:GROUP_PRODUCT_TYPE
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the DNS group ID is associated with. |
+| `ID` | The DNS group ID to import.                                       |
+| `GROUP_PRODUCT_TYPE`  | The group product type of the DNS group to import.               |
+
+As a result of the above command, the resource is recorded in the state file.

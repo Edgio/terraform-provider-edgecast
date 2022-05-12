@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log"
 	"strconv"
+	"terraform-provider-edgecast/edgecast/helper"
 
 	"terraform-provider-edgecast/edgecast/api"
 
@@ -23,6 +24,7 @@ func ResourceEdgeCname() *schema.Resource {
 		ReadContext:   ResourceEdgeCnameRead,
 		UpdateContext: ResourceEdgeCnameUpdate,
 		DeleteContext: ResourceEdgeCnameDelete,
+		Importer:      helper.Import(ResourceEdgeCnameRead, "account_number", "id"),
 
 		CustomizeDiff: customdiff.ValidateChange(
 			"media_type_id",

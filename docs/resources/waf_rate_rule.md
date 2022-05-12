@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_waf_rate_rule (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -121,13 +121,16 @@ The rate limit formula is calculated through the num and duration_sec properties
 Valid values are: 
     * true: Disabled. This rate limit will not be applied to traffic.
     * false: Enabled. Traffic is restricted to this rate limit.
-- `id` (String) The ID of this resource.
 - `keys` (Set of String) Indicates the method by requests will be grouped for the purposes of this rate rule. \
 Valid values are: 
     * Missing / Empty Array: If the `keys` property is not defined or set to an empty array, all requests will be treated as a single group for the purpose of rate limiting. 
     * IP: Indicates that requests will be grouped by IP address. Each unique IP address is considered a separate group. 
     * USER_AGENT: Indicates that requests will be grouped by a client's user agent. Each unique combination of IP address and user agent is considered a separate group.
 - `name` (String) Assigns a name to this access rule.
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--condition_group"></a>
 ### Nested Schema for `condition_group`
@@ -190,4 +193,24 @@ Optional:
 Indicates the name of the request header through which requests will be identified. \
     Valid values are: `Host | Referer | User-Agent`
 
+## Import
 
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_rate_rule" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_rate_rule.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                          |
+|:----------------|----------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the WAF rate rule ID is associated with. |
+| `ID` | The ID of the WAF rate rule to import.                   |
+
+As a result of the above command, the resource is recorded in the state file.

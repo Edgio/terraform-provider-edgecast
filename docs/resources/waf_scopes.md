@@ -18,6 +18,9 @@ description: |-
 ### Optional
 
 - `account_number` (String) Identifies your account by its customer account number.
+
+### Read-Only
+
 - `id` (String) The ID of this resource.
 
 <a id="nestedblock--scope"></a>
@@ -405,3 +408,26 @@ resource "edgecast_waf_scopes" "scopes1" {
 
 }
 ```
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_scopes" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_scopes.example ACCOUNT_NUMBER:ID
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the waf scope ID  is associated with. |
+| `ID` | The ID of the waf scope to import.                                |
+
+As a result of the above command, the resource is recorded in the state file.

@@ -35,9 +35,33 @@ resource "edgecast_rules_engine_policy" "my_policy" {
 
 - `account_number` (String) Account to impersonate. If using MCC credentials, this parameter will be ignored.
 - `customeruserid` (String) User ID to impersonate. If using MCC credentials, this parameter will be ignored
-- `id` (String) The ID of this resource.
 - `portaltypeid` (String) Portal Type ID to impersonate. If using MCC credentials, this parameter will be ignored.
 
 ### Read-Only
 
 - `deploy_request_id` (String)
+- `id` (String) The ID of this resource.
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_rules_engine_policy" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_rules_engine_policy.example ACCOUNT_NUMBER:ID:PORTAL_TYPE_ID:CUSTOMER_USER_ID
+```
+|                  |                                                                   |
+|:-----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`   | The account number the rules engine policy ID is associated with. |
+| `ID`               | The rules engine policy ID to import.                                      |
+| `PORTAL_TYPE_ID`   | The portal type ID of the rules engine policy to import.                        |
+| `CUSTOMER_USER_ID` | The customer user ID of the rules engine policy to import.                  |
+
+As a result of the above command, the resource is recorded in the state file.

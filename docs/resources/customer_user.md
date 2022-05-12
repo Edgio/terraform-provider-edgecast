@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_customer_user (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -50,7 +50,6 @@ resource "edgecast_customer_user" "my_customer_user" {
 - `email` (String)
 - `fax` (String)
 - `first_name` (String)
-- `id` (String) The ID of this resource.
 - `is_admin` (Boolean)
 - `last_name` (String)
 - `mobile` (String)
@@ -62,6 +61,28 @@ resource "edgecast_customer_user" "my_customer_user" {
 ### Read-Only
 
 - `custom_id` (String)
+- `id` (String) The ID of this resource.
 - `last_login_date` (String)
 
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_customer_user" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_customer_user.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                                  |
+|:----------------|------------------------------------------------------------------|
+| ACCOUNT_NUMBER  | The account number the customer user ID is associated with. |
+| ID | The customer user ID to import.                                  |
+
+As a result of the above command, the resource is recorded in the state file.
 

@@ -7,6 +7,7 @@ import (
 	"context"
 	"log"
 	"strconv"
+	"terraform-provider-edgecast/edgecast/helper"
 
 	"terraform-provider-edgecast/edgecast/api"
 
@@ -22,6 +23,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 		ReadContext:   ResourceSecondaryZoneGroupRead,
 		UpdateContext: ResourceSecondaryZoneGroupUpdate,
 		DeleteContext: ResourceSecondaryZoneGroupDelete,
+		Importer:      helper.Import(ResourceSecondaryZoneGroupRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {

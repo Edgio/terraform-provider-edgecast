@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_waf_access_rule (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -86,7 +86,6 @@ resource "edgecast_waf_access_rule" "access_rule_1" {
 - `country` (Block Set, Max: 1) Contains access controls for countries. Specify each desired country using its country code. (see [below for nested schema](#nestedblock--country))
 - `disallowed_extensions` (List of String) Indicates each file extension for which WAF will send an alert or block the request.
 - `disallowed_headers` (List of String) Indicates each request header for which WAF will send an alert or block the request.
-- `id` (String) The ID of this resource.
 - `ip` (Block Set, Max: 1) Contains access controls for IPv4 and/or IPv6 addresses. Specify each desired IP address using standard IPv4/IPv6 and CIDR notation. (see [below for nested schema](#nestedblock--ip))
 - `referer` (Block Set, Max: 1) Contains access controls for referrers.  \
 *Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.* (see [below for nested schema](#nestedblock--referer))
@@ -95,6 +94,10 @@ resource "edgecast_waf_access_rule" "access_rule_1" {
 *Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.* (see [below for nested schema](#nestedblock--url))
 - `user_agent` (Block Set, Max: 1) Contains access controls for user agents.  \
 *Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.* (see [below for nested schema](#nestedblock--user_agent))
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--asn"></a>
 ### Nested Schema for `asn`
@@ -165,4 +168,25 @@ Optional:
 - `blacklist` (List of String) Contains entries that identify traffic that will be blocked or for which an alert will be generated.
 - `whitelist` (List of String) Contains entries that identify traffic that may access your content without undergoing threat assessment.
 
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_access_rule" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_access_rule.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                                  |
+|:----------------|------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the WAF access rule ID is associated with. |
+| `ID` | The WAF access rule ID to import.                                     |
+
+As a result of the above command, the resource is recorded in the state file.
 

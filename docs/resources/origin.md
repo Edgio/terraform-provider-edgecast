@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_origin (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -122,7 +122,6 @@ resource "edgecast_origin" "origin_cart_adn" {
 - `follow_redirects` (Boolean) Indicates whether our edge servers will respect a 
 				URL redirect when validating the set of optimal ADN gateway 
 				servers for your customer origin configuration.
-- `id` (String) The ID of this resource.
 - `origin_hostname_http` (Block Set) Identifies the HTTP origin servers, load 
 				balancing configuration, and origin precedence if applicable to 
 				the load balancing type specified. (see [below for nested schema](#nestedblock--origin_hostname_http))
@@ -140,6 +139,7 @@ resource "edgecast_origin" "origin_cart_adn" {
 				customer origin server.
 - `https_full_url` (String) Indicates the CDN URL for HTTPS requests to this 
 				customer origin server.
+- `id` (String) The ID of this resource.
 - `use_origin_shield` (Number) Indicates whether Origin Shield has been activated 
 				on the customer origin. Valid values are:
 				0: Disabled, 1: Enabled
@@ -209,4 +209,25 @@ Optional:
 							for this customer origin. This configuration is 
 							defined through a three or four-letter code.
 
+## Import
 
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_origin" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_origin.example ACCOUNT_NUMBER:ID:MEDIA_TYPE_ID
+```
+|                |                                                                  |
+|:---------------|------------------------------------------------------------------|
+| `ACCOUNT_NUMBER` | The account number the origin ID is associated with. |
+| `ID`             | The origin ID to import.                                     |
+| `MEDIA_TYPE_ID` | The media type ID of the cname to import.                        |
+
+As a result of the above command, the resource is recorded in the state file.

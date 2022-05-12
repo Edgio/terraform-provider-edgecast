@@ -156,7 +156,6 @@ resource "edgecast_dns_zone" "anyl" {
 
 - `comment` (String) Indicates the comment associated with a zone.
 - `dnsroute_group` (Block Set) (see [below for nested schema](#nestedblock--dnsroute_group))
-- `id` (String) The ID of this resource.
 - `is_customer_owned` (Boolean) This parameter is reserved for future use. The 
 				only supported value for this parameter is "true."
 - `record_a` (Block Set) List of A records (see [below for nested schema](#nestedblock--record_a))
@@ -181,6 +180,7 @@ resource "edgecast_dns_zone" "anyl" {
 ### Read-Only
 
 - `fixed_zone_id` (Number) Identifies a zone by its system-defined ID.
+- `id` (String) The ID of this resource.
 - `status_name` (String) Indicates a zone's status by its name.
 - `zone_id` (Number) Reserved for future use.
 
@@ -1083,4 +1083,28 @@ Read-Only:
 - `verify_id` (Number) Reserved for future use.
 - `zone_id` (Number) Reserved for future use.
 
+
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_dns_zone" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_dns_zone.example ACCOUNT_NUMBER:ID
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the DNS zone ID is associated with. |
+| `ID` | The DNS zone ID to import.                                        |
+
+As a result of the above command, the resource is recorded in the state file.
 

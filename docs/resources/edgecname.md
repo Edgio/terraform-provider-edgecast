@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_edgecname (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -73,11 +73,33 @@ resource "edgecast_edgecname" "edgecname_customer_origin" {
 					Valid values are:
 					0: Disabled (Default Value).
 					1: Enabled. CDN activity on this edge CNAME will be logged.
-- `id` (String) The ID of this resource.
 
 ### Read-Only
 
+- `id` (String) The ID of this resource.
 - `origin_string` (String) Indicates the origin identifier, the account
 					number, and the relative path associated with the edge CNAME.
 
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_edgecname" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_edgecname.example ACCOUNT_NUMBER:ID   
+```
+|                 |                                                                  |
+|:----------------|------------------------------------------------------------------|
+| ACCOUNT_NUMBER  | The account number the edge cname ID is associated with. |
+| ID | The edge cname ID to import.                                     |
+
+As a result of the above command, the resource is recorded in the state file.
 

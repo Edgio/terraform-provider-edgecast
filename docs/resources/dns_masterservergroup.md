@@ -53,12 +53,9 @@ resource "edgecast_dns_masterservergroup" "master_server_group"{
 - `masters` (Block List, Min: 1) Contains the master name servers associated with 
 				a master server group. (see [below for nested schema](#nestedblock--masters))
 
-### Optional
-
-- `id` (String) The ID of this resource.
-
 ### Read-Only
 
+- `id` (String) The ID of this resource.
 - `master_group_id` (Number) Indicates the system-defined ID assigned to a 
 				master server group.
 
@@ -83,4 +80,28 @@ Read-Only:
 							be associated with the master server group being 
 							created.
 
+
+
+
+## Import
+
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_dns_masterservergroup" "example" {
+
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_dns_masterservergroup.example ACCOUNT_NUMBER:ID
+```
+|                 |                                                                   |
+|:----------------|-------------------------------------------------------------------|
+| `ACCOUNT_NUMBER`  | The account number the master server group ID is associated with. |
+| `ID` | The master server group ID to import.                             |
+
+As a result of the above command, the resource is recorded in the state file.
 

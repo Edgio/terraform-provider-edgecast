@@ -7,8 +7,8 @@ description: |-
 ---
 
 # edgecast_waf_custom_rule_set (Resource)
-
-
+Please use the Edgecast API for retrieving specific IDs available for Services, Access Modules, and Delivery Regions.
+A future version of this provider may provide Terraform data sources for these.
 
 ## Example Usage
 
@@ -305,4 +305,24 @@ Optional:
 Example: \
 If the type property is set to REQUEST_HEADERS and this property is set to User-Agent, then this match condition is restricted to the User-Agent request header. If the value property is omitted, then this match condition applies to all request headers.
 
+## Import
 
+To import a resource, create a resource block for it in your configuration:
+
+```terraform
+resource "edgecast_waf_custom_rule_set" "example" {
+  
+}
+```
+
+Now run terraform import to attach an existing instance to the resource configuration:
+
+```shell
+terraform import edgecast_waf_custom_rule_set.example CUSTOMER_ID:ID   
+```
+|             |                                                      |
+|:------------|------------------------------------------------------|
+| `CUSTOMER_ID` | The customer ID of the WAF custom ruleset to import. |
+| `ID`          | The WAF custom rule set ID to import.                |
+
+As a result of the above command, the resource is recorded in the state file.
