@@ -439,7 +439,9 @@ func policyDiffSuppress(k, old, new string, _ *schema.ResourceData) bool {
 	_ = json.Unmarshal([]byte(old), &oldPolicy)
 	_ = json.Unmarshal([]byte(new), &newPolicy)
 
-	oldPolicy["name"], newPolicy["name"] = "", "" // ignore name changes
+	// ignore name changes
+	delete(oldPolicy, "name")
+	delete(newPolicy, "name")
 
 	return reflect.DeepEqual(oldPolicy, newPolicy) == false
 }
