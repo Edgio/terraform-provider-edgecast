@@ -1,4 +1,4 @@
-:: Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license. 
+:: Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license. 
 :: See LICENSE file in project root for terms.
 
 :: This script is intended for windows environments, for Unix-like systems use the Makefile
@@ -9,7 +9,7 @@ set HOSTNAME=github.com
 set NAMESPACE=terraform-providers
 set NAME=edgecast
 set BINARY=terraform-provider-%NAME%.exe
-set VERSION=0.5.0
+set VERSION=0.5.2
 set OS_ARCH=windows_amd64
 
 go build

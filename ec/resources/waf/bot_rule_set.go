@@ -16,13 +16,12 @@ import (
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
-func ResourceCustomRuleSetCreate(ctx context.Context,
+func ResourceBotRuleSetCreate(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
 
 	config := m.(**api.ClientConfig)
-
 	wafService, err := buildWAFService(**config)
 
 	if err != nil {
@@ -31,26 +30,28 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	accountNumber := d.Get("customer_id").(string)
 
-	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
+	log.Printf(
+		"[INFO] Creating WAF Bot Rule Set for Account >> %s",
+		accountNumber)
 
-	customRuleSet := sdkwaf.CustomRuleSet{
+	botRuleSet := sdkwaf.BotRuleSet{
 		Name: d.Get("name").(string),
 	}
 
-	directive, err := expandCustomRuleDirectives(d.Get("directive"))
+	directive, err := expandBotRuleDirectives(d.Get("directive"))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error parsing directive: %w", err))
 	}
 
-	customRuleSet.Directives = *directive
+	botRuleSet.Directives = *directive
 
-	log.Printf("[DEBUG] Name: %+v\n", customRuleSet.Name)
-	log.Printf("[DEBUG] Directive(s): %+v\n", customRuleSet.Directives)
+	log.Printf("[DEBUG] Name: %+v\n", botRuleSet.Name)
+	log.Printf("[DEBUG] Directive(s): %+v\n", botRuleSet.Directives)
 
-	params := sdkwaf.NewAddCustomRuleSetParams()
+	params := sdkwaf.NewAddBotRuleSetParams()
 	params.AccountNumber = accountNumber
-	params.CustomRuleSet = customRuleSet
-	resp, err := wafService.AddCustomRuleSet(params)
+	params.BotRuleSet = botRuleSet
+	resp, err := wafService.AddBotRuleSet(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -60,10 +61,10 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	d.SetId(resp)
 
-	return ResourceCustomRuleSetRead(ctx, d, m)
+	return ResourceBotRuleSetRead(ctx, d, m)
 }
 
-func ResourceCustomRuleSetRead(ctx context.Context,
+func ResourceBotRuleSetRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
@@ -72,10 +73,10 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 
 	config := m.(**api.ClientConfig)
 	accountNumber := d.Get("customer_id").(string)
-	ruleID := d.Id()
+	botRuleSetID := d.Id()
 
-	log.Printf("[INFO] Retrieving custom rule %s for account number %s",
-		ruleID,
+	log.Printf("[INFO] Retrieving Bot Rule Set '%s' for account number %s",
+		botRuleSetID,
 		accountNumber,
 	)
 
@@ -85,53 +86,56 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewGetCustomRuleSetParams()
+	params := sdkwaf.NewGetBotRuleSetParams()
 	params.AccountNumber = accountNumber
-	params.CustomRuleSetID = ruleID
-	resp, err := wafService.GetCustomRuleSet(params)
+	params.BotRuleSetID = botRuleSetID
+	resp, err := wafService.GetBotRuleSet(params)
 
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Successfully retrieved rate rule %s: %+v", ruleID, resp)
+	log.Printf(
+		"[INFO] Successfully retrieved Bot Rule Set '%s': %+v",
+		botRuleSetID,
+		resp)
 
 	d.SetId(resp.ID)
 	d.Set("customer_id", accountNumber)
 	d.Set("last_modified_date", resp.LastModifiedDate)
 	d.Set("name", resp.Name)
 
-	flattenDirectiveGroups := flattenCustomRuleDirectives(resp.Directives)
+	flattenedDirectives := flattenBotRuleDirectives(resp.Directives)
 
-	d.Set("directive", flattenDirectiveGroups)
+	d.Set("directive", flattenedDirectives)
 	return diags
 }
 
-func ResourceCustomRuleSetUpdate(ctx context.Context,
+func ResourceBotRuleSetUpdate(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
 
 	accountNumber := d.Get("customer_id").(string)
-	customRuleSetID := d.Id()
+	botRuleSetID := d.Id()
 
-	log.Printf("[INFO] Updating WAF Custom Rule Set ID %s for Account >> %s",
-		customRuleSetID,
+	log.Printf("[INFO] Updating WAF Bot Rule '%s' for Account >> %s",
+		botRuleSetID,
 		accountNumber,
 	)
 
-	customRuleSetRequest := sdkwaf.CustomRuleSet{}
-	customRuleSetRequest.Name = d.Get("name").(string)
+	botRuleSet := sdkwaf.BotRuleSet{}
+	botRuleSet.Name = d.Get("name").(string)
 
-	directives, err := expandCustomRuleDirectives(d.Get("directive"))
+	directives, err := expandBotRuleDirectives(d.Get("directive"))
 	if err != nil {
-		return diag.FromErr(fmt.Errorf("error parsing directive: %w", err))
+		return diag.Errorf("error parsing directives: %+v", err)
 	}
-	customRuleSetRequest.Directives = *directives
+	botRuleSet.Directives = *directives
 
-	log.Printf("[DEBUG] Name: %+v\n", customRuleSetRequest.Name)
-	log.Printf("[DEBUG] Directives: %+v\n", customRuleSetRequest.Directives)
+	log.Printf("[DEBUG] Name: %+v\n", botRuleSet.Name)
+	log.Printf("[DEBUG] Directives: %+v\n", botRuleSet.Directives)
 
 	config := m.(**api.ClientConfig)
 
@@ -140,23 +144,23 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewUpdateCustomRuleSetParams()
+	params := sdkwaf.NewUpdateBotRuleSetParams()
 	params.AccountNumber = accountNumber
-	params.CustomRuleSet = customRuleSetRequest
-	params.CustomRuleSetID = customRuleSetID
-	err = wafService.UpdateCustomRuleSet(params)
+	params.BotRuleSet = botRuleSet
+	params.BotRuleSetID = botRuleSetID
+	err = wafService.UpdateBotRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	log.Printf(
-		"[INFO] Successfully updated WAF Custom Rule Set: %+v",
-		customRuleSetRequest)
+		"[INFO] Successfully updated WAF Bot Rule Set: %+v",
+		botRuleSet)
 
-	return ResourceCustomRuleSetRead(ctx, d, m)
+	return ResourceBotRuleSetRead(ctx, d, m)
 }
 
-func ResourceCustomRuleSetDelete(ctx context.Context,
+func ResourceBotRuleSetDelete(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
@@ -164,10 +168,10 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 	var diags diag.Diagnostics
 
 	accountNumber := d.Get("customer_id").(string)
-	customRuleID := d.Id()
+	botRuleSetID := d.Id()
 
-	log.Printf("[INFO] Deleting WAF Custom Rule Set ID %s for Account >> %s",
-		customRuleID,
+	log.Printf("[INFO] Deleting WAF Bot Rule Set ID %s for Account >> %s",
+		botRuleSetID,
 		accountNumber,
 	)
 
@@ -178,42 +182,50 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewDeleteCustomRuleSetParams()
+	params := sdkwaf.NewDeleteBotRuleSetParams()
 	params.AccountNumber = accountNumber
-	params.CustomRuleSetID = customRuleID
-	err = wafService.DeleteCustomRuleSet(params)
+	params.BotRuleSetID = botRuleSetID
+	err = wafService.DeleteBotRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	log.Printf(
-		"[INFO] Successfully deleted WAF Custom Rule Set: %+v", customRuleID)
+		"[INFO] Successfully deleted WAF Bot Rule Set: %+v", botRuleSetID)
 
 	d.SetId("")
 
 	return diags
 }
 
-func expandCustomRuleDirectives(
+func expandBotRuleDirectives(
 	attr interface{},
-) (*[]sdkwaf.CustomRuleDirective, error) {
+) (*[]sdkwaf.BotRuleDirective, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		directives := make([]sdkwaf.CustomRuleDirective, 0)
+		directives := make([]sdkwaf.BotRuleDirective, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			directive := sdkwaf.CustomRuleDirective{}
+			directive := sdkwaf.BotRuleDirective{}
 
-			secRule, err := expandSecRule(curr["sec_rule"])
-			if err != nil {
-				return nil, err
+			if secRuleRaw, ok := curr["sec_rule"]; ok {
+
+				secRule, err := expandSecRule(secRuleRaw)
+
+				if err != nil {
+					return nil, err
+				}
+
+				directive.SecRule = secRule
 			}
 
-			directive.SecRule = *secRule
+			if include, ok := curr["include"].(string); ok {
+				directive.Include = include
+			}
 
 			directives = append(directives, directive)
 		}
@@ -227,16 +239,25 @@ func expandCustomRuleDirectives(
 	}
 }
 
-// flattenCustomRuleDirectives converts the CustomRuleDirective API Model
+// flattenBotRuleDirectives converts the BotRuleDirective API Model
 // into a format that Terraform can work with
-func flattenCustomRuleDirectives(
-	directive []sdkwaf.CustomRuleDirective,
+func flattenBotRuleDirectives(
+	directive []sdkwaf.BotRuleDirective,
 ) []map[string]interface{} {
+
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, d := range directive {
 		m := make(map[string]interface{})
-		m["sec_rule"] = flattenSecRule(d.SecRule)
+
+		if d.SecRule != nil {
+			m["sec_rule"] = flattenSecRule(*d.SecRule)
+		}
+
+		if d.Include != "" {
+			m["include"] = d.Include
+		}
+
 		flattened = append(flattened, m)
 	}
 

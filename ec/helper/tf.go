@@ -13,34 +13,35 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-// ConvertToStrings converts Terraform's
-// TypeList and TypeSet collections into a []string.
-func ConvertToStrings(v interface{}) ([]string, bool) {
+// ConvertTFCollectionToSlice converts Terraform's
+// TypeList and TypeSet collections into a []interface{}.
+func ConvertTFCollectionToSlice(v interface{}) ([]interface{}, error) {
+
+	// TF TypeList results in a interface{} whose underlying type is
+	// []interface{}, so we just cast and return it
 	if listItems, ok := v.([]interface{}); ok {
-		return ConvertSliceToStrings(listItems)
+		return listItems, nil
 	}
+
+	// TF TypeSet results in a *schema.Set, which must be converted to a slice
+	//using List()
 	if set, ok := v.(*schema.Set); ok {
-		setItems := set.List()
-		return ConvertSliceToStrings(setItems)
+		return set.List(), nil
 	}
-	return nil, false
+
+	return nil, errors.New("input was not a TF collection")
 }
 
-// ConvertSliceToStrings converts a []interface{} to []string.
-// Note that any items in v that are not strings will be excluded.
-func ConvertSliceToStrings(v []interface{}) ([]string, bool) {
-	if v == nil {
-		return nil, false
+// ConvertTFCollectionToStrings converts Terraform's
+// TypeList and TypeSet collections into a []string.
+func ConvertTFCollectionToStrings(v interface{}) ([]string, error) {
+	listItems, err := ConvertTFCollectionToSlice(v)
+
+	if err == nil {
+		return ConvertSliceToStrings(listItems)
 	}
-	strings := make([]string, len(v))
-	for i, val := range v {
-		if s, ok := val.(string); ok {
-			strings[i] = s
-		} else {
-			return nil, false
-		}
-	}
-	return strings, true
+
+	return nil, err
 }
 
 // ConvertSingletonSetToMap converts a interface{} that is actually a Terraform
@@ -57,8 +58,13 @@ func ConvertSingletonSetToMap(attr interface{}) (map[string]interface{}, error) 
 
 		// Terraform will normally not allow more than one item because we
 		// specify MaxItems=1, but we'll check again here
-		if len(arr) != 1 {
-			return nil, errors.New("set must contain exactly one item")
+		if len(arr) > 1 {
+			return nil, fmt.Errorf(
+				"set must contain exactly one item, actual #: %d", len(arr))
+		}
+
+		if len(arr) == 0 {
+			return make(map[string]interface{}), nil
 		}
 
 		// The single item in the list

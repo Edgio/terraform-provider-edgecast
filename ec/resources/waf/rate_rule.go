@@ -346,10 +346,12 @@ func expandRateRule(d *schema.ResourceData) (*sdkwaf.RateRule, error) {
 		DurationSec: d.Get("duration_sec").(int),
 	}
 	if v, ok := d.GetOk("keys"); ok {
-		if keys, ok := helper.ConvertToStrings(v); ok {
+		keys, err := helper.ConvertTFCollectionToStrings(v)
+
+		if err == nil {
 			rule.Keys = keys
 		} else {
-			return nil, errors.New("error reading 'keys'")
+			return nil, fmt.Errorf("error reading 'keys': %w", err)
 		}
 	}
 	conditionGroups, err := expandConditionGroups(d.Get("condition_group"))
@@ -419,9 +421,14 @@ func expandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
 				condition.OP.Value = opValue.(string)
 			}
 			if opValues, ok := opMap["values"]; ok {
-				if arr, ok := helper.ConvertToStrings(opValues); ok {
-					condition.OP.Values = arr
+				arr, err := helper.ConvertTFCollectionToStrings(opValues)
+
+				if err != nil {
+					return nil,
+						fmt.Errorf("error reading 'values': %w", err)
 				}
+
+				condition.OP.Values = arr
 			}
 			if v, ok := opMap["is_case_insensitive"]; ok {
 				boolValue := v.(bool)
