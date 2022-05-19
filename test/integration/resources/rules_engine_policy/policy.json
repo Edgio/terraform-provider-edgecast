@@ -1,0 +1,22 @@
+{
+    "name": "test policy 2022-02-08.2",
+    "description": "This is a test policy!",
+    "platform": "http_large",
+    "rules": [
+        {
+            "name": "rule1",
+            "description": "This is a test rule.",
+            "matches": [
+                {
+                    "type": "match.always",
+                    "features": [
+                        {
+                            "type": "feature.comment",
+                            "value": "Update this comment!"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

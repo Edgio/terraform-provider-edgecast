@@ -7,7 +7,7 @@ import (
 	"context"
 	"flag"
 	"log"
-	"terraform-provider-edgecast/ec"
+	"terraform-provider-edgecast/edgecast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
@@ -26,7 +26,7 @@ func main() {
 	)
 	flag.Parse()
 
-	opts := &plugin.ServeOpts{ProviderFunc: ec.Provider}
+	opts := &plugin.ServeOpts{ProviderFunc: edgecast.Provider}
 
 	if debugMode {
 		err := plugin.Debug(

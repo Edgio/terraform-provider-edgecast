@@ -1,0 +1,19 @@
+resource "edgecast_customer_user" "my_customer_user" {
+  account_number = var.account_number
+  first_name     = "Actual_First_Name"
+  last_name      = "Actual_Last_Name"
+  email          = "devenablement+testing@edgecast.com"
+  is_admin       = false # cannot be modified after user creation
+
+  #optional
+  address1 = ""
+  address2 = ""
+  city     = ""
+  state    = ""
+  country  = ""
+  fax      = ""
+  mobile   = ""
+  phone    = ""
+  title    = ""
+  zip      = ""
+}

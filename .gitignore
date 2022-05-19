@@ -28,3 +28,9 @@ unit-tests/**/credential_ucc.json
 .terraform/*
 **/*.copy
 docs_current/
+
+.idea
+.env
+terraform.tfstate.backup
+
+bin

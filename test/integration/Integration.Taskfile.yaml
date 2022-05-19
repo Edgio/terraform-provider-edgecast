@@ -1,0 +1,24 @@
+# https://taskfile.dev
+
+version: '3'
+
+silent: true
+
+tasks:
+  default:
+    cmds:
+      - defer: rm -rf resource.tf .terraform .terraform.*
+      - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
+      - rm -rf resource.tf .terraform .terraform.*
+      - terraform init
+      - cp create.tf.step resource.tf
+      - terraform validate
+      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}
+      - cp update.tf.step resource.tf
+      - terraform validate
+      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}
+      - |
+        if [ -z "{{.RESOURCE_NAME}}" ]  || [ -z "{{.IMPORT_ID}}" ];  then
+          echo "skipping import: missing RESOURCE_NAME or IMPORT_ID" && exit 0;
+        fi
+        terraform import -allow-missing-config {{.CREDS}} {{.ACCOUNT}} {{.RESOURCE_NAME}}.imported {{.IMPORT_ID}}

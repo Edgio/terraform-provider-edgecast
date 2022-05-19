@@ -1,0 +1,104 @@
+# https://taskfile.dev
+version: '3'
+
+
+output: prefixed
+
+
+env:
+  MODE: apply
+
+
+vars:
+  CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
+  ACCOUNT: -var "account_number=$ACCOUNT_NUMBER"
+
+
+includes:
+  customer:
+    taskfile: Integration.Taskfile.yaml
+    dir: resources/customer
+
+  customer_user:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/customer_user
+
+  dns_group:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/dns_group
+
+  dns_masterservergroup:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/dns_masterservergroup
+
+  dns_secondaryzonegroup:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/dns_secondaryzonegroup
+
+  dns_tsig:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/dns_tsig
+
+  dns_zone:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/dns_zone
+
+  edgecname:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/edgecname
+
+  origin:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/origin
+
+  rules_engine_policy:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/rules_engine_policy
+
+  waf_access_rule:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_access_rule
+
+  waf_custom_rule_set:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_custom_rule_set
+
+  waf_managed_rule:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_managed_rule
+
+  waf_rate_rule:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_rate_rule
+
+  waf_scopes:
+    dir: ./resources/waf_scopes
+    taskfile: Integration.Taskfile.yaml
+
+
+tasks:
+  run:
+    desc: "run will execute the entire integration test suite"
+    cmds:
+      #- task: customer:default
+      #- task: customer_user:default
+      #- task: dns_group:default
+      - task: dns_masterservergroup:default
+        vars:
+#          RESOURCE_NAME: edgecast_dns_masterservergroup
+#          IMPORT_ID: 1
+      - task: dns_secondaryzonegroup:default
+      - task: dns_tsig:default
+      #- task: dns_zone:default
+      #- task: edgecname:default
+      #- task: origin:default
+      #- task: rules_engine_policy:default
+      #- task: waf_access_rule:default
+      #- task: waf_custom_rule_set:default
+      #- task: waf_managed_rule:default
+      - task: waf_rate_rule:default
+      #- task: waf_scopes:default
+
+  default:
+    cmds:
+      - task: run
