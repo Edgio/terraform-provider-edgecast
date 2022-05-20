@@ -5,6 +5,7 @@ package waf
 
 import (
 	"reflect"
+	"sort"
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
@@ -191,11 +192,6 @@ func TestExpandBotRuleDirectives(t *testing.T) {
 		{
 			name: "Happy path",
 			input: helper.NewTerraformSet([]interface{}{
-
-				map[string]interface{}{
-					"include": "r3010_ec_bot_challenge_reputation.conf.json",
-				},
-
 				map[string]interface{}{
 					"sec_rule": helper.NewTerraformSet([]interface{}{
 						map[string]interface{}{
@@ -259,11 +255,12 @@ func TestExpandBotRuleDirectives(t *testing.T) {
 						},
 					}),
 				},
+
+				map[string]interface{}{
+					"include": "r3010_ec_bot_challenge_reputation.conf.json",
+				},
 			}),
 			expectedPtr: &[]sdkwaf.BotRuleDirective{
-				{
-					Include: "r3010_ec_bot_challenge_reputation.conf.json",
-				},
 				{
 					SecRule: &sdkwaf.SecRule{
 						Name: "REQUEST_HEADERS",
@@ -321,6 +318,9 @@ func TestExpandBotRuleDirectives(t *testing.T) {
 						},
 					},
 				},
+				{
+					Include: "r3010_ec_bot_challenge_reputation.conf.json",
+				},
 			},
 			expectSuccess: true,
 		},
@@ -347,6 +347,25 @@ func TestExpandBotRuleDirectives(t *testing.T) {
 
 				actual := *actualPtr
 				expected := *v.expectedPtr
+
+				/*
+					Terraform's schema.Set.List() function claims to be
+					deterministic but that seems to be the case for the same
+					instance of an array, not across arrays with the same value.
+					Therefore, the ordering is inconsistent. Arrays have to be
+					in the same order to be deeply equal.
+
+					To account for this, we will sort the two arrays before
+					comparing.
+				*/
+
+				sort.SliceStable(actual, func(i, j int) bool {
+					return actual[i].Include < actual[j].Include
+				})
+
+				sort.SliceStable(expected, func(i, j int) bool {
+					return expected[i].Include < expected[j].Include
+				})
 
 				if !reflect.DeepEqual(actual, expected) {
 					// deep.Equal doesn't compare pointer values, so we just use

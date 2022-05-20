@@ -80,8 +80,8 @@ func TestConvertSliceToStrings(t *testing.T) {
 			name:  "Nil input",
 			input: nil,
 			expected: ConvertSliceToStringsResult{
-				Array: make([]string, 0),
-				Ok:    false,
+				Array: nil,
+				Ok:    true,
 			},
 		},
 	}
