@@ -4,12 +4,26 @@ version: '3'
 
 silent: true
 
+
 tasks:
+  import:
+    cmds:
+      - defer: rm -rf resource.tf .terraform .terraform.* rm terraform.tfstate*
+      - rm -rf resource.tf .terraform .terraform.* terraform.tfstate*
+      - terraform init
+      - |
+        if [ -z "{{.RESOURCE_NAME}}" ]  || [ -z "{{.IMPORT_ID}}" ];  then
+          echo "skipping import: missing RESOURCE_NAME or IMPORT_ID" && exit 0;
+        fi
+        terraform import -allow-missing-config {{.CREDS}} {{.ACCOUNT}} {{.RESOURCE_NAME}}.imported {{.IMPORT_ID}}
+
+
   default:
     cmds:
-      - defer: rm -rf resource.tf .terraform .terraform.*
+      - task: import
+      - defer: rm -rf resource.tf .terraform .terraform.* terraform.tfstate*
       - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
-      - rm -rf resource.tf .terraform .terraform.*
+      - rm -rf resource.tf .terraform .terraform.* terraform.tfstate*
       - terraform init
       - cp create.tf.step resource.tf
       - terraform validate
@@ -17,8 +31,3 @@ tasks:
       - cp update.tf.step resource.tf
       - terraform validate
       - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}
-      - |
-        if [ -z "{{.RESOURCE_NAME}}" ]  || [ -z "{{.IMPORT_ID}}" ];  then
-          echo "skipping import: missing RESOURCE_NAME or IMPORT_ID" && exit 0;
-        fi
-        terraform import -allow-missing-config {{.CREDS}} {{.ACCOUNT}} {{.RESOURCE_NAME}}.imported {{.IMPORT_ID}}

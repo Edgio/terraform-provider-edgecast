@@ -88,7 +88,13 @@ tasks:
           RESOURCE_NAME: edgecast_dns_masterservergroup
           IMPORT_ID: 16B02E:1011
       - task: dns_secondaryzonegroup:default
+        vars:
+          RESOURCE_NAME: dns_secondaryzonegroup
+          IMPORT_ID: 16B02E:945
       - task: dns_tsig:default
+        vars:
+          RESOURCE_NAME: dns_tsig
+          IMPORT_ID: 16B02E:510
       #- task: dns_zone:default
       #- task: edgecname:default
       #- task: origin:default
@@ -97,6 +103,9 @@ tasks:
       #- task: waf_custom_rule_set:default
       #- task: waf_managed_rule:default
       - task: waf_rate_rule:default
+        vars:
+          RESOURCE_NAME: waf_rate_rule
+          IMPORT_ID: 16B02E:IyA6qeaK
       #- task: waf_scopes:default
 
   default:
