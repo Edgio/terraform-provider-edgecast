@@ -49,7 +49,7 @@ func TestConvertTFCollectionToStrings(t *testing.T) {
 						actual)
 				}
 			} else {
-				t.Fatalf("unexpected error: %w", err)
+				t.Fatalf("unexpected error: %+v", err)
 			}
 		} else {
 			if err == nil {
