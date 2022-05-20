@@ -32,7 +32,7 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 ```
 terraform {
   required_providers {
-    ec = {
+    edgecast = {
       version = "0.5.2"
       source  = "EdgeCast/edgecast"
     }
@@ -102,14 +102,14 @@ Terraform Registry instead of using your locally installed provider.
 
 Make note of the version that is used from within the the `Makefile` or 
 `install_win.bat`. You must use the same version within your Terraform 
-configuration file. Also, use `"github.com/terraform-providers/ec"` as the
+configuration file. Also, use `"github.com/terraform-providers/edgecast"` as the
 source.
 
 Example:
 ```
 terraform {
   required_providers {
-    ec = {
+    edgecast = {
       version = "0.5.2"
       source  = "EdgeCast/edgecast"
     }
