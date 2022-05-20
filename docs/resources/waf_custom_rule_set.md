@@ -15,72 +15,70 @@ A future version of this provider may provide Terraform data sources for these.
 ```terraform
 resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
   customer_id = "<customer_id>"
-  name        = "Custom Rule 1"
-  
-directive {
-      sec_rule {
-          name = "Sec Rule 1"
-          action {
-              id = 66000000 
-              msg = "Invalid user agent."
-              transformations = ["NONE"]
-          }
-          operator {
-              is_negated = false
-              type = "CONTAINS"
-              value = "bot"
-          }
-          variable {
-              is_count = false
-              match {
-                is_negated = false
-                is_regex = false
-                value = "User-Agent"
-              } 
-              match {
-                  is_negated = false
-                  is_regex = false
-                  value = "User-Agent"
-              }
-              type = "REQUEST_HEADERS"
-          }
-          variable {
-              is_count = false
-              match {
-                is_negated = false
-                is_regex = false
-                value = "User-Agent"
-              } 
-              type = "REQUEST_URI"
-          }
-          chained_rule {
-                action {
-                id = 66000001 
-                msg = "Invalid user agent - chained."
-                transformations = ["NONE"]
-            }
-            operator {
-                is_negated = false
-                type = "CONTAINS"
-                value = "bot"
-            }
-            variable {
-                is_count = false
-                match {
-                    is_negated = false
-                    is_regex = false
-                    value = "User-Agent"
-                } 
-                match {
-                    is_negated = false
-                    is_regex = false
-                    value = "User-Agent"
-                }
-                type = "REQUEST_HEADERS"
-            }
-          }
+  name        = "Custom Rule Set 1"
+
+  directive {
+    sec_rule {
+      name = "Sec Rule 1"
+      action {
+        id              = 66000000
+        msg             = "Invalid user agent."
+        transformations = ["NONE"]
+      }
+      operator {
+        is_negated = false
+        type       = "CONTAINS"
+        value      = "bot"
+      }
+      variable {
+        is_count = false
+        match {
+          is_negated = false
+          is_regex   = false
+          value      = "User-Agent"
         }
+        match {
+          is_negated = false
+          is_regex   = false
+          value      = "User-Agent"
+        }
+        type = "REQUEST_HEADERS"
+      }
+      variable {
+        is_count = false
+        match {
+          is_negated = false
+          is_regex   = false
+          value      = "User-Agent"
+        }
+        type = "REQUEST_URI"
+      }
+      chained_rule {
+        action {
+          transformations = ["NONE"]
+        }
+        operator {
+          is_negated = false
+          type       = "CONTAINS"
+          value      = "bot"
+        }
+        variable {
+          is_count = false
+          match {
+            is_negated = false
+            is_regex   = false
+            value      = "User-Agent"
+          }
+          match {
+            is_negated = false
+            is_regex   = false
+            value      = "User-Agent"
+          }
+          type = "REQUEST_HEADERS"
+        }
+      }
     }
+  }
 }
 ```
 
@@ -226,13 +224,6 @@ Optional:
 
 Optional:
 
-- `id` (String) Determines the custom ID that will be assigned to this custom rule. This custom ID is exposed via the Threats Dashboard. \
-    Valid values fall within this range: 66000000 - 66999999 \
-    *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \
-    Default Value: Random number
-- `msg` (String) Determines the rule message that will be assigned to this custom rule. This message is exposed via the Threats Dashboard. \
-    *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \
-    Default Value: Blank
 - `transformations` (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \
 Valid Values are: \
 *NONE*: Indicates that the source value should not be modified. \

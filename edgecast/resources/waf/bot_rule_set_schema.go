@@ -53,11 +53,8 @@ func ResourceBotRuleSet() *schema.Resource {
 							Description: `Identifies a bot rule that uses our reputation database. This 
 							type of rule is satisfied when the client's IP address matches an IP address 
 							defined within our reputation database. Our reputation database contains a 
-							list of IP addresses known to be used by bots.
-
-							Set this property to the following value to include a bot rule that uses our
-							reputation database:
-							
+							list of IP addresses known to be used by bots. Set this property to the following 
+							value to include a bot rule that uses our reputation database: 
 							r3010_ec_bot_challenge_reputation.conf.json`,
 						},
 						"sec_rule": {
