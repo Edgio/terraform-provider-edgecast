@@ -132,7 +132,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		d.Get("api_address_legacy").(string),
 	)
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf("failed to read ec Provider configuration data: %v", err))
+		return nil, diag.FromErr(fmt.Errorf("failed to read edgecast Provider configuration data: %v", err))
 	}
 
 	config.BaseClient = api.NewBaseClient(config)

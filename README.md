@@ -132,7 +132,7 @@ export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 
 ## Usage
 The detailed documentation for the provider and specific resources can be found 
-on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/ec/latest/docs).
+on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/edgecast/latest/docs).
 
 ## Security
 
@@ -148,7 +148,7 @@ for more details on the type of token required, and how to acquire a token.
 
 ```
 .
-├── ec
+├── edgecast
     package containing edgecast terraform provider resources and functionality 
     to manage and provision edgecast configurations in terraform
 │   ├── api

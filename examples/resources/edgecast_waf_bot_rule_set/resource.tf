@@ -1,5 +1,5 @@
 
-resource "ec_waf_bot_rule" "bot_rule_1" {
+resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
   customer_id = "<customer id>"
   name        = "Bot Rule Terraform Test"
 
