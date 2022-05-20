@@ -73,8 +73,7 @@ resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
 
 ### Required
 
-- `customer_id` (String) Identifies your account by its customer account 
-				number.
+- `customer_id` (String) Identifies your account by its customer account number.
 - `directive` (Block Set, Min: 1) Contains the bot rules associated with this bot rule set. 
 				You may create up to 10 bot rules per bot rule set. (see [below for nested schema](#nestedblock--directive))
 
@@ -84,8 +83,7 @@ resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
 
 ### Read-Only
 
-- `id` (String) Indicates the system-defined ID for this Bot Rule 
-				Set.
+- `id` (String) Indicates the system-defined ID for this Bot Rule Set.
 - `last_modified_date` (String) Indicates the date and time at which the bot rule 
 				set was last modified.
 
@@ -94,12 +92,11 @@ resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
 
 Optional:
 
-- `include` (String) Identifies a bot rule that uses our reputation database. This 
-							type of rule is satisfied when the client's IP address matches an IP address 
-							defined within our reputation database. Our reputation database contains a 
-							list of IP addresses known to be used by bots. Set this property to the following 
-							value to include a bot rule that uses our reputation database: 
-							r3010_ec_bot_challenge_reputation.conf.json
+- `include` (String) Identifies a bot rule that uses our reputation database. This type of rule is satisfied when the client's IP address matches an IP address defined within our reputation database. Our reputation database contains a list of IP addresses known to be used by bots.
+		
+	Set this property to the following value to include a bot rule that uses our reputation database: 
+		
+		r3010_ec_bot_challenge_reputation.conf.json
 - `sec_rule` (Block Set, Max: 1) Identifies a bot rule that uses custom match conditions. This
 							type of rule is satisfied when a match is found for each of its conditions.
 							A condition determines request identification by defining what will be 
@@ -130,31 +127,21 @@ Optional:
 
 Optional:
 
-- `id` (String) Determines the custom ID that will be assigned to this rule 
-													set. This custom ID is exposed via the Browser Challenges 
-													Dashboard. 
-													 
-													Valid values fall within this range: 77000000 - 77999999
-													
-													Default Value: Random number
+- `id` (String) Determines the custom ID that will be assigned to this rule set. This custom ID is exposed via the Browser Challenges Dashboard.
+	
+	Valid values fall within this range: 77000000 - 77999999. 
+	
+	Default Value: Random number
 - `msg` (String) Determines the rule message that will be assigned to this rule.
-													Thismessage is exposed via the Browser Challenges Dashboard.
-													 
-													Default Value: Blank
-- `transformations` (List of String) Determines the set of transformations that will be applied to
-													the value derived from the request element identified in a variable object
-													(i.e., source value). Transformations are always applied to the source value,
-													regardless of the number of transformations that have been defined.
+													This message is exposed via the Browser Challenges Dashboard. Default Value: Blank
+- `transformations` (List of String) Determines the set of transformations that will be applied to the value  derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.
+	
+	Valid Values are: 																					
+	- NONE: Indicates that the source value should not be modified.
+	- LOWERCASE: Indicates that the source value should be converted to lowercase characters.
+	- REMOVENULLS: Indicates that null values should be removed from the source value.
 
-													 Valid Values are: 
-													 *NONE*: Indicates that the source value should not be modified.
-													 *LOWERCASE*: Indicates that the source value should be converted to 
-													 lowercase characters.
-													 *REMOVENULLS*: Indicates that null values should be removed from the source
-													 value.
-
-													 *Note: A criterion is satisfied if the source value or any of the modified
-													 string values meet the conditions defined by the operator object.*
+	*Note: A criterion is satisfied if the source value or any of the modified string values meet the conditions defined by the operator object.*
 
 
 <a id="nestedblock--directive--sec_rule--operator"></a>
@@ -162,37 +149,32 @@ Optional:
 
 Required:
 
-- `type` (String) Indicates how the system will interpret the comparison between
-													the value property and the value derived from the request element defined 
-													within a variable object.
+- `type` (String) Indicates how the system will interpret the comparison between the value property and the value derived from the request element defined within a variable object.
 													
-													Valid Values are:
-													*RX*: Indicates that the string value derived from the request element must
-													satisfy the regular expression defined in the value property. 
-													*STREQ*: Indicates that the string value derived from the request element 
-													must be an exact match to the value property.  
-													*CONTAINS*: Indicates that the value property must contain the string value
-													derived from the request element.  
-													*BEGINSWITH*: Indicates that the value property must start with the string 
-													value derived from the request element.  
-													*ENDSWITH*: Indicates that the value property must end with the string 
-													value derived from the request element.  
-													*EQ*: Indicates that the number derived from the variable object must be 
-													an exact match to the value property.  
-													*Note: You should only use EQ when the is_count property has been enabled.*  
-													*IPMATCH*: Requires that the request's IP address either be contained by 
-													an IP block or be an exact match to an IP address defined in the values 
-													property. Only use IPMATCH with the REMOTE_ADDR variable.
+	Valid Values are:
+	- RX: Indicates that the string value derived from the request element must
+	satisfy the regular expression defined in the value property. 
+	- STREQ: Indicates that the string value derived from the request element 
+	must be an exact match to the value property.  
+	- CONTAINS: Indicates that the value property must contain the string value
+	derived from the request element.  
+	- BEGINSWITH: Indicates that the value property must start with the string 
+	value derived from the request element.  
+	- ENDSWITH: Indicates that the value property must end with the string 
+	value derived from the request element.  
+	- EQ: Indicates that the number derived from the variable object must be 
+	an exact match to the value property. *Note: You should only use EQ when the is_count property has been enabled.*
+	- IPMATCH: Requires that the request's IP address either be contained by 
+	an IP block or be an exact match to an IP address defined in the values 
+	property. Only use IPMATCH with the REMOTE_ADDR variable.
 
 Optional:
 
-- `is_negated` (Boolean) Indicates whether a condition will be satisfied when the 
-													value derived from the request element defined within a variable object 
-													matches or does not match the value property.
+- `is_negated` (Boolean) Indicates whether a condition will be satisfied when the value derived from the request element defined within a variable object matches or does not match the value property.
 													
-													Valid values are:
-													*True*: Does not match
-													*False*: Matches
+	Valid values are:
+	- True: Does not match
+	- False: Matches
 - `value` (String) Indicates a value that will be compared against the string 
 													or number value derived from the request element defined within a variable
 													object.
@@ -205,24 +187,26 @@ Required:
 
 - `type` (String) Determines the request element that will be assessed.
 													
-													Valid values are: ARGS_POST | GEO | QUERY_STRING | REMOTE_ADDR | REQUEST_BODY | REQUEST_COOKIES | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI 
-													
-													*Note: If a request element consists of one or more key-value pairs, 
-													then you may identify a key via a match object. If is_count has been 
-													disabled, then you may identify a specific value via the operator object.*
+	Valid values are:
+	- ARGS_POST
+	- GEO
+	- QUERY_STRING
+	- REMOTE_ADDR
+	- REQUEST_BODY
+	- REQUEST_COOKIES
+	- REQUEST_HEADERS
+	- REQUEST_METHOD
+	- REQUEST_URI 
+												
+		*Note: If a request element consists of one or more key-value pairs, then you may identify a key via a match object. If is_count has been disabled, then you may identify a specific value via the operator object.*
 
 Optional:
 
-- `is_count` (Boolean) Determines whether a comparison will be performed between the
-													operator object and a string value or the number of matches found.
+- `is_count` (Boolean) Determines whether a comparison will be performed between the operator object and a string value or the number of matches found.
 													
-													Valid values are:
-													*true*: A counter will increment whenever the request element defined by 
-													this variable object is found. The operator object will perform a comparison
-													against this number. *Note: If you enable is_count, then you must also set
-													the type property to EQ.*
-													*false*: The operator object will perform a comparison against the string
-													value derived from the request element defined by this variable object.
+	Valid values are:
+	- True: A counter will increment whenever the request element defined by this variable object is found. The operator object will perform a comparison against this number. *Note: If you enable is_count, then you must also set the type property to EQ.*
+	- False: The operator object will perform a comparison against the string value derived from the request element defined by this variable object.
 - `match` (Block List) Contains comparison settings for the request element 
 													identified by the type property. (see [below for nested schema](#nestedblock--directive--sec_rule--variable--match))
 
@@ -234,23 +218,19 @@ Optional:
 - `is_negated` (Boolean) Determines whether this condition is satisfied when the
 																request element identified by the variable object is found or not found.  
 																
-																Valid values are:
-																*True*: Not found
-																*False*: Found
+	Valid values are:
+	- True: Not found
+	- False: Found
 - `is_regex` (Boolean) Determines whether the value property will be interpreted as
 																a regular expression.  
 																
-																Valid values are:
-																*true*: Regular expression
-																*false*: Default value. Literal value.
-- `value` (String) Restricts the match condition defined by the type property 
-																to the specified value.  
+	Valid values are:
+	- True: Regular expression
+	- False: Default value. Literal value.
+- `value` (String) Restricts the match condition defined by the type property to the specified value.  
 																
-																Example:
-																If the type property is set to REQUEST_HEADERS and this property is set 
-																to User-Agent, then this match condition is restricted to the User-Agent 
-																request header. If the value property is omitted, then this match 
-																condition applies to all request headers.
+	Example:
+	If the type property is set to REQUEST_HEADERS and this property is set to User-Agent, then this match condition is restricted to the User-Agent request header. If the value property is omitted, then this match condition applies to all request headers.
 
 
 
@@ -262,8 +242,7 @@ Required:
 - `action` (Block Set, Min: 1) Determines whether the string value derived from the request element identified
 													in a variable object will be transformed and metadata through which you may identify traffic 
 													to which this bot rule was applied. (see [below for nested schema](#nestedblock--directive--sec_rule--chained_rule--action))
-- `operator` (Block Set, Min: 1, Max: 1) Indicates the comparison that will be performed against the 
-													request element(s) identified within a variable object. (see [below for nested schema](#nestedblock--directive--sec_rule--chained_rule--operator))
+- `operator` (Block Set, Min: 1, Max: 1) Indicates the comparison that will be performed against the request element(s) identified within a variable object. (see [below for nested schema](#nestedblock--directive--sec_rule--chained_rule--operator))
 
 Optional:
 
@@ -275,20 +254,15 @@ Optional:
 
 Optional:
 
-- `transformations` (List of String) Determines the set of transformations that will be applied to 
-																the value derived from the request element identified in a variable object 
-																(i.e., source value). Transformations are always applied to the source value,
-																regardless of the number of transformations that have been defined.
-
-																Valid Values are: 
-
-																*NONE*: Indicates that the source value should not be modified.
-																*LOWERCASE*: Indicates that the source value should be converted to lowercase 
-																characters.
-																*REMOVENULLS*: Indicates that null values should be removed from the source  value.
-																
-																*Note: A criterion is satisfied if the source value or any of the modified 
-																string values meet the conditions defined by the operator object.*
+- `transformations` (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.
+	Valid Values are:
+	- NONE: Indicates that the source value should not be modified.
+	- LOWERCASE: Indicates that the source value should be converted to lowercase 
+	characters.
+	- REMOVENULLS: Indicates that null values should be removed from the source value.
+	
+	*Note: A criterion is satisfied if the source value or any of the modified 
+	string values meet the conditions defined by the operator object.*
 
 
 <a id="nestedblock--directive--sec_rule--chained_rule--operator"></a>
@@ -296,39 +270,33 @@ Optional:
 
 Required:
 
-- `type` (String) Indicates how the system will interpret the comparison between
-																the value property and the value derived from the request element defined 
-																within a variable object.
+- `type` (String) Indicates how the system will interpret the comparison between the value property and the value derived from the request element defined within a variable object.
 																
-																Valid Values are:
+	Valid Values are:
 
-																*RX*: Indicates that the string value derived from the request element must
-																satisfy the regular expression defined in the value property.
-																*STREQ*: Indicates that the string value derived from the request element 
-																must be an exact match to the value property.
-																*CONTAINS*: Indicates that the value property must contain the string value
-																derived from the request element.
-																*BEGINSWITH*: Indicates that the value property must start with the string 
-																value derived from the request element.
-																*ENDSWITH*: Indicates that the value property must end with the string value
-																derived from the request element.
-																*EQ*: Indicates that the number derived from the variable object must be an
-																exact match to the value property.
-																*Note: You should only use EQ when the is_count property has been enabled.*
-																*IPMATCH*: Requires that the request's IP address either be contained by an
-																IP block or be an exact match to an IP address defined in the values 
-																property. Only use IPMATCH with the REMOTE_ADDR variable.
+	- RX: Indicates that the string value derived from the request element must
+	satisfy the regular expression defined in the value property.
+	- STREQ: Indicates that the string value derived from the request element 
+	must be an exact match to the value property.
+	- CONTAINS: Indicates that the value property must contain the string value
+	derived from the request element.
+	- BEGINSWITH: Indicates that the value property must start with the string 
+	value derived from the request element.
+	- ENDSWITH: Indicates that the value property must end with the string value
+	derived from the request element.
+	- EQ: Indicates that the number derived from the variable object must be an
+	exact match to the value property. *Note: You should only use EQ when the 
+	is_count property has been enabled.*
+	- IPMATCH: Requires that the request's IP address either be contained by an
+	IP block or be an exact match to an IP address defined in the values 
+	property. Only use IPMATCH with the REMOTE_ADDR variable.
 
 Optional:
 
-- `is_negated` (Boolean) Indicates whether a condition will be satisfied when the value
-																derived from the request element defined within a variable object matches or
-																does not match the value property. 
-																
-																Valid values are:
-
-																*True*: Does not match
-																*False*: Matches
+- `is_negated` (Boolean) Indicates whether a condition will be satisfied when the value derived from the request element defined within a variable object matches or does not match the value property. 
+	Valid values are:
+	- True: Does not match
+	- False: Matches
 - `value` (String) Indicates a value that will be compared against the string or
 																number value derived from the request element defined within a variable 
 																object.
@@ -340,26 +308,27 @@ Optional:
 Required:
 
 - `type` (String) Determines the request element that will be assessed.
+													
+	Valid values are:
+	- ARGS_POST
+	- GEO
+	- QUERY_STRING
+	- REMOTE_ADDR
+	- REQUEST_BODY
+	- REQUEST_COOKIES
+	- REQUEST_HEADERS
+	- REQUEST_METHOD
+	- REQUEST_URI
 																
-																Valid values are: ARGS_POST | GEO | QUERY_STRING | REMOTE_ADDR | REQUEST_BODY | REQUEST_COOKIES | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI
-																
-																*Note: If a request element consists of one or more key-value pairs, then 
-																you may identify a key via a match object. If is_count has been disabled, 
-																then you may identify a specific value via the operator object.*
+		*Note: If a request element consists of one or more key-value pairs, then  you may identify a key via a match object. If is_count has been disabled, then you may identify a specific value via the operator object.*
 
 Optional:
 
-- `is_count` (Boolean) Determines whether a comparison will be performed between the
-																operator object and a string value or the number of matches found.
+- `is_count` (Boolean) Determines whether a comparison will be performed between the operator object and a string value or the number of matches found.
 																
-																Valid values are:
-
-																*true*: A counter will increment whenever the request element defined by 
-																this variable object is found. The operator object will perform a comparison
-																against this number. *Note: If you enable is_count, then you must also set
-																the type property to EQ.*
-																*false*: The operator object will perform a comparison against the string 
-																value derived from the request element defined by this variable object.
+	Valid values are:
+	- True: A counter will increment whenever the request element defined by this variable object is found. The operator object will perform a comparison against this number. *Note: If you enable is_count, then you must also set the type property to EQ.*
+	- False: The operator object will perform a comparison against the string value derived from the request element defined by this variable object.
 - `match` (Block List) Determines the comparison conditions for the request element
 																identified by the type property. (see [below for nested schema](#nestedblock--directive--sec_rule--chained_rule--variable--match))
 
@@ -368,28 +337,23 @@ Optional:
 
 Optional:
 
-- `is_negated` (Boolean) Determines whether this condition is satisfied when the request 
-																			element identified by the variable object is found or not found.
+- `is_negated` (Boolean) Determines whether this condition is satisfied when the request element identified by the variable object is found or not found.
 																			
-																			Valid values are:
-																			*True*: Not found. If this property has been enabled, then the match array 
-																			should contain an initial object that sets both the is_negated and is_regex
-																			properties to False.
-																			*False*: Found
-- `is_regex` (Boolean) Determines whether the value property will be interpreted as 
-																			a regular expression.
-																			
-																			Valid values are:
-																			*true*: Regular expression
-																			*false*: Default value. Literal value.
-- `value` (String) Restricts the match condition defined by the type property to
-																			the specified value.
+	Valid values are:
+	- True: Not found. If this property has been enabled, then the match array should contain an initial object that sets both the is_negated and is_regex properties to False.
+	- False: Found
+- `is_regex` (Boolean) Determines whether the value property will be interpreted as a regular expression.
+																		
+	Valid values are:
+	- True: Regular expression
+	- False: Default value. Literal value.
+- `value` (String) Restricts the match condition defined by the type property to the specified value.
 
-																			Example:
-																			If the type property is set to REQUEST_HEADERS and this property is set to
-																			User-Agent, then this match condition is restricted to the User-Agent 
-																			request header. If the value property is omitted, then this match condition
-																			applies to all request headers.
+	Example:
+	If the type property is set to REQUEST_HEADERS and this property is set to
+	User-Agent, then this match condition is restricted to the User-Agent 
+	request header. If the value property is omitted, then this match condition
+	applies to all request headers.
 
 ## Import
 
