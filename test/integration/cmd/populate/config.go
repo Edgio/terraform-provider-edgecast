@@ -4,7 +4,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"net/url"
 	"os"
-	"terraform-provider-edgecast/test/integration/cmd/create-import-data/internal"
+	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
 )
 
 func createConfig() edgecast.SDKConfig {

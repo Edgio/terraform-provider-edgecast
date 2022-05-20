@@ -77,6 +77,11 @@ includes:
 
 
 tasks:
+  populate:
+    desc: "populate generates test data for using in integration tests"
+    cmds:
+      - go run ./cmd/populate
+
   run:
     desc: "run will execute the entire integration test suite"
     cmds:

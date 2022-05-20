@@ -19,11 +19,13 @@ tasks:
 
 
   default:
+    vars:
+      CLEANUP_FILES: resource.tf .terraform .terraform.* terraform.tfstate*
     cmds:
       - task: import
-      - defer: rm -rf resource.tf .terraform .terraform.* terraform.tfstate*
+      - defer: rm -rf {{.CLEANUP_FILES}}
       - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
-      - rm -rf resource.tf .terraform .terraform.* terraform.tfstate*
+      - rm -rf {{.CLEANUP_FILES}}
       - terraform init
       - cp create.tf.step resource.tf
       - terraform validate

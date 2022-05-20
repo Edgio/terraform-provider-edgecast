@@ -3,7 +3,7 @@ package data
 import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
-	"terraform-provider-edgecast/test/integration/cmd/create-import-data/internal"
+	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
 )
 
 func createDNSData(cfg edgecast.SDKConfig) (groupID, masterServerGroupID, masterServerA, masterServerB, secondaryServerGroupID, tsgID, zoneID int) {
