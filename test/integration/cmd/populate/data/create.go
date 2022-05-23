@@ -19,10 +19,6 @@ func unique(s string) string {
 	return fmt.Sprintf("%s%d", s, time.Now().Unix())
 }
 
-func Bool(b bool) *bool {
-	return &b
-}
-
 func Create(cfg edgecast.SDKConfig) {
 	accountNumber, customerUser := createCustomerData(cfg)
 	fmt.Println("account number:", accountNumber)
