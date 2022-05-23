@@ -22,6 +22,5 @@ func createConfig() edgecast.SDKConfig {
 }
 
 func getEnvURL(s string) url.URL {
-	u := internal.Check(url.Parse(os.Getenv(s))).(*url.URL)
-	return *u
+	return *internal.Check(url.Parse(os.Getenv(s)))
 }

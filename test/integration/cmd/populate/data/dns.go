@@ -7,12 +7,14 @@ import (
 )
 
 func createDNSData(cfg edgecast.SDKConfig) (groupID, masterServerGroupID, masterServerA, masterServerB, secondaryServerGroupID, tsgID, zoneID int) {
-	svc := internal.Check(routedns.New(cfg)).(*routedns.RouteDNSService)
+	svc := internal.Check(routedns.New(cfg))
 
-	// groupID = createGroup(svc)
 	tsgID = createTSIG(svc)
 	masterServerGroupID, masterServerA, masterServerB = createMasterServerGroup(svc)
 	secondaryServerGroupID = createSecondaryServerGroup(svc, tsgID, masterServerGroupID, masterServerA, masterServerB)
+	//TODO resolve below
+	//groupID = createGroup(svc)
+	//zoneID = createZone(svc)
 	return
 }
 
@@ -35,7 +37,7 @@ func createZone(svc *routedns.RouteDNSService) int {
 		},
 	}
 
-	return internal.Check(svc.AddZone(params)).(int)
+	return *internal.Check(svc.AddZone(params))
 }
 
 func createTSIG(svc *routedns.RouteDNSService) (id int) {
@@ -49,7 +51,7 @@ func createTSIG(svc *routedns.RouteDNSService) (id int) {
 		},
 	}
 
-	return *(internal.Check(svc.AddTSIG(params)).(*int))
+	return *internal.Check(svc.AddTSIG(params))
 }
 
 func createMasterServerGroup(svc *routedns.RouteDNSService) (id, msA, msB int) {
@@ -58,11 +60,11 @@ func createMasterServerGroup(svc *routedns.RouteDNSService) (id, msA, msB int) {
 		MasterServerGroup: routedns.MasterServerGroupAddRequest{
 			Name: "msg3000",
 			Masters: []routedns.MasterServer{
-				routedns.MasterServer{
+				{
 					Name:      "data.test.com",
 					IPAddress: "10.10.10.2",
 				},
-				routedns.MasterServer{
+				{
 					Name:      "data2.test.com",
 					IPAddress: "10.10.10.3",
 				},
@@ -70,7 +72,7 @@ func createMasterServerGroup(svc *routedns.RouteDNSService) (id, msA, msB int) {
 		},
 	}
 
-	msg := internal.Check(svc.AddMasterServerGroup(*params)).(*routedns.MasterServerGroupAddGetOK)
+	msg := internal.Check(svc.AddMasterServerGroup(*params))
 	return msg.MasterGroupID, msg.Masters[0].ID, msg.Masters[1].ID
 }
 
@@ -111,7 +113,7 @@ func createSecondaryServerGroup(svc *routedns.RouteDNSService, tsgID, msgID, ser
 		},
 	}
 
-	szg := internal.Check(svc.AddSecondaryZoneGroup(*params)).(*routedns.SecondaryZoneGroupResponseOK)
+	szg := internal.Check(svc.AddSecondaryZoneGroup(*params))
 	return szg.ID
 }
 
@@ -145,5 +147,5 @@ func createGroup(routeDNSService *routedns.RouteDNSService) (groupID int) {
 	params.AccountNumber = account()
 	params.Group = group
 
-	return internal.Check(routeDNSService.AddGroup(*params)).(int)
+	return *internal.Check(routeDNSService.AddGroup(*params))
 }

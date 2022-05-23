@@ -19,6 +19,10 @@ func unique(s string) string {
 	return fmt.Sprintf("%s%d", s, time.Now().Unix())
 }
 
+func Bool(b bool) *bool {
+	return &b
+}
+
 func Create(cfg edgecast.SDKConfig) {
 	accountNumber, customerUser := createCustomerData(cfg)
 	fmt.Println("account number:", accountNumber)
@@ -36,7 +40,16 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("tsg id:", tsgID)
 	fmt.Println("zone id:", zoneID)
 
-	rateRuleID := createWAFData(cfg)
-	fmt.Println("rate rule id:", rateRuleID)
+	originID := createOriginData(cfg)
+	fmt.Println("origin id:", originID)
 
+	rulesEnginePolicyID := createRulesEnginePolicyData(cfg)
+	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
+
+	wafRateRuleID, wafAccessRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID := createWAFData(cfg)
+	fmt.Println("waf access rule id:", wafAccessRuleID)
+	fmt.Println("waf custom rule id:", wafCustomRuleID)
+	fmt.Println("waf managed rule b id:", wafManagedRuleID)
+	fmt.Println("waf rate rule id:", wafRateRuleID)
+	fmt.Println("waf scopes id:", wafScopesID)
 }

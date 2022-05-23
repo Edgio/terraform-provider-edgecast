@@ -7,16 +7,22 @@ import (
 )
 
 func createCustomerData(cfg edgecast.SDKConfig) (accountNumber string, customerUser int) {
+
+	svc := internal.Check(customer.New(cfg))
 	accountNumber = account()
-	customerService := internal.Check(customer.New(cfg)).(*customer.CustomerService)
-	customerUser = internal.Check(createCustomerUser(customerService, accountNumber)).(int)
+
+	if accountNumber == "" {
+		accountNumber = internal.Check(createCustomer(svc))
+	}
+
+	customerUser = internal.Check(createCustomerUser(svc, accountNumber))
 	return
 }
 
 func createCustomerUser(service *customer.CustomerService, accountNumber string) (int, error) {
 	customerGetOK := internal.Check(service.GetCustomer(customer.GetCustomerParams{
 		AccountNumber: accountNumber,
-	})).(*customer.CustomerGetOK)
+	}))
 
 	return service.AddCustomerUser(customer.AddCustomerUserParams{
 		Customer: *customerGetOK,

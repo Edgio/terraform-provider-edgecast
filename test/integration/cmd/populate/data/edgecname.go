@@ -7,7 +7,7 @@ import (
 )
 
 func createEdgeCnameData(cfg edgecast.SDKConfig) (edgeCnameID int) {
-	svc := internal.Check(edgecname.New(cfg)).(*edgecname.EdgeCnameService)
+	svc := internal.Check(edgecname.New(cfg))
 	edgeCnameID = createEdgeCname(svc)
 	return
 }
@@ -22,5 +22,5 @@ func createEdgeCname(svc *edgecname.EdgeCnameService) int {
 		},
 	}
 
-	return *internal.Check(svc.AddEdgeCname(params)).(*int)
+	return *internal.Check(svc.AddEdgeCname(params))
 }

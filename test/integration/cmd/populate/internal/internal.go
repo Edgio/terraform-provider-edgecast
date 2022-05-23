@@ -12,7 +12,11 @@ func CheckError(err error) {
 	}
 }
 
-func Check(data any, err error) any {
+func Check[T any](data T, err error) T {
 	CheckError(err)
 	return data
+}
+
+func Pointer[T any](t T) *T {
+	return &t
 }
