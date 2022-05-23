@@ -86,32 +86,65 @@ tasks:
     desc: "run will execute the entire integration test suite"
     cmds:
       #- task: customer:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_customer
+      #    IMPORT_ID: $ACCOUNT_NUMBER
       #- task: customer_user:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_customer_user
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$CUSTOMER_USER_IMPORT_ID
       #- task: dns_group:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_dns_group
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$DNS_GROUP_IMPORT_ID
       - task: dns_masterservergroup:default
         vars:
           RESOURCE_NAME: edgecast_dns_masterservergroup
-          IMPORT_ID: 16B02E:1011
+          IMPORT_ID: $ACCOUNT_NUMBER:$DNS_MASTER_ZONE_GROUP_IMPORT_ID
       - task: dns_secondaryzonegroup:default
         vars:
-          RESOURCE_NAME: dns_secondaryzonegroup
-          IMPORT_ID: 16B02E:945
+          RESOURCE_NAME: edgecast_dns_secondaryzonegroup
+          IMPORT_ID: $ACCOUNT_NUMBER:$DNS_SECONDARY_ZONE_GROUP_IMPORT_ID
       - task: dns_tsig:default
         vars:
-          RESOURCE_NAME: dns_tsig
-          IMPORT_ID: 16B02E:510
+          RESOURCE_NAME: edgecast_dns_tsig
+          IMPORT_ID: $ACCOUNT_NUMBER:$DNS_TSIG_IMPORT_ID
       #- task: dns_zone:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_dns_zone
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$DNS_ZONE_IMPORT_ID
       #- task: edgecname:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_edgecname
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$DNS_ZONE_IMPORT_ID
       #- task: origin:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_origin
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$ORIGIN_IMPORT_ID
       #- task: rules_engine_policy:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_rules_engine_policy
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$RULES_ENGINE_IMPORT_ID
       #- task: waf_access_rule:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_waf_access_rule
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$WAF_ACCESS_RULE_IMPORT_ID
       #- task: waf_custom_rule_set:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_waf_custom_rule_set
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$WAF_CUSTOM_RULE_IMPORT_ID
       #- task: waf_managed_rule:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_waf_managed_rule
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$WAF_MANAGED_RULE_IMPORT_ID
       - task: waf_rate_rule:default
         vars:
-          RESOURCE_NAME: waf_rate_rule
-          IMPORT_ID: 16B02E:IyA6qeaK
+          RESOURCE_NAME: edgecast_waf_rate_rule
+          IMPORT_ID: $ACCOUNT_NUMBER:$WAF_RATE_RULE_IMPORT_ID
       #- task: waf_scopes:default
+      #  vars:
+      #    RESOURCE_NAME: edgecast_waf_scopes
+      #    IMPORT_ID: $ACCOUNT_NUMBER:$WAF_SCOPES_IMPORT_ID
 
   default:
     cmds:

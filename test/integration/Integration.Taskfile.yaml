@@ -12,7 +12,7 @@ tasks:
       - rm -rf resource.tf .terraform .terraform.* terraform.tfstate*
       - terraform init
       - |
-        if [ -z "{{.RESOURCE_NAME}}" ]  || [ -z "{{.IMPORT_ID}}" ];  then
+        if [ -z "{{.RESOURCE_NAME}}" ]  || [ -z "{{.IMPORT_ID}}" ] ||  [[ "{{.IMPORT_ID}}" == *: ]];  then
           echo "skipping import: missing RESOURCE_NAME or IMPORT_ID" && exit 0;
         fi
         terraform import -allow-missing-config {{.CREDS}} {{.ACCOUNT}} {{.RESOURCE_NAME}}.imported {{.IMPORT_ID}}
@@ -23,6 +23,9 @@ tasks:
       CLEANUP_FILES: resource.tf .terraform .terraform.* terraform.tfstate*
     cmds:
       - task: import
+        vars:
+          RESOURCE_NAME: "{{.RESOURCE_NAME}}"
+          IMPORT_ID: "{{.IMPORT_ID}}"
       - defer: rm -rf {{.CLEANUP_FILES}}
       - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
       - rm -rf {{.CLEANUP_FILES}}

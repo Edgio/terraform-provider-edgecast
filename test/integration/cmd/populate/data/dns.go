@@ -12,9 +12,12 @@ func createDNSData(cfg edgecast.SDKConfig) (groupID, masterServerGroupID, master
 	tsgID = createTSIG(svc)
 	masterServerGroupID, masterServerA, masterServerB = createMasterServerGroup(svc)
 	secondaryServerGroupID = createSecondaryServerGroup(svc, tsgID, masterServerGroupID, masterServerA, masterServerB)
-	//TODO resolve below
-	//groupID = createGroup(svc)
-	//zoneID = createZone(svc)
+	/* TODO Repair
+	----
+	groupID = createGroup(svc)
+	zoneID = createZone(svc)
+	----
+	*/
 	return
 }
 
