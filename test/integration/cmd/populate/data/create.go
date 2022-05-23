@@ -24,8 +24,11 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("account number:", accountNumber)
 	fmt.Println("customer user:", customerUser)
 
-	edgeCnameID := createEdgeCnameData(cfg)
-	fmt.Println("edge cname id:", edgeCnameID)
+	originID := createOriginData(cfg)
+	fmt.Println("origin id:", originID)
+
+	//	edgeCnameID := createEdgeCnameData(cfg)
+	//	fmt.Println("edge cname id:", edgeCnameID)
 
 	groupID, masterServerGroupID, masterServerA, masterServerB, secondaryServerGroupID, tsgID, zoneID := createDNSData(cfg)
 	fmt.Println("dns group id:", groupID)
@@ -35,9 +38,6 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("secondary server group id:", secondaryServerGroupID)
 	fmt.Println("tsg id:", tsgID)
 	fmt.Println("zone id:", zoneID)
-
-	originID := createOriginData(cfg)
-	fmt.Println("origin id:", originID)
 
 	rulesEnginePolicyID := createRulesEnginePolicyData(cfg)
 	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
@@ -49,3 +49,24 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("waf rate rule id:", wafRateRuleID)
 	fmt.Println("waf scopes id:", wafScopesID)
 }
+
+/*
+{
+	"duration_sec": 5,
+	"condition_groups": [{
+			"conditions": [{
+					"target": {
+						"type": "REQUEST_METHOD"
+					},
+					"op": {
+						"type": "EM",
+						"values": ["POST"]
+					}
+				}
+			]
+		}
+	],
+	"num": 10
+}
+
+*/

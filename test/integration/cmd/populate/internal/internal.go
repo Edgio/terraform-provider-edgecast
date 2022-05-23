@@ -20,3 +20,7 @@ func Check[T any](data T, err error) T {
 func Pointer[T any](t T) *T {
 	return &t
 }
+
+func IgnoreError[T any](data T, _ error) T {
+	return data
+}
