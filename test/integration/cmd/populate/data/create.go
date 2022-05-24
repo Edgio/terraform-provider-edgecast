@@ -36,12 +36,12 @@ func Create(cfg edgecast.SDKConfig) {
 
 	groupID, masterServerGroupID, masterServerA, masterServerB, secondaryServerGroupID, tsgID, zoneID := createDNSData(cfg)
 	fmt.Println("dns group id:", groupID)
-	fmt.Println("master server group id:", masterServerGroupID)
-	fmt.Println("master server a id:", masterServerA)
-	fmt.Println("master server b id:", masterServerB)
-	fmt.Println("secondary server group id:", secondaryServerGroupID)
-	fmt.Println("tsg id:", tsgID)
-	fmt.Println("zone id:", zoneID)
+	fmt.Println("dns master server group id:", masterServerGroupID)
+	fmt.Println("dns master server a id:", masterServerA)
+	fmt.Println("dns master server b id:", masterServerB)
+	fmt.Println("dns secondary server group id:", secondaryServerGroupID)
+	fmt.Println("dns tsg id:", tsgID)
+	fmt.Println("dns zone id:", zoneID)
 
 	wafRateRuleID, wafAccessRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID := createWAFData(cfg)
 	fmt.Println("waf access rule id:", wafAccessRuleID)
