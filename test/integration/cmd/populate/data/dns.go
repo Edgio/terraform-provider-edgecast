@@ -12,12 +12,8 @@ func createDNSData(cfg edgecast.SDKConfig) (groupID, masterServerGroupID, master
 	tsgID = createTSIG(svc)
 	masterServerGroupID, masterServerA, masterServerB = createMasterServerGroup(svc)
 	secondaryServerGroupID = createSecondaryServerGroup(svc, tsgID, masterServerGroupID, masterServerA, masterServerB)
-	/* TODO Repair
-	----
 	groupID = createGroup(svc)
 	zoneID = createZone(svc)
-	----
-	*/
 	return
 }
 
@@ -25,10 +21,58 @@ func createZone(svc *routedns.RouteDNSService) int {
 	params := routedns.AddZoneParams{
 		AccountNumber: account(),
 		Zone: routedns.Zone{
-			DomainName: "test.edgecast.com",
+			DomainName: unique("dev-enablement-test.edgecast.com"),
 			Status:     1,
 			ZoneType:   1,
-			Records:    routedns.DNSRecords{},
+			Records: routedns.DNSRecords{
+
+				A: []routedns.DNSRecord{
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "10.55.66.22",
+					},
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "55.66.88.11",
+					},
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "66.77.99.22",
+					},
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "11.66.77.33",
+					},
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "10.55.66.22",
+					},
+				},
+				AAAA: []routedns.DNSRecord{
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "1:1:1:2:3:4:5:6",
+					},
+					{
+
+						Name:  "www",
+						TTL:   3600,
+						Rdata: "::2",
+					},
+				},
+			},
 			Groups: []routedns.DnsRouteGroup{
 				{
 					Name:             "",

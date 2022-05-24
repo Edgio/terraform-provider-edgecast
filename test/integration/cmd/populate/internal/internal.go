@@ -21,6 +21,6 @@ func Pointer[T any](t T) *T {
 	return &t
 }
 
-func IgnoreError[T any](data T, _ error) T {
+func UnChecked[T any](data T, _ error) T {
 	return data
 }

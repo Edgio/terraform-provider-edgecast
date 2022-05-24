@@ -8,12 +8,8 @@ import (
 )
 
 func createOriginData(cfg edgecast.SDKConfig) (id int) {
-	/*TODO: Repair
-	--
 	svc := internal.Check(origin.New(cfg))
-
 	id = createOrigin(svc)
-	*/
 	return
 }
 
@@ -22,31 +18,22 @@ func createOrigin(svc *origin.OriginService) int {
 		AccountNumber: account(),
 		MediaTypeID:   enums.HttpLarge,
 		Origin: origin.Origin{
-			DirectoryName:   "www",
+			DirectoryName:   unique("www"),
 			FollowRedirects: false,
-			HostHeader:      "home.edgecast.com:80",
+			HostHeader:      "home.example.com:80",
 			HTTPHostnames: []origin.Hostname{
 				{
-					Name:      "http://origin1.customer.com",
-					IsPrimary: 1,
-					Ordinal:   0,
+					Name: "http://app.example.com:80",
 				},
 			},
-			HTTPLoadBalancing:    "PF",
-			HTTPSHostnames:       []origin.Hostname{},
-			HTTPSLoadBalancing:   "",
-			NetworkConfiguration: 1,
-			ValidationURL:        "",
-			ShieldPOPs: []origin.ShieldPOP{
+			HTTPLoadBalancing: "RR",
+			HTTPSHostnames: []origin.Hostname{
 				{
-					Name:    "",
-					POPCode: "MCO",
-				},
-				{
-					Name:    "",
-					POPCode: "NYC",
+					Name: "https://app.example.com:443",
 				},
 			},
+			HTTPSLoadBalancing: "PF",
+			ValidationURL:      "http://home.example.com:80/images/test.gif",
 		},
 	}
 

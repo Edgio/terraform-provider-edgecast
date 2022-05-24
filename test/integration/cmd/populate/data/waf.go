@@ -10,14 +10,9 @@ func createWAFData(cfg edgecast.SDKConfig) (rateRuleID, wafAccessRuleID, wafCust
 	svc := internal.Check(waf.New(cfg))
 	wafManagedRuleID = createWAFKManagedRule(svc)
 	wafAccessRuleID = createWAFAccessRule(svc)
-
-	/*TODO: Repair
-	  ----
-	  wafScopesID = createWAFScopes(svc)
-	  wafCustomRuleID = createWAFCustomRule(svc)
-	  rateRuleID = createWAFRateRule(svc)
-	  ----
-	*/
+	rateRuleID = createWAFRateRule(svc)
+	wafScopesID = createWAFScopes(svc)
+	wafCustomRuleID = createWAFCustomRule(svc)
 	return
 }
 
@@ -105,22 +100,32 @@ func createWAFCustomRule(svc *waf.WAFService) (id string) {
 				{
 					SecRule: waf.SecRule{
 						Action: waf.Action{
-							ID:              "",
-							Message:         "",
-							Transformations: nil,
+							Message:         "Invalid user agent",
+							Transformations: []string{"NONE"},
 						},
-						ChainedRules: nil,
-						Name:         "a name",
+						Name: "a name",
 						Operator: waf.Operator{
 							IsNegated: false,
 							Type:      "EQ",
-							Value:     "",
+							Value:     "bot",
 						},
-						Variables: nil,
+						Variables: []waf.Variable{
+							{
+								Type: "REQUEST_HEADERS",
+								Matches: []waf.Match{
+									{
+										IsNegated: false,
+										IsRegex:   false,
+										Value:     "User-Agent",
+									},
+								},
+								IsCount: false,
+							},
+						},
 					},
 				},
 			},
-			Name: "",
+			Name: unique("My-Rule"),
 		},
 	}
 
@@ -193,7 +198,7 @@ func createWAFScopes(svc *waf.WAFService) (id string) {
 		CustomerID: account(),
 		Scopes: []waf.Scope{
 			{
-				Name: "dev waf",
+				Name: "scopes-web-security",
 				Host: waf.MatchCondition{
 					IsCaseInsensitive: internal.Pointer(false),
 					Type:              "EM",
@@ -218,28 +223,28 @@ func createWAFScopes(svc *waf.WAFService) (id string) {
 					Type:              "GLOB",
 					Value:             internal.Pointer("*"),
 				},
-				ACLAuditAction: &waf.AuditAction{
-					ID:   "",
-					Name: "",
-					Type: "ALERT",
-				},
-				ACLAuditID: internal.Pointer("rule1"),
+				//	ACLAuditAction: &waf.AuditAction{
+				//			ID:   "",
+				//				Name: "",
+				//					Type: "ALERT",
+				//				},
+				//ACLAuditID: internal.Pointer("rule1"),
 				ACLProdAction: &waf.ProdAction{
 					Name:    "acl action",
 					ENFType: "ALERT",
 				},
-				ACLProdID: internal.Pointer("access rule id"),
-				ProfileAuditAction: &waf.AuditAction{
-					Type: "ALERT",
-				},
-				ProfileAuditID: internal.Pointer("audit id"),
+				//	ACLProdID: internal.Pointer("access rule id"),
+				//	ProfileAuditAction: &waf.AuditAction{
+				//		Type: "ALERT",
+				//		},
+				//ProfileAuditID: internal.Pointer("audit id"),
 				ProfileProdAction: &waf.ProdAction{
 					Name:    "custom rule action",
 					ENFType: "BLOCK_REQUEST",
 				},
-				ProfileProdID:   nil,
-				RuleAuditAction: nil,
-				RuleAuditID:     internal.Pointer("<Custom Rule ID>"),
+				ProfileProdID: nil,
+				//RuleAuditAction: nil,
+				//RuleAuditID:     internal.Pointer("<Custom Rule ID>"),
 				RuleProdAction: &waf.ProdAction{
 					Name:    "custom rule action",
 					ENFType: "BLOCK_REQUEST",
