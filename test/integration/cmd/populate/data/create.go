@@ -3,16 +3,14 @@ package data
 import (
 	"fmt"
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 	"os"
-	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
 	"time"
 )
 
+var accountNumber = os.Getenv("ACCOUNT_NUMBER")
+
 func account() string {
-	return os.Getenv("ACCOUNT_NUMBER")
+	return accountNumber
 }
 
 func email() string {
@@ -20,31 +18,9 @@ func email() string {
 }
 
 func unique(s string) string {
-	return fmt.Sprintf("%s%d", s, time.Now().Unix())
-}
-
-func Fix(cfg edgecast.SDKConfig) {
-	rulesEnginePolicyID := createPolicyV4(internal.Check(rulesengine.New(cfg)))
-	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
-	/*
-		AddPolicy: SubmitRequest: ecRequestBuilder.buildRequest: request.setAuthorization: failed to get authorization: EOF
-	*/
-	wafScopesID := createWAFScopes(internal.Check(waf.New(cfg)))
-	fmt.Println("waf scopes id:", wafScopesID)
-	/*
-		ModifyAllScopes: SubmitRequest: sendRequest failed (HTTP StatusCode:400): {"errors":[{"code":400,"message":"Failed: wjc could not validate scope. Error validating configuration file with waf json compiler tool. Reason:"}],"success":false}
-	*/
-	svc := internal.Check(routedns.New(cfg))
-	zoneID := createZone(svc)
-	fmt.Println("zone id:", zoneID)
-	/*
-		AddZone: SubmitRequest: sendRequest failed (HTTP StatusCode:500): {"Message":"Operation Error. Contact Administrator"}
-	*/
-	groupID := createGroup(svc)
-	fmt.Println("dns group id:", groupID)
-	/*
-		AddGroup: SubmitRequest: sendRequest failed (HTTP StatusCode:500): {"Message":"Operation Error. Contact Administrator"}
-	*/
+	n := fmt.Sprintf("%d", time.Now().Unix())
+	n = n[len(n)-4:]
+	return fmt.Sprintf("%s%s", n, s)
 }
 
 func Create(cfg edgecast.SDKConfig) {
@@ -67,13 +43,13 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("tsg id:", tsgID)
 	fmt.Println("zone id:", zoneID)
 
-	rulesEnginePolicyID := createRulesEnginePolicyData(cfg)
-	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
-
 	wafRateRuleID, wafAccessRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID := createWAFData(cfg)
 	fmt.Println("waf access rule id:", wafAccessRuleID)
 	fmt.Println("waf custom rule id:", wafCustomRuleID)
 	fmt.Println("waf managed rule b id:", wafManagedRuleID)
 	fmt.Println("waf rate rule id:", wafRateRuleID)
 	fmt.Println("waf scopes id:", wafScopesID)
+
+	rulesEnginePolicyID := createRulesEnginePolicyData(cfg)
+	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
 }

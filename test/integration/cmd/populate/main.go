@@ -7,7 +7,7 @@ import (
 
 func main() {
 	_ = godotenv.Load()
-	data.Fix(
+	data.Create(
 		createConfig(),
 	)
 }

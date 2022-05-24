@@ -21,64 +21,18 @@ func createZone(svc *routedns.RouteDNSService) int {
 	params := routedns.AddZoneParams{
 		AccountNumber: account(),
 		Zone: routedns.Zone{
-			DomainName: unique("dev-enablement-test.edgecast.com"),
+			DomainName: unique("devenbltt.com"),
 			Status:     1,
 			ZoneType:   1,
+			Comment:    "SDK test zone 1",
 			Records: routedns.DNSRecords{
-
 				A: []routedns.DNSRecord{
 					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "10.55.66.22",
+						Name:         "testarecord2",
+						TTL:          300,
+						Rdata:        "54.11.33.29",
+						RecordTypeID: routedns.A,
 					},
-					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "55.66.88.11",
-					},
-					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "66.77.99.22",
-					},
-					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "11.66.77.33",
-					},
-					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "10.55.66.22",
-					},
-				},
-				AAAA: []routedns.DNSRecord{
-					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "1:1:1:2:3:4:5:6",
-					},
-					{
-
-						Name:  "www",
-						TTL:   3600,
-						Rdata: "::2",
-					},
-				},
-			},
-			Groups: []routedns.DnsRouteGroup{
-				{
-					Name:             "",
-					GroupTypeID:      1,
-					GroupProductType: 1,
-					GroupComposition: routedns.DNSGroupRecords{},
 				},
 			},
 		},
@@ -164,9 +118,53 @@ func createSecondaryServerGroup(svc *routedns.RouteDNSService, tsgID, msgID, ser
 	return szg.ID
 }
 
+func buildLoadbalancedGroup(
+	groupTypeID routedns.GroupType,
+) routedns.DnsRouteGroup {
+	// Load Balanced Group with Records
+	cnameRecord1 := routedns.DNSRecord{
+		Name:         "testcnamerecord1",
+		TTL:          300,
+		Rdata:        "lb1.sdkzone.com",
+		RecordTypeID: routedns.CNAME,
+		Weight:       50,
+	}
+	cnameRecord2 := routedns.DNSRecord{
+		Name:         "testcnamerecord2",
+		TTL:          300,
+		Rdata:        "lb2.sdkzone.com",
+		RecordTypeID: routedns.CNAME,
+		Weight:       50,
+	}
+
+	lbGroupRecord1 := routedns.DNSGroupRecord{
+		Record: cnameRecord1,
+	}
+
+	lbGroupRecord2 := routedns.DNSGroupRecord{
+		Record: cnameRecord2,
+	}
+
+	lbGroupRecords := routedns.DNSGroupRecords{}
+	lbGroupRecords.CNAME = append(
+		lbGroupRecords.CNAME,
+		lbGroupRecord1,
+		lbGroupRecord2,
+	)
+
+	lbGroup := routedns.DnsRouteGroup{
+		Name:             unique("sdklbgroup01"),
+		GroupTypeID:      groupTypeID,
+		GroupProductType: routedns.LoadBalancing,
+		GroupComposition: lbGroupRecords,
+	}
+
+	return lbGroup
+}
 func createGroup(routeDNSService *routedns.RouteDNSService) (groupID int) {
-	group := routedns.DnsRouteGroup{
-		Name:             "DNS GROUP",
+
+	_ = routedns.DnsRouteGroup{
+		Name:             unique("DNS GROUP"),
 		GroupTypeID:      routedns.CName,
 		GroupProductType: routedns.LoadBalancing,
 		GroupComposition: routedns.DNSGroupRecords{
@@ -192,7 +190,7 @@ func createGroup(routeDNSService *routedns.RouteDNSService) (groupID int) {
 
 	params := routedns.NewAddGroupParams()
 	params.AccountNumber = account()
-	params.Group = group
+	params.Group = buildLoadbalancedGroup(routedns.CName)
 
 	return *internal.Check(routeDNSService.AddGroup(*params))
 }

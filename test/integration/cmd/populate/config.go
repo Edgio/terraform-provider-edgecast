@@ -10,17 +10,18 @@ import (
 func createConfig() edgecast.SDKConfig {
 	config := edgecast.NewSDKConfig()
 	config.APIToken = os.Getenv("API_TOKEN")
-	config.BaseAPIURL = getEnvURL("API_ADDRESS")
-	config.BaseAPIURLLegacy = getEnvURL("API_ADDRESS_LEGACY")
-	config.BaseIDSURL = getEnvURL("IDS_ADDRESS")
+	config.BaseAPIURL = envURL("API_ADDRESS")
+	config.BaseAPIURLLegacy = envURL("API_ADDRESS_LEGACY")
+	config.BaseIDSURL = envURL("IDS_ADDRESS")
 	config.IDSCredentials = edgecast.IDSCredentials{
 		ClientID:     os.Getenv("IDS_CLIENT_ID"),
 		ClientSecret: os.Getenv("IDS_CLIENT_SECRET"),
 		Scope:        os.Getenv("IDS_SCOPE"),
 	}
+
 	return config
 }
 
-func getEnvURL(s string) url.URL {
+func envURL(s string) url.URL {
 	return *internal.Check(url.Parse(os.Getenv(s)))
 }

@@ -1,6 +1,7 @@
 package data
 
 import (
+	"encoding/base64"
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
@@ -11,8 +12,8 @@ func createWAFData(cfg edgecast.SDKConfig) (rateRuleID, wafAccessRuleID, wafCust
 	wafManagedRuleID = createWAFKManagedRule(svc)
 	wafAccessRuleID = createWAFAccessRule(svc)
 	rateRuleID = createWAFRateRule(svc)
-	wafScopesID = createWAFScopes(svc)
 	wafCustomRuleID = createWAFCustomRule(svc)
+	wafScopesID = createWAFScopes(svc, rateRuleID, wafAccessRuleID, wafManagedRuleID, wafCustomRuleID)
 	return
 }
 
@@ -193,63 +194,58 @@ func createWAFKManagedRule(svc *waf.WAFService) (id string) {
 	return internal.Check(svc.AddManagedRule(params))
 }
 
-func createWAFScopes(svc *waf.WAFService) (id string) {
+func createWAFScopes(svc *waf.WAFService, rateRuleID, accessRuleID, managedRuleID, customRuleID string) (id string) {
+	trueVar := true
+	encodedMessage := base64.StdEncoding.EncodeToString([]byte("hello!"))
+	status404 := 404
+	redirectURL := "https://www.devenblment.com/redirected"
+
 	params := waf.Scopes{
 		CustomerID: account(),
 		Scopes: []waf.Scope{
 			{
-				Name: "scopes-web-security",
+				Name: "Sample Scope",
 				Host: waf.MatchCondition{
-					IsCaseInsensitive: internal.Pointer(false),
 					Type:              "EM",
-					Values:            &[]string{"site1.com/path1", "site2.com"},
+					IsCaseInsensitive: &trueVar,
+					Values:            &[]string{"devenblment.com", "devenblment2.com"},
+				},
+				Path: waf.MatchCondition{
+					Type:   "EM",
+					Values: &[]string{"/account", "/admin"},
 				},
 				Limits: &[]waf.Limit{
 					{
-						ID: "one",
+						ID: rateRuleID,
 						Action: waf.LimitAction{
-							DurationSec:        60,
+							Name:               "Custom action",
+							DurationSec:        10,
 							ENFType:            "CUSTOM_RESPONSE",
-							Name:               "limit action custom",
-							ResponseBodyBase64: internal.Pointer("SGVsbG8sIHdvcmxkIQo="),
-							ResponseHeaders:    nil,
-							Status:             internal.Pointer(404),
+							ResponseBodyBase64: &encodedMessage,
+							ResponseHeaders:    &map[string]string{"key1": "value1"},
+							Status:             &status404,
 						},
 					},
 				},
-				Path: waf.MatchCondition{
-					IsCaseInsensitive: internal.Pointer(false),
-					IsNegated:         internal.Pointer(false),
-					Type:              "GLOB",
-					Value:             internal.Pointer("*"),
-				},
-				//	ACLAuditAction: &waf.AuditAction{
-				//			ID:   "",
-				//				Name: "",
-				//					Type: "ALERT",
-				//				},
-				//ACLAuditID: internal.Pointer("rule1"),
+				ACLAuditID: &accessRuleID,
+				ACLProdID:  &accessRuleID,
 				ACLProdAction: &waf.ProdAction{
-					Name:    "acl action",
+					Name:    "Access Rule Action",
+					ENFType: "REDIRECT_302",
+					URL:     &redirectURL,
+				},
+				ProfileAuditID: &managedRuleID,
+				ProfileProdID:  &managedRuleID,
+				ProfileProdAction: &waf.ProdAction{
+					Name:    "Managed Rule Action",
+					ENFType: "BLOCK_REQUEST",
+				},
+				RuleAuditID: &customRuleID,
+				RuleProdID:  &customRuleID,
+				RuleProdAction: &waf.ProdAction{
+					Name:    "Custom Rule Action",
 					ENFType: "ALERT",
 				},
-				//	ACLProdID: internal.Pointer("access rule id"),
-				//	ProfileAuditAction: &waf.AuditAction{
-				//		Type: "ALERT",
-				//		},
-				//ProfileAuditID: internal.Pointer("audit id"),
-				ProfileProdAction: &waf.ProdAction{
-					Name:    "custom rule action",
-					ENFType: "BLOCK_REQUEST",
-				},
-				ProfileProdID: nil,
-				//RuleAuditAction: nil,
-				//RuleAuditID:     internal.Pointer("<Custom Rule ID>"),
-				RuleProdAction: &waf.ProdAction{
-					Name:    "custom rule action",
-					ENFType: "BLOCK_REQUEST",
-				},
-				RuleProdID: internal.Pointer("<Custom Rule ID>"),
 			},
 		},
 	}
