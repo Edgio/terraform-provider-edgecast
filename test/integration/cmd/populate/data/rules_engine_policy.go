@@ -11,15 +11,15 @@ var policyString = `{
 		"@type": "policy-create",
 		"name": "a%s",
 		"description": "This is a test of the policy-create process.",
-		"platform": "http_small",
+		"platform": "http_large",
 		"state": "locked",
 		"rules": [
 			{
-				"@type": "rule-create",
-				"name": "Deny POST",
+				"name": "Deny POST - %s",
 				"description": "Allow all POST requests",
 				"matches": [{
-					"type": "match.always",
+					"type": "match.request.request-method.literal",
+					"value" : "GET",
 					"features": [{
 						"type": "feature.access.deny-access",
 						"enabled": false
@@ -38,7 +38,7 @@ func createRulesEnginePolicyData(cfg edgecast.SDKConfig) (id string) {
 func createPolicyV4(svc *rulesengine.RulesEngineService) (id string) {
 	params := rulesengine.AddPolicyParams{
 		AccountNumber:  account(),
-		PolicyAsString: fmt.Sprintf(policyString, unique("policy")),
+		PolicyAsString: fmt.Sprintf(policyString, unique("policy"), unique("rule")),
 	}
 
 	res := internal.Check(svc.AddPolicy(params))
