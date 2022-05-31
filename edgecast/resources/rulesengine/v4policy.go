@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -66,6 +67,7 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 					validation.StringIsJSON,
 					helper.StringIsNotEmptyJSON,
 				),
+				DiffSuppressFunc: policyDiffSuppress,
 			},
 		},
 	}
@@ -434,4 +436,18 @@ func cleanPolicyForTerrafomState(val interface{}) string {
 		panic(fmt.Errorf("cleanPolicyForTerrafomState: %v", err))
 	}
 	return string(jsonBytes)
+}
+
+func policyDiffSuppress(k, old, new string, _ *schema.ResourceData) bool {
+	oldPolicy := make(map[string]interface{})
+	newPolicy := make(map[string]interface{})
+
+	_ = json.Unmarshal([]byte(old), &oldPolicy)
+	_ = json.Unmarshal([]byte(new), &newPolicy)
+
+	// ignore name changes
+	delete(oldPolicy, "name")
+	delete(newPolicy, "name")
+
+	return reflect.DeepEqual(oldPolicy, newPolicy) == false
 }
