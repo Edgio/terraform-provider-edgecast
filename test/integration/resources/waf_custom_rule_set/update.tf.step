@@ -1,6 +1,6 @@
 
 resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
-  customer_id = "<customer_id>"
+  customer_id = var.account_number
   name        = "Custom Rule 1"
 
   directive {
@@ -67,4 +67,9 @@ resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
       }
     }
   }
+}
+
+output "waf_custom_rule_set_id" {
+  description = "custom_rule_id"
+  value       = edgecast_waf_custom_rule_set.custom_rule_1.*.id
 }

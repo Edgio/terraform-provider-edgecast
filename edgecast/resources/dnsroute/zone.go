@@ -635,25 +635,25 @@ func ResourceZoneCreate(
 		Comment:    comment,
 	}
 
-	zoneObj.Records.A = *expandDNSRecords("A", &recordsA, nil)
-	zoneObj.Records.AAAA = *expandDNSRecords("AAAA", &recordsAAAA, nil)
-	zoneObj.Records.CNAME = *expandDNSRecords("Cname", &recordsCNAME, nil)
-	zoneObj.Records.MX = *expandDNSRecords("MX", &recordsMX, nil)
-	zoneObj.Records.NS = *expandDNSRecords("NS", &recordsNS, nil)
-	zoneObj.Records.PTR = *expandDNSRecords("PTR", &recordsPTR, nil)
-	zoneObj.Records.SOA = *expandDNSRecords("SOA", &recordsSOA, nil)
-	zoneObj.Records.SPF = *expandDNSRecords("SPF", &recordsSPF, nil)
-	zoneObj.Records.SRV = *expandDNSRecords("SRV", &recordsSRV, nil)
-	zoneObj.Records.TXT = *expandDNSRecords("TXT", &recordsTXT, nil)
-	zoneObj.Records.DNSKEY = *expandDNSRecords("DNSKEY", &recordsDNSKEY, nil)
-	zoneObj.Records.RRSIG = *expandDNSRecords("RRSIG", &recordsRRSIG, nil)
-	zoneObj.Records.DS = *expandDNSRecords("DS", &recordsDS, nil)
-	zoneObj.Records.NSEC = *expandDNSRecords("NSEC", &recordsNSEC, nil)
-	zoneObj.Records.NSEC3 = *expandDNSRecords("NSEC3", &recordsNSEC3, nil)
-	zoneObj.Records.NSEC3PARAM = *expandDNSRecords(
+	zoneObj.Records.A = expandDNSRecords("A", &recordsA, nil)
+	zoneObj.Records.AAAA = expandDNSRecords("AAAA", &recordsAAAA, nil)
+	zoneObj.Records.CNAME = expandDNSRecords("Cname", &recordsCNAME, nil)
+	zoneObj.Records.MX = expandDNSRecords("MX", &recordsMX, nil)
+	zoneObj.Records.NS = expandDNSRecords("NS", &recordsNS, nil)
+	zoneObj.Records.PTR = expandDNSRecords("PTR", &recordsPTR, nil)
+	zoneObj.Records.SOA = expandDNSRecords("SOA", &recordsSOA, nil)
+	zoneObj.Records.SPF = expandDNSRecords("SPF", &recordsSPF, nil)
+	zoneObj.Records.SRV = expandDNSRecords("SRV", &recordsSRV, nil)
+	zoneObj.Records.TXT = expandDNSRecords("TXT", &recordsTXT, nil)
+	zoneObj.Records.DNSKEY = expandDNSRecords("DNSKEY", &recordsDNSKEY, nil)
+	zoneObj.Records.RRSIG = expandDNSRecords("RRSIG", &recordsRRSIG, nil)
+	zoneObj.Records.DS = expandDNSRecords("DS", &recordsDS, nil)
+	zoneObj.Records.NSEC = expandDNSRecords("NSEC", &recordsNSEC, nil)
+	zoneObj.Records.NSEC3 = expandDNSRecords("NSEC3", &recordsNSEC3, nil)
+	zoneObj.Records.NSEC3PARAM = expandDNSRecords(
 		"NSEC3PARAM", &recordsNSEC3PARAM, nil)
-	zoneObj.Records.DLV = *expandDNSRecords("DLV", &recordsDLV, nil)
-	zoneObj.Records.CAA = *expandDNSRecords("CAA", &recordsCAA, nil)
+	zoneObj.Records.DLV = expandDNSRecords("DLV", &recordsDLV, nil)
+	zoneObj.Records.CAA = expandDNSRecords("CAA", &recordsCAA, nil)
 
 	groups, err := expandDNSRouteGroups(&dnsGroups, nil)
 	if err != nil {
@@ -661,7 +661,7 @@ func ResourceZoneCreate(
 		return diag.FromErr(err)
 	}
 	if groups != nil {
-		zoneObj.Groups = *expandCreateDNSGroups(groups)
+		zoneObj.Groups = expandCreateDNSGroups(groups)
 	}
 
 	// Call add Zone API
@@ -871,50 +871,50 @@ func ResourceZoneUpdate(
 	if err != nil {
 		diag.FromErr(err)
 	}
-
+	fmt.Println("GROUPS", groups, err)
 	// Update Zone Object
 	zoneObj.DomainName = domainName
 	zoneObj.Status = status
 	zoneObj.ZoneType = zoneType
 	zoneObj.IsCustomerOwned = is_customer_owned
 	zoneObj.Comment = comment
-	zoneObj.Records.A = *expandDNSRecords(
+	zoneObj.Records.A = expandDNSRecords(
 		"A", &recordsA, deletesA)
-	zoneObj.Records.AAAA = *expandDNSRecords(
+	zoneObj.Records.AAAA = expandDNSRecords(
 		"AAAA", &recordsAAAA, deletesAAAA)
-	zoneObj.Records.CNAME = *expandDNSRecords(
+	zoneObj.Records.CNAME = expandDNSRecords(
 		"Cname", &recordsCNAME, deletesCNAME)
-	zoneObj.Records.MX = *expandDNSRecords(
+	zoneObj.Records.MX = expandDNSRecords(
 		"MX", &recordsMX, deletesMX)
-	zoneObj.Records.NS = *expandDNSRecords(
+	zoneObj.Records.NS = expandDNSRecords(
 		"NS", &recordsNS, deletesNS)
-	zoneObj.Records.PTR = *expandDNSRecords(
+	zoneObj.Records.PTR = expandDNSRecords(
 		"PTR", &recordsPTR, deletesPTR)
-	zoneObj.Records.SOA = *expandDNSRecords(
+	zoneObj.Records.SOA = expandDNSRecords(
 		"SOA", &recordsSOA, deletesSOA)
-	zoneObj.Records.SPF = *expandDNSRecords(
+	zoneObj.Records.SPF = expandDNSRecords(
 		"SPF", &recordsSPF, deletesSPF)
-	zoneObj.Records.SRV = *expandDNSRecords(
+	zoneObj.Records.SRV = expandDNSRecords(
 		"SRV", &recordsSRV, deletesSRV)
-	zoneObj.Records.TXT = *expandDNSRecords(
+	zoneObj.Records.TXT = expandDNSRecords(
 		"TXT", &recordsTXT, deletesTXT)
-	zoneObj.Records.DNSKEY = *expandDNSRecords(
+	zoneObj.Records.DNSKEY = expandDNSRecords(
 		"DNSKEY", &recordsDNSKEY, deletesDNSKEY)
-	zoneObj.Records.RRSIG = *expandDNSRecords(
+	zoneObj.Records.RRSIG = expandDNSRecords(
 		"RRSIG", &recordsRRSIG, deletesRRSIG)
-	zoneObj.Records.DS = *expandDNSRecords(
+	zoneObj.Records.DS = expandDNSRecords(
 		"DS", &recordsDS, deletesDS)
-	zoneObj.Records.NSEC = *expandDNSRecords(
+	zoneObj.Records.NSEC = expandDNSRecords(
 		"NSEC", &recordsNSEC, deletesNSEC)
-	zoneObj.Records.NSEC3 = *expandDNSRecords(
+	zoneObj.Records.NSEC3 = expandDNSRecords(
 		"NSEC3", &recordsNSEC3, deletesNSEC3)
-	zoneObj.Records.NSEC3PARAM = *expandDNSRecords(
+	zoneObj.Records.NSEC3PARAM = expandDNSRecords(
 		"NSEC3PARAM", &recordsNSEC3PARAM, deletesNSEC3PARAM)
-	zoneObj.Records.DLV = *expandDNSRecords(
+	zoneObj.Records.DLV = expandDNSRecords(
 		"DLV", &recordsDLV, deletesDLV)
-	zoneObj.Records.CAA = *expandDNSRecords(
+	zoneObj.Records.CAA = expandDNSRecords(
 		"CAA", &recordsCAA, deletesCAA)
-	zoneObj.Groups = *groups
+	zoneObj.Groups = groups
 
 	// Call update Zone API
 	updateParams := routedns.NewUpdateZoneParams()
@@ -994,7 +994,7 @@ func expandDNSRecords(
 	recodeType string,
 	input *[]interface{},
 	toDelete []interface{},
-) *[]routedns.DNSRecord {
+) []routedns.DNSRecord {
 	records := make([]routedns.DNSRecord, 0)
 
 	for _, item := range *input {
@@ -1037,13 +1037,13 @@ func expandDNSRecords(
 
 		records = append(records, record)
 	}
-	return &records
+	return records
 }
 
 func expandDNSRouteGroups(
 	input *[]interface{},
 	toDelete []interface{},
-) (*[]routedns.DnsRouteGroupOK, error) {
+) ([]routedns.DnsRouteGroupOK, error) {
 	if *input == nil || len(*input) == 0 {
 		return nil, nil
 	}
@@ -1118,9 +1118,9 @@ func expandDNSRouteGroups(
 		}
 
 		groupComposition := routedns.DNSGroupRecords{
-			A:     *arrayAs,
-			AAAA:  *arrayAAAAs,
-			CNAME: *arrayCnames,
+			A:     arrayAs,
+			AAAA:  arrayAAAAs,
+			CNAME: arrayCnames,
 		}
 		group := routedns.DnsRouteGroupOK{
 			GroupID:      groupID,
@@ -1137,14 +1137,14 @@ func expandDNSRouteGroups(
 		groups = append(groups, group)
 	}
 
-	return &groups, nil
+	return groups, nil
 }
 
 func expandCreateDNSGroups(
-	groups *[]routedns.DnsRouteGroupOK,
-) *[]routedns.DnsRouteGroup {
+	groups []routedns.DnsRouteGroupOK,
+) []routedns.DnsRouteGroup {
 	groupsArr := make([]routedns.DnsRouteGroup, 0)
-	for _, group := range *groups {
+	for _, group := range groups {
 		g := routedns.DnsRouteGroup{
 			Name:             group.Name,
 			GroupTypeID:      group.GroupTypeID,
@@ -1154,13 +1154,13 @@ func expandCreateDNSGroups(
 		groupsArr = append(groupsArr, g)
 	}
 
-	return &groupsArr
+	return groupsArr
 }
 
 func expandGroupRecords(
 	input *[]interface{},
 	toDelete bool,
-) (*[]routedns.DNSGroupRecord, error) {
+) ([]routedns.DNSGroupRecord, error) {
 	records := make([]routedns.DNSGroupRecord, 0)
 
 	for _, item := range *input {
@@ -1204,7 +1204,7 @@ func expandGroupRecords(
 
 		records = append(records, record)
 	}
-	return &records, nil
+	return records, nil
 }
 
 func expandHealthCheck(

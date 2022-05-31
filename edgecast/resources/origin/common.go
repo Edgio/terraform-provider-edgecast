@@ -4,6 +4,7 @@
 package origin
 
 import (
+	"github.com/EdgeCast/ec-sdk-go/edgecast/eclog"
 	"terraform-provider-edgecast/edgecast/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
@@ -28,6 +29,6 @@ func buildOriginService(
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
-
+	sdkConfig.Logger = eclog.NewStandardLogger()
 	return origin.New(sdkConfig)
 }

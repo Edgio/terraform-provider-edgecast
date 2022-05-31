@@ -130,7 +130,7 @@ func TestFlattenAccessControls(t *testing.T) {
 
 	for _, v := range cases {
 
-		actualGroups := FlattenAccessControls(v.input)
+		actualGroups := FlattenAccessControls(&v.input)
 
 		for i, actual := range actualGroups {
 

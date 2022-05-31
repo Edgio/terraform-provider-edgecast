@@ -207,6 +207,10 @@ func ResourceCustomer() *schema.Resource {
 				Optional: true,
 				Elem:     &schema.Schema{Type: schema.TypeInt},
 			},
+			"partner_user_id": {
+				Type:     schema.TypeInt,
+				Optional: true,
+			},
 		},
 	}
 }
@@ -383,6 +387,7 @@ func ResourceCustomerRead(
 	d.Set("partner_name", customerObj.PartnerName)
 	d.Set("wholesale_id", customerObj.WholesaleID)
 	d.Set("wholesale_name", customerObj.WholesaleName)
+	d.Set("partner_user_id", customerObj.PartnerUserID)
 
 	// Update Terraform state with retrieved Customer Services data for Customer
 	getServicesParams := customer.NewGetCustomerServicesParams()
@@ -573,5 +578,6 @@ func getCustomerCreateUpdate(
 		State:                     d.Get("state").(string),
 		Website:                   d.Get("website").(string),
 		ZIP:                       d.Get("zip").(string),
+		PartnerUserID:             d.Get("partner_user_id").(int),
 	}, nil
 }

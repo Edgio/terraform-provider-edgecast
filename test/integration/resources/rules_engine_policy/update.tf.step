@@ -1,4 +1,4 @@
-resource "edgecast_rules_engine_policy" "my_policy" {
+resource "edgecast_rules_engine_policy" "my_policy_2" {
   policy    = file("policy.json")
   deploy_to = "production" # Valid values are "production" and "staging"
 
@@ -6,4 +6,9 @@ resource "edgecast_rules_engine_policy" "my_policy" {
   account_number = var.account_number
   customeruserid = 1
   portaltypeid   = 1
+}
+
+output "policy_id" {
+  description = "policyid"
+  value       = edgecast_rules_engine_policy.my_policy_2.*.id
 }

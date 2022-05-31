@@ -396,9 +396,9 @@ func ResourceGroupCreate(
 	}
 
 	groupComposition := routedns.DNSGroupRecords{
-		A:     *arrayAs,
-		AAAA:  *arrayAAAAs,
-		CNAME: *arrayCnames,
+		A:     arrayAs,
+		AAAA:  arrayAAAAs,
+		CNAME: arrayCnames,
 	}
 
 	group := routedns.DnsRouteGroup{
@@ -592,9 +592,9 @@ func ResourceGroupUpdate(
 	groupObj.Name = name
 	groupObj.GroupTypeID = groupType
 	groupObj.GroupProductType = groupProductType
-	groupObj.GroupComposition.A = *arrayAs
-	groupObj.GroupComposition.AAAA = *arrayAAAAs
-	groupObj.GroupComposition.CNAME = *arrayCnames
+	groupObj.GroupComposition.A = arrayAs
+	groupObj.GroupComposition.AAAA = arrayAAAAs
+	groupObj.GroupComposition.CNAME = arrayCnames
 
 	// Call Update Group API
 	updateParams := routedns.NewUpdateGroupParams()

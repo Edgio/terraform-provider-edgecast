@@ -25,9 +25,6 @@ func unique(s string) string {
 
 func Create(cfg edgecast.SDKConfig) {
 
-	rulesEnginePolicyID := createRulesEnginePolicyData(cfg)
-	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
-
 	accountNumber, customerUser := createCustomerData(cfg)
 	fmt.Println("account number:", accountNumber)
 	fmt.Println("customer user:", customerUser)
@@ -54,4 +51,6 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("waf rate rule id:", wafRateRuleID)
 	fmt.Println("waf scopes id:", wafScopesID)
 
+	rulesEnginePolicyID := createRulesEnginePolicyData(cfg)
+	fmt.Println("rules engine policy id:", rulesEnginePolicyID)
 }

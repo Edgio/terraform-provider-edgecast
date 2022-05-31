@@ -375,23 +375,23 @@ func ResourceAccessRuleRead(
 	d.Set("account_number", accountNumber)
 	d.Set("allowed_http_methods", resp.AllowedHTTPMethods)
 	d.Set("allowed_request_content_types", resp.AllowedRequestContentTypes)
-	flattenedASN := FlattenAccessControls(*resp.ASNAccessControls)
+	flattenedASN := FlattenAccessControls(resp.ASNAccessControls)
 	d.Set("asn", flattenedASN)
-	flattenedCookie := FlattenAccessControls(*resp.CookieAccessControls)
+	flattenedCookie := FlattenAccessControls(resp.CookieAccessControls)
 	d.Set("cookie", flattenedCookie)
-	flattenedCountry := FlattenAccessControls(*resp.CountryAccessControls)
+	flattenedCountry := FlattenAccessControls(resp.CountryAccessControls)
 	d.Set("country", flattenedCountry)
 	d.Set("disallowed_extensions", resp.DisallowedExtensions)
 	d.Set("disallowed_headers", resp.DisallowedHeaders)
-	flattenedIp := FlattenAccessControls(*resp.IPAccessControls)
+	flattenedIp := FlattenAccessControls(resp.IPAccessControls)
 	d.Set("ip", flattenedIp)
 	d.Set("name", resp.Name)
-	flattenedReferer := FlattenAccessControls(*resp.RefererAccessControls)
+	flattenedReferer := FlattenAccessControls(resp.RefererAccessControls)
 	d.Set("referer", flattenedReferer)
 	d.Set("response_header_name", resp.ResponseHeaderName)
-	flattenedUrl := FlattenAccessControls(*resp.URLAccessControls)
+	flattenedUrl := FlattenAccessControls(resp.URLAccessControls)
 	d.Set("url", flattenedUrl)
-	flattenedUserAgent := FlattenAccessControls(*resp.UserAgentAccessControls)
+	flattenedUserAgent := FlattenAccessControls(resp.UserAgentAccessControls)
 	d.Set("user_agent", flattenedUserAgent)
 
 	return diags
@@ -671,9 +671,11 @@ func ExpandAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
 // FlattenAccessControls converts the AccessControls API Model
 // into a format that Terraform can work with
 func FlattenAccessControls(
-	accessControlsGroups sdkwaf.AccessControls,
+	accessControlsGroups *sdkwaf.AccessControls,
 ) []map[string]interface{} {
-
+	if accessControlsGroups == nil {
+		return nil
+	}
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
 
