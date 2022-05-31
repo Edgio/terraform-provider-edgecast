@@ -14,7 +14,7 @@ A future version of this provider may provide Terraform data sources for these.
 
 ```terraform
 resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
-  customer_id = "<customer_id>"
+  account_number = "<account_number>"
   name        = "Custom Rule Set 1"
 
   directive {
@@ -87,7 +87,7 @@ resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
 
 ### Required
 
-- `customer_id` (String) Identifies your account by its customer account number.
+- `account_number` (String) Identifies your account by its customer account number.
 - `directive` (Block Set, Min: 1) Contains custom rules. Each directive object defines a custom rule via the sec_rule object \
     Note: You may create up to 10 custom rules. (see [below for nested schema](#nestedblock--directive))
 
@@ -309,11 +309,11 @@ resource "edgecast_waf_custom_rule_set" "example" {
 Now run terraform import to attach an existing instance to the resource configuration:
 
 ```shell
-terraform import edgecast_waf_custom_rule_set.example CUSTOMER_ID:ID   
+terraform import edgecast_waf_custom_rule_set.example ACCOUNT_NUMBER:ID   
 ```
 |             |                                                      |
 |:------------|------------------------------------------------------|
-| `CUSTOMER_ID` | The customer ID of the WAF custom ruleset to import. |
+| `ACCOUNT_NUMBER` | The account number of the WAF custom ruleset to import. |
 | `ID`          | The WAF custom rule set ID to import.                |
 
 As a result of the above command, the resource is recorded in the state file.

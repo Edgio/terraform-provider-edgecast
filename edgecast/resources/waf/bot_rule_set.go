@@ -28,7 +28,7 @@ func ResourceBotRuleSetCreate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 
 	log.Printf(
 		"[INFO] Creating WAF Bot Rule Set for Account >> %s",
@@ -72,7 +72,7 @@ func ResourceBotRuleSetRead(ctx context.Context,
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 	botRuleSetID := d.Id()
 
 	log.Printf("[INFO] Retrieving Bot Rule Set '%s' for account number %s",
@@ -102,7 +102,7 @@ func ResourceBotRuleSetRead(ctx context.Context,
 		resp)
 
 	d.SetId(resp.ID)
-	d.Set("customer_id", accountNumber)
+	d.Set("account_number", accountNumber)
 	d.Set("last_modified_date", resp.LastModifiedDate)
 	d.Set("name", resp.Name)
 
@@ -117,7 +117,7 @@ func ResourceBotRuleSetUpdate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 	botRuleSetID := d.Id()
 
 	log.Printf("[INFO] Updating WAF Bot Rule '%s' for Account >> %s",
@@ -167,7 +167,7 @@ func ResourceBotRuleSetDelete(ctx context.Context,
 
 	var diags diag.Diagnostics
 
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 	botRuleSetID := d.Id()
 
 	log.Printf("[INFO] Deleting WAF Bot Rule Set ID %s for Account >> %s",

@@ -29,11 +29,11 @@ resource "edgecast_waf_bot_rule_set" "example" {
 Now run terraform import to attach an existing instance to the resource configuration:
 
 ```shell
-terraform import edgecast_waf_bot_rule_set.example CUSTOMER_ID:ID   
+terraform import edgecast_waf_bot_rule_set.example ACCOUNT_NUMBER:ID   
 ```
 |             |                                                      |
 |:------------|------------------------------------------------------|
-| `CUSTOMER_ID` | The customer ID of the WAF bot rule set to import. |
+| `ACCOUNT_NUMBER` | The account number of the WAF bot rule set to import. |
 | `ID`          | The WAF bot rule set ID to import.                |
 
 As a result of the above command, the resource is recorded in the state file.

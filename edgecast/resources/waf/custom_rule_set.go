@@ -30,7 +30,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 
 	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
 
@@ -72,7 +72,7 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 	var diags diag.Diagnostics
 
 	config := m.(**api.ClientConfig)
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 	ruleID := d.Id()
 
 	log.Printf("[INFO] Retrieving custom rule %s for account number %s",
@@ -99,7 +99,7 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 	log.Printf("[INFO] Successfully retrieved rate rule %s: %+v", ruleID, resp)
 
 	d.SetId(resp.ID)
-	d.Set("customer_id", accountNumber)
+	d.Set("account_number", accountNumber)
 	d.Set("last_modified_date", resp.LastModifiedDate)
 	d.Set("name", resp.Name)
 
@@ -114,7 +114,7 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 	customRuleSetID := d.Id()
 
 	log.Printf("[INFO] Updating WAF Custom Rule Set ID %s for Account >> %s",
@@ -164,7 +164,7 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 
 	var diags diag.Diagnostics
 
-	accountNumber := d.Get("customer_id").(string)
+	accountNumber := d.Get("account_number").(string)
 	customRuleID := d.Id()
 
 	log.Printf("[INFO] Deleting WAF Custom Rule Set ID %s for Account >> %s",

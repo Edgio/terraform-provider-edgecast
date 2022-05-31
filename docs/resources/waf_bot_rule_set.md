@@ -14,7 +14,7 @@ A future version of this provider may provide Terraform data sources for these.
 
 ```terraform
 resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
-  customer_id = "<customer id>"
+  account_number = "<account_number id>"
   name        = "Bot Rule Terraform Test"
 
   directive {
@@ -73,7 +73,7 @@ resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
 
 ### Required
 
-- `customer_id` (String) Identifies your account by its customer account number.
+- `account_number` (String) Identifies your account by its customer account number.
 - `directive` (Block Set, Min: 1) Contains the bot rules associated with this bot rule set. 
 				You may create up to 10 bot rules per bot rule set. (see [below for nested schema](#nestedblock--directive))
 
@@ -308,7 +308,7 @@ Optional:
 Required:
 
 - `type` (String) Determines the request element that will be assessed.
-													
+
 	Valid values are:
 	- ARGS_POST
 	- GEO
@@ -318,7 +318,7 @@ Required:
 	- REQUEST_COOKIES
 	- REQUEST_HEADERS
 	- REQUEST_METHOD
-	- REQUEST_URI
+	- REQUEST_URI 
 																
 		*Note: If a request element consists of one or more key-value pairs, then  you may identify a key via a match object. If is_count has been disabled, then you may identify a specific value via the operator object.*
 
@@ -368,11 +368,11 @@ resource "edgecast_waf_bot_rule_set" "example" {
 Now run terraform import to attach an existing instance to the resource configuration:
 
 ```shell
-terraform import edgecast_waf_bot_rule_set.example CUSTOMER_ID:ID   
+terraform import edgecast_waf_bot_rule_set.example ACCOUNT_NUMBER:ID   
 ```
 |             |                                                      |
 |:------------|------------------------------------------------------|
-| `CUSTOMER_ID` | The customer ID of the WAF bot rule set to import. |
+| `ACCOUNT_NUMBER` | The account number of the WAF bot rule set to import. |
 | `ID`          | The WAF bot rule set ID to import.                |
 
 As a result of the above command, the resource is recorded in the state file.

@@ -4,6 +4,8 @@
 package waf
 
 import (
+	"terraform-provider-edgecast/edgecast/helper"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
@@ -14,9 +16,10 @@ func ResourceBotRuleSet() *schema.Resource {
 		ReadContext:   ResourceBotRuleSetRead,
 		UpdateContext: ResourceBotRuleSetUpdate,
 		DeleteContext: ResourceBotRuleSetDelete,
+		Importer:      helper.Import(ResourceBotRuleSetRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
-			"customer_id": {
+			"account_number": {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: `Identifies your account by its customer account number.`,
