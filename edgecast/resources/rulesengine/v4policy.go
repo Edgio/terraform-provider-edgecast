@@ -274,18 +274,24 @@ func cleanMatches(matches []interface{}) []map[string]interface{} {
 
 // change string arrays to space-separated strings and standardize keys to
 // hyperion standard i.e. "-" -> "_"
-func standardizeMatchFeature(matchFeatureMap map[string]interface{}) {
+func standardizeMatchFeature(matchFeatureMap map[string]interface{}) error {
 	for k, v := range matchFeatureMap {
 		delete(matchFeatureMap, k)
 		// the json library unmarshals all arrays into []interface{}
 		// so we have to do this roundabout way of converting to []string
 		if valArray, ok := v.([]interface{}); ok {
-			if stringArray, ok := helper.ConvertSliceToStrings(valArray); ok {
-				v = strings.Join(stringArray, " ")
+			stringArray, err := helper.ConvertSliceToStrings(valArray)
+
+			if err != nil {
+				return fmt.Errorf("error reading match-features: %w", err)
 			}
+
+			v = strings.Join(stringArray, " ")
 		}
 		matchFeatureMap[strings.Replace(k, "-", "_", -1)] = v
 	}
+
+	return nil
 }
 
 func getDeployRequestData(

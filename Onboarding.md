@@ -97,11 +97,11 @@ provider "edgecast" {
 #### Unit Testing
 Ensure that all unit tests pass before submitting a pull request. 
 
-1. Open a terminal and navigate to the `ec` directory.
+1. Open a terminal and navigate to the `edgecast` directory.
 2. Run `go test ./…`
 
 Please create or modify unit tests when modifying or adding to any of the code 
-in `ec`. 
+in `edgecast`. 
 
 Create functions for "flattening" and "expanding" data and write unit 
 tests for them. Flattening refers to the conversion of data returned from the 
@@ -109,8 +109,8 @@ EdgeCast SDK into a form that Terraform can consume. Expanding is the opposite -
 it refers to the conversion of raw Terraform state into a form that the EdgeCast 
 SDK can consume. 
 
-Refer to `ec/resources/origin/origin_test.go` for a test example. There are 
-helper functions in `ec/helper` that can assist in writing tests.
+Refer to `edgecast/resources/origin/origin_test.go` for a test example. There are 
+helper functions in `edgecast/helper` that can assist in writing tests.
 
 ```go
 // origin.go
@@ -152,4 +152,4 @@ for a section, omit it. Refer to existing
 
 Once your release is complete, verify that the new version has been pushed to
 the Terraform Registry for users to consume. You can do so by checking the 
-version [here](https://registry.terraform.io/providers/EdgeCast/ec).
+version [here](https://registry.terraform.io/providers/EdgeCast/edgecast).

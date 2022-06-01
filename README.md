@@ -33,7 +33,7 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 terraform {
   required_providers {
     edgecast = {
-      version = "0.5.1"
+      version = "0.5.2"
       source  = "EdgeCast/edgecast"
     }
   }
@@ -102,7 +102,7 @@ Terraform Registry instead of using your locally installed provider.
 
 Make note of the version that is used from within the the `Makefile` or 
 `install_win.bat`. You must use the same version within your Terraform 
-configuration file. Also, use `"github.com/terraform-providers/ec"` as the
+configuration file. Also, use `"github.com/terraform-providers/edgecast"` as the
 source.
 
 Example:
@@ -110,7 +110,7 @@ Example:
 terraform {
   required_providers {
     edgecast = {
-      version = "0.5.1"
+      version = "0.5.2"
       source  = "EdgeCast/edgecast"
     }
   }
@@ -132,7 +132,7 @@ export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 
 ## Usage
 The detailed documentation for the provider and specific resources can be found 
-on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/ec/latest/docs).
+on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/edgecast/latest/docs).
 
 ## Security
 
@@ -148,7 +148,7 @@ for more details on the type of token required, and how to acquire a token.
 
 ```
 .
-├── ec
+├── edgecast
     package containing edgecast terraform provider resources and functionality 
     to manage and provision edgecast configurations in terraform
 │   ├── api

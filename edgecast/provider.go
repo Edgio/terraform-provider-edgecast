@@ -106,6 +106,7 @@ func Provider() *schema.Provider {
 			"edgecast_waf_managed_rule":       waf.ResourceManagedRule(),
 			"edgecast_waf_custom_rule_set":    waf.ResourceCustomRuleSet(),
 			"edgecast_waf_scopes":             waf.ResourceScopes(),
+			"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"edgecast_customer_services": customer.DataSourceCustomerServices(),
@@ -131,7 +132,7 @@ func configureProvider(ctx context.Context, d *schema.ResourceData) (interface{}
 		d.Get("api_address_legacy").(string),
 	)
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf("failed to read ec Provider configuration data: %v", err))
+		return nil, diag.FromErr(fmt.Errorf("failed to read edgecast Provider configuration data: %v", err))
 	}
 
 	config.BaseClient = api.NewBaseClient(config)
