@@ -5,6 +5,7 @@ package waf
 
 import (
 	"reflect"
+	"sort"
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
@@ -13,39 +14,42 @@ import (
 	"github.com/go-test/deep"
 )
 
-func TestFlattenCustomRuleDirectives(t *testing.T) {
+func TestFlattenBotRuleDirectives(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []sdkwaf.CustomRuleDirective
+		input    []sdkwaf.BotRuleDirective
 		expected []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []sdkwaf.CustomRuleDirective{
+			input: []sdkwaf.BotRuleDirective{
 				{
-					SecRule: sdkwaf.SecRule{
-						Name: "Test Rule 1",
+					Include: "r3010_ec_bot_challenge_reputation.conf.json",
+				},
+				{
+					SecRule: &sdkwaf.SecRule{
+						Name: "REQUEST_HEADERS",
 						Action: sdkwaf.Action{
 							ID:      "66000000",
 							Message: "Invalid user agent.",
 							Transformations: []waf.Transformation{
-								waf.TransformRemoveNulls,
+								waf.TransformNone,
 							},
 						},
 						Operator: sdkwaf.Operator{
 							IsNegated: false,
-							Type:      waf.OpBeginsWith,
+							Type:      waf.OpContains,
 							Value:     "bot",
 						},
 						Variables: []sdkwaf.Variable{
 							{
 								IsCount: false,
-								Type:    waf.VarRequestCookies,
+								Type:    waf.VarRequestHeaders,
 								Matches: []sdkwaf.Match{
 									{
 										IsRegex:   false,
 										IsNegated: false,
-										Value:     "mycookie",
+										Value:     "User-Agent",
 									},
 								},
 							},
@@ -53,15 +57,13 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 						ChainedRules: []sdkwaf.ChainedRule{
 							{
 								Action: sdkwaf.Action{
-									ID:      "66000001",
-									Message: "Invalid user agent - chained.",
 									Transformations: []waf.Transformation{
-										waf.TransformLowerCase,
+										waf.TransformNone,
 									},
 								},
 								Operator: sdkwaf.Operator{
 									IsNegated: false,
-									Type:      waf.OpEndsWith,
+									Type:      waf.OpContains,
 									Value:     "bot",
 								},
 								Variables: []sdkwaf.Variable{
@@ -84,32 +86,35 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{
+					"include": "r3010_ec_bot_challenge_reputation.conf.json",
+				},
+				{
 					"sec_rule": []map[string]interface{}{
 						{
-							"name": "Test Rule 1",
+							"name": "REQUEST_HEADERS",
 							"action": []map[string]interface{}{
 								{
 									"id":              "66000000",
 									"msg":             "Invalid user agent.",
-									"transformations": []string{"REMOVENULLS"},
+									"transformations": []string{"NONE"},
 								},
 							},
 							"operator": []map[string]interface{}{
 								{
 									"is_negated": false,
-									"type":       "BEGINSWITH",
+									"type":       "CONTAINS",
 									"value":      "bot",
 								},
 							},
 							"variable": []map[string]interface{}{
 								{
 									"is_count": false,
-									"type":     "REQUEST_COOKIES",
+									"type":     "REQUEST_HEADERS",
 									"match": []map[string]interface{}{
 										{
 											"is_negated": false,
 											"is_regex":   false,
-											"value":      "mycookie",
+											"value":      "User-Agent",
 										},
 									},
 								},
@@ -118,15 +123,13 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 								{
 									"action": []map[string]interface{}{
 										{
-											"id":              "66000001",
-											"msg":             "Invalid user agent - chained.",
-											"transformations": []string{"LOWERCASE"},
+											"transformations": []string{"NONE"},
 										},
 									},
 									"operator": []map[string]interface{}{
 										{
 											"is_negated": false,
-											"type":       "ENDSWITH",
+											"type":       "CONTAINS",
 											"value":      "bot",
 										},
 									},
@@ -157,13 +160,13 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 		},
 		{
 			name:     "Empty path",
-			input:    make([]sdkwaf.CustomRuleDirective, 0),
+			input:    make([]sdkwaf.BotRuleDirective, 0),
 			expected: make([]map[string]interface{}, 0),
 		},
 	}
 
 	for _, c := range cases {
-		actual := flattenCustomRuleDirectives(c.input)
+		actual := flattenBotRuleDirectives(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -179,11 +182,11 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 	}
 }
 
-func TestExpandCustomRuleDirectives(t *testing.T) {
+func TestExpandBotRuleDirectives(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.CustomRuleDirective
+		expectedPtr   *[]sdkwaf.BotRuleDirective
 		expectSuccess bool
 	}{
 		{
@@ -224,8 +227,6 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 								map[string]interface{}{
 									"action": helper.NewTerraformSet([]interface{}{
 										map[string]interface{}{
-											"id":              "66000001",
-											"msg":             "Invalid user agent - chained.",
 											"transformations": []interface{}{"NONE"},
 										},
 									}),
@@ -254,10 +255,14 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 						},
 					}),
 				},
+
+				map[string]interface{}{
+					"include": "r3010_ec_bot_challenge_reputation.conf.json",
+				},
 			}),
-			expectedPtr: &[]sdkwaf.CustomRuleDirective{
+			expectedPtr: &[]sdkwaf.BotRuleDirective{
 				{
-					SecRule: sdkwaf.SecRule{
+					SecRule: &sdkwaf.SecRule{
 						Name: "REQUEST_HEADERS",
 						Action: sdkwaf.Action{
 							ID:      "66000000",
@@ -287,8 +292,6 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 						ChainedRules: []sdkwaf.ChainedRule{
 							{
 								Action: sdkwaf.Action{
-									ID:      "66000001",
-									Message: "Invalid user agent - chained.",
 									Transformations: []waf.Transformation{
 										waf.TransformNone,
 									},
@@ -315,6 +318,9 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 						},
 					},
 				},
+				{
+					Include: "r3010_ec_bot_challenge_reputation.conf.json",
+				},
 			},
 			expectSuccess: true,
 		},
@@ -334,7 +340,7 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 
 	for _, v := range cases {
 
-		actualPtr, err := expandCustomRuleDirectives(v.input)
+		actualPtr, err := expandBotRuleDirectives(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -342,9 +348,28 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 				actual := *actualPtr
 				expected := *v.expectedPtr
 
+				/*
+					Terraform's schema.Set.List() function claims to be
+					deterministic but that seems to be the case for the same
+					instance of an array, not across arrays with the same value.
+					Therefore, the ordering is inconsistent. Arrays have to be
+					in the same order to be deeply equal.
+
+					To account for this, we will sort the two arrays before
+					comparing.
+				*/
+
+				sort.SliceStable(actual, func(i, j int) bool {
+					return actual[i].Include < actual[j].Include
+				})
+
+				sort.SliceStable(expected, func(i, j int) bool {
+					return expected[i].Include < expected[j].Include
+				})
+
 				if !reflect.DeepEqual(actual, expected) {
-					// deep.Equal doesn't compare pointer values, so we just use it to
-					// generate a human friendly diff
+					// deep.Equal doesn't compare pointer values, so we just use
+					// it to generate a human friendly diff
 					diff := deep.Equal(actual, expected)
 					t.Errorf("Diff: %+v", diff)
 					t.Fatalf("%s: Expected %+v but got %+v",

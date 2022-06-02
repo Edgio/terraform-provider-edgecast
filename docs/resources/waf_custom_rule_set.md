@@ -14,73 +14,71 @@ A future version of this provider may provide Terraform data sources for these.
 
 ```terraform
 resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
-  customer_id = "<customer_id>"
-  name        = "Custom Rule 1"
-  
-directive {
-      sec_rule {
-          name = "Sec Rule 1"
-          action {
-              id = 66000000 
-              msg = "Invalid user agent."
-              transformations = ["NONE"]
-          }
-          operator {
-              is_negated = false
-              type = "CONTAINS"
-              value = "bot"
-          }
-          variable {
-              is_count = false
-              match {
-                is_negated = false
-                is_regex = false
-                value = "User-Agent"
-              } 
-              match {
-                  is_negated = false
-                  is_regex = false
-                  value = "User-Agent"
-              }
-              type = "REQUEST_HEADERS"
-          }
-          variable {
-              is_count = false
-              match {
-                is_negated = false
-                is_regex = false
-                value = "User-Agent"
-              } 
-              type = "REQUEST_URI"
-          }
-          chained_rule {
-                action {
-                id = 66000001 
-                msg = "Invalid user agent - chained."
-                transformations = ["NONE"]
-            }
-            operator {
-                is_negated = false
-                type = "CONTAINS"
-                value = "bot"
-            }
-            variable {
-                is_count = false
-                match {
-                    is_negated = false
-                    is_regex = false
-                    value = "User-Agent"
-                } 
-                match {
-                    is_negated = false
-                    is_regex = false
-                    value = "User-Agent"
-                }
-                type = "REQUEST_HEADERS"
-            }
-          }
+  account_number = "<account_number>"
+  name        = "Custom Rule Set 1"
+
+  directive {
+    sec_rule {
+      name = "Sec Rule 1"
+      action {
+        id              = 66000000
+        msg             = "Invalid user agent."
+        transformations = ["NONE"]
+      }
+      operator {
+        is_negated = false
+        type       = "CONTAINS"
+        value      = "bot"
+      }
+      variable {
+        is_count = false
+        match {
+          is_negated = false
+          is_regex   = false
+          value      = "User-Agent"
         }
+        match {
+          is_negated = false
+          is_regex   = false
+          value      = "User-Agent"
+        }
+        type = "REQUEST_HEADERS"
+      }
+      variable {
+        is_count = false
+        match {
+          is_negated = false
+          is_regex   = false
+          value      = "User-Agent"
+        }
+        type = "REQUEST_URI"
+      }
+      chained_rule {
+        action {
+          transformations = ["NONE"]
+        }
+        operator {
+          is_negated = false
+          type       = "CONTAINS"
+          value      = "bot"
+        }
+        variable {
+          is_count = false
+          match {
+            is_negated = false
+            is_regex   = false
+            value      = "User-Agent"
+          }
+          match {
+            is_negated = false
+            is_regex   = false
+            value      = "User-Agent"
+          }
+          type = "REQUEST_HEADERS"
+        }
+      }
     }
+  }
 }
 ```
 
@@ -89,7 +87,7 @@ directive {
 
 ### Required
 
-- `customer_id` (String) Identifies your account by its customer account number.
+- `account_number` (String) Identifies your account by its customer account number.
 - `directive` (Block Set, Min: 1) Contains custom rules. Each directive object defines a custom rule via the sec_rule object \
     Note: You may create up to 10 custom rules. (see [below for nested schema](#nestedblock--directive))
 
@@ -226,13 +224,6 @@ Optional:
 
 Optional:
 
-- `id` (String) Determines the custom ID that will be assigned to this custom rule. This custom ID is exposed via the Threats Dashboard. \
-    Valid values fall within this range: 66000000 - 66999999 \
-    *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \
-    Default Value: Random number
-- `msg` (String) Determines the rule message that will be assigned to this custom rule. This message is exposed via the Threats Dashboard. \
-    *Note: This field is only applicable for the action object that resides in the root of the sec_rule object.* \
-    Default Value: Blank
 - `transformations` (List of String) Determines the set of transformations that will be applied to the value derived from the request element identified in a variable object (i.e., source value). Transformations are always applied to the source value, regardless of the number of transformations that have been defined.  \
 Valid Values are: \
 *NONE*: Indicates that the source value should not be modified. \
@@ -318,11 +309,11 @@ resource "edgecast_waf_custom_rule_set" "example" {
 Now run terraform import to attach an existing instance to the resource configuration:
 
 ```shell
-terraform import edgecast_waf_custom_rule_set.example CUSTOMER_ID:ID   
+terraform import edgecast_waf_custom_rule_set.example ACCOUNT_NUMBER:ID   
 ```
 |             |                                                      |
 |:------------|------------------------------------------------------|
-| `CUSTOMER_ID` | The customer ID of the WAF custom ruleset to import. |
+| `ACCOUNT_NUMBER` | The account number of the WAF custom ruleset to import. |
 | `ID`          | The WAF custom rule set ID to import.                |
 
 As a result of the above command, the resource is recorded in the state file.

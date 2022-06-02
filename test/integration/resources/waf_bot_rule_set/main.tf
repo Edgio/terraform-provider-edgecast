@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     edgecast = {
-      version = "0.5.2"
-      source  = "EdgeCast/edgecast"
+      version = "0.5.1"
+      source  = "github.com/terraform-providers/edgecast"
     }
   }
 }
@@ -20,6 +20,10 @@ variable "credentials" {
     api_address_legacy = string
     ids_address        = string
   })
+}
+
+variable "account_number" {
+  type = string
 }
 
 ##########################################

@@ -241,7 +241,8 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 	managedRule.RulesetID = d.Get("ruleset_id").(string)
 	managedRule.RulesetVersion = d.Get("ruleset_version").(string)
 
-	if policies, ok := helper.ConvertToStrings(d.Get("policies")); ok {
+	policies, err := helper.ConvertTFCollectionToStrings(d.Get("policies"))
+	if err == nil {
 		managedRule.Policies = policies
 	} else {
 		return diag.Errorf("Error reading 'policies'")
@@ -383,7 +384,8 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 	managedRule.RulesetID = d.Get("ruleset_id").(string)
 	managedRule.RulesetVersion = d.Get("ruleset_version").(string)
 
-	if policies, ok := helper.ConvertToStrings(d.Get("policies")); ok {
+	policies, err := helper.ConvertTFCollectionToStrings(d.Get("policies"))
+	if err == nil {
 		managedRule.Policies = policies
 	} else {
 		return diag.Errorf("Error reading 'policies'")
@@ -594,31 +596,26 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 			m["combined_file_sizes"])
 	}
 
-	if ignoreCookie, ok := helper.ConvertToStrings(m["ignore_cookie"]); ok {
+	ignoreCookie, err := helper.ConvertTFCollectionToStrings(m["ignore_cookie"])
+	if err == nil {
 		generalSettings.IgnoreCookie = ignoreCookie
 	} else {
-		return nil, fmt.Errorf(
-			errorStringsExpand,
-			m["ignore_cookie"],
-			m["ignore_cookie"])
+		return nil, fmt.Errorf("error reading 'ignore_cookie': %w", err)
 	}
 
-	if ignoreHeader, ok := helper.ConvertToStrings(m["ignore_header"]); ok {
+	ignoreHeader, err := helper.ConvertTFCollectionToStrings(m["ignore_header"])
+	if err == nil {
 		generalSettings.IgnoreHeader = ignoreHeader
 	} else {
-		return nil, fmt.Errorf(
-			errorStringsExpand,
-			m["ignore_header"],
-			m["ignore_header"])
+		return nil, fmt.Errorf("error reading 'ignore_header': %w", err)
 	}
 
-	if ignoreQueryArgs, ok := helper.ConvertToStrings(m["ignore_query_args"]); ok {
+	ignoreQueryArgs, err :=
+		helper.ConvertTFCollectionToStrings(m["ignore_query_args"])
+	if err == nil {
 		generalSettings.IgnoreQueryArgs = ignoreQueryArgs
 	} else {
-		return nil, fmt.Errorf(
-			errorStringsExpand,
-			m["ignore_query_args"],
-			m["ignore_query_args"])
+		return nil, fmt.Errorf("error reading 'ignore_query_args': %w", err)
 	}
 
 	if jsonParser, ok := m["json_parser"].(bool); ok {

@@ -59,6 +59,10 @@ includes:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_access_rule
 
+  waf_bot_rule_set:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_bot_rule_set
+
   waf_custom_rule_set:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/waf_custom_rule_set

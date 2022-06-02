@@ -491,49 +491,53 @@ func ExpandAccessRule(
 	}
 
 	if v, ok := d.GetOk("allowed_http_methods"); ok {
-		if values, ok := helper.ConvertToStrings(v); ok {
+		values, err := helper.ConvertTFCollectionToStrings(v)
+		if err == nil {
 			accessRule.AllowedHTTPMethods = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Error reading Allowed HTTP Methods",
-				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+				Detail:   err.Error(),
 			})
 		}
 	}
 
 	if v, ok := d.GetOk("allowed_request_content_types"); ok {
-		if values, ok := helper.ConvertToStrings(v); ok {
+		values, err := helper.ConvertTFCollectionToStrings(v)
+		if err == nil {
 			accessRule.AllowedRequestContentTypes = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Error reading Allowed Request Content Types",
-				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+				Detail:   err.Error(),
 			})
 		}
 	}
 
 	if v, ok := d.GetOk("disallowed_headers"); ok {
-		if values, ok := helper.ConvertToStrings(v); ok {
+		values, err := helper.ConvertTFCollectionToStrings(v)
+		if err == nil {
 			accessRule.DisallowedHeaders = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Error reading Disallowed Headers",
-				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+				Detail:   err.Error(),
 			})
 		}
 	}
 
 	if v, ok := d.GetOk("disallowed_extensions"); ok {
-		if values, ok := helper.ConvertToStrings(v); ok {
+		values, err := helper.ConvertTFCollectionToStrings(v)
+		if err == nil {
 			accessRule.DisallowedExtensions = values
 		} else {
 			diags = append(diags, diag.Diagnostic{
 				Severity: diag.Error,
 				Summary:  "Error reading Disallowed Extensions",
-				Detail:   fmt.Sprintf(errorStringsExpand, v, v),
+				Detail:   err.Error(),
 			})
 		}
 	}

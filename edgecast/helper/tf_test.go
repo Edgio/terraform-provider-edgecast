@@ -10,7 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestConvertToStrings(t *testing.T) {
+func TestConvertTFCollectionToStrings(t *testing.T) {
 	cases := []struct {
 		name       string
 		input      interface{}
@@ -37,9 +37,10 @@ func TestConvertToStrings(t *testing.T) {
 		},
 	}
 	for _, v := range cases {
-		actual, ok := helper.ConvertToStrings(v.input)
-		if ok == v.expectedOk {
-			if ok {
+		actual, err := helper.ConvertTFCollectionToStrings(v.input)
+
+		if v.expectedOk {
+			if err == nil {
 				if !reflect.DeepEqual(v.expected, actual) {
 					t.Fatalf(
 						"Case '%s': Expected %q but got %q",
@@ -47,85 +48,15 @@ func TestConvertToStrings(t *testing.T) {
 						v.expected,
 						actual)
 				}
-			}
-		} else {
-			t.Fatalf(
-				"Case '%s': Expected ok result of %t but got %t",
-				v.name,
-				v.expectedOk,
-				ok)
-		}
-	}
-}
-
-func TestConvertSliceToStrings(t *testing.T) {
-	cases := []struct {
-		name     string
-		input    []interface{}
-		expected ConvertSliceToStringsResult
-	}{
-		{
-			name:  "Happy path - all strings",
-			input: []interface{}{"val1", "val2", "val3"},
-			expected: ConvertSliceToStringsResult{
-				Array: []string{"val1", "val2", "val3"},
-				Ok:    true,
-			},
-		},
-		{
-			name:  "Error path - one value is not an int",
-			input: []interface{}{"val1", 1, "val3"},
-			expected: ConvertSliceToStringsResult{
-				Array: nil,
-				Ok:    false,
-			},
-		},
-		{
-			name:  "Empty list",
-			input: make([]interface{}, 0),
-			expected: ConvertSliceToStringsResult{
-				Array: make([]string, 0),
-				Ok:    true,
-			},
-		},
-		{
-			name:  "Nil input",
-			input: nil,
-			expected: ConvertSliceToStringsResult{
-				Array: make([]string, 0),
-				Ok:    false,
-			},
-		},
-	}
-	for _, v := range cases {
-		actual, ok := helper.ConvertSliceToStrings(v.input)
-		if v.expected.Ok {
-			if ok {
-				if !reflect.DeepEqual(v.expected.Array, actual) {
-					t.Fatalf(
-						"Case '%s': Expected %q but got %q",
-						v.name,
-						v.expected.Array,
-						actual)
-				}
 			} else {
-				t.Fatalf(
-					"Case '%s': Encountered error when none were expected",
-					v.name)
+				t.Fatalf("unexpected error: %+v", err)
 			}
 		} else {
-			if ok {
-				t.Fatalf(
-					"Case '%s': No error when one was expected",
-					v.name)
+			if err == nil {
+				t.Fatalf("Case '%s': Expected an error but got none", v.name)
 			}
 		}
 	}
-}
-
-type ConvertSliceToStringsResult struct {
-	Array []string
-	Ok    bool
 }
 
 func TestExpandSingletonSet(t *testing.T) {
