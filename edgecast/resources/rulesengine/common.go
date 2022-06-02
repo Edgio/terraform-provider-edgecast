@@ -4,6 +4,7 @@
 package rulesengine
 
 import (
+	"github.com/EdgeCast/ec-sdk-go/edgecast/eclog"
 	"terraform-provider-edgecast/edgecast/api"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
@@ -26,6 +27,7 @@ func buildRulesEngineService(
 	sdkConfig.IDSCredentials = idsCredentials
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseIDSURL = *config.IdsURL
+	sdkConfig.Logger = eclog.NewStandardLogger()
 
 	return rulesengine.New(sdkConfig)
 }

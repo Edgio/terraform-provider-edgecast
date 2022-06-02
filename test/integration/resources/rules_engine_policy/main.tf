@@ -29,7 +29,10 @@ variable "account_number" {
   type = string
 }
 
-
+variable "policy_contents" {
+  type = string
+  default = "{\r\n    \"name\": \"test policy 2022-02-08.3\u00DF\",\r\n    \"description\": \"This is a test policy!\",\r\n    \"platform\": \"http_large\",\r\n    \"rules\": [\r\n        {\r\n            \"name\": \"rule1\",\r\n            \"description\": \"This is a test rule.\",\r\n            \"matches\": [\r\n                {\r\n                    \"type\": \"match.always\",\r\n                    \"features\": [\r\n                        {\r\n                            \"type\": \"feature.comment\",\r\n                            \"value\": \"Update this comment!\"\r\n                        }\r\n                    ]\r\n                }\r\n            ]\r\n        }\r\n    ]\r\n}"
+}
 
 data "local_file" "policy" {
   filename = "policy.json"

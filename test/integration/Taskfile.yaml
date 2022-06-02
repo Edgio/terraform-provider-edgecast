@@ -85,6 +85,10 @@ tasks:
   run:
     desc: "run will execute the entire integration test suite"
     cmds:
+      - task: rules_engine_policy:default
+        vars:
+          RESOURCE_NAME: edgecast_rules_engine_policy
+          IMPORT_ID: $ACCOUNT_NUMBER:$RULES_ENGINE_IMPORT_ID
       - task: customer:default
         vars:
           RESOURCE_NAME: edgecast_customer
@@ -141,10 +145,6 @@ tasks:
         vars:
           RESOURCE_NAME: edgecast_waf_scopes
           IMPORT_ID: $ACCOUNT_NUMBER:$WAF_SCOPES_IMPORT_ID
-      - task: rules_engine_policy:default
-        vars:
-          RESOURCE_NAME: edgecast_rules_engine_policy
-          IMPORT_ID: $ACCOUNT_NUMBER:$RULES_ENGINE_IMPORT_ID
 
   default:
     cmds:

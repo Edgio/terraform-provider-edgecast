@@ -3,17 +3,28 @@ resource "edgecast_customer_user" "customer_user" {
   first_name     = "Admin_First_Name"
   last_name      = "Admin_Last_Name"
   email          = "devenablement+testing-cucu@edgecast.com"
+  is_admin =  true
+  address1 = ""
+  address2 = ""
+  city     = ""
+  state    = ""
+  country  = ""
+  fax      = ""
+  mobile   = ""
+  phone    = ""
+  title    = ""
+  zip      = ""
 }
 
-resource "edgecast_rules_engine_policy" "my_policy_2" {
-  deploy_to = "staging"
-  account_number = var.account_number
-  customeruserid = edgecast_customer_user.customer_user.id
-  portaltypeid   = 1
-  policy    = data.local_file.policy.content
-}
+resource "edgecast_rules_engine_policy" "policy" {
+   deploy_to = "staging"
+   account_number = var.account_number
+   customeruserid = edgecast_customer_user.customer_user.id
+   portaltypeid   = 1
+   policy    = var.policy_contents
+ }
 
-output "policy_id" {
-  description = "policyid"
-  value       = edgecast_rules_engine_policy.my_policy_2.id
-}
+ output "policy_id" {
+   description = "policyid"
+   value       = edgecast_rules_engine_policy.policy.id
+ }

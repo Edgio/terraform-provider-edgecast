@@ -2,6 +2,8 @@ package helper
 
 import (
 	"context"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"strconv"
 	"strings"
 
@@ -30,6 +32,7 @@ func Import(read schema.ReadContextFunc, keys ...string) *schema.ResourceImporte
 			for i, key := range keys {
 				if strings.EqualFold(key, "id") {
 					id = vals[i]
+					d.SetId(id)
 					continue
 				}
 				if i < len(vals) {
@@ -40,7 +43,13 @@ func Import(read schema.ReadContextFunc, keys ...string) *schema.ResourceImporte
 					}
 				}
 			}
-			_ = read(ctx, d, m)
+			if res := read(ctx, d, m); res != nil {
+				for _, e := range res {
+					if e.Severity == diag.Error {
+						return nil, fmt.Errorf("%s\n%s", e.Summary, e.Detail)
+					}
+				}
+			}
 			d.SetId(id)
 			return []*schema.ResourceData{d}, nil
 		},
