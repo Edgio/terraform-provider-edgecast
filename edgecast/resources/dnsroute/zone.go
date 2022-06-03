@@ -871,7 +871,6 @@ func ResourceZoneUpdate(
 	if err != nil {
 		diag.FromErr(err)
 	}
-	fmt.Println("GROUPS", groups, err)
 	// Update Zone Object
 	zoneObj.DomainName = domainName
 	zoneObj.Status = status
