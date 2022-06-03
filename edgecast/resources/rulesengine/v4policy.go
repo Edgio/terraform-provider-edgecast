@@ -448,5 +448,5 @@ func policyDiffSuppress(k, old, new string, _ *schema.ResourceData) bool {
 	delete(oldPolicy, "name")
 	delete(newPolicy, "name")
 
-	return reflect.DeepEqual(oldPolicy, newPolicy) != false
+	return reflect.DeepEqual(oldPolicy, newPolicy)
 }
