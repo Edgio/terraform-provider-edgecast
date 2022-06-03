@@ -41,8 +41,6 @@ resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
       }
       chained_rule {
         action {
-          id              = 66000001
-          msg             = "Invalid user agent - chained."
           transformations = ["NONE"]
         }
         operator {

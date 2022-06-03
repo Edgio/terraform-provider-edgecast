@@ -26,11 +26,11 @@ You can specify the environment you wish to run the tests against by specifying 
   ORIGIN_IMPORT_ID                    = ""
   RULES_ENGINE_IMPORT_ID              = ""
   WAF_ACCESS_RULE_IMPORT_ID           = "" 
+  WAF_BOT_RULE_SET_ID                 = ""
   WAF_CUSTOM_RULE_IMPORT_ID           = ""
   WAF_MANAGED_RULE_IMPORT_ID          = ""
   WAF_RATE_RULE_IMPORT_ID             = ""
   WAF_SCOPES_IMPORT_ID                = ""
-
 ```
 
 ## Usage

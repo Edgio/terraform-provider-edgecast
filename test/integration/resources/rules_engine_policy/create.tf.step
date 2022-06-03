@@ -2,8 +2,8 @@ resource "edgecast_customer_user" "customer_user" {
   account_number = var.account_number
   first_name     = "Admin_First_Name"
   last_name      = "Admin_Last_Name"
-  email          = "devenablement+testing-cucu@edgecast.com"
-  is_admin =  true
+  email          = "devenablement+rules+engine-3000@edgecast.com"
+  is_admin =  false
   address1 = ""
   address2 = ""
   city     = ""
@@ -21,7 +21,7 @@ resource "edgecast_rules_engine_policy" "policy" {
    account_number = var.account_number
    customeruserid = edgecast_customer_user.customer_user.id
    portaltypeid   = 1
-   policy    = var.policy_contents
+   policy    = file("policy.json")
  }
 
  output "policy_id" {

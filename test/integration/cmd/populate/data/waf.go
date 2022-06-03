@@ -1,3 +1,5 @@
+// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
 package data
 
 import (
@@ -7,18 +9,18 @@ import (
 	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
 )
 
-func createWAFData(cfg edgecast.SDKConfig) (rateRuleID, wafAccessRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID string) {
+func createWAFData(cfg edgecast.SDKConfig) (wafRateRuleID, wafAccessRuleID, wafBotRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID string) {
 	svc := internal.Check(waf.New(cfg))
 	wafManagedRuleID = createWAFKManagedRule(svc)
 	wafAccessRuleID = createWAFAccessRule(svc)
-	rateRuleID = createWAFRateRule(svc)
+	wafBotRuleID = createBotRule(svc)
+	wafRateRuleID = createWAFRateRule(svc)
 	wafCustomRuleID = createWAFCustomRule(svc)
-	wafScopesID = createWAFScopes(svc, rateRuleID, wafAccessRuleID, wafManagedRuleID, wafCustomRuleID)
+	wafScopesID = createWAFScopes(svc, wafRateRuleID, wafAccessRuleID, wafManagedRuleID, wafCustomRuleID)
 	return
 }
 
 func createWAFRateRule(svc *waf.WAFService) (id string) {
-
 	params := waf.AddRateRuleParams{
 		AccountNumber: account(),
 		RateRule: waf.RateRule{
@@ -69,6 +71,52 @@ func createWAFRateRule(svc *waf.WAFService) (id string) {
 	return internal.Check(svc.AddRateRule(params))
 }
 
+func createBotRule(svc *waf.WAFService) (id string) {
+	params := waf.AddBotRuleSetParams{
+		BotRuleSet: waf.BotRuleSet{
+			Name: "test rule",
+			Directives: []waf.BotRuleDirective{
+				{
+					SecRule: &waf.SecRule{
+						Name: "new bot rule",
+						Action: waf.Action{
+							ID:              "77375686",
+							Transformations: []waf.Transformation{waf.TransformNone},
+						},
+						Operator: waf.Operator{
+							IsNegated: true,
+							Type:      waf.OpNumberEquality,
+							Value:     "1",
+						},
+						Variables: []waf.Variable{
+							{
+								IsCount: true,
+								Type:    waf.VarRequestCookies,
+								Matches: []waf.Match{
+									{
+										IsNegated: false,
+										IsRegex:   false,
+									},
+									{
+										IsNegated: true,
+										IsRegex:   true,
+										Value:     "cookiename",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		AccountNumber: account(),
+	}
+
+	id = internal.Check(svc.AddBotRuleSet(params))
+
+	return
+}
+
 func createWAFAccessRule(svc *waf.WAFService) (id string) {
 	params := waf.AddAccessRuleParams{
 		AccountNumber: account(),
@@ -97,22 +145,22 @@ func createWAFCustomRule(svc *waf.WAFService) (id string) {
 	params := waf.AddCustomRuleSetParams{
 		AccountNumber: account(),
 		CustomRuleSet: waf.CustomRuleSet{
-			Directives: []waf.Directive{
+			Directives: []waf.CustomRuleDirective{
 				{
 					SecRule: waf.SecRule{
 						Action: waf.Action{
 							Message:         "Invalid user agent",
-							Transformations: []string{"NONE"},
+							Transformations: []waf.Transformation{waf.TransformNone},
 						},
 						Name: "a name",
 						Operator: waf.Operator{
 							IsNegated: false,
-							Type:      "EQ",
+							Type:      waf.OpNumberEquality,
 							Value:     "bot",
 						},
 						Variables: []waf.Variable{
 							{
-								Type: "REQUEST_HEADERS",
+								Type: waf.VarRequestHeaders,
 								Matches: []waf.Match{
 									{
 										IsNegated: false,

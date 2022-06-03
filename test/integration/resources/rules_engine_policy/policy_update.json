@@ -12,7 +12,17 @@
                     "features": [
                         {
                             "type": "feature.comment",
-                            "value": "feature.value"
+                            "value": "updated"
+                        }
+                    ]
+                },
+                {
+                    "type": "match.request.request-method.literal",
+                    "value" : "POST",
+                    "features": [
+                        {
+                            "type": "feature.access.deny-access",
+                            "enabled": false
                         }
                     ]
                 }

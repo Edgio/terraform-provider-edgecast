@@ -13,8 +13,8 @@ A future version of this provider may provide Terraform data sources for these.
 ## Example Usage
 
 ```terraform
-resource "edgecast_waf_bot_rule_set" "bot_rule_1" {
-  account_number = "<account_number id>"
+resource "edgecast_waf_bot_rule_set" "bot_rule_set_1" {
+  account_number = "<account_number>"
   name        = "Bot Rule Terraform Test"
 
   directive {

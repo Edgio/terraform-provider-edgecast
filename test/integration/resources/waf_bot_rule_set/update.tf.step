@@ -1,6 +1,5 @@
-
 resource "edgecast_waf_bot_rule_set" "bot_rule_set_1" {
-  account_number = "<account_number>"
+  account_number = var.account_number
   name        = "Bot Rule Terraform Test updated"
 
   directive {
@@ -51,4 +50,9 @@ resource "edgecast_waf_bot_rule_set" "bot_rule_set_1" {
       }
     }
   }
+}
+
+output "waf_bot_rule_set_id" {
+  description = "bot_rule_set_id"
+  value       = edgecast_waf_bot_rule_set.bot_rule_set_1.id
 }

@@ -357,7 +357,6 @@ func addPolicy(
 		d.SetId("")
 		return fmt.Errorf("addPolicy: buildRulesEngineService: %v", err)
 	}
-
 	// Call Add Policy API
 	policyParams := rulesengine.NewAddPolicyParams()
 	policyParams.AccountNumber = accountNumber
@@ -434,6 +433,7 @@ func cleanPolicyForTerrafomState(val interface{}) string {
 	if err != nil {
 		panic(fmt.Errorf("cleanPolicyForTerrafomState: %v", err))
 	}
+
 	return string(jsonBytes)
 }
 
@@ -448,5 +448,5 @@ func policyDiffSuppress(k, old, new string, _ *schema.ResourceData) bool {
 	delete(oldPolicy, "name")
 	delete(newPolicy, "name")
 
-	return reflect.DeepEqual(oldPolicy, newPolicy) == false
+	return reflect.DeepEqual(oldPolicy, newPolicy) != false
 }

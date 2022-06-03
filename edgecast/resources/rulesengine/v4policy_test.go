@@ -62,7 +62,7 @@ func Test_policyDiffSuppress(t *testing.T) {
 				new: diffNameShouldMatch.String(),
 				in3: nil,
 			},
-			want: false,
+			want: true,
 		},
 		{
 			name: "Different Name Should Fail",
@@ -72,7 +72,7 @@ func Test_policyDiffSuppress(t *testing.T) {
 				new: diffNameShouldFail.String(),
 				in3: nil,
 			},
-			want: true,
+			want: false,
 		},
 
 		{
@@ -83,7 +83,7 @@ func Test_policyDiffSuppress(t *testing.T) {
 				new: sameNameShouldMatch.String(),
 				in3: nil,
 			},
-			want: false,
+			want: true,
 		},
 		{
 			name: "Different Name Should Fail",
@@ -93,7 +93,7 @@ func Test_policyDiffSuppress(t *testing.T) {
 				new: sameNameShouldFail.String(),
 				in3: nil,
 			},
-			want: true,
+			want: false,
 		},
 	}
 	for _, tt := range tests {

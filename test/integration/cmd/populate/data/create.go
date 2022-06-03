@@ -1,3 +1,5 @@
+// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
 package data
 
 import (
@@ -44,8 +46,9 @@ func Create(cfg edgecast.SDKConfig) {
 	fmt.Println("dns tsg id:", tsgID)
 	fmt.Println("dns zone id:", zoneID)
 
-	wafRateRuleID, wafAccessRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID := createWAFData(cfg)
+	wafRateRuleID, wafAccessRuleID, wafBotRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID := createWAFData(cfg)
 	fmt.Println("waf access rule id:", wafAccessRuleID)
+	fmt.Println("waf bot rule id:", wafBotRuleID)
 	fmt.Println("waf custom rule id:", wafCustomRuleID)
 	fmt.Println("waf managed rule b id:", wafManagedRuleID)
 	fmt.Println("waf rate rule id:", wafRateRuleID)
