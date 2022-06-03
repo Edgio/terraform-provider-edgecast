@@ -19,6 +19,7 @@ resource "edgecast_origin" "origin_images_httplarge" {
     host_header = "images.exampleorigin.com:443"
     media_type_id = 3 # 3: HTTP Large, 8: HTTP Small, 14: ADN
     network_configuration = 1 # 1: default, 2: IPv6 preferred, 3: IPv4 preferred, 4: IPv4 only, 5: IPv6 only
+	validation_url = "https://cart.exampleorigin.com/logo.jpg"
     load_balancing_scheme_http = "PF" # RR: Round Robin  PF: Primary/Failover.
     origin_hostname_http {
         name = "http://images-origin-1.exampleorigin.com:80"
@@ -102,14 +103,6 @@ resource "edgecast_origin" "origin_cart_adn" {
 				configuration. A host header is especially useful when there are 
 				multiple virtual hostnames hosted on a single physical server or 
 				load-balanced set of servers.
-- `load_balancing_scheme_http` (String) Determines how HTTP requests will be 
-				load balanced across the specified hostnames/IP 
-				addresses. Valid values: "RR" for Round Robin and 
-				"PF" for Primary and Failover.
-- `load_balancing_scheme_https` (String) Determines how HTTPS requests will be 
-				load balanced across the specified hostnames/IP 
-				addresses. Valid values: "RR" for Round Robin and 
-				"PF" for Primary and Failover.
 - `media_type_id` (Number) Identifies the platform on which the customer 
 				origin configuration resides. Valid values are:
 				3: HTTP Large, 8: HTTP Small, 14: ADN
@@ -122,6 +115,14 @@ resource "edgecast_origin" "origin_cart_adn" {
 - `follow_redirects` (Boolean) Indicates whether our edge servers will respect a 
 				URL redirect when validating the set of optimal ADN gateway 
 				servers for your customer origin configuration.
+- `load_balancing_scheme_http` (String) Determines how HTTP requests will be 
+				load balanced across the specified hostnames/IP 
+				addresses. Valid values: "RR" for Round Robin and 
+				"PF" for Primary and Failover.
+- `load_balancing_scheme_https` (String) Determines how HTTPS requests will be 
+				load balanced across the specified hostnames/IP 
+				addresses. Valid values: "RR" for Round Robin and 
+				"PF" for Primary and Failover.
 - `origin_hostname_http` (Block Set) Identifies the HTTP origin servers, load 
 				balancing configuration, and origin precedence if applicable to 
 				the load balancing type specified. (see [below for nested schema](#nestedblock--origin_hostname_http))

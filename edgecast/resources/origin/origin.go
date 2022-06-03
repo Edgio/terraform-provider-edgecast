@@ -104,7 +104,7 @@ func ResourceOrigin() *schema.Resource {
 			},
 			"load_balancing_scheme_http": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				Description: `Determines how HTTP requests will be 
 				load balanced across the specified hostnames/IP 
 				addresses. Valid values: "RR" for Round Robin and 
@@ -120,7 +120,7 @@ func ResourceOrigin() *schema.Resource {
 			},
 			"load_balancing_scheme_https": {
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				Description: `Determines how HTTPS requests will be 
 				load balanced across the specified hostnames/IP 
 				addresses. Valid values: "RR" for Round Robin and 
