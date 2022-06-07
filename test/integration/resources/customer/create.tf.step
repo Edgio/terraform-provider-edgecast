@@ -1,5 +1,5 @@
 resource "edgecast_customer" "test_customer_01" {
-  company_name       = "<name>"
+  company_name       = "Dev Integration"
   service_level_code = "STND"
   services           = [1, 9, 15, 19] #all available services=> 1:HTTP Large Object,2:HTTPS Large Object,3:HTTP Small Object,4:HTTPS Small Object,6:Windows,7:Advanced Reports,8:Real-Time Stats,9:Token Auth,10:Edge Performance Analytics,15:Origin Storage,16:RSYNC,19:ADN,20:Download Manager,21:ADNS,22:Dedicated Hosting,23:Edge Optimizer,25:DNS Route,26:DNS Zones,29:DNS Health Checks,31:Bandwidth By Report Code,32:DNS-Standard,33:DNS-Adaptive,34:DNS-APR,38:WAF,39:Analysis Engine,40:HTTP Rate Limiting,41:Basic Rules v4.0,42:Advanced Rules v4.0,43:Mobile Device Detection Rules v4.0,44:Rules Engine v4.0,47:Translate,48:Dynamic Cloud Packaging,49:Encrypted HLS,50:Origin Shield,51:Reports and Logs,52:Log Delivery,54:SSA,56:Encrypted Key Rotation,57:Real-Time Log Delivery,58:Report Builder,59:Dynamic Imaging,60:China Delivery,61:WAF Essential,62:Report Builder Users,63:Report Builder Rows,64:Report Builder Reports,65:Edge Functions,66:Certificate Provisioning,67:Edge-Insights,68:Edge Image Optimizer,69:Url Redirects,70:Azure Cloud Storage
   delivery_region    = 1              # 1:Global + Premium Asia,2:North America and Europe,3:Global Standard,5:Global + Premium Asia + China,6:Global + Premium Asia + India,7:Global + Premium Asia + China + India,8:Global + Premium Asia + LATAM,9:Global + Premium Asia + Premium China + LATAM
@@ -8,8 +8,8 @@ resource "edgecast_customer" "test_customer_01" {
 
   #optional parameters
   bandwidth_usage_limit        = 0
-  data_transferred_usage_limit = 0
-  address1                     = ""
+  data_transferred_usage_limit = 10000
+  address1                     = "100 Main St"
   address2                     = ""
   billing_account_tag          = ""
   billing_address1             = ""
@@ -22,21 +22,27 @@ resource "edgecast_customer" "test_customer_01" {
   billing_contact_mobile       = ""
   billing_contact_phone        = ""
   billing_contact_title        = ""
-  billing_country              = ""
+  billing_country              = "USA"
   billing_rate_info            = ""
-  billing_state                = ""
-  billing_zip                  = ""
-  city                         = "New York"
+  billing_state                = "CA"
+  billing_zip                  = "90210"
+  city                         = "Beverly Hills"
   contact_email                = ""
   contact_fax                  = ""
-  contact_first_name           = ""
-  contact_last_name            = ""
-  contact_mobile               = ""
-  contact_phone                = ""
-  contact_title                = ""
+  contact_first_name           = "Dev"
+  contact_last_name            = "Integration"
+  contact_mobile               = "555-5555"
+  contact_phone                = "555-5555"
+  contact_title                = "Chief Dev"
   country                      = ""
   notes                        = ""
-  state                        = ""
+  state                        = "CA"
   website                      = ""
-  zip                          = ""
+  zip                          = "90210"
+  partner_user_id              = 1
+}
+
+output "customer_id" {
+  description = "customerId"
+  value       = edgecast_customer.test_customer_01.*.id
 }

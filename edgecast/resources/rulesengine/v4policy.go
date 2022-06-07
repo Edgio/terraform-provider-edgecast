@@ -94,7 +94,6 @@ func ResourcePolicyCreate(
 		tf-[customer_account_id]-[deploy_to]-[platform]-[timestamp(utc)]`,
 			policyMap["name"])
 	}
-
 	policyMap["name"] = fmt.Sprintf("tf-%s-%s-%s-%d",
 		d.Get("account_number").(string),
 		d.Get("deploy_to").(string),
@@ -358,7 +357,6 @@ func addPolicy(
 		d.SetId("")
 		return fmt.Errorf("addPolicy: buildRulesEngineService: %v", err)
 	}
-
 	// Call Add Policy API
 	policyParams := rulesengine.NewAddPolicyParams()
 	policyParams.AccountNumber = accountNumber
@@ -368,7 +366,7 @@ func addPolicy(
 
 	parsedResponse, err := rulesengineService.AddPolicy(*policyParams)
 	if err != nil {
-		return fmt.Errorf("addPolicy: %v", err)
+		return fmt.Errorf("addPolicy: %v\n%v", policyParams, err)
 	}
 
 	// Process response data and prepare Deploy Request
@@ -404,7 +402,7 @@ func addPolicy(
 		log.Printf(
 			"[WARN] Deploying new policy for Account %s failed",
 			accountNumber)
-		return fmt.Errorf("addPolicy: %v", deployErr)
+		return fmt.Errorf("addPolicy: %v\n%v", policyParams, deployErr)
 	}
 
 	log.Printf(
@@ -435,6 +433,7 @@ func cleanPolicyForTerrafomState(val interface{}) string {
 	if err != nil {
 		panic(fmt.Errorf("cleanPolicyForTerrafomState: %v", err))
 	}
+
 	return string(jsonBytes)
 }
 
@@ -449,5 +448,5 @@ func policyDiffSuppress(k, old, new string, _ *schema.ResourceData) bool {
 	delete(oldPolicy, "name")
 	delete(newPolicy, "name")
 
-	return reflect.DeepEqual(oldPolicy, newPolicy) == false
+	return reflect.DeepEqual(oldPolicy, newPolicy)
 }

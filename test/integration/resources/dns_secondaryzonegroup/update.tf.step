@@ -25,7 +25,7 @@ resource "edgecast_dns_secondaryzonegroup" "backup" {
   zone_composition {
     master_group_id = edgecast_dns_masterservergroup.master_server_group.id
     zones {
-      domain_name = "second49.com"
+      domain_name = "second42.com"
       status      = 1
       zone_type   = 2
       comment     = "comment2"

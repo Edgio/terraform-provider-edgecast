@@ -99,6 +99,7 @@ resource "edgecast_customer" "test_customer_01" {
 - `data_transferred_usage_limit` (String)
 - `delivery_region` (Number)
 - `notes` (String)
+- `partner_user_id` (Number)
 - `services` (List of Number)
 - `state` (String)
 - `website` (String)

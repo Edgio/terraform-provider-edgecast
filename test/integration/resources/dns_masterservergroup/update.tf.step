@@ -18,3 +18,7 @@ resource "edgecast_dns_masterservergroup" "master_server_group" {
     ipaddress = "10.10.10.5"
   }
 }
+
+output "MasterServerGroup" {
+  value = edgecast_dns_masterservergroup.master_server_group
+}
