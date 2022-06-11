@@ -16,18 +16,18 @@ A REST API token is a unique alphanumeric value that identifies the user account
 
 ### Resources
 Use a REST API token to provision the following types of resources:
-* ec_dns_group
-* ec_dns_masterservergroup
-* ec_dns_secondaryzonegroup
-* ec_dns_tsig
-* ec_dns_zone
-* ec_edgecname
-* ec_origin
-* ec_waf_access_rule
-* ec_waf_custom_rule_set
-* ec_waf_managed_rule
-* ec_waf_rate_rule
-* ec_waf_scopes
+* edgecast_dns_group
+* edgecast_dns_masterservergroup
+* edgecast_dns_secondaryzonegroup
+* edgecast_dns_tsig
+* edgecast_dns_zone
+* edgecast_edgecname
+* edgecast_origin
+* edgecast_waf_access_rule
+* edgecast_waf_custom_rule_set
+* edgecast_waf_managed_rule
+* edgecast_waf_rate_rule
+* edgecast_waf_scopes
 
 ### Requirements
 A REST API token must meet the following requirements:
@@ -46,7 +46,7 @@ You may define a REST API token as a variable within your **main.tf** file as sh
         sensitive = true
     }
     
-    provider "ec" {
+    provider "edgecast" {
         api_token = var.token
     }
 
@@ -61,7 +61,7 @@ A REST API (OAuth 2.0) client consists of a client ID, a secret key, and a scope
 
 ### Resources
 Use REST API (OAuth 2.0) client credentials to provision the following type of resource:
-* ec_rules_engine_policy
+* edgecast_rules_engine_policy
 
 ### Scope
 Verify that the desired credentials belong to a REST API client that has been granted the scope (e.g., ec.rules) required to manage the desired resource. 
@@ -90,7 +90,7 @@ You may define REST API client credentials as variables within your **main.tf** 
         sensitive = true
     }
     
-    provider "ec" {
+    provider "edgecast" {
         ids_client_id = var.ids_client_id
         ids_client_secret = var.ids_client_secret
         ids_scope = var.ids_scope
