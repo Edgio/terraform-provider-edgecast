@@ -1,5 +1,5 @@
 resource "edgecast_waf_rate_rule" "rate_rule_1" {
-  account_number = "<Account Number>"
+  account_number = "0001"
   name           = "Rate Rule #1"
   duration_sec   = 1
   keys           = ["IP", "USER_AGENT"]

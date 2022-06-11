@@ -1,5 +1,5 @@
 resource "edgecast_waf_scopes" "scopes1" {
-  account_number = var.account_number
+  account_number = "0001"
 
   scope {
     host {

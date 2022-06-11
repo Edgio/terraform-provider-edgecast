@@ -1,6 +1,5 @@
-
 resource "edgecast_waf_custom_rule_set" "custom_rule_1" {
-  account_number = "<account_number>"
+  account_number = "0001"
   name        = "Custom Rule Set 1"
 
   directive {

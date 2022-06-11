@@ -30,12 +30,12 @@ func ResourceManagedRule() *schema.Resource {
 			"account_number": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Identifies your account by its customer account number.",
+				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Indicates the name of the custom rule.",
+				Description: "Indicates the name of the managed rule.",
 			},
 			"ruleset_id": {
 				Type:        schema.TypeString,
@@ -55,7 +55,7 @@ func ResourceManagedRule() *schema.Resource {
 			"customer_id": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Identifies your account by its customer account number.",
+				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"last_modified_date": {
 				Type:        schema.TypeString,
@@ -89,7 +89,7 @@ func ResourceManagedRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "This array identifies each rule that has been disabled using these properties",
+				Description: "This block identifies each rule that has been disabled using these properties.",
 			},
 			"general_settings": {
 				Type:     schema.TypeSet,
@@ -137,7 +137,8 @@ func ResourceManagedRule() *schema.Resource {
 						},
 						"json_parser": {
 							Type:        schema.TypeBool,
-							Description: "Determines whether JSON payloads will be inspected. Valid values are: true | false",
+							Description: "Determines whether JSON payloads will be inspected. Valid values are: \n\n" + 
+							"        true | false",
 							Optional:    true,
 						},
 						"max_num_args": {
@@ -147,7 +148,8 @@ func ResourceManagedRule() *schema.Resource {
 						},
 						"paranoia_level": {
 							Type:        schema.TypeInt,
-							Description: "Indicates the balance between the level of protection and false positives. Valid values are: 1 | 2 | 3 | 4",
+							Description: "Indicates the balance between the level of protection and false positives. Valid values are: \n\n" + 
+							"        1 | 2 | 3 | 4",
 							Optional:    true,
 						},
 						"process_request_body": {
@@ -167,7 +169,7 @@ func ResourceManagedRule() *schema.Resource {
 						},
 						"validate_utf8_encoding": {
 							Type:        schema.TypeBool,
-							Description: "Indicates whether WAF may check whether a request variable (e.g., ARGS, ARGS_NAMES, and REQUEST_FILENAME) is a valid UTF-8 string.",
+							Description: "Indicates whether WAF may check whether a request variable (e.g., `ARGS`, `ARGS_NAMES`, and `REQUEST_FILENAME`) is a valid UTF-8 string.",
 							Optional:    true,
 						},
 						"xml_parser": {
@@ -202,7 +204,7 @@ func ResourceManagedRule() *schema.Resource {
 						},
 						"replace_target": {
 							Type:        schema.TypeString,
-							Description: "Defines the data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) that will be used instead of the one defined in the target parameter.",
+							Description: "Defines the data source (e.g., `REQUEST_COOKIES`, `ARGS`, `GEO`, etc.) that will be used instead of the one defined in the `target` argument.",
 							Optional:    true,
 						},
 						"rule_id": {
@@ -212,17 +214,17 @@ func ResourceManagedRule() *schema.Resource {
 						},
 						"target": {
 							Type:        schema.TypeString,
-							Description: "Identifies the type of data source (e.g., REQUEST_COOKIES, ARGS, GEO, etc.) for which a target will be created.",
+							Description: "Identifies the type of data source (e.g., `REQUEST_COOKIES`, `ARGS`, `GEO`, etc.) for which a target will be created.",
 							Required:    true,
 						},
 						"target_match": {
 							Type:        schema.TypeString,
-							Description: "Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the target parameter.",
+							Description: "Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the `target` argument.",
 							Required:    true,
 						},
 					},
 				},
-				Description: "This array describes each target using these properties",
+				Description: "This block describes a target.",
 			},
 		},
 	}

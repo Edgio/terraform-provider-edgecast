@@ -28,8 +28,7 @@ func ResourceScopes() *schema.Resource {
 			"account_number": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Description: "Identifies your account by its customer " +
-					"account number.",
+				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"scope": {
 				Type:     schema.TypeList,
@@ -41,34 +40,41 @@ func ResourceScopes() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "name",
-							Description: "Indicates the name assigned to the " +
-								"Security Application Manager configuration. " +
-								"Default Value: 'name'",
+							Description: "Indicates the name assigned to the Security Application Manager configuration.  \n" +
+								"**Default Value:** `name`",
 						},
 						"host": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes a hostname match " +
-								"condition. Refer to the URL and Path " +
-								"section for property details.",
+							Description: "Describes a hostname match condition.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_case_insensitive": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Description: "Indicates whether the comparison between the requested hostname and the `values` argument is case-sensitive. Valid values are: \n\n" + 
+										"        True | False",
 									},
 									"is_negated": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Description: "Indicates whether this match condition will be satisfied when the requested hostname matches or does not match the value defined by the `value`/`values` argument. Valid values are: \n\n" + 
+										"        True | False",
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Indicates how the system will interpret the comparison between the request's hostname and the value defined within the `value`/`values` argument. Valid values are: \n" +
+										" * `EM` - Indicates that request's hostname must be an exact match to one of the case-sensitive values specified in the `values` argument. \n" +
+										" * `GLOB` - Indicates that the request's hostname must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
+										" * `RX` - Indicates that the request's hostname must be an exact match to the regular expression defined in the `value` argument. \n\n" +
+										"    ->Apply this Security Application Manager configuration across all hostnames by setting this argument to `GLOB` and setting the `value` argument to `*`. This type of configuration is also known as `Default`.",
 									},
 									"value": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**host.type=GLOB or RX:** Identifies a value that will be used to identify requests that are eligible for this Security Application Manager configuration.",
 									},
 									"values": {
 										Type:     schema.TypeList,
@@ -76,6 +82,7 @@ func ResourceScopes() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
+										Description: "**host.type=EM:** Identifies one or more values used to identify requests that are eligible for this Security Application Manager configuration.",
 									},
 								},
 							},
@@ -83,98 +90,58 @@ func ResourceScopes() *schema.Resource {
 						"limit": {
 							Type:     schema.TypeList,
 							Optional: true,
+							Description: "Identifies the set of rate rules that will be enforced for this Security Application Manager configuration and the enforcement action that will be applied to rate limited requests.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
 										Type:     schema.TypeString,
 										Required: true,
-										Description: "Indicates the " +
-											"system-defined ID for the rate " +
-											"limit configuration that will " +
-											"be applied to this Security " +
-											"Application Manager " +
-											"configuration.",
+										Description: "Indicates the system-defined ID for the rate rule that will be applied to this Security Application Manager configuration.",
 									},
 									"duration_sec": {
 										Type:         schema.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntAtLeast(0),
-										Description: "Indicates the length " +
-											"of time, in seconds, that the " +
-											"action defined within this " +
-											"object will be applied to a " +
-											"client that violates the rate " +
-											"rule identified by the id " +
-											"property.\\\n\\\nValid values " +
-											"are: 10 | 60 | 300",
+										Description: "Indicates the length of time, in seconds, that the action defined within this object will be applied to a client that violates the rate rule identified by the `id` argument. Valid values are: \n\n" + 
+										"        10 | 60 | 300",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
-										Description: "Indicates the type " +
-											"of action that will be applied " +
-											"to rate limited requests." +
-											"\\\n\\\nValid values are:" +
-											"ALERT: Alert Only" +
-											"REDIRECT_302: Redirect (HTTP 302)" +
-											"CUSTOM_RESPONSE: Custom Response" +
-											"DROP_REQUEST: Drop Request " +
-											"(503 Service Unavailable " +
-											"response with a retry-after of " +
-											"10 seconds)",
+										Description: "Indicates the type of action that will be applied to rate limited requests. Valid values are: \n" +
+										" * `ALERT` - Alert only \n" +
+										" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+										" * `CUSTOM_RESPONSE` - Custom response \n" +
+										" * `DROP_REQUEST` - Drop request (503 Service Unavailable response with a retry-after of 10 seconds)",											
 									},
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "limit action",
-										Description: "Indicates the name " +
-											"assigned to this enforcement " +
-											"action.",
+										Description: "Indicates the name assigned to this enforcement action.",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Description: "Note: Only valid when" +
-											" ENFType is set to " +
-											"CUSTOM_RESPONSE \\\n\\\n" +
-											"Indicates the response body that" +
-											" will be sent to rate limited " +
-											"requests. This value is Base64 " +
-											"encoded.",
+										Description: "**limit.enf_type=CUSTOM_RESPONSE:** Indicates the response body that will be sent to rate limited requests. This value is Base64 encoded.",
 									},
 									"response_headers": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Description: "**limit.enf_type=CUSTOM_RESPONSE:** Contains the set of headers that will be included in the response sent to rate limited requests. Set each desired response header as an argument.",
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
-										},
-										Description: "Note: Only valid " +
-											"when ENFType is set to " +
-											"CUSTOM_RESPONSE\\\n\\\n" +
-											"Contains the set of headers " +
-											"that will be included in " +
-											"the response sent to rate " +
-											"limited requests.",
+										},										
 									},
 									"status": {
 										Type:     schema.TypeInt,
 										Optional: true,
-										Description: "Note: Only valid when " +
-											"ENFType is set to " +
-											"CUSTOM_RESPONSE\\\n\\\nIndicates" +
-											" the HTTP status code " +
-											"(e.g., 404) for the custom " +
-											"response sent to rate limited " +
-											"requests.",
+										Description: "**limit.enf_type=CUSTOM_RESPONSE:** Indicates the HTTP status code (e.g., 404) for the custom response sent to rate limited requests.",
 									},
 									"url": {
 										Type:     schema.TypeString,
 										Optional: true,
-										Description: "Note: Only valid when " +
-											"ENFType is set to REDIRECT_302" +
-											"\\\n\\\nIndicates the URL to " +
-											"which rate limited requests " +
-											"will be redirected.",
+										Description: "**limit.enf_type=REDIRECT_302:** Indicates the URL to which rate limited requests will be redirected.",
 									},
 								},
 							},
@@ -183,26 +150,34 @@ func ResourceScopes() *schema.Resource {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes a URL match condition." +
-								"Refer to the URL and Path section for " +
-								"property details.",
+							Description: "Describes a URL path match condition.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_case_insensitive": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Description: "**path.type=EM:** Indicates whether the comparison between the requested URL and the `values` argument is case-sensitive. Valid values are: \n\n" + 
+										"        True | False",
 									},
 									"is_negated": {
 										Type:     schema.TypeBool,
 										Optional: true,
+										Description: "Indicates whether this match condition will be satisfied when the requested URL matches or does not match the value defined by the `value`/`values` argument. Valid values are: \n\n" + 
+										"        True | False",
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Indicates how the system will interpret the comparison between the request's URL and the value defined within the `value`/`values` argument. Valid values are: \n" + 
+										" * `EM` - Indicates that request's URL path must be an exact match to one of the case-sensitive values specified in the `values` argument.\n" +
+										" * `GLOB` - Indicates that the request's URL path must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
+										" * `RX` - Indicates that the request's URL path must be an exact match to the regular expression defined in the `value` argument. \n\n" +
+										"    ->Apply this Security Application Manager configuration across all URLs by setting this argument to `GLOB` and setting the `value` argument to `*`. This type of configuration is also known as `Default`.",
 									},
 									"value": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**path.type=GLOB|RX:** Identifies a value that will be used to identify requests that are eligible for this Security Application Manager configuration. Specify a URL path pattern that starts directly after the hostname.",
 									},
 									"values": {
 										Type:     schema.TypeList,
@@ -210,6 +185,7 @@ func ResourceScopes() *schema.Resource {
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
+										Description: "**path.type=EM:** Identifies one or more values used to identify requests that are eligible for this Security Application Manager configuration. Specify a URL path pattern that starts directly after the hostname.",
 									},
 								},
 							},
@@ -218,21 +194,19 @@ func ResourceScopes() *schema.Resource {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describe the type of action that " +
-								"will take place when the access rule " +
-								"defined within the acl_audit_id property " +
-								"is violated. Refer to the Audit Action " +
-								"section for property details.",
+							Description: "Describes the type of action that will take place when the access rule defined within the `acl_audit_id` argument is violated. ",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "Alert Only",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
@@ -240,55 +214,59 @@ func ResourceScopes() *schema.Resource {
 						"acl_audit_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined ID " +
-								"for the access rule that will audit " +
-								"production traffic for this Security " +
-								"Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the access rule that will audit production traffic for this Security Application Manager configuration.",
 						},
 						"acl_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes the type of action " +
-								"that will take place when the access rule " +
-								"defined within the acl_prod_id property is " +
-								"violated. Refer to the Prod Action " +
-								"section for property details.",
+							Description: "Describes the type of action that will take place when the access rule defined within the `acl_prod_id` argument is violated.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Optional:     true,
+										Description: "Reserved for future use.",
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" + 
+										" * `BLOCK_REQUEST` - Block request \n" + 
+										" * `ALERT` - Alert only \n" + 
+										" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+										" * `CUSTOM_RESPONSE` - Custom response",
 									},
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "acl action",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the response body that will be sent to malicious traffic. This value is Base64 encoded.",
 									},
 									"response_headers": {
 										Type:     schema.TypeMap,
 										Optional: true,
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
+										Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the set of response headers that will be sent to malicious traffic. Each response header is specified as a name/value pair. ",
 										},
 									},
 									"status": {
 										Type:     schema.TypeInt,
 										Optional: true,
 										Default:  0,
+										Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.",
 									},
 									"url": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**acl_prod_action.type=REDIRECT_302:** Indicates the URL to which malicious requests will be redirected.",
 									},
 								},
 							},
@@ -296,43 +274,41 @@ func ResourceScopes() *schema.Resource {
 						"acl_prod_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined " +
-								"ID for the access rule that will be " +
-								"applied to production traffic for this " +
-								"Security Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the access rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"bots_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes the type of action " +
-								"that will take place when the bots rule " +
-								"defined within the bots_prod_id property " +
-								"is violated. Refer to the Prod Action " +
-								"section for property details.",
+							Description: "Describes the browser challenge that will be applied to requests that satisfy the bot rule set defined within the `bot_prod_id` argument.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
+										Description: "Indicates the number of minutes for which our CDN will serve content to a client that solves a browser challenge without requiring an additional browser challenge to be solved. Specify a value between 1 and 1,440 minutes.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Set this property to `BROWSER_CHALLENGE`.",
 									},
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "bots action",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "Reserved for future use.",
 									},
 									"response_headers": {
 										Type:     schema.TypeMap,
 										Optional: true,
+										Description: "Reserved for future use.",
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
@@ -340,10 +316,12 @@ func ResourceScopes() *schema.Resource {
 									"status": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										Description: "Indicates the HTTP status code (e.g., 404) for the response provided to clients that are being served the browser challenge.",
 									},
 									"url": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "Reserved for future use.",
 									},
 								},
 							},
@@ -351,30 +329,25 @@ func ResourceScopes() *schema.Resource {
 						"bots_prod_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined " +
-								"ID for the bots rule that will be applied " +
-								"to production traffic for this " +
-								"Security Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the bots rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"profile_audit_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes the type of action " +
-								"that will take place when the managed " +
-								"rule defined within the profile_audit_id " +
-								"property is violated. Refer to the " +
-								"Audit Action  section for property details.",
+							Description: "Describes the type of action that will take place when the managed rule defined within the `profile_audit_id` property is violated.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "Alert Only",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
@@ -382,55 +355,60 @@ func ResourceScopes() *schema.Resource {
 						"profile_audit_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined ID " +
-								"for the managed rule that will audit " +
-								"production traffic for this Security " +
-								"Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the managed rule that will audit production traffic for this Security Application Manager configuration.",
 						},
 						"profile_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes the type of action " +
-								"that will take place when the managed " +
-								"rule defined within the profile_prod_id " +
-								"property is violated. Refer to the Prod " +
-								"Action section for property details.",
+							Description: "Describes the type of action that will take place when the managed rule defined within the `profile_prod_id` property is violated. ",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
+										Description: "Reserved for future use.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
+										" * `BLOCK_REQUEST` - Block Request \n" +
+										" * `ALERT` - Alert Only \n" + 
+										" * `REDIRECT_302` - Redirect (HTTP 302) \n" + 
+										" * `CUSTOM_RESPONSE` - Custom Response",
 									},
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "profile action",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the response body that will be sent to malicious traffic. This value is Base64 encoded.",
 									},
 									"response_headers": {
 										Type:     schema.TypeMap,
 										Optional: true,
-
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the set of response headers that will be sent to malicious traffic. \n\n" +
+										"    ->Each response header is specified as a name/value pair.",
 									},
 									"status": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.",
+
 									},
 									"url": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the URL to which malicious requests will be redirected.",
 									},
 								},
 							},
@@ -438,30 +416,25 @@ func ResourceScopes() *schema.Resource {
 						"profile_prod_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined " +
-								"ID for the managed rule that will be applied" +
-								" to production traffic for this Security " +
-								"Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the managed rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"rules_audit_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes the type of action that " +
-								"will take place when the custom rule set " +
-								"defined within the rules_audit_id property " +
-								"is violated. Refer to the Audit Action " +
-								"section for property details.",
+							Description: "Describes the type of action that will take place when the custom rule set defined within the `rules_audit_id` property is violated. ",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "Alert Only",
+										Description:  "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description:  "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
@@ -469,55 +442,59 @@ func ResourceScopes() *schema.Resource {
 						"rules_audit_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined ID " +
-								"for the custom rule set that will audit " +
-								"production traffic for this Security " +
-								"Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the custom rule set that will audit production traffic for this Security Application Manager configuration.",
 						},
 						"rules_prod_action": {
 							Type:     schema.TypeSet,
 							MaxItems: 1,
 							Optional: true,
-							Description: "Describes the type of action that " +
-								"will take place when the custom rule set " +
-								"defined within the rules_prod_id property is " +
-								"violated. Refer to the Prod Action section " +
-								"for property details.",
+							Description: "Describes the type of action that will take place when the custom rule set defined within the `rules_prod_id` property is violated.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
+										Description: "Reserved for future use.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
+										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
+										" * `BLOCK_REQUEST` - Block Request \n" +
+										" * `ALERT` - Alert Only \n" +
+										" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+										" * `CUSTOM_RESPONSE` - Custom Response",
 									},
 									"name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "rules action",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the response body that will be sent to malicious traffic. This value is Base64 encoded.",
 									},
 									"response_headers": {
 										Type:     schema.TypeMap,
 										Optional: true,
-
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the set of response headers that will be sent to malicious traffic. \n\n" +
+										"    ->Each response header is specified as a name/value pair.",
 									},
 									"status": {
 										Type:     schema.TypeInt,
 										Optional: true,
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.",
 									},
 									"url": {
 										Type:     schema.TypeString,
 										Optional: true,
+										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the URL to which malicious requests will be redirected.",
 									},
 								},
 							},
@@ -525,10 +502,7 @@ func ResourceScopes() *schema.Resource {
 						"rules_prod_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Description: "Indicates the system-defined ID " +
-								"for the custom rule set that will be applied" +
-								" to production traffic for this Security " +
-								"Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the custom rule set that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 					},
 				},

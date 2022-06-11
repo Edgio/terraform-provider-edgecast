@@ -1,5 +1,5 @@
 resource "edgecast_waf_access_rule" "access_rule_1" {
-  account_number                = "<Account Number>"
+  account_number                = "0001"
   name                          = "Access Rule #1"
   response_header_name          = "my-response-header-name"
   allowed_http_methods          = ["GET", "POST"]

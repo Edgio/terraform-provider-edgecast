@@ -1,6 +1,5 @@
-
 resource "edgecast_waf_bot_rule_set" "bot_rule_set_1" {
-  account_number = "<account_number>"
+  account_number = "0001"
   name        = "Bot Rule Terraform Test"
 
   directive {

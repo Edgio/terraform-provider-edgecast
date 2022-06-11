@@ -19,7 +19,6 @@ resource "edgecast_origin" "origin_images_httplarge" {
     host_header = "images.exampleorigin.com:443"
     media_type_id = 3 # 3: HTTP Large, 8: HTTP Small, 14: ADN
     network_configuration = 1 # 1: default, 2: IPv6 preferred, 3: IPv4 preferred, 4: IPv4 only, 5: IPv6 only
-	validation_url = "https://cart.exampleorigin.com/logo.jpg"
     load_balancing_scheme_http = "PF" # RR: Round Robin  PF: Primary/Failover.
     origin_hostname_http {
         name = "http://images-origin-1.exampleorigin.com:80"
