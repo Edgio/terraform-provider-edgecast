@@ -275,7 +275,6 @@ func cleanMatches(matches []interface{}) []map[string]interface{} {
 // hyperion standard i.e. "-" -> "_"
 func standardizeMatchFeature(matchFeatureMap map[string]interface{}) error {
 	for k, v := range matchFeatureMap {
-		delete(matchFeatureMap, k)
 		// the json library unmarshals all arrays into []interface{}
 		// so we have to do this roundabout way of converting to []string
 		if valArray, ok := v.([]interface{}); ok {
