@@ -287,6 +287,8 @@ func standardizeMatchFeature(matchFeatureMap map[string]interface{}) error {
 			v = strings.Join(stringArray, " ")
 		}
 		matchFeatureMap[strings.Replace(k, "-", "_", -1)] = v
+
+		delete(matchFeatureMap, k)
 	}
 
 	return nil
