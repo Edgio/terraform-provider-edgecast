@@ -30,7 +30,7 @@ func ResourceAccessRule() *schema.Resource {
 			"account_number": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Identifies your account by its customer account number.",
+				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"allowed_http_methods": {
 				Type:        schema.TypeList,
@@ -76,8 +76,7 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for autonomous system numbers (ASNs).  \\\n" +
-					"*Note: ASN access controls are integer values.*",
+				Description: "Contains access controls for autonomous system numbers (ASNs).",
 			},
 			"cookie": {
 				// We use a 1-item TypeSet as a workaround since TypeMap
@@ -219,8 +218,7 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for referrers.  \\\n" +
-					"*Note: All referrers defined within a whitelist, accesslist, or blacklist are regular expressions.*",
+				Description: "Contains access controls for referrers. Specify a regular expression when defining a referrer.",
 			},
 			"response_header_name": {
 				Type:         schema.TypeString,
@@ -256,9 +254,8 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for URL paths. Specify a URL path pattern that starts directly after the hostname. " +
-					"Exclude a protocol or a hostname when defining value | values. Sample values: /marketing, /800001/mycustomerorigin.  \\\n" +
-					"*Note: All URL paths defined within a whitelist, accesslist, or blacklist are regular expressions.*",
+				Description: "Contains access controls for URL paths. Specify a regular expression for the URL path pattern that starts directly after the hostname. Exclude the protocol and hostname when defining a URL path.  \n" +
+					"**Sample values:** `/marketing` and `/800001/myorigin`",
 			},
 			"user_agent": {
 				// We use a 1-item TypeSet as a workaround since TypeMap
@@ -288,8 +285,7 @@ func ResourceAccessRule() *schema.Resource {
 						},
 					},
 				},
-				Description: "Contains access controls for user agents.  \\\n" +
-					"*Note: All user agents defined within a whitelist, accesslist, or blacklist are regular expressions.*",
+				Description: "Contains access controls for user agents. Specify a regular expression when defining a user agent. ",
 			},
 		},
 	}

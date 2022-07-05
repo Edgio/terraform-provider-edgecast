@@ -29,23 +29,21 @@ func ResourceRateRule() *schema.Resource {
 			"account_number": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Identifies your account by its customer account number.",
+				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"duration_sec": {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(1),
-				Description: "Indicates the length, in seconds, of the rolling window that tracks the number of requests eligible for rate limiting. \\\n" +
-					"The rate limit formula is calculated through the num and duration_sec properties as indicated below. \\\n" +
-					"    `num` requests per `duration_sec` \\\n    Valid values are: \\\n    `1 | 5 | 10 | 30 | 60 | 120 | 300`",
+				Description: "Indicates the length, in seconds, of the rolling window that tracks the number of requests eligible for rate limiting. Valid values are: \n\n" + 
+				"        1 | 5 | 10 | 30 | 60 | 120 | 300",
 			},
 			"disabled": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Description: "Indicates whether this rate rule will be enforced. \\\n" +
-					"Valid values are: \n" +
-					"    * true: Disabled. This rate limit will not be applied to traffic.\n" +
-					"    * false: Enabled. Traffic is restricted to this rate limit.",
+				Description: "Indicates whether this rate rule will be enforced. Valid values are: " +
+					" * `true` - Disabled. This rate limit will not be applied to traffic. \n" +
+					" * `false` - Enabled.",
 			},
 			"name": {
 				Type:         schema.TypeString,
@@ -57,20 +55,16 @@ func ResourceRateRule() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(1),
-				Description: "Indicates the rate limit value. This value identifies the number of requests that will trigger rate limiting. \\\n" +
-					"The rate limit formula is calculated through the num and duration_sec properties as indicated below. \\\n" +
+				Description: "Indicates the number of requests required to trigger rate limiting. Use the following formula to determine when rate limiting will be triggered:  \n" +
 					"`num` requests per `duration_sec`",
 			},
 			"keys": {
 				Type:     schema.TypeSet,
 				Optional: true,
-				Description: "Indicates the method by requests will be grouped for the purposes of this rate rule. \\\n" +
-					"Valid values are: \n" +
-					"    * Missing / Empty Array: If the `keys` property is not defined or set to an empty array, " +
-					"all requests will be treated as a single group for the purpose of rate limiting. \n" +
-					"    * IP: Indicates that requests will be grouped by IP address. Each unique IP address is considered a separate group. \n" +
-					"    * USER_AGENT: Indicates that requests will be grouped by a client's user agent. " +
-					"Each unique combination of IP address and user agent is considered a separate group. \n",
+				Description: "Indicates the method by which requests will be grouped for the purposes of this rate rule. Valid values are: \n" +
+					" * *Missing / Empty Array* - If the `keys` argument is not defined or set to an empty array, all requests will be treated as a single group for the purpose of rate limiting. \n" +
+					" * `IP` - Indicates that requests will be grouped by IP address. Each unique IP address is considered a separate group. \n" +
+					" * `USER_AGENT` - Indicates that requests will be grouped by a client's user agent. Each unique combination of IP address and user agent is considered a separate group.",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
 				},
@@ -82,7 +76,7 @@ func ResourceRateRule() *schema.Resource {
 					Schema: map[string]*schema.Schema{
 						"id": {
 							Type:        schema.TypeString,
-							Description: "Indicates the system-defined alphanumeric ID of a condition group. Example: `12345678-90ab-cdef-ghij-klmnopqrstuvwxyz1`",
+							Description: "Indicates the system-defined alphanumeric ID of a condition group (e.g., `12345678-90ab-cdef-ghij-klmnopqrstuvwxyz1`).",
 							Computed:    true,
 						},
 						"name": {
@@ -106,15 +100,14 @@ func ResourceRateRule() *schema.Resource {
 												"type": {
 													Required: true,
 													Type:     schema.TypeString,
-													Description: "Determines how requests will be identified. \\\n" +
-														"    Valid values are: `FILE_EXT | REMOTE_ADDR | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI`",
+													Description: "Determines how requests will be identified. Valid values are: \n\n" + 
+													"        FILE_EXT | REMOTE_ADDR | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI",
 												},
 												"value": {
 													Optional: true,
 													Type:     schema.TypeString,
-													Description: "type: REQUEST_HEADERS Only \\\n" +
-														"Indicates the name of the request header through which requests will be identified. \\\n" +
-														"    Valid values are: `Host | Referer | User-Agent`",
+													Description: "**REQUEST_HEADERS Only:** Indicates the name of the request header through which requests will be identified. Valid values are: \n\n" + 
+													"        Host | Referer | User-Agent",
 												},
 											},
 										},
@@ -129,38 +122,35 @@ func ResourceRateRule() *schema.Resource {
 												"is_case_insensitive": {
 													Optional:    true,
 													Type:        schema.TypeBool,
-													Description: "Indicates whether the comparison between the request and the values property is case-sensitive.",
+													Description: "Indicates whether the comparison between the request and the `values` argument is case-sensitive.",
 												},
 												"is_negated": {
 													Optional:    true,
 													Type:        schema.TypeBool,
-													Description: "Indicates whether this match condition will be satisfied when the request matches or does not match the value defined by the values property.",
+													Description: "Indicates whether this match condition will be satisfied when the request matches or does not match the value defined by the `values` argument.",
 												},
 												"type": {
 													Required: true,
 													Type:     schema.TypeString,
-													Description: "Indicates how the system will interpret the comparison between the request and the `values` property. Valid values are: \\\n" +
-														"    * EM: Requires that the request's attribute be set to one of the value(s) defined in the `values` property. \n" +
-														"    * IPMATCH: Requires that the request's IP address either be contained by an IP block or be an exact match to an IP address defined in the `values` property. \\\n" +
-														"    *Note: Only use IPMATCH with the REMOTE_ADDR match condition.* \n" +
-														"    * RX: Requires that the request's attribute be an exact match to the regular expression defined in the `value` property. \n",
+													Description: "Indicates how the system will interpret the comparison between the request and the `values` argument. Valid values are: \n" +
+														" * `EM` - Requires that the request's attribute be set to one of the value(s) defined in the `values` argument. \n" +
+														" * `IPMATCH` - Requires that the request's IP address either be contained by an IP block or be an exact match to an IP address defined in the `values` argument. \n\n" + 
+														"    ->You may only use `IPMATCH` with the `REMOTE_ADDR` match condition. \n" +
+														" * `RX` - Requires that the request's attribute be an exact match to the regular expression defined in the `value` argument. ",
 												},
 												"value": {
 													Optional: true,
 													Type:     schema.TypeString,
-													Description: "type: REQUEST_HEADERS Only \\\n" +
-														"Indicates the name of the request header through which requests will be identified. \\\n" +
-														"    Valid values are: `Host | Referer | User-Agent`",
+													Description: "**type: REQUEST_HEADERS Only:** Indicates the name of the request header through which requests will be identified. Valid values are: \n\n" + 
+													"        Host | Referer | User-Agent",
 												},
 												"values": {
 													Type:     schema.TypeSet,
 													Optional: true,
-													Description: "type: EM and IPMATCH Only \\\n" +
-														"Identifies one or more values used to identify requests that are eligible for rate limiting. \\\n" +
-														"If you are identifying traffic via a URL path (REQUEST_URI), then you should specify a URL path " +
-														"pattern that starts directly after the hostname. Exclude a protocol or a hostname when defining this property. \\\n" +
-														"Sample values: \\\n    /marketing \\\n    /800001/mycustomerorigin \\\n" +
-														"*Note:If you are matching requests by IP address, make sure to use standard IPv4 and CIDR notation.*",
+													Description: "**EM and IPMATCH Only:** Identifies one or more values used to identify requests that are eligible for rate limiting. \n" +
+														" * `URL Path` - If you are identifying traffic via a URL path (`REQUEST_URI`), then you should specify a URL path pattern that starts directly after the hostname. Exclude the protocol and hostname when defining this argument.  \n" +
+														"**Sample values:** `/marketing` and `/800001/myorigin` \n" +
+														" * `IP Address` - If you are matching requests by IP address (`REMOTE_ADDR`), make sure to use standard IPv4 and CIDR notation.",
 													Elem: &schema.Schema{
 														Type: schema.TypeString,
 													},

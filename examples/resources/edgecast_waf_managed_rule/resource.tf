@@ -1,5 +1,5 @@
 resource "edgecast_waf_managed_rule" "managed_rule_1" {
-    account_number                = "<account_number>"
+    account_number                = "0001"
     name                          = "Terraform Managed Rule #1"
     ruleset_id                    = "ECRS"
     ruleset_version               = "2020-05-01"

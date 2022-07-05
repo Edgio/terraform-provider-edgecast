@@ -36,31 +36,33 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 			"customeruserid": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "User ID to impersonate. If using MCC credentials, this parameter will be ignored"},
+				Description: "Reserved for future use.",},
 			"portaltypeid": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Portal Type ID to impersonate. If using MCC credentials, this parameter will be ignored."},
+				Description: "Reserved for future use.",},
 			"account_number": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Account to impersonate. If using MCC credentials, this parameter will be ignored.",
+				Description: "Reserved for future use.",
 			},
 			"deploy_to": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "The desired environment for the provided policy. Valid values are `production` and `staging`",
+				Description: "Identifies the environment to which the policy will be deployed. Valid values are: \n\n" + 
+				"        production | staging",
 				ValidateFunc: validation.StringInSlice(
 					[]string{"production", "staging"},
 					false),
 			},
 			"deploy_request_id": {
 				Type:     schema.TypeString,
-				Computed: true},
+				Description: "Indicates the system-defined ID for the policy's deploy request.",
+				Computed: true},				
 			"policy": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "A Rules Engine Policy in JSON format",
+				Description: "Defines the policy, in JSON format, that will be deployed.",
 				StateFunc:   cleanPolicyForTerrafomState,
 				ValidateFunc: validation.All(
 					validation.StringIsNotWhiteSpace,

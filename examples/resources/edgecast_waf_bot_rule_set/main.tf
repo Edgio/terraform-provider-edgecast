@@ -2,7 +2,7 @@ terraform {
   required_providers {
     edgecast = {
       version = "0.5.2"
-      source  = "EdgeCast/ec"
+      source  = "EdgeCast/edgecast"
     }
   }
 }
