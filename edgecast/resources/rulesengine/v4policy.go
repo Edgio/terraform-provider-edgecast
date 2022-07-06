@@ -22,7 +22,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
-const emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"Placeholder rule created by the Edgecast Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"Empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"Placeholder Rule\"}],\"state\":\"locked\"}"
+const (
+	emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"Placeholder rule created by the Edgecast Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"Empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"Placeholder Rule\"}],\"state\":\"locked\"}"
+	jsonKeyFeatures   string = "features"
+)
 
 func ResourceRulesEngineV4Policy() *schema.Resource {
 	return &schema.Resource{
@@ -135,7 +138,12 @@ func ResourcePolicyRead(
 
 	// Remove unneeded policy and rule metadata - this metadata interferes with
 	// terraform diffs
-	cleanPolicy(policy)
+	err = cleanPolicy(policy)
+	if err != nil {
+		d.SetId("")
+		return diag.FromErr(
+			fmt.Errorf("error cleaning policy : %w", err))
+	}
 
 	// convert to json
 	jsonBytes, err := json.Marshal(policy)
@@ -204,7 +212,7 @@ func ResourcePolicyDelete(
 	return diag.Diagnostics{}
 }
 
-func cleanPolicy(policyMap map[string]interface{}) {
+func cleanPolicy(policyMap map[string]interface{}) error {
 	delete(policyMap, "id")
 	delete(policyMap, "@id")
 	delete(policyMap, "@type")
@@ -228,33 +236,45 @@ func cleanPolicy(policyMap map[string]interface{}) {
 
 		if matches, ok := ruleMap["matches"].([]interface{}); ok {
 			// replace with cleaned matches
-			ruleMap["matches"] = cleanMatches(matches)
+			temp, err := cleanMatches(matches)
+			if err != nil {
+				return fmt.Errorf("error standardizing match: %w", err)
+			}
+			ruleMap["matches"] = temp
 		}
 
 		ruleMaps = append(ruleMaps, ruleMap)
+
 	}
 
 	// replace with cleaned rules
 	policyMap["rules"] = ruleMaps
+	return nil
 }
 
 // recursive function to remove unneeded metadata from matches
-func cleanMatches(matches []interface{}) []map[string]interface{} {
+func cleanMatches(matches []interface{}) ([]map[string]interface{}, error) {
 	cleanedMatches := make([]map[string]interface{}, 0)
 
 	for _, match := range matches {
 		cleanedMatch := match.(map[string]interface{})
 		delete(cleanedMatch, "ordinal")
-		standardizeMatchFeature(cleanedMatch)
+		err := standardizeMatchFeature(cleanedMatch)
+		if err != nil {
+			return nil, fmt.Errorf("error standardizing match: %w", err)
+		}
 
 		// recursively clean child matches
 		if childMatches, ok := cleanedMatch["matches"].([]interface{}); ok {
-			cleanedMatch["matches"] = cleanMatches(childMatches)
+			temp, err := cleanMatches(childMatches)
+			if err != nil {
+				return nil, fmt.Errorf("error cleaning match: %w", err)
+			}
+			cleanedMatch["matches"] = temp
 		}
 
 		if features, ok := cleanedMatch["features"].([]interface{}); ok {
 			cleanedFeatures := make([]map[string]interface{}, 0)
-
 			for _, feature := range features {
 				cleanedFeature := feature.(map[string]interface{})
 				delete(cleanedFeature, "ordinal")
@@ -268,29 +288,25 @@ func cleanMatches(matches []interface{}) []map[string]interface{} {
 		cleanedMatches = append(cleanedMatches, cleanedMatch)
 	}
 
-	return cleanedMatches
+	return cleanedMatches, nil
 }
 
 // change string arrays to space-separated strings and standardize keys to
 // hyperion standard i.e. "-" -> "_"
 func standardizeMatchFeature(matchFeatureMap map[string]interface{}) error {
 	for k, v := range matchFeatureMap {
+		delete(matchFeatureMap, k)
+
 		// the json library unmarshals all arrays into []interface{}
 		// so we have to do this roundabout way of converting to []string
 		if valArray, ok := v.([]interface{}); ok {
-			stringArray, err := helper.ConvertSliceToStrings(valArray)
-
-			if err != nil {
-				return fmt.Errorf("error reading match-features: %w", err)
+			if k != jsonKeyFeatures {
+				stringArray, _ := helper.ConvertSliceToStrings(valArray)
+				v = strings.Join(stringArray, " ")
 			}
-
-			v = strings.Join(stringArray, " ")
 		}
 		matchFeatureMap[strings.Replace(k, "-", "_", -1)] = v
-
-		delete(matchFeatureMap, k)
 	}
-
 	return nil
 }
 
