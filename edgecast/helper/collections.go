@@ -3,7 +3,9 @@
 
 package helper
 
-import "errors"
+import (
+	"errors"
+)
 
 // IsInterfaceArray deterimins if an interface{} is actually an []interface{}
 func IsInterfaceArray(input interface{}) bool {
