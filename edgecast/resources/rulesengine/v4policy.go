@@ -25,6 +25,7 @@ import (
 const (
 	emptyPolicyFormat string = "{\"@type\":\"policy-create\",\"name\":\"Terraform Placeholder - %s\",\"platform\":\"%s\",\"rules\":[{\"@type\":\"rule-create\",\"description\":\"Placeholder rule created by the Edgecast Terraform Provider\",\"matches\":[{\"features\":[{\"type\":\"feature.comment\",\"value\":\"Empty policy created on %s\"}],\"ordinal\":1,\"type\":\"match.always\"}],\"name\":\"Placeholder Rule\"}],\"state\":\"locked\"}"
 	jsonKeyFeatures   string = "features"
+	jsonkeyMatches    string = "matches"
 )
 
 func ResourceRulesEngineV4Policy() *schema.Resource {
@@ -127,6 +128,7 @@ func ResourcePolicyRead(
 ) diag.Diagnostics {
 
 	policy, err := getPolicy(m, d)
+	log.Printf("[INFO] policy : %+v", policy)
 
 	if err != nil {
 		d.SetId("")
@@ -300,7 +302,7 @@ func standardizeMatchFeature(matchFeatureMap map[string]interface{}) error {
 		// the json library unmarshals all arrays into []interface{}
 		// so we have to do this roundabout way of converting to []string
 		if valArray, ok := v.([]interface{}); ok {
-			if k != jsonKeyFeatures {
+			if k != jsonKeyFeatures && k != jsonkeyMatches {
 				stringArray, _ := helper.ConvertSliceToStrings(valArray)
 				v = strings.Join(stringArray, " ")
 			}
