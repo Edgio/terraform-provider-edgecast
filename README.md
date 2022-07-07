@@ -33,7 +33,7 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 terraform {
   required_providers {
     edgecast = {
-      version = "0.5.2"
+       version = "0.5.4"
       source  = "EdgeCast/edgecast"
     }
   }
@@ -110,7 +110,7 @@ Example:
 terraform {
   required_providers {
     edgecast = {
-      version = "0.5.2"
+       version = "0.5.4"
       source  = "EdgeCast/edgecast"
     }
   }
