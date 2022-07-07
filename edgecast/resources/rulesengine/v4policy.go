@@ -280,7 +280,10 @@ func cleanMatches(matches []interface{}) ([]map[string]interface{}, error) {
 			for _, feature := range features {
 				cleanedFeature := feature.(map[string]interface{})
 				delete(cleanedFeature, "ordinal")
-				standardizeMatchFeature(cleanedFeature)
+				err := standardizeMatchFeature(cleanedFeature)
+				if err != nil {
+					return nil, fmt.Errorf("error standardizing features: %w", err)
+				}
 				cleanedFeatures = append(cleanedFeatures, cleanedFeature)
 			}
 
