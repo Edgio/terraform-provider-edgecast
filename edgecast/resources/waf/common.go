@@ -10,12 +10,12 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules"
 )
 
 // buildWAFService builds the SDK WAF service to managed WAF resources
-func buildWAFService(config api.ClientConfig) (*sdkwaf.WAFService, error) {
+func buildWAFService(config api.ClientConfig) (*sdkwaf.WafService, error) {
 
 	idsCredentials := edgecast.IDSCredentials{
 		ClientID:     config.IdsClientID,
@@ -33,7 +33,7 @@ func buildWAFService(config api.ClientConfig) (*sdkwaf.WAFService, error) {
 	return sdkwaf.New(sdkConfig)
 }
 
-func expandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
+func expandSecRule(attr interface{}) (*rules.SecRule, error) {
 
 	if attr == nil {
 		return nil, nil
@@ -49,7 +49,7 @@ func expandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 		return nil, nil
 	}
 
-	secRule := sdkwaf.SecRule{
+	secRule := rules.SecRule{
 		Name: curr["name"].(string),
 	}
 
@@ -99,7 +99,7 @@ func expandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 
 	if operatorType, ok := operatorMap["type"]; ok {
 		if s, ok := operatorType.(string); ok {
-			secRule.Operator.Type = waf.ConvertToOperatorType(s)
+			secRule.Operator.Type = rules.ConvertToOperatorType(s)
 		} else {
 			return nil, fmt.Errorf("operator type is not a string")
 		}
@@ -113,18 +113,18 @@ func expandSecRule(attr interface{}) (*sdkwaf.SecRule, error) {
 }
 
 // convertToTransformations converts Terraform's
-// TypeList and TypeSet collections into a []waf.Transformation.
-func expandTransformations(v interface{}) ([]waf.Transformation, error) {
+// TypeList and TypeSet collections into a []rules.Transformation.
+func expandTransformations(v interface{}) ([]rules.Transformation, error) {
 	ts, err := helper.ConvertTFCollectionToSlice(v)
 
 	if err != nil {
 		return nil, fmt.Errorf("error converting Transformations: %w", err)
 	}
 
-	result := make([]waf.Transformation, len(ts))
+	result := make([]rules.Transformation, len(ts))
 	for i, v := range ts {
 		if s, ok := v.(string); ok {
-			result[i] = waf.ConvertToTransformation(s)
+			result[i] = rules.ConvertToTransformation(s)
 		} else {
 			return nil,
 				fmt.Errorf("transformation was not a string: %+v", v)
@@ -136,15 +136,15 @@ func expandTransformations(v interface{}) ([]waf.Transformation, error) {
 
 // expandChainedRules converts the Terraform representation of Chained Rules
 // into the ChainedRule API Model
-func expandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
+func expandChainedRules(attr interface{}) (*[]rules.ChainedRule, error) {
 
 	if items, ok := attr.([]interface{}); ok {
-		chainedRules := make([]sdkwaf.ChainedRule, 0)
+		chainedRules := make([]rules.ChainedRule, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			chainedRule := sdkwaf.ChainedRule{}
+			chainedRule := rules.ChainedRule{}
 
 			actionMap, err := helper.ConvertSingletonSetToMap(curr["action"])
 			if err != nil {
@@ -186,7 +186,7 @@ func expandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 
 			if operatorType, ok := operatorMap["type"]; ok {
 				if s, ok := operatorType.(string); ok {
-					chainedRule.Operator.Type = waf.ConvertToOperatorType(s)
+					chainedRule.Operator.Type = rules.ConvertToOperatorType(s)
 				} else {
 					return nil, fmt.Errorf("operator type is not a string")
 				}
@@ -209,17 +209,17 @@ func expandChainedRules(attr interface{}) (*[]sdkwaf.ChainedRule, error) {
 
 // expandVariables converts the Terraform representation of Variables into
 // the Variable API Model
-func expandVariables(attr interface{}) (*[]sdkwaf.Variable, error) {
+func expandVariables(attr interface{}) (*[]rules.Variable, error) {
 
 	if items, ok := attr.([]interface{}); ok {
 
-		variables := make([]sdkwaf.Variable, 0)
+		variables := make([]rules.Variable, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			variable := sdkwaf.Variable{
-				Type:    waf.ConvertToVariableType(curr["type"].(string)),
+			variable := rules.Variable{
+				Type:    rules.ConvertToVariableType(curr["type"].(string)),
 				IsCount: curr["is_count"].(bool),
 			}
 
@@ -242,14 +242,14 @@ func expandVariables(attr interface{}) (*[]sdkwaf.Variable, error) {
 
 // expandMatches converts the Terraform representation of Matches into
 // the Match API Model
-func expandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
+func expandMatches(attr interface{}) (*[]rules.Match, error) {
 	if items, ok := attr.([]interface{}); ok {
-		matches := make([]sdkwaf.Match, 0)
+		matches := make([]rules.Match, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			match := sdkwaf.Match{
+			match := rules.Match{
 				IsNegated: curr["is_negated"].(bool),
 				IsRegex:   curr["is_regex"].(bool),
 				Value:     curr["value"].(string),
@@ -267,7 +267,7 @@ func expandMatches(attr interface{}) (*[]sdkwaf.Match, error) {
 
 // flattenSecRule converts the SecRule API Model
 // into a format that Terraform can work with
-func flattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
+func flattenSecRule(secrule rules.SecRule) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
 
@@ -284,7 +284,7 @@ func flattenSecRule(secrule sdkwaf.SecRule) []map[string]interface{} {
 
 // FlattenAction converts the Action API Model
 // into a format that Terraform can work with
-func flattenAction(action sdkwaf.Action) []map[string]interface{} {
+func flattenAction(action rules.Action) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
 
@@ -312,7 +312,7 @@ func flattenAction(action sdkwaf.Action) []map[string]interface{} {
 // FlattenChainrule converts the ChainedRule API Model
 // into a format that Terraform can work with
 func flattenChainedRules(
-	chainedRules []sdkwaf.ChainedRule,
+	chainedRules []rules.ChainedRule,
 ) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
@@ -330,7 +330,7 @@ func flattenChainedRules(
 
 // FlattenAction converts the Operator API Model
 // into a format that Terraform can work with
-func flattenOperator(operator sdkwaf.Operator) []map[string]interface{} {
+func flattenOperator(operator rules.Operator) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 	m := make(map[string]interface{})
 
@@ -345,7 +345,7 @@ func flattenOperator(operator sdkwaf.Operator) []map[string]interface{} {
 
 // FlattenVariable converts the Variable API Model
 // into a format that Terraform can work with
-func flattenVariable(variables []sdkwaf.Variable) []map[string]interface{} {
+func flattenVariable(variables []rules.Variable) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, v := range variables {
@@ -363,7 +363,7 @@ func flattenVariable(variables []sdkwaf.Variable) []map[string]interface{} {
 
 // FlattenMatch converts the Match API Model
 // into a format that Terraform can work with
-func flattenMatch(matches []sdkwaf.Match) []map[string]interface{} {
+func flattenMatch(matches []rules.Match) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, v := range matches {

@@ -3,7 +3,7 @@ HOSTNAME=github.com
 NAMESPACE=terraform-providers
 NAME=edgecast
 BINARY=terraform-provider-${NAME}
-VERSION=0.5.4
+VERSION=0.5.5
 OS_ARCH=darwin_amd64
 
 default: install

@@ -10,11 +10,10 @@ import (
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/rate"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
 func ResourceRateRule() *schema.Resource {
@@ -35,8 +34,8 @@ func ResourceRateRule() *schema.Resource {
 				Type:         schema.TypeInt,
 				Required:     true,
 				ValidateFunc: validation.IntAtLeast(1),
-				Description: "Indicates the length, in seconds, of the rolling window that tracks the number of requests eligible for rate limiting. Valid values are: \n\n" + 
-				"        1 | 5 | 10 | 30 | 60 | 120 | 300",
+				Description: "Indicates the length, in seconds, of the rolling window that tracks the number of requests eligible for rate limiting. Valid values are: \n\n" +
+					"        1 | 5 | 10 | 30 | 60 | 120 | 300",
 			},
 			"disabled": {
 				Type:     schema.TypeBool,
@@ -100,14 +99,14 @@ func ResourceRateRule() *schema.Resource {
 												"type": {
 													Required: true,
 													Type:     schema.TypeString,
-													Description: "Determines how requests will be identified. Valid values are: \n\n" + 
-													"        FILE_EXT | REMOTE_ADDR | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI",
+													Description: "Determines how requests will be identified. Valid values are: \n\n" +
+														"        FILE_EXT | REMOTE_ADDR | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI",
 												},
 												"value": {
 													Optional: true,
 													Type:     schema.TypeString,
-													Description: "**REQUEST_HEADERS Only:** Indicates the name of the request header through which requests will be identified. Valid values are: \n\n" + 
-													"        Host | Referer | User-Agent",
+													Description: "**REQUEST_HEADERS Only:** Indicates the name of the request header through which requests will be identified. Valid values are: \n\n" +
+														"        Host | Referer | User-Agent",
 												},
 											},
 										},
@@ -134,15 +133,15 @@ func ResourceRateRule() *schema.Resource {
 													Type:     schema.TypeString,
 													Description: "Indicates how the system will interpret the comparison between the request and the `values` argument. Valid values are: \n" +
 														" * `EM` - Requires that the request's attribute be set to one of the value(s) defined in the `values` argument. \n" +
-														" * `IPMATCH` - Requires that the request's IP address either be contained by an IP block or be an exact match to an IP address defined in the `values` argument. \n\n" + 
+														" * `IPMATCH` - Requires that the request's IP address either be contained by an IP block or be an exact match to an IP address defined in the `values` argument. \n\n" +
 														"    ->You may only use `IPMATCH` with the `REMOTE_ADDR` match condition. \n" +
 														" * `RX` - Requires that the request's attribute be an exact match to the regular expression defined in the `value` argument. ",
 												},
 												"value": {
 													Optional: true,
 													Type:     schema.TypeString,
-													Description: "**type: REQUEST_HEADERS Only:** Indicates the name of the request header through which requests will be identified. Valid values are: \n\n" + 
-													"        Host | Referer | User-Agent",
+													Description: "**type: REQUEST_HEADERS Only:** Indicates the name of the request header through which requests will be identified. Valid values are: \n\n" +
+														"        Host | Referer | User-Agent",
 												},
 												"values": {
 													Type:     schema.TypeSet,
@@ -198,10 +197,10 @@ func ResourceRateRuleCreate(
 	log.Printf("[DEBUG] Keys: %+v\n", rule.Keys)
 	log.Printf("[DEBUG] ConditionGroups: %+v\n", rule.ConditionGroups)
 
-	params := sdkwaf.NewAddRateRuleParams()
+	params := rate.NewAddRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRule = *rule
-	resp, err := wafService.AddRateRule(params)
+	resp, err := wafService.Rate.AddRateRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -232,10 +231,10 @@ func ResourceRateRuleRead(
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewGetRateRuleParams()
+	params := rate.NewGetRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRuleID = ruleID
-	resp, err := wafService.GetRateRule(params)
+	resp, err := wafService.Rate.GetRateRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -285,11 +284,11 @@ func ResourceRateRuleUpdate(
 	log.Printf("[DEBUG] Keys: %+v\n", rule.Keys)
 	log.Printf("[DEBUG] ConditionGroups: %+v\n", rule.ConditionGroups)
 
-	params := sdkwaf.NewUpdateRateRuleParams()
+	params := rate.NewUpdateRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRule = *rule
 	params.RateRuleID = ruleID
-	err = wafService.UpdateRateRule(params)
+	err = wafService.Rate.UpdateRateRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -314,10 +313,10 @@ func ResourceRateRuleDelete(
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewDeleteRateRuleParams()
+	params := rate.NewDeleteRateRuleParams()
 	params.AccountNumber = accountNumber
 	params.RateRuleID = ruleID
-	err = wafService.DeleteRateRule(params)
+	err = wafService.Rate.DeleteRateRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -329,8 +328,8 @@ func ResourceRateRuleDelete(
 
 // expandRateRule converts values read from a Terraform
 // Configuration file into the Rate Rule API Model
-func expandRateRule(d *schema.ResourceData) (*sdkwaf.RateRule, error) {
-	rule := sdkwaf.RateRule{
+func expandRateRule(d *schema.ResourceData) (*rate.RateRule, error) {
+	rule := rate.RateRule{
 		CustomerID:  d.Get("account_number").(string),
 		Name:        d.Get("name").(string),
 		Disabled:    d.Get("disabled").(bool),
@@ -357,13 +356,13 @@ func expandRateRule(d *schema.ResourceData) (*sdkwaf.RateRule, error) {
 
 // expandConditionGroups converts values read from a Terraform
 // Configuration file into the Condition Group API Model
-func expandConditionGroups(attr interface{}) (*[]sdkwaf.ConditionGroup, error) {
+func expandConditionGroups(attr interface{}) (*[]rate.ConditionGroup, error) {
 	if set, ok := attr.(*schema.Set); ok {
 		items := set.List()
-		groups := make([]sdkwaf.ConditionGroup, 0)
+		groups := make([]rate.ConditionGroup, 0)
 		for _, item := range items {
 			curr := item.(map[string]interface{})
-			group := sdkwaf.ConditionGroup{
+			group := rate.ConditionGroup{
 				ID:   curr["id"].(string),
 				Name: curr["name"].(string),
 			}
@@ -382,10 +381,10 @@ func expandConditionGroups(attr interface{}) (*[]sdkwaf.ConditionGroup, error) {
 
 // expandConditions converts values read from a Terraform
 // Configuration file into the Condition API Model
-func expandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
+func expandConditions(attr interface{}) (*[]rate.Condition, error) {
 	if set, ok := attr.(*schema.Set); ok {
 		items := set.List()
-		conditions := make([]sdkwaf.Condition, 0)
+		conditions := make([]rate.Condition, 0)
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 			// The properties for target and
@@ -398,7 +397,7 @@ func expandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
 			if err != nil {
 				return nil, err
 			}
-			condition := sdkwaf.Condition{}
+			condition := rate.Condition{}
 			if targetType, ok := targetMap["type"]; ok {
 				condition.Target.Type = targetType.(string)
 			}
@@ -443,7 +442,7 @@ func expandConditions(attr interface{}) (*[]sdkwaf.Condition, error) {
 // flattenConditionGroups converts the ConditionGroup API Model
 // into a format that Terraform can work with
 func flattenConditionGroups(
-	conditionGroups []sdkwaf.ConditionGroup,
+	conditionGroups []rate.ConditionGroup,
 ) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 	for _, cg := range conditionGroups {
@@ -458,7 +457,7 @@ func flattenConditionGroups(
 
 // flattenConditions converts the Condition API Model
 // into a format that Terraform can work with
-func flattenConditions(conditions []sdkwaf.Condition) []map[string]interface{} {
+func flattenConditions(conditions []rate.Condition) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 	for _, c := range conditions {
 		m := make(map[string]interface{})
@@ -471,7 +470,7 @@ func flattenConditions(conditions []sdkwaf.Condition) []map[string]interface{} {
 
 // flattenOP converts the OP API Model
 // into a format that Terraform can work with
-func flattenOP(op sdkwaf.OP) []map[string]interface{} {
+func flattenOP(op rate.OP) []map[string]interface{} {
 	m := make(map[string]interface{})
 	if op.IsNegated != nil {
 		m["is_negated"] = *(op.IsNegated)
@@ -489,7 +488,7 @@ func flattenOP(op sdkwaf.OP) []map[string]interface{} {
 
 // flattenTarget converts the Target API Model
 // into a format that Terraform can work with
-func flattenTarget(target sdkwaf.Target) []map[string]interface{} {
+func flattenTarget(target rate.Target) []map[string]interface{} {
 	m := make(map[string]interface{})
 	m["type"] = target.Type
 	m["value"] = target.Value

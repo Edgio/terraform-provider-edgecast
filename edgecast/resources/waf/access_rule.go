@@ -10,8 +10,7 @@ import (
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
-
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/access"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -317,10 +316,10 @@ func ResourceAccessRuleCreate(
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewAddAccessRuleParams()
+	params := access.NewAddAccessRuleParams()
 	params.AccountNumber = accountNumber
 	params.AccessRule = accessRule
-	resp, err := wafService.AddAccessRule(params)
+	resp, err := wafService.Access.AddAccessRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -355,10 +354,10 @@ func ResourceAccessRuleRead(
 		ruleID,
 		accountNumber)
 
-	params := sdkwaf.NewGetAccessRuleParams()
+	params := access.NewGetAccessRuleParams()
 	params.AccessRuleID = ruleID
 	params.AccountNumber = accountNumber
-	resp, err := wafService.GetAccessRule(params)
+	resp, err := wafService.Access.GetAccessRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -419,11 +418,11 @@ func ResourceAccessRuleUpdate(
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewUpdateAccessRuleParams()
+	params := access.NewUpdateAccessRuleParams()
 	params.AccountNumber = accountNumber
 	params.AccessRuleID = ruleID
 	params.AccessRule = accessRule
-	err = wafService.UpdateAccessRule(params)
+	err = wafService.Access.UpdateAccessRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -455,10 +454,10 @@ func ResourceAccessRuleDelete(
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewDeleteAccessRuleParams()
+	params := access.NewDeleteAccessRuleParams()
 	params.AccountNumber = accountNumber
 	params.AccessRuleID = ruleID
-	err = wafService.DeleteAccessRule(params)
+	err = wafService.Access.DeleteAccessRule(params)
 
 	if err != nil {
 		diags = append(diags, diag.Diagnostic{
@@ -478,9 +477,9 @@ func ResourceAccessRuleDelete(
 // Configuration file into the Access Rule API Model
 func ExpandAccessRule(
 	d *schema.ResourceData,
-) (sdkwaf.AccessRule, diag.Diagnostics) {
+) (access.AccessRule, diag.Diagnostics) {
 	var diags diag.Diagnostics
-	accessRule := sdkwaf.AccessRule{
+	accessRule := access.AccessRule{
 		CustomerID:         d.Get("account_number").(string),
 		Name:               d.Get("name").(string),
 		ResponseHeaderName: d.Get("response_header_name").(string),
@@ -627,7 +626,7 @@ func ExpandAccessRule(
 
 // ExpandAccessControls converts the values read from a Terraform
 // Configuration file into the Access Controls API Model
-func ExpandAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
+func ExpandAccessControls(attr interface{}) (*access.AccessControls, error) {
 	// The values are stored as a map in a 1-item set
 	// So pull it out so we can work with it
 	entryMap, err := helper.ConvertSingletonSetToMap(attr)
@@ -636,7 +635,7 @@ func ExpandAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
 		return nil, err
 	}
 
-	accessControls := &sdkwaf.AccessControls{}
+	accessControls := &access.AccessControls{}
 
 	if accesslist, ok := entryMap["accesslist"].([]interface{}); ok {
 		accessControls.Accesslist = accesslist
@@ -671,7 +670,7 @@ func ExpandAccessControls(attr interface{}) (*sdkwaf.AccessControls, error) {
 // FlattenAccessControls converts the AccessControls API Model
 // into a format that Terraform can work with
 func FlattenAccessControls(
-	accessControlsGroups *sdkwaf.AccessControls,
+	accessControlsGroups *access.AccessControls,
 ) []map[string]interface{} {
 	if accessControlsGroups == nil {
 		return nil

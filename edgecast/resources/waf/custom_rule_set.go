@@ -11,10 +11,9 @@ import (
 
 	"terraform-provider-edgecast/edgecast/api"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/custom"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 )
 
 func ResourceCustomRuleSetCreate(ctx context.Context,
@@ -34,7 +33,7 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 
 	log.Printf("[INFO] Creating WAF Rate Rule for Account >> %s", accountNumber)
 
-	customRuleSet := sdkwaf.CustomRuleSet{
+	customRuleSet := custom.CustomRuleSet{
 		Name: d.Get("name").(string),
 	}
 
@@ -48,10 +47,10 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 	log.Printf("[DEBUG] Name: %+v\n", customRuleSet.Name)
 	log.Printf("[DEBUG] Directive(s): %+v\n", customRuleSet.Directives)
 
-	params := sdkwaf.NewAddCustomRuleSetParams()
+	params := custom.NewAddCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSet = customRuleSet
-	resp, err := wafService.AddCustomRuleSet(params)
+	resp, err := wafService.Custom.AddCustomRuleSet(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -86,10 +85,10 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewGetCustomRuleSetParams()
+	params := custom.NewGetCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSetID = ruleID
-	resp, err := wafService.GetCustomRuleSet(params)
+	resp, err := wafService.Custom.GetCustomRuleSet(params)
 
 	if err != nil {
 		d.SetId("")
@@ -122,7 +121,7 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 		accountNumber,
 	)
 
-	customRuleSetRequest := sdkwaf.CustomRuleSet{}
+	customRuleSetRequest := custom.CustomRuleSet{}
 	customRuleSetRequest.Name = d.Get("name").(string)
 
 	directives, err := expandCustomRuleDirectives(d.Get("directive"))
@@ -141,11 +140,11 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewUpdateCustomRuleSetParams()
+	params := custom.NewUpdateCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSet = customRuleSetRequest
 	params.CustomRuleSetID = customRuleSetID
-	err = wafService.UpdateCustomRuleSet(params)
+	err = wafService.Custom.UpdateCustomRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -179,10 +178,10 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewDeleteCustomRuleSetParams()
+	params := custom.NewDeleteCustomRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.CustomRuleSetID = customRuleID
-	err = wafService.DeleteCustomRuleSet(params)
+	err = wafService.Custom.DeleteCustomRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -197,17 +196,17 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 
 func expandCustomRuleDirectives(
 	attr interface{},
-) (*[]sdkwaf.CustomRuleDirective, error) {
+) (*[]custom.CustomRuleDirective, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		directives := make([]sdkwaf.CustomRuleDirective, 0)
+		directives := make([]custom.CustomRuleDirective, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			directive := sdkwaf.CustomRuleDirective{}
+			directive := custom.CustomRuleDirective{}
 
 			secRule, err := expandSecRule(curr["sec_rule"])
 			if err != nil {
@@ -231,7 +230,7 @@ func expandCustomRuleDirectives(
 // flattenCustomRuleDirectives converts the CustomRuleDirective API Model
 // into a format that Terraform can work with
 func flattenCustomRuleDirectives(
-	directive []sdkwaf.CustomRuleDirective,
+	directive []custom.CustomRuleDirective,
 ) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 

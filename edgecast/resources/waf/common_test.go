@@ -8,8 +8,7 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules"
 	"github.com/go-test/deep"
 )
 
@@ -17,7 +16,7 @@ func TestExpandChainedRules(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.ChainedRule
+		expectedPtr   *[]rules.ChainedRule
 		expectSuccess bool
 	}{
 		{
@@ -82,25 +81,25 @@ func TestExpandChainedRules(t *testing.T) {
 					},
 				},
 			},
-			expectedPtr: &[]sdkwaf.ChainedRule{
+			expectedPtr: &[]rules.ChainedRule{
 				{
-					Action: sdkwaf.Action{
+					Action: rules.Action{
 						ID:      "66000001",
 						Message: "Invalid user agent - chainedRule 1.",
-						Transformations: []waf.Transformation{
-							waf.TransformNone,
+						Transformations: []rules.Transformation{
+							rules.TransformNone,
 						},
 					},
-					Operator: sdkwaf.Operator{
+					Operator: rules.Operator{
 						IsNegated: false,
-						Type:      waf.OpContains,
+						Type:      rules.OpContains,
 						Value:     "bot",
 					},
-					Variables: []sdkwaf.Variable{
+					Variables: []rules.Variable{
 						{
 							IsCount: false,
-							Type:    waf.VarRequestHeaders,
-							Matches: []sdkwaf.Match{
+							Type:    rules.VarRequestHeaders,
+							Matches: []rules.Match{
 								{
 									IsRegex:   false,
 									IsNegated: false,
@@ -111,23 +110,23 @@ func TestExpandChainedRules(t *testing.T) {
 					},
 				},
 				{
-					Action: sdkwaf.Action{
+					Action: rules.Action{
 						ID:      "66000002",
 						Message: "Invalid user agent - chainedRule 2.",
-						Transformations: []waf.Transformation{
-							waf.TransformNone,
+						Transformations: []rules.Transformation{
+							rules.TransformNone,
 						},
 					},
-					Operator: sdkwaf.Operator{
+					Operator: rules.Operator{
 						IsNegated: false,
-						Type:      waf.OpContains,
+						Type:      rules.OpContains,
 						Value:     "bot",
 					},
-					Variables: []sdkwaf.Variable{
+					Variables: []rules.Variable{
 						{
 							IsCount: false,
-							Type:    waf.VarRequestHeaders,
-							Matches: []sdkwaf.Match{
+							Type:    rules.VarRequestHeaders,
+							Matches: []rules.Match{
 								{
 									IsRegex:   false,
 									IsNegated: false,
@@ -190,7 +189,7 @@ func TestExpandSecRule(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *sdkwaf.SecRule
+		expectedPtr   *rules.SecRule
 		expectSuccess bool
 	}{
 		{
@@ -256,25 +255,25 @@ func TestExpandSecRule(t *testing.T) {
 					},
 				},
 			}),
-			expectedPtr: &sdkwaf.SecRule{
+			expectedPtr: &rules.SecRule{
 				Name: "REQUEST_HEADERS",
-				Action: sdkwaf.Action{
+				Action: rules.Action{
 					ID:      "66000000",
 					Message: "Invalid user agent.",
-					Transformations: []waf.Transformation{
-						waf.TransformNone,
+					Transformations: []rules.Transformation{
+						rules.TransformNone,
 					},
 				},
-				Operator: sdkwaf.Operator{
+				Operator: rules.Operator{
 					IsNegated: false,
-					Type:      waf.OpContains,
+					Type:      rules.OpContains,
 					Value:     "bot",
 				},
-				Variables: []sdkwaf.Variable{
+				Variables: []rules.Variable{
 					{
 						IsCount: false,
-						Type:    waf.VarRequestHeaders,
-						Matches: []sdkwaf.Match{
+						Type:    rules.VarRequestHeaders,
+						Matches: []rules.Match{
 							{
 								IsRegex:   false,
 								IsNegated: false,
@@ -283,23 +282,23 @@ func TestExpandSecRule(t *testing.T) {
 						},
 					},
 				},
-				ChainedRules: []sdkwaf.ChainedRule{
+				ChainedRules: []rules.ChainedRule{
 					{
-						Action: sdkwaf.Action{
-							Transformations: []waf.Transformation{
-								waf.TransformNone,
+						Action: rules.Action{
+							Transformations: []rules.Transformation{
+								rules.TransformNone,
 							},
 						},
-						Operator: sdkwaf.Operator{
+						Operator: rules.Operator{
 							IsNegated: false,
-							Type:      waf.OpContains,
+							Type:      rules.OpContains,
 							Value:     "bot",
 						},
-						Variables: []sdkwaf.Variable{
+						Variables: []rules.Variable{
 							{
 								IsCount: false,
-								Type:    waf.VarRequestHeaders,
-								Matches: []sdkwaf.Match{
+								Type:    rules.VarRequestHeaders,
+								Matches: []rules.Match{
 									{
 										IsRegex:   false,
 										IsNegated: false,

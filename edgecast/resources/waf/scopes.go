@@ -10,7 +10,7 @@ import (
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/scopes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -26,8 +26,8 @@ func ResourceScopes() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"scope": {
@@ -44,36 +44,36 @@ func ResourceScopes() *schema.Resource {
 								"**Default Value:** `name`",
 						},
 						"host": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes a hostname match condition.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_case_insensitive": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Description: "Indicates whether the comparison between the requested hostname and the `values` argument is case-sensitive. Valid values are: \n\n" + 
-										"        True | False",
+										Description: "Indicates whether the comparison between the requested hostname and the `values` argument is case-sensitive. Valid values are: \n\n" +
+											"        True | False",
 									},
 									"is_negated": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Description: "Indicates whether this match condition will be satisfied when the requested hostname matches or does not match the value defined by the `value`/`values` argument. Valid values are: \n\n" + 
-										"        True | False",
+										Description: "Indicates whether this match condition will be satisfied when the requested hostname matches or does not match the value defined by the `value`/`values` argument. Valid values are: \n\n" +
+											"        True | False",
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
 										Description: "Indicates how the system will interpret the comparison between the request's hostname and the value defined within the `value`/`values` argument. Valid values are: \n" +
-										" * `EM` - Indicates that request's hostname must be an exact match to one of the case-sensitive values specified in the `values` argument. \n" +
-										" * `GLOB` - Indicates that the request's hostname must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
-										" * `RX` - Indicates that the request's hostname must be an exact match to the regular expression defined in the `value` argument. \n\n" +
-										"    ->Apply this Security Application Manager configuration across all hostnames by setting this argument to `GLOB` and setting the `value` argument to `*`. This type of configuration is also known as `Default`.",
+											" * `EM` - Indicates that request's hostname must be an exact match to one of the case-sensitive values specified in the `values` argument. \n" +
+											" * `GLOB` - Indicates that the request's hostname must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
+											" * `RX` - Indicates that the request's hostname must be an exact match to the regular expression defined in the `value` argument. \n\n" +
+											"    ->Apply this Security Application Manager configuration across all hostnames by setting this argument to `GLOB` and setting the `value` argument to `*`. This type of configuration is also known as `Default`.",
 									},
 									"value": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**host.type=GLOB or RX:** Identifies a value that will be used to identify requests that are eligible for this Security Application Manager configuration.",
 									},
 									"values": {
@@ -88,95 +88,95 @@ func ResourceScopes() *schema.Resource {
 							},
 						},
 						"limit": {
-							Type:     schema.TypeList,
-							Optional: true,
+							Type:        schema.TypeList,
+							Optional:    true,
 							Description: "Identifies the set of rate rules that will be enforced for this Security Application Manager configuration and the enforcement action that will be applied to rate limited requests.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:        schema.TypeString,
+										Required:    true,
 										Description: "Indicates the system-defined ID for the rate rule that will be applied to this Security Application Manager configuration.",
 									},
 									"duration_sec": {
 										Type:         schema.TypeInt,
 										Required:     true,
 										ValidateFunc: validation.IntAtLeast(0),
-										Description: "Indicates the length of time, in seconds, that the action defined within this object will be applied to a client that violates the rate rule identified by the `id` argument. Valid values are: \n\n" + 
-										"        10 | 60 | 300",
+										Description: "Indicates the length of time, in seconds, that the action defined within this object will be applied to a client that violates the rate rule identified by the `id` argument. Valid values are: \n\n" +
+											"        10 | 60 | 300",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
 										Description: "Indicates the type of action that will be applied to rate limited requests. Valid values are: \n" +
-										" * `ALERT` - Alert only \n" +
-										" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
-										" * `CUSTOM_RESPONSE` - Custom response \n" +
-										" * `DROP_REQUEST` - Drop request (503 Service Unavailable response with a retry-after of 10 seconds)",											
+											" * `ALERT` - Alert only \n" +
+											" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+											" * `CUSTOM_RESPONSE` - Custom response \n" +
+											" * `DROP_REQUEST` - Drop request (503 Service Unavailable response with a retry-after of 10 seconds)",
 									},
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "limit action",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "limit action",
 										Description: "Indicates the name assigned to this enforcement action.",
 									},
 									"response_body_base64": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**limit.enf_type=CUSTOM_RESPONSE:** Indicates the response body that will be sent to rate limited requests. This value is Base64 encoded.",
 									},
 									"response_headers": {
-										Type:     schema.TypeMap,
-										Optional: true,
+										Type:        schema.TypeMap,
+										Optional:    true,
 										Description: "**limit.enf_type=CUSTOM_RESPONSE:** Contains the set of headers that will be included in the response sent to rate limited requests. Set each desired response header as an argument.",
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
-										},										
+										},
 									},
 									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:        schema.TypeInt,
+										Optional:    true,
 										Description: "**limit.enf_type=CUSTOM_RESPONSE:** Indicates the HTTP status code (e.g., 404) for the custom response sent to rate limited requests.",
 									},
 									"url": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**limit.enf_type=REDIRECT_302:** Indicates the URL to which rate limited requests will be redirected.",
 									},
 								},
 							},
 						},
 						"path": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes a URL path match condition.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"is_case_insensitive": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Description: "**path.type=EM:** Indicates whether the comparison between the requested URL and the `values` argument is case-sensitive. Valid values are: \n\n" + 
-										"        True | False",
+										Description: "**path.type=EM:** Indicates whether the comparison between the requested URL and the `values` argument is case-sensitive. Valid values are: \n\n" +
+											"        True | False",
 									},
 									"is_negated": {
 										Type:     schema.TypeBool,
 										Optional: true,
-										Description: "Indicates whether this match condition will be satisfied when the requested URL matches or does not match the value defined by the `value`/`values` argument. Valid values are: \n\n" + 
-										"        True | False",
+										Description: "Indicates whether this match condition will be satisfied when the requested URL matches or does not match the value defined by the `value`/`values` argument. Valid values are: \n\n" +
+											"        True | False",
 									},
 									"type": {
 										Type:     schema.TypeString,
 										Required: true,
-										Description: "Indicates how the system will interpret the comparison between the request's URL and the value defined within the `value`/`values` argument. Valid values are: \n" + 
-										" * `EM` - Indicates that request's URL path must be an exact match to one of the case-sensitive values specified in the `values` argument.\n" +
-										" * `GLOB` - Indicates that the request's URL path must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
-										" * `RX` - Indicates that the request's URL path must be an exact match to the regular expression defined in the `value` argument. \n\n" +
-										"    ->Apply this Security Application Manager configuration across all URLs by setting this argument to `GLOB` and setting the `value` argument to `*`. This type of configuration is also known as `Default`.",
+										Description: "Indicates how the system will interpret the comparison between the request's URL and the value defined within the `value`/`values` argument. Valid values are: \n" +
+											" * `EM` - Indicates that request's URL path must be an exact match to one of the case-sensitive values specified in the `values` argument.\n" +
+											" * `GLOB` - Indicates that the request's URL path must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
+											" * `RX` - Indicates that the request's URL path must be an exact match to the regular expression defined in the `value` argument. \n\n" +
+											"    ->Apply this Security Application Manager configuration across all URLs by setting this argument to `GLOB` and setting the `value` argument to `*`. This type of configuration is also known as `Default`.",
 									},
 									"value": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**path.type=GLOB|RX:** Identifies a value that will be used to identify requests that are eligible for this Security Application Manager configuration. Specify a URL path pattern that starts directly after the hostname.",
 									},
 									"values": {
@@ -191,95 +191,95 @@ func ResourceScopes() *schema.Resource {
 							},
 						},
 						"acl_audit_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the type of action that will take place when the access rule defined within the `acl_audit_id` argument is violated. ",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "Alert Only",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "Alert Only",
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:        schema.TypeString,
+										Required:    true,
 										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
 						},
 						"acl_audit_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the access rule that will audit production traffic for this Security Application Manager configuration.",
 						},
 						"acl_prod_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the type of action that will take place when the access rule defined within the `acl_prod_id` argument is violated.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"valid_for_sec": {
 										Type:         schema.TypeInt,
 										Optional:     true,
-										Description: "Reserved for future use.",
+										Description:  "Reserved for future use.",
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
-										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" + 
-										" * `BLOCK_REQUEST` - Block request \n" + 
-										" * `ALERT` - Alert only \n" + 
-										" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
-										" * `CUSTOM_RESPONSE` - Custom response",
+										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
+											" * `BLOCK_REQUEST` - Block request \n" +
+											" * `ALERT` - Alert only \n" +
+											" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+											" * `CUSTOM_RESPONSE` - Custom response",
 									},
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "acl action",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "acl action",
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the response body that will be sent to malicious traffic. This value is Base64 encoded.",
 									},
 									"response_headers": {
 										Type:     schema.TypeMap,
 										Optional: true,
 										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the set of response headers that will be sent to malicious traffic. Each response header is specified as a name/value pair. ",
+											Type:        schema.TypeString,
+											Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the set of response headers that will be sent to malicious traffic. Each response header is specified as a name/value pair. ",
 										},
 									},
 									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										Default:  0,
+										Type:        schema.TypeInt,
+										Optional:    true,
+										Default:     0,
 										Description: "**acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.",
 									},
 									"url": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**acl_prod_action.type=REDIRECT_302:** Indicates the URL to which malicious requests will be redirected.",
 									},
 								},
 							},
 						},
 						"acl_prod_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the access rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"bots_prod_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the browser challenge that will be applied to requests that satisfy the bot rule set defined within the `bot_prod_id` argument.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -287,80 +287,80 @@ func ResourceScopes() *schema.Resource {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
-										Description: "Indicates the number of minutes for which our CDN will serve content to a client that solves a browser challenge without requiring an additional browser challenge to be solved. Specify a value between 1 and 1,440 minutes.",
+										Description:  "Indicates the number of minutes for which our CDN will serve content to a client that solves a browser challenge without requiring an additional browser challenge to be solved. Specify a value between 1 and 1,440 minutes.",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:        schema.TypeString,
+										Required:    true,
 										Description: "Set this property to `BROWSER_CHALLENGE`.",
 									},
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "bots action",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "bots action",
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "Reserved for future use.",
 									},
 									"response_headers": {
-										Type:     schema.TypeMap,
-										Optional: true,
+										Type:        schema.TypeMap,
+										Optional:    true,
 										Description: "Reserved for future use.",
 										Elem: &schema.Schema{
 											Type: schema.TypeString,
 										},
 									},
 									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:        schema.TypeInt,
+										Optional:    true,
 										Description: "Indicates the HTTP status code (e.g., 404) for the response provided to clients that are being served the browser challenge.",
 									},
 									"url": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "Reserved for future use.",
 									},
 								},
 							},
 						},
 						"bots_prod_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the bots rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"profile_audit_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the type of action that will take place when the managed rule defined within the `profile_audit_id` property is violated.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "Alert Only",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "Alert Only",
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:        schema.TypeString,
+										Required:    true,
 										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
 						},
 						"profile_audit_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the managed rule that will audit production traffic for this Security Application Manager configuration.",
 						},
 						"profile_prod_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the type of action that will take place when the managed rule defined within the `profile_prod_id` property is violated. ",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -368,26 +368,26 @@ func ResourceScopes() *schema.Resource {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
-										Description: "Reserved for future use.",
+										Description:  "Reserved for future use.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
 										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
-										" * `BLOCK_REQUEST` - Block Request \n" +
-										" * `ALERT` - Alert Only \n" + 
-										" * `REDIRECT_302` - Redirect (HTTP 302) \n" + 
-										" * `CUSTOM_RESPONSE` - Custom Response",
+											" * `BLOCK_REQUEST` - Block Request \n" +
+											" * `ALERT` - Alert Only \n" +
+											" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+											" * `CUSTOM_RESPONSE` - Custom Response",
 									},
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "profile action",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "profile action",
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the response body that will be sent to malicious traffic. This value is Base64 encoded.",
 									},
 									"response_headers": {
@@ -397,57 +397,56 @@ func ResourceScopes() *schema.Resource {
 											Type: schema.TypeString,
 										},
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the set of response headers that will be sent to malicious traffic. \n\n" +
-										"    ->Each response header is specified as a name/value pair.",
+											"    ->Each response header is specified as a name/value pair.",
 									},
 									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:        schema.TypeInt,
+										Optional:    true,
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.",
-
 									},
 									"url": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the URL to which malicious requests will be redirected.",
 									},
 								},
 							},
 						},
 						"profile_prod_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the managed rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"rules_audit_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the type of action that will take place when the custom rule set defined within the `rules_audit_id` property is violated. ",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "Alert Only",
-										Description:  "Indicates the name assigned to this enforcement action configuration.",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "Alert Only",
+										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
-										Description:  "Set to `ALERT`. This indicates that malicious traffic will be audited.",
+										Type:        schema.TypeString,
+										Required:    true,
+										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
 						},
 						"rules_audit_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the custom rule set that will audit production traffic for this Security Application Manager configuration.",
 						},
 						"rules_prod_action": {
-							Type:     schema.TypeSet,
-							MaxItems: 1,
-							Optional: true,
+							Type:        schema.TypeSet,
+							MaxItems:    1,
+							Optional:    true,
 							Description: "Describes the type of action that will take place when the custom rule set defined within the `rules_prod_id` property is violated.",
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
@@ -455,26 +454,26 @@ func ResourceScopes() *schema.Resource {
 										Type:         schema.TypeInt,
 										Optional:     true,
 										ValidateFunc: validation.IntAtLeast(0),
-										Description: "Reserved for future use.",
+										Description:  "Reserved for future use.",
 									},
 									"enf_type": {
 										Type:     schema.TypeString,
 										Required: true,
 										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
-										" * `BLOCK_REQUEST` - Block Request \n" +
-										" * `ALERT` - Alert Only \n" +
-										" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
-										" * `CUSTOM_RESPONSE` - Custom Response",
+											" * `BLOCK_REQUEST` - Block Request \n" +
+											" * `ALERT` - Alert Only \n" +
+											" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
+											" * `CUSTOM_RESPONSE` - Custom Response",
 									},
 									"name": {
-										Type:     schema.TypeString,
-										Optional: true,
-										Default:  "rules action",
+										Type:        schema.TypeString,
+										Optional:    true,
+										Default:     "rules action",
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"response_body_base64": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the response body that will be sent to malicious traffic. This value is Base64 encoded.",
 									},
 									"response_headers": {
@@ -484,24 +483,24 @@ func ResourceScopes() *schema.Resource {
 											Type: schema.TypeString,
 										},
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the set of response headers that will be sent to malicious traffic. \n\n" +
-										"    ->Each response header is specified as a name/value pair.",
+											"    ->Each response header is specified as a name/value pair.",
 									},
 									"status": {
-										Type:     schema.TypeInt,
-										Optional: true,
+										Type:        schema.TypeInt,
+										Optional:    true,
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.",
 									},
 									"url": {
-										Type:     schema.TypeString,
-										Optional: true,
+										Type:        schema.TypeString,
+										Optional:    true,
 										Description: "**enf_type: CUSTOM_RESPONSE Only:** Indicates the URL to which malicious requests will be redirected.",
 									},
 								},
 							},
 						},
 						"rules_prod_id": {
-							Type:     schema.TypeString,
-							Optional: true,
+							Type:        schema.TypeString,
+							Optional:    true,
 							Description: "Indicates the system-defined ID for the custom rule set that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 					},
@@ -547,7 +546,9 @@ func ResourceScopesRead(
 
 	accountNumber := d.Get("account_number").(string)
 	log.Printf("[INFO] Getting WAF Scopes for Account >> %s", accountNumber)
-	resp, err := wafService.GetAllScopes(accountNumber)
+	resp, err := wafService.Scopes.GetAllScopes(scopes.GetAllScopesParams{
+		AccountNumber: accountNumber,
+	})
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -595,7 +596,7 @@ func ResourceScopesDelete(
 	m interface{},
 ) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
-	scopes := make([]waf.Scope, 0)
+	scopes := make([]scopes.Scope, 0)
 	err := modifyAllScopes(ctx, m, accountNumber, scopes)
 	if err != nil {
 		return diag.FromErr(err)
@@ -606,15 +607,15 @@ func ResourceScopesDelete(
 
 // expandScopes converts the values read from a Terraform Configuration
 // file into the Scope API Model
-func expandScopes(flatScopes interface{}) ([]waf.Scope, error) {
+func expandScopes(flatScopes interface{}) ([]scopes.Scope, error) {
 	if flatScopes == nil {
-		return make([]waf.Scope, 0), errors.New("input was nil")
+		return make([]scopes.Scope, 0), errors.New("input was nil")
 	}
-	if scopes, ok := flatScopes.([]interface{}); ok {
-		expandedScopes := make([]waf.Scope, len(scopes))
-		for i, v := range scopes {
+	if scps, ok := flatScopes.([]interface{}); ok {
+		expandedScopes := make([]scopes.Scope, len(scps))
+		for i, v := range scps {
 			if m, ok := v.(map[string]interface{}); ok {
-				scope := waf.Scope{}
+				scope := scopes.Scope{}
 				scope.Name = helper.ConvertToString(
 					m["name"])
 				scope.Host = expandMatchCondition(
@@ -669,12 +670,12 @@ func expandScopes(flatScopes interface{}) ([]waf.Scope, error) {
 		}
 		return expandedScopes, nil
 	}
-	return make([]waf.Scope, 0), errors.New("input was not a []interface{}")
+	return make([]scopes.Scope, 0), errors.New("input was not a []interface{}")
 }
 
 // expandAuditAction converts the values read from a Terraform Configuration
 // file into the AuditAction API Model
-func expandAuditAction(v interface{}) *waf.AuditAction {
+func expandAuditAction(v interface{}) *scopes.AuditAction {
 	if v == nil {
 		return nil
 	}
@@ -682,7 +683,7 @@ func expandAuditAction(v interface{}) *waf.AuditAction {
 	if len(m) == 0 {
 		return nil
 	}
-	return &waf.AuditAction{
+	return &scopes.AuditAction{
 		Name: helper.ConvertToString(m["name"]),
 		Type: helper.ConvertToString(m["enf_type"]),
 	}
@@ -690,7 +691,7 @@ func expandAuditAction(v interface{}) *waf.AuditAction {
 
 // expandProdAction converts the values read from a Terraform Configuration
 // file into the ProdAction API Model
-func expandProdAction(v interface{}) *waf.ProdAction {
+func expandProdAction(v interface{}) *scopes.ProdAction {
 	if v == nil {
 		return nil
 	}
@@ -698,7 +699,7 @@ func expandProdAction(v interface{}) *waf.ProdAction {
 	if len(m) == 0 {
 		return nil
 	}
-	return &waf.ProdAction{
+	return &scopes.ProdAction{
 		Name:    helper.ConvertToString(m["name"]),
 		ENFType: helper.ConvertToString(m["enf_type"]),
 		ResponseBodyBase64: helper.ConvertToStringPointer(
@@ -721,9 +722,9 @@ func expandProdAction(v interface{}) *waf.ProdAction {
 
 // expandMatchCondition converts the values read from a Terraform Configuration
 // file into the MatchCondition API Model
-func expandMatchCondition(v interface{}) waf.MatchCondition {
+func expandMatchCondition(v interface{}) scopes.MatchCondition {
 	m, _ := helper.ConvertSingletonSetToMap(v)
-	mc := waf.MatchCondition{
+	mc := scopes.MatchCondition{
 		Type: helper.ConvertToString(m["type"]),
 	}
 	if v, ok := m["is_case_insensitive"]; ok {
@@ -743,7 +744,7 @@ func expandMatchCondition(v interface{}) waf.MatchCondition {
 
 // expandLimits converts the values read from a Terraform Configuration file
 // into the Limit API Model
-func expandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
+func expandLimits(flatLimits interface{}) (*[]scopes.Limit, error) {
 	if flatLimits == nil {
 		return nil, nil
 	}
@@ -751,12 +752,12 @@ func expandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 		if len(list) == 0 {
 			return nil, nil
 		}
-		limits := make([]waf.Limit, len(list))
+		limits := make([]scopes.Limit, len(list))
 		for i, listItem := range list {
 			m := listItem.(map[string]interface{})
-			limits[i] = waf.Limit{
+			limits[i] = scopes.Limit{
 				ID: helper.ConvertToString(m["id"]),
-				Action: waf.LimitAction{
+				Action: scopes.LimitAction{
 					DurationSec: helper.ConvertToInt(
 						m["duration_sec"]),
 					ENFType: helper.ConvertToString(
@@ -786,7 +787,7 @@ func expandLimits(flatLimits interface{}) (*[]waf.Limit, error) {
 
 // flattenScopes converts the Scopes API Model
 // into a format that Terraform can work with
-func flattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
+func flattenScopes(scopes *scopes.Scopes) ([]map[string]interface{}, error) {
 	if scopes == nil {
 		return nil, errors.New("scopes was nil")
 	}
@@ -849,7 +850,7 @@ func flattenScopes(scopes *waf.Scopes) ([]map[string]interface{}, error) {
 
 // flattenProdAction converts the ProdAction API Model
 // into a format that Terraform can work with
-func flattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
+func flattenProdAction(prodAction scopes.ProdAction) []map[string]interface{} {
 	m := make(map[string]interface{})
 	m["enf_type"] = prodAction.ENFType
 	m["name"] = prodAction.Name
@@ -875,7 +876,7 @@ func flattenProdAction(prodAction waf.ProdAction) []map[string]interface{} {
 
 // flattenAuditAction converts the AuditAction API Model
 // into a format that Terraform can work with
-func flattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
+func flattenAuditAction(auditAction scopes.AuditAction) []map[string]interface{} {
 	m := make(map[string]interface{})
 	m["enf_type"] = auditAction.Type
 	m["name"] = auditAction.Name
@@ -887,7 +888,7 @@ func flattenAuditAction(auditAction waf.AuditAction) []map[string]interface{} {
 // flattenMatchCondition converts the MatchCondition API Model
 // into a format that Terraform can work with
 func flattenMatchCondition(
-	matchCondition waf.MatchCondition,
+	matchCondition scopes.MatchCondition,
 ) []map[string]interface{} {
 	m := make(map[string]interface{})
 	m["type"] = matchCondition.Type
@@ -910,7 +911,7 @@ func flattenMatchCondition(
 
 // flattenLimits converts the Limit API Model
 // into a format that Terraform can work with
-func flattenLimits(limits []waf.Limit) []map[string]interface{} {
+func flattenLimits(limits []scopes.Limit) []map[string]interface{} {
 	maps := make([]map[string]interface{}, len(limits))
 	for i, l := range limits {
 		m := make(map[string]interface{})
@@ -939,12 +940,12 @@ func modifyAllScopes(
 	ctx context.Context,
 	m interface{},
 	accountNumber string,
-	scopes []waf.Scope,
+	scps []scopes.Scope,
 ) error {
 	log.Printf("[INFO] Modifying WAF Scopes for Account >> %s", accountNumber)
-	payload := waf.Scopes{
+	payload := scopes.Scopes{
 		CustomerID: accountNumber,
-		Scopes:     scopes,
+		Scopes:     scps,
 	}
 	logScopes(payload)
 	config := m.(**api.ClientConfig)
@@ -954,7 +955,7 @@ func modifyAllScopes(
 		return err
 	}
 
-	resp, err := wafService.ModifyAllScopes(payload)
+	resp, err := wafService.Scopes.ModifyAllScopes(payload)
 
 	if err != nil {
 		return err
@@ -964,7 +965,7 @@ func modifyAllScopes(
 	return nil
 }
 
-func readScopes(d *schema.ResourceData) ([]waf.Scope, error) {
+func readScopes(d *schema.ResourceData) ([]scopes.Scope, error) {
 	if flatScopes, ok := d.GetOk("scope"); ok {
 		expandedScopes, err := expandScopes(flatScopes)
 		if err != nil {
@@ -975,7 +976,7 @@ func readScopes(d *schema.ResourceData) ([]waf.Scope, error) {
 	return nil, errors.New("scopes not found or incorrectly formatted")
 }
 
-func logScopes(s waf.Scopes) {
+func logScopes(s scopes.Scopes) {
 	log.Printf("[DEBUG] Customer ID: %+v \n", s.CustomerID)
 	log.Printf("[DEBUG] Name: %+v \n", s.Name)
 	log.Printf("[DEBUG] Scopes: (%d items) \n\n", len(s.Scopes))
@@ -984,7 +985,7 @@ func logScopes(s waf.Scopes) {
 	}
 }
 
-func logScope(s waf.Scope) {
+func logScope(s scopes.Scope) {
 	log.Printf("[DEBUG] \tID: %+v \n", s.ID)
 	log.Printf("[DEBUG] \tName: %+v \n", s.Name)
 	log.Print("[DEBUG] \tHost: \n\n")
@@ -1052,13 +1053,13 @@ func logScope(s waf.Scope) {
 	}
 }
 
-func logAuditAction(a waf.AuditAction) {
+func logAuditAction(a scopes.AuditAction) {
 	log.Printf("[DEBUG] \t\t ID: %+v \n", a.ID)
 	log.Printf("[DEBUG] \t\t Name: %+v \n", a.Name)
 	log.Printf("[DEBUG] \t\t Type: %+v \n", a.Type)
 }
 
-func logProdAction(a waf.ProdAction) {
+func logProdAction(a scopes.ProdAction) {
 	log.Printf("[DEBUG] \t\t ID: %+v \n", a.ID)
 	log.Printf("[DEBUG] \t\t Name: %+v \n", a.Name)
 	log.Printf("[DEBUG] \t\t ENFType: %+v \n", a.ENFType)
@@ -1081,7 +1082,7 @@ func logProdAction(a waf.ProdAction) {
 	}
 }
 
-func logLimit(l waf.Limit) {
+func logLimit(l scopes.Limit) {
 	log.Printf("[DEBUG] \t\t ID: %+v \n", l.ID)
 	log.Printf("[DEBUG] \t\t DurationSec: %+v \n", l.Action.DurationSec)
 	log.Printf("[DEBUG] \t\t ENFType: %+v \n", l.Action.ENFType)
@@ -1104,7 +1105,7 @@ func logLimit(l waf.Limit) {
 	}
 }
 
-func logMatchCondition(m waf.MatchCondition) {
+func logMatchCondition(m scopes.MatchCondition) {
 	if m.IsCaseInsensitive != nil {
 		log.Printf(
 			"[DEBUG] \t\t IsCaseInsensitive: %+v \n",

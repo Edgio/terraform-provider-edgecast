@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/bot"
 )
 
 func ResourceBotRuleSetCreate(ctx context.Context,
@@ -34,7 +34,7 @@ func ResourceBotRuleSetCreate(ctx context.Context,
 		"[INFO] Creating WAF Bot Rule Set for Account >> %s",
 		accountNumber)
 
-	botRuleSet := sdkwaf.BotRuleSet{
+	botRuleSet := bot.BotRuleSet{
 		Name: d.Get("name").(string),
 	}
 
@@ -48,10 +48,10 @@ func ResourceBotRuleSetCreate(ctx context.Context,
 	log.Printf("[DEBUG] Name: %+v\n", botRuleSet.Name)
 	log.Printf("[DEBUG] Directive(s): %+v\n", botRuleSet.Directives)
 
-	params := sdkwaf.NewAddBotRuleSetParams()
+	params := bot.NewAddBotRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.BotRuleSet = botRuleSet
-	resp, err := wafService.AddBotRuleSet(params)
+	resp, err := wafService.Bot.AddBotRuleSet(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -86,10 +86,10 @@ func ResourceBotRuleSetRead(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewGetBotRuleSetParams()
+	params := bot.NewGetBotRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.BotRuleSetID = botRuleSetID
-	resp, err := wafService.GetBotRuleSet(params)
+	resp, err := wafService.Bot.GetBotRuleSet(params)
 
 	if err != nil {
 		d.SetId("")
@@ -125,7 +125,7 @@ func ResourceBotRuleSetUpdate(ctx context.Context,
 		accountNumber,
 	)
 
-	botRuleSet := sdkwaf.BotRuleSet{}
+	botRuleSet := bot.BotRuleSet{}
 	botRuleSet.Name = d.Get("name").(string)
 
 	directives, err := expandBotRuleDirectives(d.Get("directive"))
@@ -144,11 +144,11 @@ func ResourceBotRuleSetUpdate(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewUpdateBotRuleSetParams()
+	params := bot.NewUpdateBotRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.BotRuleSet = botRuleSet
 	params.BotRuleSetID = botRuleSetID
-	err = wafService.UpdateBotRuleSet(params)
+	err = wafService.Bot.UpdateBotRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -182,10 +182,10 @@ func ResourceBotRuleSetDelete(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewDeleteBotRuleSetParams()
+	params := bot.NewDeleteBotRuleSetParams()
 	params.AccountNumber = accountNumber
 	params.BotRuleSetID = botRuleSetID
-	err = wafService.DeleteBotRuleSet(params)
+	err = wafService.Bot.DeleteBotRuleSet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,17 +200,17 @@ func ResourceBotRuleSetDelete(ctx context.Context,
 
 func expandBotRuleDirectives(
 	attr interface{},
-) (*[]sdkwaf.BotRuleDirective, error) {
+) (*[]bot.BotRuleDirective, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		directives := make([]sdkwaf.BotRuleDirective, 0)
+		directives := make([]bot.BotRuleDirective, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			directive := sdkwaf.BotRuleDirective{}
+			directive := bot.BotRuleDirective{}
 
 			if secRuleRaw, ok := curr["sec_rule"]; ok {
 
@@ -242,7 +242,7 @@ func expandBotRuleDirectives(
 // flattenBotRuleDirectives converts the BotRuleDirective API Model
 // into a format that Terraform can work with
 func flattenBotRuleDirectives(
-	directive []sdkwaf.BotRuleDirective,
+	directive []bot.BotRuleDirective,
 ) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
