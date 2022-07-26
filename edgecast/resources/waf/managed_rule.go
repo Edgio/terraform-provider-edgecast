@@ -11,8 +11,7 @@ import (
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
-
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/managed"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -136,10 +135,10 @@ func ResourceManagedRule() *schema.Resource {
 							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 						"json_parser": {
-							Type:        schema.TypeBool,
-							Description: "Determines whether JSON payloads will be inspected. Valid values are: \n\n" + 
-							"        true | false",
-							Optional:    true,
+							Type: schema.TypeBool,
+							Description: "Determines whether JSON payloads will be inspected. Valid values are: \n\n" +
+								"        true | false",
+							Optional: true,
 						},
 						"max_num_args": {
 							Type:        schema.TypeInt,
@@ -147,10 +146,10 @@ func ResourceManagedRule() *schema.Resource {
 							Required:    true,
 						},
 						"paranoia_level": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the balance between the level of protection and false positives. Valid values are: \n\n" + 
-							"        1 | 2 | 3 | 4",
-							Optional:    true,
+							Type: schema.TypeInt,
+							Description: "Indicates the balance between the level of protection and false positives. Valid values are: \n\n" +
+								"        1 | 2 | 3 | 4",
+							Optional: true,
 						},
 						"process_request_body": {
 							Type:        schema.TypeBool,
@@ -237,7 +236,7 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Creating WAF Managed Rule for Account >> %s", accountNumber)
 
-	managedRule := sdkwaf.ManagedRule{}
+	managedRule := managed.ManagedRule{}
 
 	managedRule.Name = d.Get("name").(string)
 	managedRule.RulesetID = d.Get("ruleset_id").(string)
@@ -301,10 +300,10 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewAddManagedRuleParams()
+	params := managed.NewAddManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRule = managedRule
-	resp, err := wafService.AddManagedRule(params)
+	resp, err := wafService.Managed.AddManagedRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -336,10 +335,10 @@ func ResourceManagedRuleRead(ctx context.Context, d *schema.ResourceData, m inte
 	}
 
 	// Retrieve Managed Rule
-	params := sdkwaf.NewGetManagedRuleParams()
+	params := managed.NewGetManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRuleID = ruleID
-	resp, err := wafService.GetManagedRule(params)
+	resp, err := wafService.Managed.GetManagedRule(params)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -380,7 +379,7 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Updating WAF Managed Rule ID %s for Account >> %s", managedRuleID, accountNumber)
 
-	managedRule := sdkwaf.ManagedRule{}
+	managedRule := managed.ManagedRule{}
 
 	managedRule.Name = d.Get("name").(string)
 	managedRule.RulesetID = d.Get("ruleset_id").(string)
@@ -444,11 +443,11 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewUpdateManagedRuleParams()
+	params := managed.NewUpdateManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRuleID = managedRuleID
 	params.ManagedRule = managedRule
-	err = wafService.UpdateManagedRule(params)
+	err = wafService.Managed.UpdateManagedRule(params)
 
 	if err != nil {
 		d.SetId("")
@@ -476,10 +475,10 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	params := sdkwaf.NewDeleteManagedRuleParams()
+	params := managed.NewDeleteManagedRuleParams()
 	params.AccountNumber = accountNumber
 	params.ManagedRuleID = managedRuleID
-	err = wafService.DeleteManagedRule(params)
+	err = wafService.Managed.DeleteManagedRule(params)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -494,17 +493,17 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 }
 
 // ExpandDisabledRules converts user-provided Terraform configuration data into the Disabled Rules API Model
-func ExpandDisabledRules(attr interface{}) (*[]sdkwaf.DisabledRule, error) {
+func ExpandDisabledRules(attr interface{}) (*[]managed.DisabledRule, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		disabledRules := make([]sdkwaf.DisabledRule, 0)
+		disabledRules := make([]managed.DisabledRule, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			disabledRule := sdkwaf.DisabledRule{
+			disabledRule := managed.DisabledRule{
 				PolicyID: curr["policy_id"].(string),
 				RuleID:   curr["rule_id"].(string),
 			}
@@ -520,17 +519,17 @@ func ExpandDisabledRules(attr interface{}) (*[]sdkwaf.DisabledRule, error) {
 }
 
 // ExpandRuleTargetUpdates converts user-provided Terraform configuration data into the Rule Target Updates API Model
-func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdate, error) {
+func ExpandRuleTargetUpdates(attr interface{}) (*[]managed.RuleTargetUpdate, error) {
 
 	if set, ok := attr.(*schema.Set); ok {
 
 		items := set.List()
-		ruleTargetUpdates := make([]sdkwaf.RuleTargetUpdate, 0)
+		ruleTargetUpdates := make([]managed.RuleTargetUpdate, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			ruleTargetUpdate := sdkwaf.RuleTargetUpdate{
+			ruleTargetUpdate := managed.RuleTargetUpdate{
 				IsNegated:     curr["is_negated"].(bool),
 				IsRegex:       curr["is_regex"].(bool),
 				ReplaceTarget: curr["replace_target"].(string),
@@ -551,7 +550,7 @@ func ExpandRuleTargetUpdates(attr interface{}) (*[]sdkwaf.RuleTargetUpdate, erro
 
 // ExpandGeneralSettings converts the values read from a Terraform
 // configuration file into the General Settings API Model
-func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
+func ExpandGeneralSettings(attr interface{}) (*managed.GeneralSettings, error) {
 	// The values are stored as a map in a 1-item set
 	// So pull it out so we can work with it
 	m, err := helper.ConvertSingletonSetToMap(attr)
@@ -560,7 +559,7 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 		return nil, err
 	}
 
-	generalSettings := sdkwaf.GeneralSettings{}
+	generalSettings := managed.GeneralSettings{}
 
 	if anomalyThreshold, ok := m["anomaly_threshold"].(int); ok {
 		generalSettings.AnomalyThreshold = anomalyThreshold
@@ -696,7 +695,7 @@ func ExpandGeneralSettings(attr interface{}) (*sdkwaf.GeneralSettings, error) {
 }
 
 // FlattenDisabledRules converts the Disabled Rules API Model into a format that Terraform can work with
-func FlattenDisabledRules(disabledRules []sdkwaf.DisabledRule) []map[string]interface{} {
+func FlattenDisabledRules(disabledRules []managed.DisabledRule) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 
@@ -710,7 +709,7 @@ func FlattenDisabledRules(disabledRules []sdkwaf.DisabledRule) []map[string]inte
 }
 
 // FlattenRuleTargetUpdates converts the Rule Target Update API Model into a format that Terraform can work with
-func FlattenRuleTargetUpdates(ruleTargetUpdate []sdkwaf.RuleTargetUpdate) []map[string]interface{} {
+func FlattenRuleTargetUpdates(ruleTargetUpdate []managed.RuleTargetUpdate) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 
@@ -729,7 +728,7 @@ func FlattenRuleTargetUpdates(ruleTargetUpdate []sdkwaf.RuleTargetUpdate) []map[
 }
 
 // FlattenGeneralSettings converts the General Settings API Model into a format that Terraform can work with
-func FlattenGeneralSettings(generalSettings sdkwaf.GeneralSettings) []map[string]interface{} {
+func FlattenGeneralSettings(generalSettings managed.GeneralSettings) []map[string]interface{} {
 
 	flattened := make([]map[string]interface{}, 0)
 

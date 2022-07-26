@@ -8,7 +8,7 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/managed"
 )
 
 func TestExpandDisabledRules(t *testing.T) {
@@ -16,7 +16,7 @@ func TestExpandDisabledRules(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.DisabledRule
+		expectedPtr   *[]managed.DisabledRule
 		expectSuccess bool
 	}{
 		{
@@ -31,7 +31,7 @@ func TestExpandDisabledRules(t *testing.T) {
 					"rule_id":   "myRuleId2",
 				},
 			}),
-			expectedPtr: &[]sdkwaf.DisabledRule{
+			expectedPtr: &[]managed.DisabledRule{
 				{
 					PolicyID: "myPolicyId1",
 					RuleID:   "myRuleId1",
@@ -46,7 +46,7 @@ func TestExpandDisabledRules(t *testing.T) {
 		{
 			name:          "Happy path - None Defined",
 			input:         helper.NewTerraformSet([]interface{}{}),
-			expectedPtr:   &[]sdkwaf.DisabledRule{},
+			expectedPtr:   &[]managed.DisabledRule{},
 			expectSuccess: true,
 		},
 		{
@@ -96,7 +96,7 @@ func TestExpandRuleTargetUpdates(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.RuleTargetUpdate
+		expectedPtr   *[]managed.RuleTargetUpdate
 		expectSuccess bool
 	}{
 		{
@@ -119,7 +119,7 @@ func TestExpandRuleTargetUpdates(t *testing.T) {
 					"target_match":   "targetMatch2",
 				},
 			}),
-			expectedPtr: &[]sdkwaf.RuleTargetUpdate{
+			expectedPtr: &[]managed.RuleTargetUpdate{
 				{
 					IsNegated:     true,
 					IsRegex:       true,
@@ -142,7 +142,7 @@ func TestExpandRuleTargetUpdates(t *testing.T) {
 		{
 			name:          "Happy path - None Defined",
 			input:         helper.NewTerraformSet([]interface{}{}),
-			expectedPtr:   &[]sdkwaf.RuleTargetUpdate{},
+			expectedPtr:   &[]managed.RuleTargetUpdate{},
 			expectSuccess: true,
 		},
 		{
@@ -192,7 +192,7 @@ func TestExpandGeneralSettings(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *sdkwaf.GeneralSettings
+		expectedPtr   *managed.GeneralSettings
 		expectSuccess bool
 	}{
 		{
@@ -216,7 +216,7 @@ func TestExpandGeneralSettings(t *testing.T) {
 					"xml_parser":             false,
 				},
 			}),
-			expectedPtr: &sdkwaf.GeneralSettings{
+			expectedPtr: &managed.GeneralSettings{
 				AnomalyThreshold:     2,
 				ArgLength:            1024,
 				ArgNameLength:        512,
@@ -244,7 +244,7 @@ func TestExpandGeneralSettings(t *testing.T) {
 		{
 			name:          "Error path - GetMapFromSet() error handling",
 			input:         helper.NewTerraformSet([]interface{}{}),
-			expectedPtr:   &sdkwaf.GeneralSettings{},
+			expectedPtr:   &managed.GeneralSettings{},
 			expectSuccess: false,
 		},
 		{
@@ -282,12 +282,12 @@ func TestFlattenDisabledRules(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		input    []sdkwaf.DisabledRule
+		input    []managed.DisabledRule
 		expected []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []sdkwaf.DisabledRule{
+			input: []managed.DisabledRule{
 				{
 					PolicyID: "policyID1",
 					RuleID:   "ruleID1",
@@ -310,7 +310,7 @@ func TestFlattenDisabledRules(t *testing.T) {
 		},
 		{
 			name:     "Empty collection",
-			input:    []sdkwaf.DisabledRule{},
+			input:    []managed.DisabledRule{},
 			expected: []map[string]interface{}{},
 		},
 	}
@@ -329,12 +329,12 @@ func TestFlattenRuleTargetUpdates(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		input    []sdkwaf.RuleTargetUpdate
+		input    []managed.RuleTargetUpdate
 		expected []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []sdkwaf.RuleTargetUpdate{
+			input: []managed.RuleTargetUpdate{
 				{
 					IsNegated:     true,
 					IsRegex:       true,
@@ -373,7 +373,7 @@ func TestFlattenRuleTargetUpdates(t *testing.T) {
 		},
 		{
 			name:     "Empty collection",
-			input:    []sdkwaf.RuleTargetUpdate{},
+			input:    []managed.RuleTargetUpdate{},
 			expected: []map[string]interface{}{},
 		},
 	}
@@ -392,12 +392,12 @@ func TestFlattenGeneralSettings(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		input    sdkwaf.GeneralSettings
+		input    managed.GeneralSettings
 		expected []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: sdkwaf.GeneralSettings{
+			input: managed.GeneralSettings{
 				AnomalyThreshold:     10,
 				ArgLength:            1024,
 				ArgNameLength:        2048,
@@ -436,7 +436,7 @@ func TestFlattenGeneralSettings(t *testing.T) {
 		},
 		{
 			name:  "Empty collection",
-			input: sdkwaf.GeneralSettings{},
+			input: managed.GeneralSettings{},
 			expected: []map[string]interface{}{
 				{
 					"anomaly_threshold":      0,

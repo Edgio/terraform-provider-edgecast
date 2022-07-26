@@ -8,40 +8,40 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/custom"
 	"github.com/go-test/deep"
 )
 
 func TestFlattenCustomRuleDirectives(t *testing.T) {
 	cases := []struct {
 		name     string
-		input    []sdkwaf.CustomRuleDirective
+		input    []custom.CustomRuleDirective
 		expected []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []sdkwaf.CustomRuleDirective{
+			input: []custom.CustomRuleDirective{
 				{
-					SecRule: sdkwaf.SecRule{
+					SecRule: rules.SecRule{
 						Name: "Test Rule 1",
-						Action: sdkwaf.Action{
+						Action: rules.Action{
 							ID:      "66000000",
 							Message: "Invalid user agent.",
-							Transformations: []waf.Transformation{
-								waf.TransformRemoveNulls,
+							Transformations: []rules.Transformation{
+								rules.TransformRemoveNulls,
 							},
 						},
-						Operator: sdkwaf.Operator{
+						Operator: rules.Operator{
 							IsNegated: false,
-							Type:      waf.OpBeginsWith,
+							Type:      rules.OpBeginsWith,
 							Value:     "bot",
 						},
-						Variables: []sdkwaf.Variable{
+						Variables: []rules.Variable{
 							{
 								IsCount: false,
-								Type:    waf.VarRequestCookies,
-								Matches: []sdkwaf.Match{
+								Type:    rules.VarRequestCookies,
+								Matches: []rules.Match{
 									{
 										IsRegex:   false,
 										IsNegated: false,
@@ -50,25 +50,25 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 								},
 							},
 						},
-						ChainedRules: []sdkwaf.ChainedRule{
+						ChainedRules: []rules.ChainedRule{
 							{
-								Action: sdkwaf.Action{
+								Action: rules.Action{
 									ID:      "66000001",
 									Message: "Invalid user agent - chained.",
-									Transformations: []waf.Transformation{
-										waf.TransformLowerCase,
+									Transformations: []rules.Transformation{
+										rules.TransformLowerCase,
 									},
 								},
-								Operator: sdkwaf.Operator{
+								Operator: rules.Operator{
 									IsNegated: false,
-									Type:      waf.OpEndsWith,
+									Type:      rules.OpEndsWith,
 									Value:     "bot",
 								},
-								Variables: []sdkwaf.Variable{
+								Variables: []rules.Variable{
 									{
 										IsCount: false,
-										Type:    waf.VarRequestHeaders,
-										Matches: []sdkwaf.Match{
+										Type:    rules.VarRequestHeaders,
+										Matches: []rules.Match{
 											{
 												IsRegex:   false,
 												IsNegated: false,
@@ -157,7 +157,7 @@ func TestFlattenCustomRuleDirectives(t *testing.T) {
 		},
 		{
 			name:     "Empty path",
-			input:    make([]sdkwaf.CustomRuleDirective, 0),
+			input:    make([]custom.CustomRuleDirective, 0),
 			expected: make([]map[string]interface{}, 0),
 		},
 	}
@@ -183,7 +183,7 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.CustomRuleDirective
+		expectedPtr   *[]custom.CustomRuleDirective
 		expectSuccess bool
 	}{
 		{
@@ -255,27 +255,27 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 					}),
 				},
 			}),
-			expectedPtr: &[]sdkwaf.CustomRuleDirective{
+			expectedPtr: &[]custom.CustomRuleDirective{
 				{
-					SecRule: sdkwaf.SecRule{
+					SecRule: rules.SecRule{
 						Name: "REQUEST_HEADERS",
-						Action: sdkwaf.Action{
+						Action: rules.Action{
 							ID:      "66000000",
 							Message: "Invalid user agent.",
-							Transformations: []waf.Transformation{
-								waf.TransformNone,
+							Transformations: []rules.Transformation{
+								rules.TransformNone,
 							},
 						},
-						Operator: sdkwaf.Operator{
+						Operator: rules.Operator{
 							IsNegated: false,
-							Type:      waf.OpContains,
+							Type:      rules.OpContains,
 							Value:     "bot",
 						},
-						Variables: []sdkwaf.Variable{
+						Variables: []rules.Variable{
 							{
 								IsCount: false,
-								Type:    waf.VarRequestHeaders,
-								Matches: []sdkwaf.Match{
+								Type:    rules.VarRequestHeaders,
+								Matches: []rules.Match{
 									{
 										IsRegex:   false,
 										IsNegated: false,
@@ -284,25 +284,25 @@ func TestExpandCustomRuleDirectives(t *testing.T) {
 								},
 							},
 						},
-						ChainedRules: []sdkwaf.ChainedRule{
+						ChainedRules: []rules.ChainedRule{
 							{
-								Action: sdkwaf.Action{
+								Action: rules.Action{
 									ID:      "66000001",
 									Message: "Invalid user agent - chained.",
-									Transformations: []waf.Transformation{
-										waf.TransformNone,
+									Transformations: []rules.Transformation{
+										rules.TransformNone,
 									},
 								},
-								Operator: sdkwaf.Operator{
+								Operator: rules.Operator{
 									IsNegated: false,
-									Type:      waf.OpContains,
+									Type:      rules.OpContains,
 									Value:     "bot",
 								},
-								Variables: []sdkwaf.Variable{
+								Variables: []rules.Variable{
 									{
 										IsCount: false,
-										Type:    waf.VarRequestHeaders,
-										Matches: []sdkwaf.Match{
+										Type:    rules.VarRequestHeaders,
+										Matches: []rules.Match{
 											{
 												IsRegex:   false,
 												IsNegated: false,

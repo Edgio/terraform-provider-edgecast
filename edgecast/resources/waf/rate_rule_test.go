@@ -8,7 +8,7 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/rate"
 )
 
 var (
@@ -22,7 +22,7 @@ func TestExpandConditions(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.Condition
+		expectedPtr   *[]rate.Condition
 		expectSuccess bool
 	}{
 		{
@@ -60,13 +60,13 @@ func TestExpandConditions(t *testing.T) {
 					}),
 				},
 			}),
-			expectedPtr: &[]sdkwaf.Condition{
+			expectedPtr: &[]rate.Condition{
 				{
-					Target: sdkwaf.Target{
+					Target: rate.Target{
 						Type:  "REQUEST_HEADERS",
 						Value: "Host",
 					},
-					OP: sdkwaf.OP{
+					OP: rate.OP{
 						IsCaseInsensitive: &trueBool,
 						IsNegated:         &trueBool,
 						Type:              "EM",
@@ -74,10 +74,10 @@ func TestExpandConditions(t *testing.T) {
 					},
 				},
 				{
-					Target: sdkwaf.Target{
+					Target: rate.Target{
 						Type: "REQUEST_URI",
 					},
-					OP: sdkwaf.OP{
+					OP: rate.OP{
 						IsCaseInsensitive: &falseBool,
 						IsNegated:         &falseBool,
 						Type:              "RX",
@@ -161,7 +161,7 @@ func TestExpandConditionGroups(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   *[]sdkwaf.ConditionGroup
+		expectedPtr   *[]rate.ConditionGroup
 		expectSuccess bool
 	}{
 		{
@@ -211,17 +211,17 @@ func TestExpandConditionGroups(t *testing.T) {
 					}),
 				},
 			}),
-			expectedPtr: &[]sdkwaf.ConditionGroup{
+			expectedPtr: &[]rate.ConditionGroup{
 				{
 					ID:   "group1",
 					Name: "Group 1",
-					Conditions: []sdkwaf.Condition{
+					Conditions: []rate.Condition{
 						{
-							Target: sdkwaf.Target{
+							Target: rate.Target{
 								Type:  "REQUEST_HEADERS",
 								Value: "Host",
 							},
-							OP: sdkwaf.OP{
+							OP: rate.OP{
 								IsCaseInsensitive: &trueBool,
 								IsNegated:         &trueBool,
 								Type:              "EM",
@@ -233,12 +233,12 @@ func TestExpandConditionGroups(t *testing.T) {
 				{
 					ID:   "group2",
 					Name: "Group 2",
-					Conditions: []sdkwaf.Condition{
+					Conditions: []rate.Condition{
 						{
-							Target: sdkwaf.Target{
+							Target: rate.Target{
 								Type: "REQUEST_URI",
 							},
-							OP: sdkwaf.OP{
+							OP: rate.OP{
 								IsCaseInsensitive: &falseBool,
 								IsNegated:         &falseBool,
 								Type:              "RX",
@@ -297,22 +297,22 @@ func TestFlattenConditionGroups(t *testing.T) {
 
 	cases := []struct {
 		name     string
-		input    []sdkwaf.ConditionGroup
+		input    []rate.ConditionGroup
 		expected []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []sdkwaf.ConditionGroup{
+			input: []rate.ConditionGroup{
 				{
 					ID:   "group1",
 					Name: "Group 1",
-					Conditions: []sdkwaf.Condition{
+					Conditions: []rate.Condition{
 						{
-							Target: sdkwaf.Target{
+							Target: rate.Target{
 								Type:  "REQUEST_HEADERS",
 								Value: "Host",
 							},
-							OP: sdkwaf.OP{
+							OP: rate.OP{
 								IsCaseInsensitive: &trueBool,
 								IsNegated:         &trueBool,
 								Type:              "EM",
@@ -324,12 +324,12 @@ func TestFlattenConditionGroups(t *testing.T) {
 				{
 					ID:   "group2",
 					Name: "Group 2",
-					Conditions: []sdkwaf.Condition{
+					Conditions: []rate.Condition{
 						{
-							Target: sdkwaf.Target{
+							Target: rate.Target{
 								Type: "REQUEST_URI",
 							},
-							OP: sdkwaf.OP{
+							OP: rate.OP{
 								IsCaseInsensitive: &(falseBool),
 								IsNegated:         &falseBool,
 								Type:              "RX",
@@ -387,7 +387,7 @@ func TestFlattenConditionGroups(t *testing.T) {
 		},
 		{
 			name:     "Empty collection",
-			input:    []sdkwaf.ConditionGroup{},
+			input:    []rate.ConditionGroup{},
 			expected: []map[string]interface{}{},
 		},
 	}

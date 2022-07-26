@@ -7,14 +7,14 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
-	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/access"
 )
 
 func TestExpandAccessControls(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expected      sdkwaf.AccessControls
+		expected      access.AccessControls
 		expectSuccess bool
 	}{
 		{
@@ -24,7 +24,7 @@ func TestExpandAccessControls(t *testing.T) {
 				"blacklist":  []interface{}{"val4", "val5", "val6"},
 				"whitelist":  []interface{}{"val7", "val8", "val9"},
 			}}),
-			expected: sdkwaf.AccessControls{
+			expected: access.AccessControls{
 				Accesslist: []interface{}{"val1", "val2", "val3"},
 				Blacklist:  []interface{}{"val4", "val5", "val6"},
 				Whitelist:  []interface{}{"val7", "val8", "val9"},
@@ -38,7 +38,7 @@ func TestExpandAccessControls(t *testing.T) {
 				"blacklist":  []interface{}{4, 5, 6},
 				"whitelist":  []interface{}{7, 8, 9},
 			}}),
-			expected: sdkwaf.AccessControls{
+			expected: access.AccessControls{
 				Accesslist: []interface{}{1, 2, 3},
 				Blacklist:  []interface{}{4, 5, 6},
 				Whitelist:  []interface{}{7, 8, 9},
@@ -92,13 +92,13 @@ func TestFlattenAccessControls(t *testing.T) {
 
 	cases := []struct {
 		name          string
-		input         sdkwaf.AccessControls
+		input         access.AccessControls
 		expected      []map[string]interface{}
 		expectSuccess bool
 	}{
 		{
 			name: "Happy path",
-			input: sdkwaf.AccessControls{
+			input: access.AccessControls{
 				Accesslist: []interface{}{"10.10.10.4"},
 				Blacklist:  []interface{}{"10.10.10.3"},
 				Whitelist:  []interface{}{"10.10.10.2"},
@@ -120,7 +120,7 @@ func TestFlattenAccessControls(t *testing.T) {
 		},
 		{
 			name: "Nil path",
-			input: sdkwaf.AccessControls{
+			input: access.AccessControls{
 				Accesslist: nil,
 				Blacklist:  nil,
 				Whitelist:  nil,

@@ -6,7 +6,7 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/scopes"
 	"github.com/go-test/deep"
 )
 
@@ -14,7 +14,7 @@ func TestExpandScopes(t *testing.T) {
 	cases := []struct {
 		name          string
 		input         interface{}
-		expected      []waf.Scope
+		expected      []scopes.Scope
 		expectSuccess bool
 	}{
 		{
@@ -126,10 +126,10 @@ func TestExpandScopes(t *testing.T) {
 					}),
 				},
 			},
-			expected: []waf.Scope{
+			expected: []scopes.Scope{
 				{
 					Name: "Scope 1",
-					Host: waf.MatchCondition{
+					Host: scopes.MatchCondition{
 						Type:              "EM",
 						IsCaseInsensitive: wrapBoolInPtr(true),
 						IsNegated:         wrapBoolInPtr(true),
@@ -138,16 +138,16 @@ func TestExpandScopes(t *testing.T) {
 							"site2.com",
 						}),
 					},
-					Path: waf.MatchCondition{
+					Path: scopes.MatchCondition{
 						Type:              "GLOB",
 						IsCaseInsensitive: wrapBoolInPtr(false),
 						IsNegated:         wrapBoolInPtr(false),
 						Value:             wrapStringInPtr("*"),
 					},
-					Limits: &[]waf.Limit{
+					Limits: &[]scopes.Limit{
 						{
 							ID: "rateruleid1",
-							Action: waf.LimitAction{
+							Action: scopes.LimitAction{
 								DurationSec: 60,
 								ENFType:     "DROP_REQUEST",
 								Name:        "limit drop request",
@@ -155,7 +155,7 @@ func TestExpandScopes(t *testing.T) {
 						},
 						{
 							ID: "rateruleid2",
-							Action: waf.LimitAction{
+							Action: scopes.LimitAction{
 								DurationSec: 300,
 								ENFType:     "REDIRECT_302",
 								Name:        "limit redirect",
@@ -164,7 +164,7 @@ func TestExpandScopes(t *testing.T) {
 						},
 						{
 							ID: "rateruleid3",
-							Action: waf.LimitAction{
+							Action: scopes.LimitAction{
 								DurationSec:        30,
 								ENFType:            "CUSTOM_RESPONSE",
 								Name:               "limit custom",
@@ -178,23 +178,23 @@ func TestExpandScopes(t *testing.T) {
 						},
 					},
 					ACLAuditID: wrapStringInPtr("accessRuleID"),
-					ACLAuditAction: &waf.AuditAction{
+					ACLAuditAction: &scopes.AuditAction{
 						Name: "access rule audit action",
 						Type: "ALERT",
 					},
 					ACLProdID: wrapStringInPtr("accessRuleID"),
-					ACLProdAction: &waf.ProdAction{
+					ACLProdAction: &scopes.ProdAction{
 						ENFType: "ALERT",
 						Name:    "access rule prod action",
 					},
 
 					ProfileAuditID: wrapStringInPtr("managedRuleID"),
-					ProfileAuditAction: &waf.AuditAction{
+					ProfileAuditAction: &scopes.AuditAction{
 						Name: "managed rule audit action",
 						Type: "ALERT",
 					},
 					ProfileProdID: wrapStringInPtr("managedRuleID"),
-					ProfileProdAction: &waf.ProdAction{
+					ProfileProdAction: &scopes.ProdAction{
 						Name:               "managed rule prod action",
 						ENFType:            "CUSTOM_RESPONSE",
 						Status:             wrapIntInPtr(404),
@@ -206,18 +206,18 @@ func TestExpandScopes(t *testing.T) {
 					},
 
 					RuleAuditID: wrapStringInPtr("customRuleID"),
-					RuleAuditAction: &waf.AuditAction{
+					RuleAuditAction: &scopes.AuditAction{
 						Name: "custom rule audit action",
 						Type: "ALERT",
 					},
 					RuleProdID: wrapStringInPtr("customRuleID"),
-					RuleProdAction: &waf.ProdAction{
+					RuleProdAction: &scopes.ProdAction{
 						ENFType: "BLOCK_REQUEST",
 						Name:    "custom rule prod action",
 					},
 
 					BotsProdID: wrapStringInPtr("botsRuleID"),
-					BotsProdAction: &waf.ProdAction{
+					BotsProdAction: &scopes.ProdAction{
 						ENFType:     "BROWSER_CHALLENGE",
 						ValidForSec: wrapIntInPtr(60),
 						Name:        "bots rule prod action",
@@ -229,13 +229,13 @@ func TestExpandScopes(t *testing.T) {
 		{
 			name:          "Nil input",
 			input:         nil,
-			expected:      []waf.Scope{},
+			expected:      []scopes.Scope{},
 			expectSuccess: false,
 		},
 		{
 			name:          "Empty input",
 			input:         make([]interface{}, 0),
-			expected:      []waf.Scope{},
+			expected:      []scopes.Scope{},
 			expectSuccess: true,
 		},
 	}
@@ -261,18 +261,18 @@ func TestExpandScopes(t *testing.T) {
 func TestFlattenScopes(t *testing.T) {
 	cases := []struct {
 		name          string
-		input         *waf.Scopes
+		input         *scopes.Scopes
 		expected      []map[string]interface{}
 		expectSuccess bool
 	}{
 		{
 			name:          "Happy path",
 			expectSuccess: true,
-			input: &waf.Scopes{
-				Scopes: []waf.Scope{
+			input: &scopes.Scopes{
+				Scopes: []scopes.Scope{
 					{
 						Name: "Scope 1",
-						Host: waf.MatchCondition{
+						Host: scopes.MatchCondition{
 							Type:              "EM",
 							IsCaseInsensitive: wrapBoolInPtr(true),
 							IsNegated:         wrapBoolInPtr(true),
@@ -281,16 +281,16 @@ func TestFlattenScopes(t *testing.T) {
 								"site2.com",
 							}),
 						},
-						Path: waf.MatchCondition{
+						Path: scopes.MatchCondition{
 							Type:              "GLOB",
 							IsCaseInsensitive: wrapBoolInPtr(false),
 							IsNegated:         wrapBoolInPtr(false),
 							Value:             wrapStringInPtr("*"),
 						},
-						Limits: &[]waf.Limit{
+						Limits: &[]scopes.Limit{
 							{
 								ID: "rateruleid1",
-								Action: waf.LimitAction{
+								Action: scopes.LimitAction{
 									DurationSec: 60,
 									ENFType:     "DROP_REQUEST",
 									Name:        "limit drop request",
@@ -298,7 +298,7 @@ func TestFlattenScopes(t *testing.T) {
 							},
 							{
 								ID: "rateruleid2",
-								Action: waf.LimitAction{
+								Action: scopes.LimitAction{
 									DurationSec: 300,
 									ENFType:     "REDIRECT_302",
 									Name:        "limit redirect",
@@ -307,7 +307,7 @@ func TestFlattenScopes(t *testing.T) {
 							},
 							{
 								ID: "rateruleid3",
-								Action: waf.LimitAction{
+								Action: scopes.LimitAction{
 									DurationSec:        30,
 									ENFType:            "CUSTOM_RESPONSE",
 									Name:               "limit custom",
@@ -321,23 +321,23 @@ func TestFlattenScopes(t *testing.T) {
 							},
 						},
 						ACLAuditID: wrapStringInPtr("accessRuleID"),
-						ACLAuditAction: &waf.AuditAction{
+						ACLAuditAction: &scopes.AuditAction{
 							Name: "access rule audit action",
 							Type: "ALERT",
 						},
 						ACLProdID: wrapStringInPtr("accessRuleID"),
-						ACLProdAction: &waf.ProdAction{
+						ACLProdAction: &scopes.ProdAction{
 							ENFType: "ALERT",
 							Name:    "access rule prod action",
 						},
 
 						ProfileAuditID: wrapStringInPtr("managedRuleID"),
-						ProfileAuditAction: &waf.AuditAction{
+						ProfileAuditAction: &scopes.AuditAction{
 							Name: "managed rule audit action",
 							Type: "ALERT",
 						},
 						ProfileProdID: wrapStringInPtr("managedRuleID"),
-						ProfileProdAction: &waf.ProdAction{
+						ProfileProdAction: &scopes.ProdAction{
 							Name:               "managed rule prod action",
 							ENFType:            "CUSTOM_RESPONSE",
 							Status:             wrapIntInPtr(404),
@@ -349,18 +349,18 @@ func TestFlattenScopes(t *testing.T) {
 						},
 
 						RuleAuditID: wrapStringInPtr("customRuleID"),
-						RuleAuditAction: &waf.AuditAction{
+						RuleAuditAction: &scopes.AuditAction{
 							Name: "custom rule audit action",
 							Type: "ALERT",
 						},
 						RuleProdID: wrapStringInPtr("customRuleID"),
-						RuleProdAction: &waf.ProdAction{
+						RuleProdAction: &scopes.ProdAction{
 							ENFType: "BLOCK_REQUEST",
 							Name:    "custom rule prod action",
 						},
 
 						BotsProdID: wrapStringInPtr("botsRuleID"),
-						BotsProdAction: &waf.ProdAction{
+						BotsProdAction: &scopes.ProdAction{
 							ENFType: "BROWSER_CHALLENGE",
 							Name:    "bots rule prod action",
 						},
@@ -482,7 +482,7 @@ func TestFlattenScopes(t *testing.T) {
 		},
 		{
 			name:          "Empty input",
-			input:         &waf.Scopes{},
+			input:         &scopes.Scopes{},
 			expected:      make([]map[string]interface{}, 0),
 			expectSuccess: true,
 		},
