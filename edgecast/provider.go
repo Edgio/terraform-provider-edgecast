@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/resources/cps"
 	"terraform-provider-edgecast/edgecast/resources/customer"
 	"terraform-provider-edgecast/edgecast/resources/dnsroute"
 	"terraform-provider-edgecast/edgecast/resources/edgecname"
@@ -109,7 +110,15 @@ func Provider() *schema.Provider {
 			"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
-			"edgecast_customer_services": customer.DataSourceCustomerServices(),
+			"edgecast_customer_services":               customer.DataSourceCustomerServices(),
+			"edgecast_cps_countrycodes":                cps.DataSourceCountryCodes(),
+			"edgecast_cps_dcv_types":                   cps.DataSourceDCVTypes(),
+			"edgecast_cps_domain_statuses":             cps.DataSourceDomainStatuses(),
+			"edgecast_cps_validation_statuses":         cps.DataSourceValidationStatuses(),
+			"edgecast_cps_cert_validation_levels":      cps.DataSourceCertValidationLevels(),
+			"edgecast_cps_cert_request_cancel_actions": cps.DataSourceCancelCertReqActions(),
+			"edgecast_cps_cert_request_statuses":       cps.DataSourceCertReqStatuses(),
+			"edgecast_cps_cert_order_statuses":         cps.DataSourceCertOrderStatuses(),
 		},
 		ConfigureContextFunc: configureProvider,
 	}
