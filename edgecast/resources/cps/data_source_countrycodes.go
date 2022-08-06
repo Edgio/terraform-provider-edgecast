@@ -87,5 +87,18 @@ func DataSourceCountryCodesRead(
 
 	log.Printf("[INFO] Retrieved Country Codes: %# v", pretty.Formatter(countryCodeObj))
 
+	d.SetId(countryCodeObj.AtID)
+	d.SetType(countryCodeObj.AtType)
+	d.Set("total_items", countryCodeObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(countryCodeObj.TotalItems))
+	for key := range countryCodeObj.Items {
+		cc := make(map[string]interface{})
+		cc["country"] = countryCodeObj.Items[key].Country
+		cc["two_letter_code"] = countryCodeObj.Items[key].TwoLetterCode
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }
