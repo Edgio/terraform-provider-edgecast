@@ -80,5 +80,18 @@ func DataSourceDCVTypesRead(
 
 	log.Printf("[INFO] Retrieved DCV Types: %# v", pretty.Formatter(dcvTypesObj))
 
+	d.SetId(dcvTypesObj.AtID)
+	d.SetType(dcvTypesObj.AtType)
+	d.Set("total_items", dcvTypesObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(dcvTypesObj.TotalItems))
+	for key := range dcvTypesObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = dcvTypesObj.Items[key].ID
+		cc["name"] = dcvTypesObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }

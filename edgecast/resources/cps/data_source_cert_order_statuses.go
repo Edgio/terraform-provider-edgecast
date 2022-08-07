@@ -80,5 +80,18 @@ func DataSourceCertOrderStatusesRead(
 
 	log.Printf("[INFO] Retrieved Order statuses: %# v", pretty.Formatter(orderStatusesObj))
 
+	d.SetId(orderStatusesObj.AtID)
+	d.SetType(orderStatusesObj.AtType)
+	d.Set("total_items", orderStatusesObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(orderStatusesObj.TotalItems))
+	for key := range orderStatusesObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = orderStatusesObj.Items[key].ID
+		cc["name"] = orderStatusesObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }

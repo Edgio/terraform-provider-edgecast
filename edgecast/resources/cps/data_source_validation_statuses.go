@@ -80,5 +80,18 @@ func DataSourceValidationStatusesRead(
 
 	log.Printf("[INFO] Retrieved Validation statuses: %# v", pretty.Formatter(validationStatusesObj))
 
+	d.SetId(validationStatusesObj.AtID)
+	d.SetType(validationStatusesObj.AtType)
+	d.Set("total_items", validationStatusesObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(validationStatusesObj.TotalItems))
+	for key := range validationStatusesObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = validationStatusesObj.Items[key].ID
+		cc["name"] = validationStatusesObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }

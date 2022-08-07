@@ -80,5 +80,18 @@ func DataSourceDomainStatusesRead(
 
 	log.Printf("[INFO] Retrieved Domain Statuses: %# v", pretty.Formatter(domainStatusesObj))
 
+	d.SetId(domainStatusesObj.AtID)
+	d.SetType(domainStatusesObj.AtType)
+	d.Set("total_items", domainStatusesObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(domainStatusesObj.TotalItems))
+	for key := range domainStatusesObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = domainStatusesObj.Items[key].ID
+		cc["name"] = domainStatusesObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }

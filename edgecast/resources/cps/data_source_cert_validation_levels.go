@@ -80,5 +80,18 @@ func DataSourceCertValidationLevelsRead(
 
 	log.Printf("[INFO] Retrieved Validation Levels: %# v", pretty.Formatter(validationLevelsObj))
 
+	d.SetId(validationLevelsObj.AtID)
+	d.SetType(validationLevelsObj.AtType)
+	d.Set("total_items", validationLevelsObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(validationLevelsObj.TotalItems))
+	for key := range validationLevelsObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = validationLevelsObj.Items[key].ID
+		cc["name"] = validationLevelsObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }

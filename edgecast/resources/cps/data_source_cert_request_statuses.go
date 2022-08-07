@@ -80,5 +80,18 @@ func DataSourceCertReqStatusesRead(
 
 	log.Printf("[INFO] Retrieved Certificate Request Statuses: %# v", pretty.Formatter(certReqStatusesObj))
 
+	d.SetId(certReqStatusesObj.AtID)
+	d.SetType(certReqStatusesObj.AtType)
+	d.Set("total_items", certReqStatusesObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(certReqStatusesObj.TotalItems))
+	for key := range certReqStatusesObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = certReqStatusesObj.Items[key].ID
+		cc["name"] = certReqStatusesObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }

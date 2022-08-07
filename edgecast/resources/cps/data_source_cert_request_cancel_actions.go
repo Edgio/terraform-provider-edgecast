@@ -80,5 +80,18 @@ func DataSourceCancelCertReqActionsRead(
 
 	log.Printf("[INFO] Retrieved Cancel Actions: %# v", pretty.Formatter(cancelActionsObj))
 
+	d.SetId(cancelActionsObj.AtID)
+	d.SetType(cancelActionsObj.AtType)
+	d.Set("total_items", cancelActionsObj.TotalItems)
+
+	flattened := make([]map[string]interface{}, int(cancelActionsObj.TotalItems))
+	for key := range cancelActionsObj.Items {
+		cc := make(map[string]interface{})
+		cc["id"] = cancelActionsObj.Items[key].ID
+		cc["name"] = cancelActionsObj.Items[key].Name
+		flattened[key] = cc
+	}
+	d.Set("items", flattened)
+
 	return diag.Diagnostics{}
 }
