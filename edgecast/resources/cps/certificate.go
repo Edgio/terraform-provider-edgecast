@@ -179,7 +179,7 @@ func ResourceCertificate() *schema.Resource {
 				Description: "Sets the certificate's description.",
 			},
 			"domains": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Required: true,
 
 				Elem: &schema.Resource{
@@ -211,7 +211,7 @@ func ResourceCertificate() *schema.Resource {
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"additional_contacts": {
-							Type:     schema.TypeSet,
+							Type:     schema.TypeList,
 							Optional: true,
 
 							Elem: &schema.Resource{
@@ -426,49 +426,8 @@ func ResourceCertificateRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	// Not Yet Implemented
 	var diags diag.Diagnostics
-
-	config := m.(**api.ClientConfig)
-	cpsService, err := buildCPSService(**config)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	params := certificate.NewCertificateGetParams()
-	n, err := strconv.ParseInt(d.Get("id").(string), 10, 64)
-	if err == nil {
-		fmt.Printf("%d of type %T", n, n)
-	}
-	params.ID = n
-	resp, err := cpsService.Certificate.CertificateGet(params)
-	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
-
-	log.Printf("[INFO] Retrieved certificate: %# v", pretty.Formatter(resp))
-
-	d.SetId(strconv.FormatInt(resp.ID, 10))
-	d.Set("certificate_label", resp.CertificateLabel)
-	d.Set("description", resp.Description)
-	d.Set("last_modified", resp.LastModified)
-	d.Set("created", resp.Created)
-	d.Set("expiration_date", resp.ExpirationDate)
-	d.Set("request_type", resp.RequestType)
-	d.Set("thumbprint", resp.Thumbprint)
-	d.Set("workflow_error_message", resp.WorkflowErrorMessage)
-	/*
-		d.Set("auto_renew", resp.AutoRenew) //bool
-
-		flattenedDeployments := flattenDeployments(resp.Deployments)
-		d.Set("deployments", flattenedDeployments)
-
-		flattenedCreatedBy := flattenActor(resp.CreatedBy)
-		d.Set("created_by", flattenedCreatedBy)
-
-		flattenedModifiedBy := flattenActor(resp.ModifiedBy)
-		d.Set("modified_by", flattenedModifiedBy)
-	*/
 	return diags
 }
 
@@ -491,50 +450,10 @@ func ResourceCertificateDelete(
 	return diags
 }
 
-/*
-// FlattenVariable converts the Variable API Model
-// into a format that Terraform can work with
-func flattenActor(actors []models.Actor) []map[string]interface{} {
-	flattened := make([]map[string]interface{}, 0)
-
-	for _, v := range actors {
-		m := make(map[string]interface{})
-
-		m["user_id"] = v.UserID
-		m["portal_type_id"] = v.PortalTypeID
-		m["identity_id"] = v.IdentityID
-		m["identity_type"] = v.IdentityType
-
-		flattened = append(flattened, m)
-	}
-
-	return flattened
-}
-
-// FlattenVariable converts the Variable API Model
-// into a format that Terraform can work with
-func flattenDeployments(deployments []models.RequestDeployment) []map[string]interface{} {
-	flattened := make([]map[string]interface{}, 0)
-
-	for _, v := range deployments {
-		m := make(map[string]interface{})
-
-		m["delivery_region"] = v.DeliveryRegion
-		m["hex_url"] = v.HexURL
-		m["platform"] = v.Platform
-
-		flattened = append(flattened, m)
-	}
-
-	return flattened
-}
-*/
-
 // expandDomains converts the Terraform representation of Domains into
 // the Domains API Model
 func expandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
-	if set, ok := attr.(*schema.Set); ok {
-		items := set.List()
+	if items, ok := attr.([]interface{}); ok {
 
 		domains := make([]*models.DomainCreateUpdate, 0)
 
@@ -553,7 +472,7 @@ func expandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 
 	} else {
 		return nil,
-			errors.New("ExpandDomains: attr input was not a *schema.Set")
+			errors.New("ExpandDomains: attr input was not a []interface{}")
 	}
 }
 
@@ -595,7 +514,8 @@ func expandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	}
 
 	if curr["additional_contacts"] != nil {
-		additionalContacts, err := expandAdditionalContacts(curr["additional_contacts"])
+		additionalContacts, err :=
+			expandAdditionalContacts(curr["additional_contacts"])
 		if err != nil {
 			return nil, err
 		}
@@ -605,12 +525,10 @@ func expandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	return &organization, nil
 }
 
-// expandAdditionalContacts converts the Terraform representation of organization contacts into
-// the OrganizationContact API Model
+// expandAdditionalContacts converts the Terraform representation of
+// organization contacts into the OrganizationContact API Model
 func expandAdditionalContacts(attr interface{}) ([]*models.OrganizationContact, error) {
-	if set, ok := attr.(*schema.Set); ok {
-
-		items := set.List()
+	if items, ok := attr.([]interface{}); ok {
 		contacts := make([]*models.OrganizationContact, 0)
 
 		for _, item := range items {
@@ -634,6 +552,6 @@ func expandAdditionalContacts(attr interface{}) ([]*models.OrganizationContact, 
 
 	} else {
 		return nil,
-			errors.New("expandAdditionalContacts: attr input was not a *schema.Set")
+			errors.New("expandAdditionalContacts: attr input was not a []interface{}")
 	}
 }
