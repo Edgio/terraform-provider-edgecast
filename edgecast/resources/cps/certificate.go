@@ -178,7 +178,7 @@ func ResourceCertificate() *schema.Resource {
 				Optional:    true,
 				Description: "Sets the certificate's description.",
 			},
-			"domains": {
+			"domain": {
 				Type:     schema.TypeList,
 				Required: true,
 
@@ -210,7 +210,7 @@ func ResourceCertificate() *schema.Resource {
 
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"additional_contacts": {
+						"additional_contact": {
 							Type:     schema.TypeList,
 							Optional: true,
 
@@ -386,7 +386,7 @@ func ResourceCertificateCreate(
 		ValidationType:       d.Get("validation_type").(string),
 	}
 
-	domains, err := expandDomains(d.Get("domains"))
+	domains, err := expandDomains(d.Get("domain"))
 	if err != nil {
 		return diag.FromErr(fmt.Errorf("error parsing domains: %w", err))
 	}
@@ -405,10 +405,6 @@ func ResourceCertificateCreate(
 	params.Certificate = &certificateObj
 
 	resp, err := cpsService.Certificate.CertificatePost(params)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -479,10 +475,6 @@ func expandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 // expandOrganization converts the Terraform representation of organization into
 // the Organization API Model
 func expandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
-	if attr == nil {
-		return nil, nil
-	}
-
 	curr, err := helper.ConvertSingletonSetToMap(attr)
 	if err != nil {
 		return nil, fmt.Errorf("error expanding orgnization detail: %w", err)
@@ -513,9 +505,9 @@ func expandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 		organization.ID = int64(orgID)
 	}
 
-	if curr["additional_contacts"] != nil {
+	if curr["additional_contact"] != nil {
 		additionalContacts, err :=
-			expandAdditionalContacts(curr["additional_contacts"])
+			expandAdditionalContacts(curr["additional_contact"])
 		if err != nil {
 			return nil, err
 		}
