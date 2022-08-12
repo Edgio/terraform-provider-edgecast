@@ -36,7 +36,7 @@ func TestExpandOrganization(t *testing.T) {
 					"organizational_unit": "Dept1",
 					"state":               "CA",
 					"zip_code":            "90001",
-					"additional_contacts": []interface{}{
+					"additional_contact": []interface{}{
 						map[string]interface{}{
 							"first_name":   "contact1",
 							"last_name":    "lastname",
