@@ -33,8 +33,8 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 terraform {
   required_providers {
     edgecast = {
-       version = "0.5.6"
-      source  = "EdgeCast/edgecast"
+       version = "0.5.7"
+      source  = "Edgio/edgecast"
     }
   }
 }
@@ -110,8 +110,8 @@ Example:
 terraform {
   required_providers {
     edgecast = {
-       version = "0.5.6"
-      source  = "EdgeCast/edgecast"
+       version = "0.5.7"
+      source  = "Edgio/edgecast"
     }
   }
 }
@@ -132,7 +132,7 @@ export TF_LOG_PATH=/somewhere/on/your/hard_drive/convenient/terraform.log
 
 ## Usage
 The detailed documentation for the provider and specific resources can be found 
-on the [Terraform provider registry](https://registry.terraform.io/providers/EdgeCast/edgecast/latest/docs).
+on the [Terraform provider registry](https://registry.terraform.io/providers/Edgio/edgecast/latest/docs).
 
 ## Security
 
