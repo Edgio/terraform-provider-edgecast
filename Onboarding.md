@@ -152,4 +152,4 @@ for a section, omit it. Refer to existing
 
 Once your release is complete, verify that the new version has been pushed to
 the Terraform Registry for users to consume. You can do so by checking the 
-version [here](https://registry.terraform.io/providers/EdgeCast/edgecast).
+version [here](https://registry.terraform.io/providers/Edgio/edgecast).
