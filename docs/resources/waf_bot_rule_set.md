@@ -1,6 +1,6 @@
 ---
 page_title: "edgecast_waf_bot_rule_set Resource"
-subcategory: "Bot Rule Set"
+subcategory: "Web Application Firewall (WAF)"
 description: |-
   edgecast_waf_bot_rule_set Resource
 ---
@@ -302,7 +302,7 @@ Manage an existing bot rule set through Terraform by importing it as a resource.
         terraform import edgecast_waf_bot_rule_set.<RESOURCE> <ACCOUNT_NUMBER>:<BOT_RULE_SET_ID>
     * `<RESOURCE>` - Replace this term with the name of the resource defined in step 1.
     * `<ACCOUNT_NUMBER>` - Replace this term with your customer account number. Find your account number in the upper right-hand corner of the MCC.
-    * `<BOT_RULE_SET_ID>` - Replace this term with the system-defined ID assigned to the desired bot rule set. You may retrieve a list of bot rule sets and their system-defined IDs through our [REST API](https://developer.edgecast.com/cdn/api/index.html#Media_Management/Web-Security/Get-All-Bot-Rule Sets.htm).
+    * `<BOT_RULE_SET_ID>` - Replace this term with the system-defined ID assigned to the desired bot rule set. You may retrieve a list of bot rule sets and their system-defined IDs through our [REST API](https://developer.edgecast.com/cdn/api/index.html#Media_Management/Web-Security/Get-All-Bot-Rule-Sets.htm).
 
     **Example:**
 
