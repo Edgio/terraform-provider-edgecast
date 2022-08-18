@@ -11,7 +11,7 @@ vars:
   NAMESPACE: terraform-providers
   NAME: edgecast
   BINARY: terraform-provider-{{.NAME}}
-  VERSION: 0.5.7
+  VERSION: 0.5.8
 
 
 includes:
