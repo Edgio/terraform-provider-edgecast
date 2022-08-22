@@ -45,6 +45,14 @@ func TestExpandOrganization(t *testing.T) {
 							"title":        "Manager",
 							"contact_type": "EvApprover",
 						},
+						map[string]interface{}{
+							"first_name":   "contact2",
+							"last_name":    "lastname2",
+							"email":        "first.lastname2@testuser.com",
+							"phone":        "111-111-3333",
+							"title":        "Developer",
+							"contact_type": "TechnicalContact",
+						},
 					},
 				},
 			}),
@@ -71,10 +79,23 @@ func TestExpandOrganization(t *testing.T) {
 						Title:       "Manager",
 						ContactType: "EvApprover",
 					},
+					{
+						FirstName:   "contact2",
+						LastName:    "lastname2",
+						Email:       "first.lastname2@testuser.com",
+						Phone:       "111-111-3333",
+						Title:       "Developer",
+						ContactType: "TechnicalContact",
+					},
 				},
 			},
-
 			expectSuccess: true,
+		},
+		{
+			name:          "nil input",
+			input:         nil,
+			expectedPtr:   nil,
+			expectSuccess: false,
 		},
 		{
 			name:          "Error path - incorrect input type",
@@ -93,6 +114,184 @@ func TestExpandOrganization(t *testing.T) {
 
 				actual := *actualPtr
 				expected := *v.expectedPtr
+
+				if !reflect.DeepEqual(actual, expected) {
+					// deep.Equal doesn't compare pointer values, so we just use it to
+					// generate a human friendly diff
+					diff := deep.Equal(actual, expected)
+					t.Errorf("Diff: %+v", diff)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						v.name,
+						expected,
+						actual,
+					)
+				}
+
+			} else {
+				t.Fatalf("%s: Encountered error where one was not expected: %+v",
+					v.name,
+					err,
+				)
+			}
+		} else {
+			if err == nil {
+				t.Fatalf("%s: Expected error, but got no error", v.name)
+			}
+		}
+	}
+}
+
+func TestExpandOrganizationContact(t *testing.T) {
+	cases := []struct {
+		name          string
+		input         interface{}
+		expectedPtr   []*models.OrganizationContact
+		expectSuccess bool
+	}{
+		{
+			name: "Happy path",
+			input: []interface{}{
+				map[string]interface{}{
+					"first_name":   "contact1",
+					"last_name":    "lastname",
+					"email":        "first.lastname@testuser.com",
+					"phone":        "111-111-2222",
+					"title":        "Manager",
+					"contact_type": "EvApprover",
+				},
+				map[string]interface{}{
+					"first_name":   "contact2",
+					"last_name":    "lastname2",
+					"email":        "first.lastname2@testuser.com",
+					"phone":        "111-111-3333",
+					"title":        "Developer",
+					"contact_type": "TechnicalContact",
+				},
+			},
+			expectedPtr: []*models.OrganizationContact{
+				{
+					FirstName:   "contact1",
+					LastName:    "lastname",
+					Email:       "first.lastname@testuser.com",
+					Phone:       "111-111-2222",
+					Title:       "Manager",
+					ContactType: "EvApprover",
+				},
+				{
+					FirstName:   "contact2",
+					LastName:    "lastname2",
+					Email:       "first.lastname2@testuser.com",
+					Phone:       "111-111-3333",
+					Title:       "Developer",
+					ContactType: "TechnicalContact",
+				},
+			},
+			expectSuccess: true,
+		},
+		{
+			name:          "Error path - incorrect input type",
+			input:         "not a []interface{}",
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+		{
+			name:          "Edge case - nil input",
+			input:         nil,
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+	}
+
+	for _, v := range cases {
+
+		actualPtr, err := expandAdditionalContacts(v.input)
+
+		if v.expectSuccess {
+			if err == nil {
+
+				actual := actualPtr
+				expected := v.expectedPtr
+
+				if !reflect.DeepEqual(actual, expected) {
+					// deep.Equal doesn't compare pointer values, so we just use it to
+					// generate a human friendly diff
+					diff := deep.Equal(actual, expected)
+					t.Errorf("Diff: %+v", diff)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						v.name,
+						expected,
+						actual,
+					)
+				}
+
+			} else {
+				t.Fatalf("%s: Encountered error where one was not expected: %+v",
+					v.name,
+					err,
+				)
+			}
+		} else {
+			if err == nil {
+				t.Fatalf("%s: Expected error, but got no error", v.name)
+			}
+		}
+	}
+}
+
+func TestExpandDomains(t *testing.T) {
+	cases := []struct {
+		name          string
+		input         interface{}
+		expectedPtr   []*models.DomainCreateUpdate
+		expectSuccess bool
+	}{
+		{
+			name: "Happy path",
+			input: []interface{}{
+				map[string]interface{}{
+					"is_common_name": true,
+					"name":           "testdomain1.com",
+				},
+				map[string]interface{}{
+					"is_common_name": false,
+					"name":           "testdomain2.com",
+				},
+			},
+			expectedPtr: []*models.DomainCreateUpdate{
+				{
+					IsCommonName: true,
+					Name:         "testdomain1.com",
+				},
+				{
+					IsCommonName: false,
+					Name:         "testdomain2.com",
+				},
+			},
+			expectSuccess: true,
+		},
+		{
+			name:          "Error path - incorrect input type",
+			input:         "not a []interface{}",
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+		{
+			name:          "Edge case - nil input",
+			input:         nil,
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+	}
+
+	for _, v := range cases {
+
+		actualPtr, err := expandDomains(v.input)
+
+		if v.expectSuccess {
+			if err == nil {
+
+				actual := actualPtr
+				expected := v.expectedPtr
 
 				if !reflect.DeepEqual(actual, expected) {
 					// deep.Equal doesn't compare pointer values, so we just use it to
