@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/resources/cps"
 	"terraform-provider-edgecast/edgecast/resources/customer"
 	"terraform-provider-edgecast/edgecast/resources/dnsroute"
 	"terraform-provider-edgecast/edgecast/resources/edgecname"
@@ -107,6 +108,7 @@ func Provider() *schema.Provider {
 			"edgecast_waf_custom_rule_set":    waf.ResourceCustomRuleSet(),
 			"edgecast_waf_scopes":             waf.ResourceScopes(),
 			"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
+			"edgecast_cps_certificate":        cps.ResourceCertificate(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"edgecast_customer_services": customer.DataSourceCustomerServices(),
