@@ -447,24 +447,28 @@ func ResourceCertificateRead(ctx context.Context,
 	d.SetId(strconv.FormatInt(resp.ID, 10))
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
-	d.Set("last_modified", resp.LastModified)
-	d.Set("created", resp.Created)
-	d.Set("expiration_date", resp.ExpirationDate)
+	d.Set("last_modified", resp.LastModified.String())
+	d.Set("created", resp.Created.String())
+	d.Set("expiration_date", resp.ExpirationDate.String())
 	d.Set("request_type", resp.RequestType)
 	d.Set("thumbprint", resp.Thumbprint)
 	d.Set("workflow_error_message", resp.WorkflowErrorMessage)
 
-	d.Set("auto_renew", resp.AutoRenew) //bool
-	/*
-		flattenedDeployments := flattenDeployments(resp.Deployments)
-		d.Set("deployments", flattenedDeployments)
+	d.Set("auto_renew", resp.AutoRenew)
 
+	flattenedDeployments := flattenDeployments(resp.Deployments)
+	d.Set("deployments", flattenedDeployments)
+
+	if resp.CreatedBy != nil {
 		flattenedCreatedBy := flattenActor(resp.CreatedBy)
 		d.Set("created_by", flattenedCreatedBy)
+	}
 
+	if resp.ModifiedBy != nil {
 		flattenedModifiedBy := flattenActor(resp.ModifiedBy)
 		d.Set("modified_by", flattenedModifiedBy)
-	*/
+	}
+
 	return diags
 }
 
@@ -513,8 +517,8 @@ func expandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 	}
 }
 
-// expandOrganization converts the Terraform representation of organization into
-// the Organization API Model
+// expandOrganization converts the Terraform representation of organization
+// into the Organization API Model
 func expandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	curr, err := helper.ConvertSingletonSetToMap(attr)
 	if err != nil {
@@ -591,26 +595,27 @@ func expandAdditionalContacts(attr interface{}) ([]*models.OrganizationContact, 
 
 // FlattenActor converts the Actor API Model
 // into a format that Terraform can work with
-func flattenActor(actors []models.Actor) []map[string]interface{} {
+func flattenActor(actor *models.Actor) []map[string]interface{} {
+	if actor == nil {
+		return make([]map[string]interface{}, 0)
+	}
 	flattened := make([]map[string]interface{}, 0)
 
-	for _, v := range actors {
-		m := make(map[string]interface{})
+	m := make(map[string]interface{})
 
-		m["user_id"] = v.UserID
-		m["portal_type_id"] = v.PortalTypeID
-		m["identity_id"] = v.IdentityID
-		m["identity_type"] = v.IdentityType
+	m["user_id"] = int(actor.UserID)
+	m["portal_type_id"] = actor.PortalTypeID
+	m["identity_id"] = actor.IdentityID
+	m["identity_type"] = actor.IdentityType
 
-		flattened = append(flattened, m)
-	}
+	flattened = append(flattened, m)
 
 	return flattened
 }
 
 // FlattenDeployments converts the Deployment API Model
 // into a format that Terraform can work with
-func flattenDeployments(deployments []models.RequestDeployment) []map[string]interface{} {
+func flattenDeployments(deployments []*models.RequestDeployment) []map[string]interface{} {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, v := range deployments {

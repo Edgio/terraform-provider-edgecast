@@ -1,6 +1,6 @@
 resource "edgecast_cps_certificate" "certificate_1" {
 
-	certificate_label = "cdn example tf ev"
+	certificate_label = "cdn example tf ev11"
 	description = "cdn example"
 	auto_renew = true
 	certificate_authority = "DigiCert"
@@ -18,7 +18,7 @@ resource "edgecast_cps_certificate" "certificate_1" {
 		organizational_unit = "Dept1"
 		state =             "CA"
 		zip_code =            "90001"
-		additional_contacts{
+		additional_contact{
 			first_name	= "contact1"
 			last_name	= "contactlastname1"
 			email	= "first.lastname@testuser.com"
@@ -26,7 +26,7 @@ resource "edgecast_cps_certificate" "certificate_1" {
 			title	= "contactManager"
 			contact_type	= "EvApprover"
 		}
-		additional_contacts{
+		additional_contact{
 			first_name	= "contact2"
 			last_name	= "contactlastname2"
 			email	= "first.lastname@testuser.com"
@@ -36,11 +36,11 @@ resource "edgecast_cps_certificate" "certificate_1" {
 		}
 	}
 	dcv_method = "Email"
-	domains {
+	domain {
 		is_common_name = true
 		name =  "testdomain1.com"
 	}
-	domains {
+	domain {
 		is_common_name = false
 		name =  "testdomain2.com"
 	}
@@ -48,17 +48,17 @@ resource "edgecast_cps_certificate" "certificate_1" {
 
 resource "edgecast_cps_certificate" "certificate_2" {
 
-	certificate_label = "cdn example tf dv"
+	certificate_label = "cdn example tf dv11"
 	description = "cdn example dv"
 	auto_renew = true
 	certificate_authority = "DigiCert"
 	validation_type = "DV"
 	dcv_method = "DnsTxtToken"
-	domains {
+	domain {
 		is_common_name = true
 		name =  "testdomain3.com"
 	}
-	domains {
+	domain {
 		is_common_name = false
 		name =  "testdomain4.com"
 	}
