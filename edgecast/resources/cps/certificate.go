@@ -26,7 +26,7 @@ func ResourceCertificate() *schema.Resource {
 		ReadContext:   ResourceCertificateRead,
 		UpdateContext: ResourceCertificateUpdate,
 		DeleteContext: ResourceCertificateDelete,
-		//Importer:      helper.Import(ResourceCertificateRead, "id"),
+		Importer:      helper.Import(ResourceCertificateRead, "id"),
 
 		Schema: map[string]*schema.Schema{
 			"id": {
