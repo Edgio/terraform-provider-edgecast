@@ -413,7 +413,7 @@ func ResourceCertificateCreate(
 	log.Printf("[INFO] certificate created: %# v", pretty.Formatter(resp))
 	log.Printf("[INFO] certificate id: %d", resp.ID)
 
-	d.SetId(strconv.FormatInt(resp.ID, 10))
+	d.SetId(strconv.Itoa(int(resp.ID)))
 
 	return ResourceCertificateRead(ctx, d, m)
 }
@@ -422,29 +422,29 @@ func ResourceCertificateRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	var diags diag.Diagnostics
-
 	config := m.(**api.ClientConfig)
 	cpsService, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	certID, _ := strconv.ParseInt(d.Id(), 10, 64)
+
+	log.Printf(
+		"[INFO] Retriving certificate : ID: %v",
+		certID,
+	)
+
 	params := certificate.NewCertificateGetParams()
-	n, err := strconv.ParseInt(d.Get("id").(string), 10, 64)
-	if err == nil {
-		fmt.Printf("%d of type %T", n, n)
-	}
-	params.ID = n
+	params.ID = certID
 	resp, err := cpsService.Certificate.CertificateGet(params)
 	if err != nil {
-		d.SetId("")
 		return diag.FromErr(err)
 	}
 
 	log.Printf("[INFO] Retrieved certificate: %# v", pretty.Formatter(resp))
 
-	d.SetId(strconv.FormatInt(resp.ID, 10))
+	d.SetId(strconv.Itoa(int(resp.ID)))
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
 	d.Set("last_modified", resp.LastModified.String())
@@ -453,7 +453,6 @@ func ResourceCertificateRead(ctx context.Context,
 	d.Set("request_type", resp.RequestType)
 	d.Set("thumbprint", resp.Thumbprint)
 	d.Set("workflow_error_message", resp.WorkflowErrorMessage)
-
 	d.Set("auto_renew", resp.AutoRenew)
 
 	flattenedDeployments := flattenDeployments(resp.Deployments)
@@ -469,7 +468,7 @@ func ResourceCertificateRead(ctx context.Context,
 		d.Set("modified_by", flattenedModifiedBy)
 	}
 
-	return diags
+	return diag.Diagnostics{}
 }
 
 func ResourceCertificateUpdate(
