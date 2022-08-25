@@ -447,7 +447,6 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieved certificate: %# v", pretty.Formatter(resp))
 
-	d.SetId(strconv.Itoa(int(resp.ID)))
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
 
