@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
@@ -19,6 +20,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
 )
+
+const datetimeFormat string = "2006-01-02T15:04:05.000Z07:00"
 
 func ResourceCertificate() *schema.Resource {
 	return &schema.Resource{
@@ -447,9 +450,16 @@ func ResourceCertificateRead(ctx context.Context,
 	d.SetId(strconv.Itoa(int(resp.ID)))
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
-	d.Set("last_modified", resp.LastModified.String())
-	d.Set("created", resp.Created.String())
-	d.Set("expiration_date", resp.ExpirationDate.String())
+
+	tLastModified, _ := time.Parse(datetimeFormat, resp.LastModified.String())
+	d.Set("last_modified", tLastModified.Format(datetimeFormat))
+
+	tCreated, _ := time.Parse(datetimeFormat, resp.Created.String())
+	d.Set("created", tCreated.Format(datetimeFormat))
+
+	tExpiration, _ := time.Parse(datetimeFormat, resp.ExpirationDate.String())
+	d.Set("expiration_date", tExpiration.Format(datetimeFormat))
+
 	d.Set("request_type", resp.RequestType)
 	d.Set("thumbprint", resp.Thumbprint)
 	d.Set("workflow_error_message", resp.WorkflowErrorMessage)
