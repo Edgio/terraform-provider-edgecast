@@ -29,6 +29,7 @@ func buildWAFService(config api.ClientConfig) (*sdkwaf.WafService, error) {
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
+	sdkConfig.UserAgent = config.UserAgent
 
 	return sdkwaf.New(sdkConfig)
 }

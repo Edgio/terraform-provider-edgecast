@@ -28,6 +28,7 @@ func buildCustomerService(
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
+	sdkConfig.UserAgent = config.UserAgent
 
 	return customer.New(sdkConfig)
 }

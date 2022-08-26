@@ -28,6 +28,7 @@ func buildCPSService(
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
+	sdkConfig.UserAgent = config.UserAgent
 
 	return cps.New(sdkConfig)
 }
