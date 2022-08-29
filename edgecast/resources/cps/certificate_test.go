@@ -318,3 +318,128 @@ func TestExpandDomains(t *testing.T) {
 		}
 	}
 }
+
+func TestFlattenDeployments(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    []*models.RequestDeployment
+		expected []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			input: []*models.RequestDeployment{
+				{
+					DeliveryRegion: "Delivery Region 1",
+					HexURL:         "hex 1",
+					Platform:       "Platform 1",
+				},
+				{
+					DeliveryRegion: "Delivery Region 2",
+					HexURL:         "hex 2",
+					Platform:       "Platform 2",
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"delivery_region": "Delivery Region 1",
+					"hex_url":         "hex 1",
+					"platform":        "Platform 1",
+				},
+				{
+					"delivery_region": "Delivery Region 2",
+					"hex_url":         "hex 2",
+					"platform":        "Platform 2",
+				},
+			},
+		},
+		{
+			name:     "Nil input",
+			input:    nil,
+			expected: make([]map[string]interface{}, 0),
+		},
+		{
+			name:     "Empty input",
+			input:    make([]*models.RequestDeployment, 0),
+			expected: make([]map[string]interface{}, 0),
+		},
+	}
+
+	for _, c := range cases {
+		actual := flattenDeployments(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
+func TestFlattenActor(t *testing.T) {
+	cases := []struct {
+		name          string
+		input         *models.Actor
+		expected      []map[string]interface{}
+		expectSuccess bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			input: &models.Actor{
+				UserID:       0,
+				PortalTypeID: "customer",
+				IdentityID:   "abc-xyz",
+				IdentityType: "actor",
+			},
+			expected: []map[string]interface{}{
+				{
+					"user_id":        0,
+					"portal_type_id": "customer",
+					"identity_id":    "abc-xyz",
+					"identity_type":  "actor",
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			input:         nil,
+			expected:      make([]map[string]interface{}, 0),
+			expectSuccess: false,
+		},
+		{
+			name:          "Empty imput",
+			input:         &models.Actor{},
+			expected: []map[string]interface{}{
+				{
+					"user_id":        0,
+					"portal_type_id": "",
+					"identity_id":    "",
+					"identity_type":  "",
+				},
+			},
+			expectSuccess: true,
+		},
+	}
+
+	for _, c := range cases {
+		actual := flattenActor(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}

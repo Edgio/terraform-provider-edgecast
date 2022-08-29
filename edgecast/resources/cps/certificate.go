@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
@@ -20,13 +21,15 @@ import (
 	"github.com/kr/pretty"
 )
 
+const datetimeFormat string = "2006-01-02T15:04:05.000Z07:00"
+
 func ResourceCertificate() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceCertificateCreate,
 		ReadContext:   ResourceCertificateRead,
 		UpdateContext: ResourceCertificateUpdate,
 		DeleteContext: ResourceCertificateDelete,
-		//Importer:      helper.Import(ResourceCertificateRead, "id"),
+		Importer:      helper.Import(ResourceCertificateRead, "id"),
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -413,7 +416,7 @@ func ResourceCertificateCreate(
 	log.Printf("[INFO] certificate created: %# v", pretty.Formatter(resp))
 	log.Printf("[INFO] certificate id: %d", resp.ID)
 
-	d.SetId(strconv.FormatInt(resp.ID, 10))
+	d.SetId(strconv.Itoa(int(resp.ID)))
 
 	return ResourceCertificateRead(ctx, d, m)
 }
@@ -422,9 +425,59 @@ func ResourceCertificateRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Not Yet Implemented
-	var diags diag.Diagnostics
-	return diags
+	config := m.(**api.ClientConfig)
+	cpsService, err := buildCPSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	certID, _ := strconv.ParseInt(d.Id(), 10, 64)
+
+	log.Printf(
+		"[INFO] Retriving certificate : ID: %v",
+		certID,
+	)
+
+	params := certificate.NewCertificateGetParams()
+	params.ID = certID
+	resp, err := cpsService.Certificate.CertificateGet(params)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Retrieved certificate: %# v", pretty.Formatter(resp))
+
+	d.Set("certificate_label", resp.CertificateLabel)
+	d.Set("description", resp.Description)
+
+	tLastModified, _ := time.Parse(datetimeFormat, resp.LastModified.String())
+	d.Set("last_modified", tLastModified.Format(datetimeFormat))
+
+	tCreated, _ := time.Parse(datetimeFormat, resp.Created.String())
+	d.Set("created", tCreated.Format(datetimeFormat))
+
+	tExpiration, _ := time.Parse(datetimeFormat, resp.ExpirationDate.String())
+	d.Set("expiration_date", tExpiration.Format(datetimeFormat))
+
+	d.Set("request_type", resp.RequestType)
+	d.Set("thumbprint", resp.Thumbprint)
+	d.Set("workflow_error_message", resp.WorkflowErrorMessage)
+	d.Set("auto_renew", resp.AutoRenew)
+
+	flattenedDeployments := flattenDeployments(resp.Deployments)
+	d.Set("deployments", flattenedDeployments)
+
+	if resp.CreatedBy != nil {
+		flattenedCreatedBy := flattenActor(resp.CreatedBy)
+		d.Set("created_by", flattenedCreatedBy)
+	}
+
+	if resp.ModifiedBy != nil {
+		flattenedModifiedBy := flattenActor(resp.ModifiedBy)
+		d.Set("modified_by", flattenedModifiedBy)
+	}
+
+	return diag.Diagnostics{}
 }
 
 func ResourceCertificateUpdate(
@@ -472,8 +525,8 @@ func expandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 	}
 }
 
-// expandOrganization converts the Terraform representation of organization into
-// the Organization API Model
+// expandOrganization converts the Terraform representation of organization
+// into the Organization API Model
 func expandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	curr, err := helper.ConvertSingletonSetToMap(attr)
 	if err != nil {
@@ -546,4 +599,42 @@ func expandAdditionalContacts(attr interface{}) ([]*models.OrganizationContact, 
 		return nil,
 			errors.New("expandAdditionalContacts: attr input was not a []interface{}")
 	}
+}
+
+// FlattenActor converts the Actor API Model
+// into a format that Terraform can work with
+func flattenActor(actor *models.Actor) []map[string]interface{} {
+	if actor == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["user_id"] = int(actor.UserID)
+	m["portal_type_id"] = actor.PortalTypeID
+	m["identity_id"] = actor.IdentityID
+	m["identity_type"] = actor.IdentityType
+
+	flattened = append(flattened, m)
+
+	return flattened
+}
+
+// FlattenDeployments converts the Deployment API Model
+// into a format that Terraform can work with
+func flattenDeployments(deployments []*models.RequestDeployment) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range deployments {
+		m := make(map[string]interface{})
+
+		m["delivery_region"] = v.DeliveryRegion
+		m["hex_url"] = v.HexURL
+		m["platform"] = v.Platform
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
 }
