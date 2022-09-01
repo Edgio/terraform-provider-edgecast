@@ -76,7 +76,7 @@ func namedEntitySchema(resource string) map[string]*schema.Schema {
 					},
 				},
 			},
-			Description: fmt.Sprintf("Contains a list of %s", resource),
+			Description: fmt.Sprintf("Contains a list of %s.", resource),
 		},
 	}
 }

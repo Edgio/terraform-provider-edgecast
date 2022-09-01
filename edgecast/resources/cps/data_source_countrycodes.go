@@ -27,7 +27,7 @@ func DataSourceCountryCodes() *schema.Resource {
 			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The name of a specific country. If provided, only that country will be present in `items`",
+				Description: "The name of a specific country. If provided, only that country will be present in `items`.",
 			},
 			"items": {
 				Type:     schema.TypeList,
