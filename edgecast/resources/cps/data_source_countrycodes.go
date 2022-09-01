@@ -83,9 +83,6 @@ func DataSourceCountryCodesRead(
 		pretty.Formatter(resp))
 
 	flattened := FlattenCountries(resp)
-	log.Printf(
-		"[INFO] Flattened Country Codes: %# v",
-		pretty.Formatter(flattened))
 	d.Set("items", flattened)
 
 	// always run
