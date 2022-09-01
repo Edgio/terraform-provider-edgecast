@@ -34,35 +34,43 @@ func ResourceRulesEngineV4Policy() *schema.Resource {
 		ReadContext:   ResourcePolicyRead,
 		UpdateContext: ResourcePolicyUpdate,
 		DeleteContext: ResourcePolicyDelete,
-		Importer:      helper.Import(ResourcePolicyRead, "account_number", "id", "portaltypeid", "customeruserid"),
+		Importer:      helper.Import(ResourcePolicyRead, "account_number", "id", "portaltypeid", "customeruserid", "ownerid"),
 
 		Schema: map[string]*schema.Schema{
 			"customeruserid": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Reserved for future use.",},
+				Description: "Reserved for future use.",
+			},
 			"portaltypeid": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Reserved for future use.",},
+				Description: "Reserved for future use.",
+			},
 			"account_number": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Reserved for future use.",
 			},
-			"deploy_to": {
+			"ownerid": {
 				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Identifies the environment to which the policy will be deployed. Valid values are: \n\n" + 
-				"        production | staging",
+				Optional:    true,
+				Description: "Required when acting on behalf of a customer and using Wholesaler or Partner credentials. This value should be the customer Account Number in the upper right-hand corner of the MCC.",
+			},
+			"deploy_to": {
+				Type:     schema.TypeString,
+				Required: true,
+				Description: "Identifies the environment to which the policy will be deployed. Valid values are: \n\n" +
+					"        production | staging",
 				ValidateFunc: validation.StringInSlice(
 					[]string{"production", "staging"},
 					false),
 			},
 			"deploy_request_id": {
-				Type:     schema.TypeString,
+				Type:        schema.TypeString,
 				Description: "Indicates the system-defined ID for the policy's deploy request.",
-				Computed: true},				
+				Computed:    true,
+			},
 			"policy": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -337,6 +345,7 @@ func getPolicy(
 	accountNumber := d.Get("account_number").(string)
 	portalTypeID := d.Get("portaltypeid").(string) // 1=MCC 2=PCC 3=WCC 4=UCC
 	customerUserID := d.Get("customeruserid").(string)
+	ownerID := d.Get("ownerid").(string)
 	policyID, err := strconv.Atoi(d.Id())
 
 	if err != nil {
@@ -359,6 +368,7 @@ func getPolicy(
 	params.CustomerUserID = customerUserID
 	params.PortalTypeID = portalTypeID
 	params.PolicyID = policyID
+	params.OwnerID = ownerID
 
 	return rulesengineService.GetPolicy(*params)
 }
@@ -374,6 +384,7 @@ func addPolicy(
 	accountNumber := d.Get("account_number").(string)
 	customerUserID := d.Get("customeruserid").(string)
 	portalTypeID := d.Get("portaltypeid").(string) // 1=MCC 2=PCC 3=WCC 4=UCC
+	ownerID := d.Get("ownerid").(string)
 
 	// Initialize Rules Engine Service
 	rulesengineService, err := buildRulesEngineService(**config)
@@ -387,6 +398,7 @@ func addPolicy(
 	policyParams.CustomerUserID = customerUserID
 	policyParams.PortalTypeID = portalTypeID
 	policyParams.PolicyAsString = policy
+	policyParams.OwnerID = ownerID
 
 	parsedResponse, err := rulesengineService.AddPolicy(*policyParams)
 	if err != nil {
@@ -417,6 +429,7 @@ func addPolicy(
 	deployRequestParams.CustomerUserID = customerUserID
 	deployRequestParams.PortalTypeID = portalTypeID
 	deployRequestParams.DeployRequest = *deployRequest
+	deployRequestParams.OwnerID = ownerID
 
 	deployResponse, deployErr := rulesengineService.SubmitDeployRequest(
 		*deployRequestParams,

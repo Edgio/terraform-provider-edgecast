@@ -25,7 +25,7 @@ const (
 	idsURLProd       string = "https://id.vdms.io"
 
 	// Version indicates the current version of this provider
-	Version string = "0.5.5"
+	Version string = "0.5.8"
 
 	userAgentFormat = "edgecast/terraform-provider:%s"
 )
@@ -108,6 +108,7 @@ func Provider() *schema.Provider {
 			"edgecast_waf_custom_rule_set":    waf.ResourceCustomRuleSet(),
 			"edgecast_waf_scopes":             waf.ResourceScopes(),
 			"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
+			"edgecast_cps_certificate":        cps.ResourceCertificate(),
 		},
 		DataSourcesMap: map[string]*schema.Resource{
 			"edgecast_customer_services":               customer.DataSourceCustomerServices(),

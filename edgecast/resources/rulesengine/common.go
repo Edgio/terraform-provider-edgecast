@@ -26,6 +26,7 @@ func buildRulesEngineService(
 	sdkConfig.IDSCredentials = idsCredentials
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseIDSURL = *config.IdsURL
+	sdkConfig.UserAgent = config.UserAgent
 
 	return rulesengine.New(sdkConfig)
 }

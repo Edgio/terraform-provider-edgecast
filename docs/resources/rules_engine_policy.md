@@ -41,6 +41,7 @@ resource "edgecast_rules_engine_policy" "my_policy" {
 
 - `account_number` (String) Reserved for future use.
 - `customeruserid` (String) Reserved for future use.
+- `ownerid` (String) Required when acting on behalf of a customer and using Wholesaler or Partner credentials. This value should be the customer Account Number in the upper right-hand corner of the MCC.
 - `portaltypeid` (String) Reserved for future use.
 
 ### Read-Only

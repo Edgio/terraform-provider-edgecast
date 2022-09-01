@@ -28,5 +28,7 @@ func buildOriginService(
 	sdkConfig.BaseAPIURL = *config.APIURL
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
+	sdkConfig.UserAgent = config.UserAgent
+
 	return origin.New(sdkConfig)
 }
