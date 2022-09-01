@@ -18,7 +18,7 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unix timestamp when the data source was refreshed.
-- `items` (List of Object) Contains a list of Certificate Validation Level (see [below for nested schema](#nestedatt--items))
+- `items` (List of Object) Contains a list of Certificate Validation Level. (see [below for nested schema](#nestedatt--items))
 
 <a id="nestedatt--items"></a>
 ### Nested Schema for `items`

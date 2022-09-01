@@ -17,7 +17,7 @@ description: |-
 
 ### Optional
 
-- `name` (String) The name of a specific country. If provided, only that country will be present in `items`
+- `name` (String) The name of a specific country. If provided, only that country will be present in `items`.
 
 ### Read-Only
 
