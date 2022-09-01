@@ -96,9 +96,9 @@ func DataSourceCountryCodesRead(
 
 func FlattenCountries(
 	countries *appendix.AppendixGetOK,
-) []interface{} {
+) []map[string]interface{} {
 	if countries != nil {
-		flattened := make([]interface{}, len(countries.Items), len(countries.Items))
+		flattened := make([]map[string]interface{}, len(countries.Items), len(countries.Items))
 		for ix := range countries.Items {
 			cc := make(map[string]interface{})
 			cc["country"] = countries.Items[ix].Country
@@ -109,5 +109,5 @@ func FlattenCountries(
 		return flattened
 	}
 
-	return make([]interface{}, 0)
+	return make([]map[string]interface{}, 0)
 }
