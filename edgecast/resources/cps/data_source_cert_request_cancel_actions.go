@@ -18,44 +18,7 @@ import (
 func DataSourceCancelCertReqActions() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceCancelCertReqActionsRead,
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of actions.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
-			},
-			"items": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Description: "Indicates the name of action.",
-							Optional:    true,
-						},
-						"id": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the system-defined ID for an action.",
-							Optional:    true,
-						},
-					},
-				},
-				Description: "Contains a list of actions.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of actions.",
-			},
-		},
+		Schema:      namedEntitySchema("Cancel Certificate Request Action"),
 	}
 }
 
@@ -71,27 +34,24 @@ func DataSourceCancelCertReqActionsRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix Cancel Request Actions API
+	// Call Get Cancel Certificate Request Actions
 	params := appendix.NewAppendixGetCancelActionsParams()
-	cancelActionsObj, err := cpsService.Appendix.AppendixGetCancelActions(params)
+	resp, err := cpsService.Appendix.AppendixGetCancelActions(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Cancel Actions: %# v", pretty.Formatter(cancelActionsObj))
+	log.Printf(
+		"[INFO] Retrieved Cancel Certificate Request Actions: %# v\n",
+		pretty.Formatter(resp))
 
-	d.SetId(cancelActionsObj.AtID)
-	d.SetType(cancelActionsObj.AtType)
-	d.Set("total_items", cancelActionsObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(cancelActionsObj.TotalItems))
-	for key := range cancelActionsObj.Items {
-		cc := make(map[string]interface{})
-		cc["id"] = cancelActionsObj.Items[key].ID
-		cc["name"] = cancelActionsObj.Items[key].Name
-		flattened[key] = cc
+	if resp != nil {
+		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
+		d.Set("items", flattened)
 	}
-	d.Set("items", flattened)
+
+	// always run
+	d.SetId(getTimeStamp())
 
 	return diag.Diagnostics{}
 }

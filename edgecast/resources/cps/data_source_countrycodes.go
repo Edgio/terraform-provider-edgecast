@@ -18,47 +18,35 @@ import (
 func DataSourceCountryCodes() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceCountryCodesRead,
-
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Description: "The unix timestamp when the data source was refreshed.",
+				Computed:    true,
+			},
 			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Query by name parameter",
-			},
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of countries.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
+				Description: "The name of a specific country. If provided, only that country will be present in `items`",
 			},
 			"items": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeList,
 				Computed: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"country": {
 							Type:        schema.TypeString,
 							Description: "Identifies a country by its name.",
-							Optional:    true,
+							Computed:    true,
 						},
 						"two_letter_code": {
 							Type:        schema.TypeString,
-							Description: "Identifies a country by its country code.",
-							Optional:    true,
+							Description: "Identifies a country by its two-letter country code.",
+							Computed:    true,
 						},
 					},
 				},
 				Description: "Contains a list of countries.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of countries.",
 			},
 		},
 	}
@@ -76,29 +64,50 @@ func DataSourceCountryCodesRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix API
+	// Call Get Country Codes
 	params := appendix.NewAppendixGetParams()
-	query := d.Get("name").(string)
-	params.Name = &query
-	countryCodeObj, err := cpsService.Appendix.AppendixGet(params)
+
+	if attr, ok := d.GetOk("name"); ok {
+		name := attr.(string)
+		params.Name = &name
+	}
+
+	resp, err := cpsService.Appendix.AppendixGet(params)
+
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Country Codes: %# v", pretty.Formatter(countryCodeObj))
+	log.Printf(
+		"[INFO] Retrieved Country Codes: %# v",
+		pretty.Formatter(resp))
 
-	d.SetId(countryCodeObj.AtID)
-	d.SetType(countryCodeObj.AtType)
-	d.Set("total_items", countryCodeObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(countryCodeObj.TotalItems))
-	for key := range countryCodeObj.Items {
-		cc := make(map[string]interface{})
-		cc["country"] = countryCodeObj.Items[key].Country
-		cc["two_letter_code"] = countryCodeObj.Items[key].TwoLetterCode
-		flattened[key] = cc
-	}
+	flattened := FlattenCountries(resp)
+	log.Printf(
+		"[INFO] Flattened Country Codes: %# v",
+		pretty.Formatter(flattened))
 	d.Set("items", flattened)
 
+	// always run
+	d.SetId(getTimeStamp())
+
 	return diag.Diagnostics{}
+}
+
+func FlattenCountries(
+	countries *appendix.AppendixGetOK,
+) []interface{} {
+	if countries != nil {
+		flattened := make([]interface{}, len(countries.Items), len(countries.Items))
+		for ix := range countries.Items {
+			cc := make(map[string]interface{})
+			cc["country"] = countries.Items[ix].Country
+			cc["two_letter_code"] = countries.Items[ix].TwoLetterCode
+			flattened[ix] = cc
+		}
+
+		return flattened
+	}
+
+	return make([]interface{}, 0)
 }

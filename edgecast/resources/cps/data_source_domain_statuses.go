@@ -18,44 +18,7 @@ import (
 func DataSourceDomainStatuses() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceDomainStatusesRead,
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of domain statuses.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
-			},
-			"items": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Description: "Indicates the name of a domain status.",
-							Optional:    true,
-						},
-						"id": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the system-defined ID for a domain status.",
-							Optional:    true,
-						},
-					},
-				},
-				Description: "Contains a list of domain statuses.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of domain statuses.",
-			},
-		},
+		Schema:      namedEntitySchema("Domain Status"),
 	}
 }
 
@@ -71,27 +34,24 @@ func DataSourceDomainStatusesRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix Domain Statuses API
+	// Call Get Domain Statuses
 	params := appendix.NewAppendixGetDomainStatusesParams()
-	domainStatusesObj, err := cpsService.Appendix.AppendixGetDomainStatuses(params)
+	resp, err := cpsService.Appendix.AppendixGetDomainStatuses(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Domain Statuses: %# v", pretty.Formatter(domainStatusesObj))
+	log.Printf(
+		"[INFO] Retrieved Domain Statuses: %# v\n",
+		pretty.Formatter(resp))
 
-	d.SetId(domainStatusesObj.AtID)
-	d.SetType(domainStatusesObj.AtType)
-	d.Set("total_items", domainStatusesObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(domainStatusesObj.TotalItems))
-	for key := range domainStatusesObj.Items {
-		cc := make(map[string]interface{})
-		cc["id"] = domainStatusesObj.Items[key].ID
-		cc["name"] = domainStatusesObj.Items[key].Name
-		flattened[key] = cc
+	if resp != nil {
+		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
+		d.Set("items", flattened)
 	}
-	d.Set("items", flattened)
+
+	// always run
+	d.SetId(getTimeStamp())
 
 	return diag.Diagnostics{}
 }

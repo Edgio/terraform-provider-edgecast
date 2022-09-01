@@ -1,6 +1,8 @@
-data "edgecast_cps_countrycodes" "countrycodes" {
+data "edgecast_cps_countrycodes" "bermuda" {
     name = "Bermuda"
 }
+
+data "edgecast_cps_countrycodes" "all" {}
 
 data "edgecast_cps_cert_validation_levels" "validation_levels" {}
 

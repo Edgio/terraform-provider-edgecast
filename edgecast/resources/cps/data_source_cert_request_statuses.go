@@ -18,44 +18,7 @@ import (
 func DataSourceCertReqStatuses() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceCertReqStatusesRead,
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of certificate request statuses.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
-			},
-			"items": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Description: "Indicates the name of a certificate request status.",
-							Optional:    true,
-						},
-						"id": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the system-defined ID for a certificate request status.",
-							Optional:    true,
-						},
-					},
-				},
-				Description: "Contains a list of certificate request statuses.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of certificate request statuses.",
-			},
-		},
+		Schema:      namedEntitySchema("Certificate Request Status"),
 	}
 }
 
@@ -71,27 +34,24 @@ func DataSourceCertReqStatusesRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix certificate request statuses API
+	// Call Get Certificate Request Statuses
 	params := appendix.NewAppendixGetCertificateStatusesParams()
-	certReqStatusesObj, err := cpsService.Appendix.AppendixGetCertificateStatuses(params)
+	resp, err := cpsService.Appendix.AppendixGetCertificateStatuses(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Certificate Request Statuses: %# v", pretty.Formatter(certReqStatusesObj))
+	log.Printf(
+		"[INFO] Retrieved Certificate Request Statuses: %# v\n",
+		pretty.Formatter(resp))
 
-	d.SetId(certReqStatusesObj.AtID)
-	d.SetType(certReqStatusesObj.AtType)
-	d.Set("total_items", certReqStatusesObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(certReqStatusesObj.TotalItems))
-	for key := range certReqStatusesObj.Items {
-		cc := make(map[string]interface{})
-		cc["id"] = certReqStatusesObj.Items[key].ID
-		cc["name"] = certReqStatusesObj.Items[key].Name
-		flattened[key] = cc
+	if resp != nil {
+		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
+		d.Set("items", flattened)
 	}
-	d.Set("items", flattened)
+
+	// always run
+	d.SetId(getTimeStamp())
 
 	return diag.Diagnostics{}
 }

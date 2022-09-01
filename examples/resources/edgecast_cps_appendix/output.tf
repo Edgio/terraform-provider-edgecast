@@ -1,21 +1,10 @@
 
 output "fetched_info_countrycode_Bermuda" {
-  
-  value = {
-    for output in data.edgecast_cps_countrycodes.countrycodes.items : output.country =>
-    output.two_letter_code if contains(["Bermuda"], output.country)
-  }
+  value = data.edgecast_cps_countrycodes.bermuda.items[0].two_letter_code
 }
 
 output "fetched_info_countrycode_all" {
-  value = data.edgecast_cps_countrycodes.countrycodes.items
-}
-
-output "fetched_info_countrycode_none" {
-  value = {
-    for output in data.edgecast_cps_countrycodes.countrycodes.items : output.country =>
-    output.two_letter_code if contains(["random"], output.country)
-  }
+  value = data.edgecast_cps_countrycodes.all.items
 }
 
 output "fetched_info_cert_order_status_all" {

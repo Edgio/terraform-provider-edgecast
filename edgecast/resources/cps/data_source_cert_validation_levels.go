@@ -18,44 +18,7 @@ import (
 func DataSourceCertValidationLevels() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceCertValidationLevelsRead,
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of certificate validation levels.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
-			},
-			"items": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Description: "Indicates a certificate validation level.",
-							Optional:    true,
-						},
-						"id": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the system-defined ID for a certificate validation level.",
-							Optional:    true,
-						},
-					},
-				},
-				Description: "Contains a list of certificate validation levels.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of certificate validation levels.",
-			},
-		},
+		Schema:      namedEntitySchema("Certificate Validation Level"),
 	}
 }
 
@@ -71,27 +34,24 @@ func DataSourceCertValidationLevelsRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix Validation Levels API
+	// Call Get Certificate Validation Levels
 	params := appendix.NewAppendixGetValidationTypesParams()
-	validationLevelsObj, err := cpsService.Appendix.AppendixGetValidationTypes(params)
+	resp, err := cpsService.Appendix.AppendixGetValidationTypes(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Validation Levels: %# v", pretty.Formatter(validationLevelsObj))
+	log.Printf(
+		"[INFO] Retrieved Certificate Validation Levels: %# v\n",
+		pretty.Formatter(resp))
 
-	d.SetId(validationLevelsObj.AtID)
-	d.SetType(validationLevelsObj.AtType)
-	d.Set("total_items", validationLevelsObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(validationLevelsObj.TotalItems))
-	for key := range validationLevelsObj.Items {
-		cc := make(map[string]interface{})
-		cc["id"] = validationLevelsObj.Items[key].ID
-		cc["name"] = validationLevelsObj.Items[key].Name
-		flattened[key] = cc
+	if resp != nil {
+		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
+		d.Set("items", flattened)
 	}
-	d.Set("items", flattened)
+
+	// always run
+	d.SetId(getTimeStamp())
 
 	return diag.Diagnostics{}
 }

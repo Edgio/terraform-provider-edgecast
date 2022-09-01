@@ -18,44 +18,7 @@ import (
 func DataSourceCertOrderStatuses() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceCertOrderStatusesRead,
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of certificate order statuses.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
-			},
-			"items": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Description: "Indicates the name of a certificate order status.",
-							Optional:    true,
-						},
-						"id": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the system-defined ID for a certificate order status.",
-							Optional:    true,
-						},
-					},
-				},
-				Description: "Contains a list of certificate order statuses.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of certificate order statuses.",
-			},
-		},
+		Schema:      namedEntitySchema("Certificate Order Status"),
 	}
 }
 
@@ -71,27 +34,24 @@ func DataSourceCertOrderStatusesRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix Order statuses API
+	// Call Get Certificate Order Statuses
 	params := appendix.NewAppendixGetOrderStatusesParams()
-	orderStatusesObj, err := cpsService.Appendix.AppendixGetOrderStatuses(params)
+	resp, err := cpsService.Appendix.AppendixGetOrderStatuses(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Order statuses: %# v", pretty.Formatter(orderStatusesObj))
+	log.Printf(
+		"[INFO] Retrieved Certificate Order Statuses: %# v\n",
+		pretty.Formatter(resp))
 
-	d.SetId(orderStatusesObj.AtID)
-	d.SetType(orderStatusesObj.AtType)
-	d.Set("total_items", orderStatusesObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(orderStatusesObj.TotalItems))
-	for key := range orderStatusesObj.Items {
-		cc := make(map[string]interface{})
-		cc["id"] = orderStatusesObj.Items[key].ID
-		cc["name"] = orderStatusesObj.Items[key].Name
-		flattened[key] = cc
+	if resp != nil {
+		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
+		d.Set("items", flattened)
 	}
-	d.Set("items", flattened)
+
+	// always run
+	d.SetId(getTimeStamp())
 
 	return diag.Diagnostics{}
 }

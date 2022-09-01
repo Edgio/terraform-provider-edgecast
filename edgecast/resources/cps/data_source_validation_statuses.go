@@ -18,44 +18,7 @@ import (
 func DataSourceValidationStatuses() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceValidationStatusesRead,
-
-		Schema: map[string]*schema.Schema{
-			"id": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Indicates the relative path to an endpoint through which you may retrieve a list of validation statuses.",
-			},
-			"type": {
-				Type:        schema.TypeString,
-				Computed:    true,
-				Description: "Returns 'Collection'.",
-			},
-			"items": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:        schema.TypeString,
-							Description: "Indicates the name of a validation status.",
-							Optional:    true,
-						},
-						"id": {
-							Type:        schema.TypeInt,
-							Description: "Indicates the system-defined ID for a validation status.",
-							Optional:    true,
-						},
-					},
-				},
-				Description: "Contains a list of validation statuses.",
-			},
-
-			"total_items": {
-				Type:        schema.TypeInt,
-				Computed:    true,
-				Description: "Indicates the total number of validation statuses.",
-			},
-		},
+		Schema:      namedEntitySchema("Validation Status"),
 	}
 }
 
@@ -71,27 +34,24 @@ func DataSourceValidationStatusesRead(
 		return diag.FromErr(err)
 	}
 
-	// Call Get Appendix Validation statuses API
+	// Call Get Validation Statuses
 	params := appendix.NewAppendixGetValidationStatusesParams()
-	validationStatusesObj, err := cpsService.Appendix.AppendixGetValidationStatuses(params)
+	resp, err := cpsService.Appendix.AppendixGetValidationStatuses(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved Validation statuses: %# v", pretty.Formatter(validationStatusesObj))
+	log.Printf(
+		"[INFO] Retrieved Validation Statuses: %# v\n",
+		pretty.Formatter(resp))
 
-	d.SetId(validationStatusesObj.AtID)
-	d.SetType(validationStatusesObj.AtType)
-	d.Set("total_items", validationStatusesObj.TotalItems)
-
-	flattened := make([]map[string]interface{}, int(validationStatusesObj.TotalItems))
-	for key := range validationStatusesObj.Items {
-		cc := make(map[string]interface{})
-		cc["id"] = validationStatusesObj.Items[key].ID
-		cc["name"] = validationStatusesObj.Items[key].Name
-		flattened[key] = cc
+	if resp != nil {
+		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
+		d.Set("items", flattened)
 	}
-	d.Set("items", flattened)
+
+	// always run
+	d.SetId(getTimeStamp())
 
 	return diag.Diagnostics{}
 }
