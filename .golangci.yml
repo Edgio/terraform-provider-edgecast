@@ -5,6 +5,7 @@ linters:
     - scopelint
     - varnamelen
     - gci
+    - nosnakecase # deprecated linter
   fast: true
 
 linters-settings:

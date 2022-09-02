@@ -1,5 +1,6 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
 // See LICENSE file in project root for terms.
+
 package helper
 
 import (
@@ -20,6 +21,7 @@ const (
 	timeStampNumberBase = 10
 )
 
+// DiagsFromErrors creates a diag.Diagnostics instance from errors.
 func DiagsFromErrors(errs []error) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -33,6 +35,7 @@ func DiagsFromErrors(errs []error) diag.Diagnostics {
 	return diags
 }
 
+// GetUnixTimeStamp gets the current unix time and returns it as a string.
 func GetUnixTimeStamp() string {
 	return strconv.FormatInt(time.Now().Unix(), timeStampNumberBase)
 }
@@ -40,7 +43,6 @@ func GetUnixTimeStamp() string {
 // ConvertTFCollectionToSlice converts Terraform's
 // TypeList and TypeSet collections into a []interface{}.
 func ConvertTFCollectionToSlice(v interface{}) ([]interface{}, error) {
-
 	// TF TypeList results in a interface{} whose underlying type is
 	// []interface{}, so we just cast and return it
 	if listItems, ok := v.([]interface{}); ok {
@@ -48,7 +50,7 @@ func ConvertTFCollectionToSlice(v interface{}) ([]interface{}, error) {
 	}
 
 	// TF TypeSet results in a *schema.Set, which must be converted to a slice
-	//using List()
+	// using List()
 	if set, ok := v.(*schema.Set); ok {
 		return set.List(), nil
 	}
@@ -106,105 +108,130 @@ func ConvertSingletonSetToMap(attr interface{}) (map[string]interface{}, error) 
 	return nil, fmt.Errorf("attr was not a *schema.Set")
 }
 
-// NewTerraformSet is useful for unit testing when mocking Terraform
+// NewTerraformSet is useful for unit testing when mocking Terraform.
 func NewTerraformSet(items []interface{}) *schema.Set {
 	return schema.NewSet(dummySetFunc, items)
 }
 
 // ConvertToInt converts an interface{} to int
-// If v is nil or not an int, 0 is returned
+// If v is nil or not an int, 0 is returned.
 func ConvertToInt(v interface{}) int {
 	i, _ := v.(int)
+
 	return i
 }
 
 // ConvertToIntPointer converts an interface{} to *int
-// If v is nil or not an integer, a nil pointer is returned
+// If v is nil or not an integer, a nil pointer is returned.
 func ConvertToIntPointer(v interface{}, assertNaturalNumber bool) *int {
 	if v == nil {
 		return nil
 	}
+
 	if i, ok := v.(int); ok {
 		if assertNaturalNumber && i <= 0 {
 			return nil
 		}
+
 		return &i
 	}
+
 	return nil
 }
 
 // ConvertToBoolPointer converts an interface{} to *bool
-// If v is nil or not a bool, a nil pointer is returned
+// If v is nil or not a bool, a nil pointer is returned.
 func ConvertToBoolPointer(v interface{}) *bool {
 	if v == nil {
 		return nil
 	}
+
 	if b, ok := v.(bool); ok {
 		return &b
 	}
+
 	return nil
 }
 
 // ConvertToString converts an interface{} to string
-// If v is nil or not a string, an empty string is returned
+// If v is nil or not a string, an empty string is returned.
 func ConvertToString(v interface{}) string {
 	s, _ := v.(string)
+
 	return s
 }
 
 // ConvertToStringPointer converts an interface{} to *string
-// If v is nil or not a string, a nil pointer is returned
+// If v is nil or not a string, a nil pointer is returned.
 func ConvertToStringPointer(v interface{}, excludeWhiteSpace bool) *string {
 	if s, ok := v.(string); ok {
 		if excludeWhiteSpace && len(strings.TrimSpace(s)) == 0 {
 			return nil
 		}
+
 		return &s
 	}
+
 	return nil
 }
 
 // ConvertToStringSlicePointer converts an interface{} to *[]string
-// If v is nil or not a string, a nil pointer is returned
+// If v is nil or not a string, a nil pointer is returned. If a value within
+// v is not a string, it will be returned as an empty string.
 func ConvertToStringsPointer(v interface{}, excludeEmpty bool) *[]string {
 	if v == nil {
 		return nil
 	}
+
 	if l, ok := v.([]interface{}); ok {
 		if excludeEmpty && len(l) == 0 {
 			return nil
 		}
+
 		s := make([]string, len(l))
+
 		for i, v := range l {
-			s[i] = v.(string)
+			vs, ok := v.(string)
+			if !ok {
+				vs = ""
+			}
+
+			s[i] = vs
 		}
+
 		return &s
 	}
+
 	return nil
 }
 
 // ConvertToMapPointer converts an interface{} to *map[string]string{}
-// If v is nil or not a string, a nil pointer is returned
+// If v is nil or not a string, a nil pointer is returned.
 func ConvertToStringMapPointer(v interface{}, excludeEmpty bool) *map[string]string {
 	if v == nil {
 		return nil
 	}
+
 	if m, ok := v.(map[string]interface{}); ok {
 		if excludeEmpty && len(m) == 0 {
 			return nil
 		}
+
 		result := make(map[string]string)
+
 		for key, value := range m {
 			stringValue, _ := value.(string)
 			result[key] = stringValue
 		}
+
 		return &result
 	}
+
 	return nil
 }
 
 // StringIsNotEmptyJSON is a SchemaValidateFunc which tests to make sure the
-// supplied string is not an empty JSON object i.e. "{}"
+// supplied string is not an empty JSON object i.e. "{}".
 func StringIsNotEmptyJSON(
 	i interface{},
 	k string,
@@ -214,14 +241,17 @@ func StringIsNotEmptyJSON(
 		errors = append(
 			errors,
 			fmt.Errorf("expected type of %s to be string", k))
+
 		return warnings, errors
 	}
 
 	var data map[string]interface{}
+
 	if err := json.Unmarshal([]byte(v), &data); err != nil {
 		errors = append(
 			errors,
 			fmt.Errorf("%q contains invalid JSON: %s", k, err))
+
 		return warnings, errors
 	}
 
@@ -235,7 +265,7 @@ func StringIsNotEmptyJSON(
 }
 
 // dummySetFunc is to be used when imitating Terraform
-// in unit tests by using schema.NewSet
+// in unit tests by using schema.NewSet.
 func dummySetFunc(i interface{}) int {
 	return random.Random(math.MinInt32, math.MaxInt32)
 }

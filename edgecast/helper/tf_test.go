@@ -1,10 +1,14 @@
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
+
 package helper_test
 
 import (
 	"math"
 	"reflect"
-	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
+
+	"terraform-provider-edgecast/edgecast/helper"
 
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -90,7 +94,8 @@ func TestExpandSingletonSet(t *testing.T) {
 				},
 				map[string]interface{}{
 					"map2prop1": "string value",
-				}}),
+				},
+			}),
 			expected:      nil,
 			expectSuccess: false,
 		},
@@ -500,7 +505,7 @@ func TestConvertToStringMapPointer(t *testing.T) {
 }
 
 // dummySetFunc is to be used when imitating Terraform
-// in unit tests by using schema.NewSet
+// in unit tests by using schema.NewSet.
 func dummySetFunc(i interface{}) int {
 	return random.Random(math.MinInt32, math.MaxInt32)
 }

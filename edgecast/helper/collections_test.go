@@ -1,9 +1,13 @@
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
+
 package helper_test
 
 import (
 	"reflect"
-	"terraform-provider-edgecast/edgecast/helper"
 	"testing"
+
+	"terraform-provider-edgecast/edgecast/helper"
 )
 
 func TestIsInterfaceArray(t *testing.T) {

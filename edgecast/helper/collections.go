@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-// IsInterfaceArray deterimins if an interface{} is actually an []interface{}
+// IsInterfaceArray deterimins if an interface{} is actually an []interface{}.
 func IsInterfaceArray(input interface{}) bool {
 	switch input.(type) {
 	case []interface{}:
@@ -22,7 +22,9 @@ func ConvertSliceToStrings(v []interface{}) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
+
 	strings := make([]string, len(v))
+
 	for i, val := range v {
 		if s, ok := val.(string); ok {
 			strings[i] = s

@@ -1,3 +1,6 @@
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
+
 package helper
 
 import (
@@ -5,6 +8,11 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+)
+
+const (
+	logFileMode = 0o644
+	logFileFlag = os.O_APPEND | os.O_CREATE | os.O_WRONLY
 )
 
 // Log API request body, method, url in json pretty format.
@@ -17,9 +25,8 @@ func LogRequestBody(method string, url string, body interface{}) {
 	log.Print("=====================================================================")
 }
 
-// Log json string with pretty format with a message
+// Log json string with pretty format with a message.
 func LogPrettyJson(message string, jsonString string) {
-
 	log.Print("=====================================================================")
 	log.Printf("[[[%s]]]:", message)
 	log.Printf("[[[Json]]]:%s", jsonPrettyPrint(jsonString))
@@ -31,8 +38,7 @@ func LogPrettyJson(message string, jsonString string) {
 // instance: any data structure, like map, slice, instance of struct
 // file: file name. file is created in the folder that tf.exe exeduted
 func Log(msg string, file string) {
-	f, err := os.OpenFile(file,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(file, logFileFlag, logFileMode)
 	if err != nil {
 		log.Println(err)
 	}
@@ -47,8 +53,7 @@ func Log(msg string, file string) {
 // instance: any data structure, like map, slice, instance of struct
 // file: file name. file is created in the folder that tf.exe exeduted
 func LogComarison(a string, b string, file string) {
-	f, err := os.OpenFile(file,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(file, logFileFlag, logFileMode)
 	if err != nil {
 		log.Println(err)
 	}
@@ -63,11 +68,11 @@ func LogComarison(a string, b string, file string) {
 // instance: any data structure, like map, slice, instance of struct
 // file: file name. file is created in the folder that tf.exe exeduted
 func LogIntComparison(a int, b int, file string) {
-	f, err := os.OpenFile(file,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(file, logFileFlag, logFileMode)
 	if err != nil {
 		log.Println(err)
 	}
+
 	defer f.Close()
 
 	logger := log.New(f, "", log.LstdFlags)
@@ -79,11 +84,11 @@ func LogIntComparison(a int, b int, file string) {
 // instance: any data structure, like map, slice, instance of struct
 // file: file name. file is created in the folder that tf.exe exeduted
 func LogInstanceAsPrettyJsonToFile(message string, instance interface{}, file string) {
-	f, err := os.OpenFile(file,
-		os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(file, logFileFlag, logFileMode)
 	if err != nil {
 		log.Println(err)
 	}
+
 	defer f.Close()
 
 	logger := log.New(f, "", log.LstdFlags)
@@ -104,18 +109,21 @@ func LogInstanceAsPrettyJson(message string, instance interface{}) {
 	log.Print("=====================================================================")
 }
 
-// IsJSONString -
+// IsJSONString determines whether the string is in JSON format.
 func IsJSONString(s string) bool {
 	var js string
+
 	return json.Unmarshal([]byte(s), &js) != nil
 }
 
-// Make json string formatted in terraform.log
+// Make json string formatted in terraform.log.
 func jsonPrettyPrint(in string) string {
 	var out bytes.Buffer
+
 	err := json.Indent(&out, []byte(in), "", "\t")
 	if err != nil {
 		return in
 	}
+
 	return out.String()
 }
