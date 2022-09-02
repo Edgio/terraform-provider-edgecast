@@ -75,7 +75,7 @@ func Test_FlattenNamedEntities(t *testing.T) {
 
 	tests := []struct {
 		name string
-		args models.HyperionCollectionNamedEntity
+		args *models.HyperionCollectionNamedEntity
 		want []map[string]interface{}
 	}{
 		{
@@ -85,7 +85,12 @@ func Test_FlattenNamedEntities(t *testing.T) {
 		},
 		{
 			name: "No entities",
-			args: models.HyperionCollectionNamedEntity{},
+			args: &models.HyperionCollectionNamedEntity{},
+			want: make([]map[string]interface{}, 0),
+		},
+		{
+			name: "Nil entities",
+			args: nil,
 			want: make([]map[string]interface{}, 0),
 		},
 	}
@@ -107,7 +112,7 @@ func Test_FlattenNamedEntities(t *testing.T) {
 
 func createNamedEntities(
 	count int,
-) models.HyperionCollectionNamedEntity {
+) *models.HyperionCollectionNamedEntity {
 	items := make([]*models.NamedEntity, count)
 	for i := 0; i < count; i++ {
 		items[i] = &models.NamedEntity{
@@ -116,7 +121,7 @@ func createNamedEntities(
 		}
 	}
 
-	return models.HyperionCollectionNamedEntity{
+	return &models.HyperionCollectionNamedEntity{
 		Items: items,
 	}
 }

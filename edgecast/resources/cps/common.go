@@ -4,20 +4,23 @@
 package cps
 
 import (
+	"context"
 	"fmt"
-	"strconv"
-	"time"
+	"log"
 
 	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/helper"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/kr/pretty"
 )
 
 // buildCPSService builds the SDK CPS service to manage CPS
-// resources
+// resources.
 func buildCPSService(
 	config api.ClientConfig,
 ) (*cps.CpsService, error) {
@@ -38,10 +41,45 @@ func buildCPSService(
 	return cps.New(sdkConfig)
 }
 
+func DataSourceNamedEntityRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+	readFunc func(svc *cps.CpsService, d *schema.ResourceData) (*models.HyperionCollectionNamedEntity, error),
+) diag.Diagnostics {
+	// Initialize CPS Service
+	config := m.(**api.ClientConfig)
+
+	cpsService, err := buildCPSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	resp, err := readFunc(cpsService, d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Retrieved: %# v\n", pretty.Formatter(resp))
+
+	flattened := FlattenNamedEntities(resp)
+	d.Set("items", flattened)
+
+	// always run
+	d.SetId(helper.GetUnixTimeStamp())
+
+	return diag.Diagnostics{}
+}
+
 func FlattenNamedEntities(
-	entities models.HyperionCollectionNamedEntity,
+	entities *models.HyperionCollectionNamedEntity,
 ) []map[string]interface{} {
+	if entities == nil {
+		return make([]map[string]interface{}, 0)
+	}
+
 	flattened := make([]map[string]interface{}, len(entities.Items))
+
 	for ix := range entities.Items {
 		cc := make(map[string]interface{})
 		cc["id"] = entities.Items[ix].ID
@@ -79,8 +117,4 @@ func namedEntitySchema(resource string) map[string]*schema.Schema {
 			Description: fmt.Sprintf("Contains a list of %s.", resource),
 		},
 	}
-}
-
-func getTimeStamp() string {
-	return strconv.FormatInt(time.Now().Unix(), 10)
 }

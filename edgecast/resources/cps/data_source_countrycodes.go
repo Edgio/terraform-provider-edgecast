@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/helper"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/appendix"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -59,6 +60,7 @@ func DataSourceCountryCodesRead(
 ) diag.Diagnostics {
 	// Initialize CPS Service
 	config := m.(**api.ClientConfig)
+
 	cpsService, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
@@ -86,7 +88,7 @@ func DataSourceCountryCodesRead(
 	d.Set("items", flattened)
 
 	// always run
-	d.SetId(getTimeStamp())
+	d.SetId(helper.GetUnixTimeStamp())
 
 	return diag.Diagnostics{}
 }
@@ -96,6 +98,7 @@ func FlattenCountries(
 ) []map[string]interface{} {
 	if countries != nil {
 		flattened := make([]map[string]interface{}, len(countries.Items), len(countries.Items))
+
 		for ix := range countries.Items {
 			cc := make(map[string]interface{})
 			cc["country"] = countries.Items[ix].Country

@@ -5,14 +5,12 @@ package cps
 
 import (
 	"context"
-	"log"
 
-	"terraform-provider-edgecast/edgecast/api"
-
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/appendix"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/kr/pretty"
 )
 
 func DataSourceCancelCertReqActions() *schema.Resource {
@@ -27,31 +25,19 @@ func DataSourceCancelCertReqActionsRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
-	config := m.(**api.ClientConfig)
-	cpsService, err := buildCPSService(**config)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	return DataSourceNamedEntityRead(ctx, d, m, callGetCancelCertReqActions)
+}
 
-	// Call Get Cancel Certificate Request Actions
+func callGetCancelCertReqActions(
+	svc *cps.CpsService,
+	d *schema.ResourceData,
+) (*models.HyperionCollectionNamedEntity, error) {
 	params := appendix.NewAppendixGetCancelActionsParams()
-	resp, err := cpsService.Appendix.AppendixGetCancelActions(params)
+
+	resp, err := svc.Appendix.AppendixGetCancelActions(params)
 	if err != nil {
-		return diag.FromErr(err)
+		return nil, err
 	}
 
-	log.Printf(
-		"[INFO] Retrieved Cancel Certificate Request Actions: %# v\n",
-		pretty.Formatter(resp))
-
-	if resp != nil {
-		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
-		d.Set("items", flattened)
-	}
-
-	// always run
-	d.SetId(getTimeStamp())
-
-	return diag.Diagnostics{}
+	return &resp.HyperionCollectionNamedEntity, nil
 }

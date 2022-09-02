@@ -5,14 +5,12 @@ package cps
 
 import (
 	"context"
-	"log"
 
-	"terraform-provider-edgecast/edgecast/api"
-
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/appendix"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/kr/pretty"
 )
 
 func DataSourceValidationStatuses() *schema.Resource {
@@ -27,31 +25,19 @@ func DataSourceValidationStatusesRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
-	config := m.(**api.ClientConfig)
-	cpsService, err := buildCPSService(**config)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	return DataSourceNamedEntityRead(ctx, d, m, callGetValidationStatuses)
+}
 
-	// Call Get Validation Statuses
+func callGetValidationStatuses(
+	svc *cps.CpsService,
+	d *schema.ResourceData,
+) (*models.HyperionCollectionNamedEntity, error) {
 	params := appendix.NewAppendixGetValidationStatusesParams()
-	resp, err := cpsService.Appendix.AppendixGetValidationStatuses(params)
+
+	resp, err := svc.Appendix.AppendixGetValidationStatuses(params)
 	if err != nil {
-		return diag.FromErr(err)
+		return nil, err
 	}
 
-	log.Printf(
-		"[INFO] Retrieved Validation Statuses: %# v\n",
-		pretty.Formatter(resp))
-
-	if resp != nil {
-		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
-		d.Set("items", flattened)
-	}
-
-	// always run
-	d.SetId(getTimeStamp())
-
-	return diag.Diagnostics{}
+	return &resp.HyperionCollectionNamedEntity, nil
 }

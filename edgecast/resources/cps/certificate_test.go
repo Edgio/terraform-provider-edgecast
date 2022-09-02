@@ -1,11 +1,12 @@
 // Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
 // license. See LICENSE file in project root for terms.
 
-package cps
+package cps_test
 
 import (
 	"reflect"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/resources/cps"
 	"testing"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
@@ -106,12 +107,10 @@ func TestExpandOrganization(t *testing.T) {
 	}
 
 	for _, v := range cases {
-
-		actualPtr, err := expandOrganization(v.input)
+		actualPtr, err := cps.ExpandOrganization(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
-
 				actual := *actualPtr
 				expected := *v.expectedPtr
 
@@ -126,7 +125,6 @@ func TestExpandOrganization(t *testing.T) {
 						actual,
 					)
 				}
-
 			} else {
 				t.Fatalf("%s: Encountered error where one was not expected: %+v",
 					v.name,
@@ -203,12 +201,10 @@ func TestExpandOrganizationContact(t *testing.T) {
 	}
 
 	for _, v := range cases {
-
-		actualPtr, err := expandAdditionalContacts(v.input)
+		actualPtr, err := cps.ExpandAdditionalContacts(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
-
 				actual := actualPtr
 				expected := v.expectedPtr
 
@@ -223,7 +219,6 @@ func TestExpandOrganizationContact(t *testing.T) {
 						actual,
 					)
 				}
-
 			} else {
 				t.Fatalf("%s: Encountered error where one was not expected: %+v",
 					v.name,
@@ -284,12 +279,10 @@ func TestExpandDomains(t *testing.T) {
 	}
 
 	for _, v := range cases {
-
-		actualPtr, err := expandDomains(v.input)
+		actualPtr, err := cps.ExpandDomains(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
-
 				actual := actualPtr
 				expected := v.expectedPtr
 
@@ -304,7 +297,6 @@ func TestExpandDomains(t *testing.T) {
 						actual,
 					)
 				}
-
 			} else {
 				t.Fatalf("%s: Encountered error where one was not expected: %+v",
 					v.name,
@@ -365,7 +357,7 @@ func TestFlattenDeployments(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := flattenDeployments(c.input)
+		actual := cps.FlattenDeployments(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -413,8 +405,8 @@ func TestFlattenActor(t *testing.T) {
 			expectSuccess: false,
 		},
 		{
-			name:          "Empty imput",
-			input:         &models.Actor{},
+			name:  "Empty imput",
+			input: &models.Actor{},
 			expected: []map[string]interface{}{
 				{
 					"user_id":        0,
@@ -428,7 +420,7 @@ func TestFlattenActor(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := flattenActor(c.input)
+		actual := cps.FlattenActor(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to

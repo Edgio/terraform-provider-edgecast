@@ -5,14 +5,12 @@ package cps
 
 import (
 	"context"
-	"log"
 
-	"terraform-provider-edgecast/edgecast/api"
-
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/appendix"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/kr/pretty"
 )
 
 func DataSourceCertReqStatuses() *schema.Resource {
@@ -27,31 +25,19 @@ func DataSourceCertReqStatusesRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
-	config := m.(**api.ClientConfig)
-	cpsService, err := buildCPSService(**config)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	return DataSourceNamedEntityRead(ctx, d, m, callGetCertReqStatuses)
+}
 
-	// Call Get Certificate Request Statuses
+func callGetCertReqStatuses(
+	svc *cps.CpsService,
+	d *schema.ResourceData,
+) (*models.HyperionCollectionNamedEntity, error) {
 	params := appendix.NewAppendixGetCertificateStatusesParams()
-	resp, err := cpsService.Appendix.AppendixGetCertificateStatuses(params)
+
+	resp, err := svc.Appendix.AppendixGetCertificateStatuses(params)
 	if err != nil {
-		return diag.FromErr(err)
+		return nil, err
 	}
 
-	log.Printf(
-		"[INFO] Retrieved Certificate Request Statuses: %# v\n",
-		pretty.Formatter(resp))
-
-	if resp != nil {
-		flattened := FlattenNamedEntities(resp.HyperionCollectionNamedEntity)
-		d.Set("items", flattened)
-	}
-
-	// always run
-	d.SetId(getTimeStamp())
-
-	return diag.Diagnostics{}
+	return &resp.HyperionCollectionNamedEntity, nil
 }

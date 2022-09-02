@@ -7,11 +7,35 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gruntwork-io/terratest/modules/random"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+const (
+	timeStampNumberBase = 10
+)
+
+func DiagsFromErrors(errs []error) diag.Diagnostics {
+	var diags diag.Diagnostics
+
+	for _, err := range errs {
+		diags = append(diags, diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  err.Error(),
+		})
+	}
+
+	return diags
+}
+
+func GetUnixTimeStamp() string {
+	return strconv.FormatInt(time.Now().Unix(), timeStampNumberBase)
+}
 
 // ConvertTFCollectionToSlice converts Terraform's
 // TypeList and TypeSet collections into a []interface{}.
