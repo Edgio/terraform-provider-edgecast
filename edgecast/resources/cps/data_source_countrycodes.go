@@ -97,7 +97,7 @@ func FlattenCountries(
 	countries *appendix.AppendixGetOK,
 ) []map[string]interface{} {
 	if countries != nil {
-		flattened := make([]map[string]interface{}, len(countries.Items), len(countries.Items))
+		flattened := make([]map[string]interface{}, len(countries.Items))
 
 		for ix := range countries.Items {
 			cc := make(map[string]interface{})

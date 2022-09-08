@@ -1,25 +1,38 @@
-linters:
-  enable-all: true
-  disable:
-    - exhaustivestruct
-    - scopelint
-    - varnamelen
-    - gci
-    - nosnakecase # deprecated linter
-  fast: true
+  linters:
+  disable-all: true
+  enable:
+    - govet
+    
+#   enable-all: true
+#   disable:
+#     - exhaustivestruct
+#     - scopelint
+#     - varnamelen
+#     - gci
+#     - ineffassign
+#     - nosnakecase # deprecated linter
+#     - gocognit # enable at a later time
+#     - errcheck
+#   fast: true
 
-linters-settings:
-  misspell:
-    ignore-words:
-      - adn
+# linters-settings:
+#   misspell:
+#     ignore-words:
+#       - adn
 
-issues:
-  exclude-rules:
-    - path: '(.+)_schema\.go'
-      linters:
-        - lll
-        - funlen
-        - maintidx
-    - path: '(.+)_test\.go'
-      linters:
-        - funlen
+# issues:
+#   exclude-rules:
+#     - path: 'test\unit\*.go'
+#       linters:
+#         - unused
+#     - path: 'edgecast\resources\*.go'
+#       linters:
+#         - forbidigo # fmt.Print needed to write to Terraform log
+#     - path: '(.+)_schema\.go'
+#       linters:
+#         - lll
+#         - funlen
+#         - maintidx
+#     - path: '(.+)_test\.go'
+#       linters:
+#         - funlen

@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/url"
@@ -206,12 +206,12 @@ func (BaseClient *BaseClient) SendRequest(req *retryablehttp.Request, parsedResp
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	bodyAsString := string(body)
 	helper.LogPrettyJson("Response", bodyAsString)
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		if err != nil {
-			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
+			return nil, fmt.Errorf("SendRequest: io.ReadAll: %v", err)
 		}
 
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
@@ -269,12 +269,12 @@ func (BaseClient *BaseClient) SendRequestWithStringResponse(req *retryablehttp.R
 	}
 
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	bodyAsString := string(body)
 
 	if resp.StatusCode >= 400 && resp.StatusCode <= 599 {
 		if err != nil {
-			return nil, fmt.Errorf("SendRequest: ioutil.ReadAll: %v", err)
+			return nil, fmt.Errorf("SendRequest: io.ReadAll: %v", err)
 		}
 
 		return nil, fmt.Errorf("SendRequest failed: %s", bodyAsString)
