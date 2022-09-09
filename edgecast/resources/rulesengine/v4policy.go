@@ -98,7 +98,11 @@ func ResourcePolicyCreate(
 	// messy - needs improvement - unmarshalling json, modifying, then
 	// marshalling back to string state must always be locked
 	policyMap := make(map[string]interface{})
-	json.Unmarshal([]byte(policy), &policyMap)
+	err := json.Unmarshal([]byte(policy), &policyMap)
+	if err != nil {
+		return diag.Errorf("error reading policy: %s", err.Error())
+	}
+
 	policyMap["state"] = "locked"
 	if policyMap["name"] != nil {
 		log.Printf(`
@@ -462,13 +466,20 @@ func cleanPolicyForTerrafomState(val interface{}) string {
 		return policy
 	}
 	policyMap := make(map[string]interface{})
-	json.Unmarshal([]byte(policy), &policyMap)
+	err := json.Unmarshal([]byte(policy), &policyMap)
+	if err != nil {
+		panic(fmt.Errorf("cleanPolicyForTerrafomState: %w", err))
+	}
 
 	// remove unneeded metadata the user may have input
-	cleanPolicy(policyMap)
+	err = cleanPolicy(policyMap)
+	if err != nil {
+		panic(fmt.Errorf("cleanPolicyForTerrafomState: %w", err))
+	}
+
 	jsonBytes, err := json.Marshal(policyMap)
 	if err != nil {
-		panic(fmt.Errorf("cleanPolicyForTerrafomState: %v", err))
+		panic(fmt.Errorf("cleanPolicyForTerrafomState: %w", err))
 	}
 
 	return string(jsonBytes)

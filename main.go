@@ -4,9 +4,7 @@
 package main
 
 import (
-	"context"
 	"flag"
-	"log"
 	"terraform-provider-edgecast/edgecast"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
@@ -29,15 +27,8 @@ func main() {
 	opts := &plugin.ServeOpts{ProviderFunc: edgecast.Provider}
 
 	if debugMode {
-		err := plugin.Debug(
-			context.Background(),
-			"github.com/terraform-providers/edgecast",
-			opts,
-		)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		return
+		opts.Debug = true
+		opts.ProviderAddr = "github.com/terraform-providers/edgecast"
 	}
 
 	plugin.Serve(opts)
