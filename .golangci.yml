@@ -1,8 +1,8 @@
   linters:
-  disable-all: true
-  enable:
-    - govet
-    
+    disable-all: true
+    enable:
+      - govet
+
 #   enable-all: true
 #   disable:
 #     - exhaustivestruct
