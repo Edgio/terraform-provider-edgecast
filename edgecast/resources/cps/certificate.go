@@ -47,31 +47,61 @@ func ResourceCertificateCreate(
 		return diag.Errorf("failed to load configuration")
 	}
 
-	cpsService, err := buildCPSService(**config)
+	ns, errs := ExpandNotificationSettings(d.Get("notification_setting"))
+
+	svc, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	certificateObj, errs := ExpandCertificate(d)
+	cert, errs := ExpandCertificate(d)
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors(errs)
 	}
 
 	// Call create certificate API
-	params := certificate.NewCertificatePostParams()
-	params.Certificate = certificateObj
+	cparams := certificate.NewCertificatePostParams()
+	cparams.Certificate = cert
 
-	resp, err := cpsService.Certificate.CertificatePost(params)
+	cresp, err := svc.Certificate.CertificatePost(cparams)
 	if err != nil {
 		d.SetId("")
+		return diag.FromErr(err)
+	}
+
+	//ns, errs := ExpandNotificationSettings(d.Get("notification_settings"))
+
+	if len(errs) > 0 {
+		return helper.DiagsFromErrors(errs)
+	}
+
+	nparams := certificate.NewCertificateUpdateRequestNotificationsParams()
+	nparams.ID = cresp.ID
+	nparams.Notifications = ns
+
+	_, err = svc.Certificate.CertificateUpdateRequestNotifications(nparams)
+	if err != nil {
+		d.SetId("")
+
+		// Cancel the created cert request.
+		cnclParams := certificate.NewCertificateCancelParams()
+		cnclParams.ID = cresp.ID
+		cnclParams.Apply = true
+		_, cancelErr := svc.Certificate.CertificateCancel(cnclParams)
+		if cancelErr != nil {
+			return diag.Errorf(
+				"failed to roll back cert request upon error: %v, original err: %v",
+				cancelErr.Error(),
+				err.Error())
+		}
 
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] certificate created: %# v", pretty.Formatter(resp))
-	log.Printf("[INFO] certificate id: %d", resp.ID)
+	log.Printf("[INFO] certificate created: %# v", pretty.Formatter(cresp))
+	log.Printf("[INFO] certificate id: %d", cresp.ID)
 
-	d.SetId(strconv.Itoa(int(resp.ID)))
+	d.SetId(strconv.Itoa(int(cresp.ID)))
 
 	return ResourceCertificateRead(ctx, d, m)
 }
@@ -277,6 +307,118 @@ func ExpandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 		return nil,
 			errors.New("ExpandDomains: attr input was not a []interface{}")
 	}
+}
+
+// ExpandNotificationSettings converts the Terraform representation of organization
+// into the EmailNotification API Model.
+func ExpandNotificationSettings(
+	attr interface{},
+) ([]*models.EmailNotification, []error) {
+	log.Printf("!!!notification_settings raw: %+v\n", attr)
+	errs := make([]error, 0)
+	maps, ok := attr.([]any)
+	if !ok {
+		return nil, []error{errors.New("error parsing notification settings")}
+	}
+
+	// Empty map
+	if len(maps) == 0 {
+		return make([]*models.EmailNotification, 0), errs
+	}
+
+	emailNotifs := make([]*models.EmailNotification, 0)
+
+	for ix, v := range maps {
+		m, ok := v.(map[string]any)
+		if !ok {
+			errs = append(
+				errs,
+				fmt.Errorf("error parsing notification_setting[%d]", ix))
+
+			continue
+		}
+
+		emailNotif := &models.EmailNotification{}
+
+		if notifType, ok := GetStringFromMap(m, "notification_type"); ok {
+			emailNotif.NotificationType = notifType
+		} else {
+			err := fmt.Errorf(
+				"error parsing notification_setting[%d].notification_type",
+				ix)
+			errs = append(errs, err)
+		}
+
+		if enabled, ok := GetBoolFromMap(m, "enabled"); ok {
+			emailNotif.Enabled = enabled
+		} else {
+			err := fmt.Errorf(
+				"error parsing notification_setting[%d].enabled",
+				ix)
+			errs = append(errs, err)
+		}
+
+		emails, err := helper.ConvertTFCollectionToStrings(m["emails"])
+		if err == nil {
+			emailNotif.Emails = emails
+		} else {
+			err := fmt.Errorf(
+				"error parsing notification_setting[%d].emails: %w",
+				ix,
+				err)
+			errs = append(errs, err)
+		}
+
+		log.Printf("!!!notification_setting parsed: %+v\n", emailNotif)
+		emailNotifs = append(emailNotifs, emailNotif)
+	}
+
+	return emailNotifs, errs
+}
+
+func GetStringFromMap(m map[string]any, key string) (string, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return "", false
+	}
+
+	val, ok := raw.(string)
+	return val, ok
+}
+
+func GetBoolFromMap(m map[string]any, key string) (bool, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return false, false
+	}
+
+	val, ok := raw.(bool)
+	return val, ok
+}
+
+func GetStringsFromMap(m map[string]any, key string) ([]string, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return make([]string, 0), false
+	}
+
+	arr, ok := raw.([]any)
+	if !ok {
+		return make([]string, 0), false
+	}
+
+	strings := make([]string, len(arr))
+
+	for ix, v := range arr {
+		s, ok := v.(string)
+		if !ok {
+			return make([]string, 0), false
+		}
+
+		strings[ix] = s
+	}
+
+	return strings, true
 }
 
 // ExpandOrganization converts the Terraform representation of organization

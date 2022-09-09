@@ -11,6 +11,34 @@ func getCertificateSchema() map[string]*schema.Schema {
 			Computed:    true,
 			Description: "Indicates the system-defined ID assigned to this certificate.",
 		},
+		"notification_setting": {
+			Type:        schema.TypeList,
+			Optional:    true,
+			Description: "Determine the conditions under which notifications will be sent and to whom they will be sent for a specific certificate request.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"notification_type": {
+						Type:     schema.TypeString,
+						Required: true,
+						Description: "Identifies the type of notification that will be configured. Valid values are:\n" +
+							"CertificateRenewal | CertificateExpiring | PendingValidations",
+					},
+					"enabled": {
+						Type:        schema.TypeBool,
+						Required:    true,
+						Description: "Determines whether emails for this type of notification will be sent.",
+					},
+					"emails": {
+						Type:        schema.TypeList,
+						Optional:    true,
+						Description: "Required when enabled=true. Defines one or more email addresses to which a notification will be sent. Set this parameter to an email address associated with a MCC user in your account. Your account manager may also define an email address associated with a partner user. Our service returns a 400 Bad Request when this parameter is set to any other email address.",
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+				},
+			},
+		},
 		"created": {
 			Type:     schema.TypeString,
 			Computed: true,

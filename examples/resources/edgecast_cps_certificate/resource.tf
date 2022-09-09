@@ -44,6 +44,24 @@ resource "edgecast_cps_certificate" "certificate_1" {
 		is_common_name = false
 		name =  "testdomain2.com"
 	}
+
+	notification_setting {
+		notification_type = "CertificateRenewal"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
+
+	notification_setting {
+		notification_type = "CertificateExpiring"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
+
+	notification_setting {
+		notification_type = "PendingValidations"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
 }
 
 resource "edgecast_cps_certificate" "certificate_2" {
