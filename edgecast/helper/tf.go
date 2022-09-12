@@ -21,7 +21,35 @@ const (
 	timeStampNumberBase = 10
 )
 
-// DiagsFromErrors creates a diag.Diagnostics instance from errors.
+// CreationErrorf is a helper function for errors encountered while
+// creating a new resource.
+func CreationErrorf(
+	d *schema.ResourceData,
+	format string,
+	a ...interface{},
+) diag.Diagnostics {
+	d.SetId("")
+
+	return diag.Errorf(format, a...)
+}
+
+// CreationError is a helper function for errors encountered while
+// creating a new resource.
+func CreationError(d *schema.ResourceData, err error) diag.Diagnostics {
+	d.SetId("")
+
+	return diag.FromErr(err)
+}
+
+// CreationErrors is a helper function for errors encountered while
+// creating a new resource.
+func CreationErrors(d *schema.ResourceData, errs []error) diag.Diagnostics {
+	d.SetId("")
+
+	return DiagsFromErrors(errs)
+}
+
+// DiagsFromErrors creates a diag.Diagnostics instance from multiple errors.
 func DiagsFromErrors(errs []error) diag.Diagnostics {
 	var diags diag.Diagnostics
 

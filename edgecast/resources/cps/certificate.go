@@ -44,35 +44,33 @@ func ResourceCertificateCreate(
 	// Initialize CPS Service
 	config, ok := m.(**api.ClientConfig)
 	if !ok {
-		return diag.Errorf("failed to load configuration")
+		return helper.CreationErrorf(d, "failed to load configuration")
 	}
-
-	ns, errs := ExpandNotificationSettings(d.Get("notification_setting"))
 
 	svc, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
+	// Read from TF state.
 	cert, errs := ExpandCertificate(d)
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors(errs)
 	}
 
-	// Call create certificate API
+	ns, errs := ExpandNotificationSettings(d.Get("notification_settings"))
+
+	if len(errs) > 0 {
+		return helper.CreationErrors(d, errs)
+	}
+
+	// Call APIs.
 	cparams := certificate.NewCertificatePostParams()
 	cparams.Certificate = cert
 
 	cresp, err := svc.Certificate.CertificatePost(cparams)
 	if err != nil {
-		d.SetId("")
-		return diag.FromErr(err)
-	}
-
-	//ns, errs := ExpandNotificationSettings(d.Get("notification_settings"))
-
-	if len(errs) > 0 {
-		return helper.DiagsFromErrors(errs)
+		return helper.CreationError(d, err)
 	}
 
 	nparams := certificate.NewCertificateUpdateRequestNotificationsParams()
@@ -98,8 +96,8 @@ func ResourceCertificateCreate(
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] certificate created: %# v", pretty.Formatter(cresp))
-	log.Printf("[INFO] certificate id: %d", cresp.ID)
+	log.Printf("[INFO] certificate created: %# v\n", pretty.Formatter(cresp))
+	log.Printf("[INFO] certificate id: %d\n", cresp.ID)
 
 	d.SetId(strconv.Itoa(int(cresp.ID)))
 
@@ -172,7 +170,7 @@ func ResourceCertificateRead(ctx context.Context,
 		return diag.Errorf("failed to load configuration")
 	}
 
-	cpsService, err := buildCPSService(**config)
+	svc, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -182,19 +180,33 @@ func ResourceCertificateRead(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieving certificate : ID: %d", certID)
+	// Call APIs.
+	log.Printf("[INFO] Retrieving certificate : ID: %d\n", certID)
 
 	params := certificate.NewCertificateGetParams()
 	params.ID = certID
 
-	resp, err := cpsService.Certificate.CertificateGet(params)
+	resp, err := svc.Certificate.CertificateGet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved certificate: %# v", pretty.Formatter(resp))
+	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
 
-	err = setCertificateState(d, resp)
+	nparams := certificate.NewCertificateGetRequestNotificationsParams()
+	nparams.ID = certID
+
+	nresp, err := svc.Certificate.CertificateGetRequestNotifications(nparams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf(
+		"[INFO] Retrieved certificate notification settings: %# v\n",
+		pretty.Formatter(resp))
+
+	// Write TF state.
+	err = setCertificateState(d, resp, nresp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -205,6 +217,7 @@ func ResourceCertificateRead(ctx context.Context,
 func setCertificateState(
 	d *schema.ResourceData,
 	resp *certificate.CertificateGetOK,
+	nresp *certificate.CertificateGetRequestNotificationsOK,
 ) error {
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
@@ -249,7 +262,27 @@ func setCertificateState(
 		d.Set("modified_by", flattenedModifiedBy)
 	}
 
+	if nresp != nil {
+		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
+		d.Set("notification_setting", flattenedNotifSettings)
+	}
+
 	return nil
+}
+
+func FlattenNotifSettings(
+	notifSettings []*models.EmailNotification,
+) []map[string]any {
+	flattened := make([]map[string]any, 0)
+
+	for _, n := range notifSettings {
+		m := make(map[string]any)
+		m["notification_type"] = n.NotificationType
+		m["enabled"] = n.Enabled
+		m["emails"] = n.Emails
+	}
+
+	return flattened
 }
 
 func ResourceCertificateUpdate(
@@ -314,7 +347,6 @@ func ExpandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 func ExpandNotificationSettings(
 	attr interface{},
 ) ([]*models.EmailNotification, []error) {
-	log.Printf("!!!notification_settings raw: %+v\n", attr)
 	errs := make([]error, 0)
 	maps, ok := attr.([]any)
 	if !ok {
@@ -369,7 +401,6 @@ func ExpandNotificationSettings(
 			errs = append(errs, err)
 		}
 
-		log.Printf("!!!notification_setting parsed: %+v\n", emailNotif)
 		emailNotifs = append(emailNotifs, emailNotif)
 	}
 
