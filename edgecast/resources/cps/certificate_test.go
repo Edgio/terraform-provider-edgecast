@@ -5,9 +5,10 @@ package cps_test
 
 import (
 	"reflect"
+	"testing"
+
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/resources/cps"
-	"testing"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-test/deep"
@@ -433,5 +434,173 @@ func TestFlattenActor(t *testing.T) {
 				actual,
 			)
 		}
+	}
+}
+
+func TestExpandNotifSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		expectError bool
+		args        []any
+		want        []*models.EmailNotification
+	}{
+		{
+			name:        "Happy Path",
+			expectError: false,
+			args: []any{
+				map[string]any{
+					"enabled":           true,
+					"notification_type": "CertificateRenewal",
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+				},
+				map[string]any{
+					"enabled":           false,
+					"notification_type": "CertificateExpiring",
+					"emails":            make([]string, 0),
+				},
+				map[string]any{
+					"enabled":           false,
+					"notification_type": "PendingValidations",
+					"emails":            make([]string, 0),
+				},
+			},
+			want: []*models.EmailNotification{
+				{
+					Enabled:          true,
+					NotificationType: "CertificateRenewal",
+					Emails:           []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					Enabled:          false,
+					NotificationType: "CertificateExpiring",
+					Emails:           make([]string, 0),
+				},
+				{
+					Enabled:          false,
+					NotificationType: "PendingValidations",
+					Emails:           make([]string, 0),
+				},
+			},
+		},
+		{
+			name:        "Empty input results in empty non-nil result",
+			expectError: false,
+			args:        make([]any, 0),
+			want:        make([]*models.EmailNotification, 0),
+		},
+		{
+			name:        "Nil input results in empty non-nil result",
+			expectError: false,
+			args:        nil,
+			want:        make([]*models.EmailNotification, 0),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, errs := cps.ExpandNotifSettings(tt.args)
+
+			if tt.expectError && len(errs) > 0 {
+				return // successful test
+			}
+
+			if tt.expectError && len(errs) == 0 {
+				t.Log("expected error, but got none")
+			}
+
+			if !tt.expectError && len(errs) > 0 {
+				t.Logf("unexpected errors: %v", errs)
+			}
+
+			diffs := deep.Equal(got, tt.want)
+			if len(diffs) > 0 {
+				t.Logf("got %v, want %v", got, tt.want)
+				t.Errorf("Differences: %v", diffs)
+			}
+		})
+	}
+}
+
+func TestFlattenNotifSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args []*models.EmailNotification
+		want []map[string]any
+	}{
+		{
+			name: "Happy Path",
+			args: []*models.EmailNotification{
+				{
+					Enabled:          true,
+					NotificationType: "CertificateRenewal",
+					Emails:           []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					Enabled:          false,
+					NotificationType: "CertificateExpiring",
+					Emails:           nil,
+				},
+				{
+					Enabled:          false,
+					NotificationType: "PendingValidations",
+					Emails:           make([]string, 0),
+				},
+			},
+			want: []map[string]any{
+				{
+					"enabled":           true,
+					"notification_type": "CertificateRenewal",
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+				},
+				{
+					"enabled":           false,
+					"notification_type": "CertificateExpiring",
+					"emails":            make([]string, 0),
+				},
+				{
+					"enabled":           false,
+					"notification_type": "PendingValidations",
+					"emails":            make([]string, 0),
+				},
+			},
+		},
+		{
+			name: "Empty input results in empty non-nil result",
+			args: make([]*models.EmailNotification, 0),
+			want: make([]map[string]any, 0),
+		},
+		{
+			name: "Nil input results in empty non-nil result",
+			args: nil,
+			want: make([]map[string]any, 0),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := cps.FlattenNotifSettings(tt.args)
+
+			diffs := deep.Equal(got, tt.want)
+			if len(diffs) > 0 {
+				t.Logf("got %v, want %v", got, tt.want)
+				t.Errorf("Differences: %v", diffs)
+			}
+		})
 	}
 }

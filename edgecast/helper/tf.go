@@ -89,6 +89,11 @@ func ConvertTFCollectionToSlice(v interface{}) ([]interface{}, error) {
 // ConvertTFCollectionToStrings converts Terraform's
 // TypeList and TypeSet collections into a []string.
 func ConvertTFCollectionToStrings(v interface{}) ([]string, error) {
+	// If the underlying type is already []string, just return it.
+	if strings, ok := v.([]string); ok {
+		return strings, nil
+	}
+
 	listItems, err := ConvertTFCollectionToSlice(v)
 
 	if err == nil {

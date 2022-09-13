@@ -58,7 +58,7 @@ func ResourceCertificateCreate(
 		return helper.DiagsFromErrors(errs)
 	}
 
-	ns, errs := ExpandNotificationSettings(d.Get("notification_settings"))
+	ns, errs := ExpandNotifSettings(d.Get("notification_settings"))
 
 	if len(errs) > 0 {
 		return helper.CreationErrors(d, errs)
@@ -273,13 +273,20 @@ func setCertificateState(
 func FlattenNotifSettings(
 	notifSettings []*models.EmailNotification,
 ) []map[string]any {
-	flattened := make([]map[string]any, 0)
+	flattened := make([]map[string]any, len(notifSettings))
 
-	for _, n := range notifSettings {
+	for ix, n := range notifSettings {
 		m := make(map[string]any)
 		m["notification_type"] = n.NotificationType
 		m["enabled"] = n.Enabled
-		m["emails"] = n.Emails
+
+		if len(n.Emails) > 0 {
+			m["emails"] = n.Emails
+		} else {
+			m["emails"] = make([]string, 0)
+		}
+
+		flattened[ix] = m
 	}
 
 	return flattened
@@ -342,9 +349,9 @@ func ExpandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 	}
 }
 
-// ExpandNotificationSettings converts the Terraform representation of organization
+// ExpandNotifSettings converts the Terraform representation of organization
 // into the EmailNotification API Model.
-func ExpandNotificationSettings(
+func ExpandNotifSettings(
 	attr interface{},
 ) ([]*models.EmailNotification, []error) {
 	errs := make([]error, 0)
