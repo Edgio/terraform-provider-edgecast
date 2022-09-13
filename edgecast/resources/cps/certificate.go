@@ -58,7 +58,7 @@ func ResourceCertificateCreate(
 		return helper.DiagsFromErrors(errs)
 	}
 
-	ns, errs := ExpandNotifSettings(d.Get("notification_settings"))
+	ns, errs := ExpandNotifSettings(d.Get("notification_setting"))
 
 	if len(errs) > 0 {
 		return helper.CreationErrors(d, errs)
@@ -355,10 +355,12 @@ func ExpandNotifSettings(
 	attr interface{},
 ) ([]*models.EmailNotification, []error) {
 	errs := make([]error, 0)
-	maps, ok := attr.([]any)
+	tfSet, ok := attr.(*schema.Set)
 	if !ok {
 		return nil, []error{errors.New("error parsing notification settings")}
 	}
+
+	maps := tfSet.List()
 
 	// Empty map
 	if len(maps) == 0 {

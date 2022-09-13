@@ -12,7 +12,7 @@ func getCertificateSchema() map[string]*schema.Schema {
 			Description: "Indicates the system-defined ID assigned to this certificate.",
 		},
 		"notification_setting": {
-			Type:        schema.TypeList,
+			Type:        schema.TypeSet,
 			Optional:    true,
 			Description: "Determine the conditions under which notifications will be sent and to whom they will be sent for a specific certificate request.",
 			Elem: &schema.Resource{

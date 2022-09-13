@@ -1,5 +1,6 @@
 resource "edgecast_cps_certificate" "certificate_1" {
 
+	# Note: certificate_label must be unique, including deleted certificates.
 	certificate_label = "cdn example tf ev11"
 	description = "cdn example"
 	auto_renew = true
