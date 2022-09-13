@@ -5,6 +5,7 @@ package cps_test
 
 import (
 	"reflect"
+	"sort"
 	"testing"
 
 	"terraform-provider-edgecast/edgecast/helper"
@@ -12,6 +13,7 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestExpandOrganization(t *testing.T) {
@@ -443,13 +445,13 @@ func TestExpandNotifSettings(t *testing.T) {
 	tests := []struct {
 		name        string
 		expectError bool
-		args        []any
+		args        *schema.Set
 		want        []*models.EmailNotification
 	}{
 		{
 			name:        "Happy Path",
 			expectError: false,
-			args: []any{
+			args: helper.NewTerraformSet([]any{
 				map[string]any{
 					"enabled":           true,
 					"notification_type": "CertificateRenewal",
@@ -468,7 +470,7 @@ func TestExpandNotifSettings(t *testing.T) {
 					"notification_type": "PendingValidations",
 					"emails":            make([]string, 0),
 				},
-			},
+			}),
 			want: []*models.EmailNotification{
 				{
 					Enabled:          true,
@@ -490,7 +492,7 @@ func TestExpandNotifSettings(t *testing.T) {
 		{
 			name:        "Empty input results in empty non-nil result",
 			expectError: false,
-			args:        make([]any, 0),
+			args:        helper.NewTerraformSet(make([]any, 0)),
 			want:        make([]*models.EmailNotification, 0),
 		},
 		{
@@ -519,6 +521,16 @@ func TestExpandNotifSettings(t *testing.T) {
 			if !tt.expectError && len(errs) > 0 {
 				t.Logf("unexpected errors: %v", errs)
 			}
+
+			// TF sets do not guarantee order, so we must sort before comparing.
+			// We will sort on NotificationType.
+			sort.SliceStable(got, func(i, j int) bool {
+				return got[i].NotificationType < got[j].NotificationType
+			})
+
+			sort.SliceStable(tt.want, func(i, j int) bool {
+				return tt.want[i].NotificationType < tt.want[j].NotificationType
+			})
 
 			diffs := deep.Equal(got, tt.want)
 			if len(diffs) > 0 {

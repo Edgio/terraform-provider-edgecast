@@ -354,19 +354,27 @@ func ExpandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 func ExpandNotifSettings(
 	attr interface{},
 ) ([]*models.EmailNotification, []error) {
-	errs := make([]error, 0)
+	if attr == nil {
+		return make([]*models.EmailNotification, 0), nil
+	}
+
 	tfSet, ok := attr.(*schema.Set)
 	if !ok {
 		return nil, []error{errors.New("error parsing notification settings")}
+	}
+
+	if tfSet == nil {
+		return make([]*models.EmailNotification, 0), nil
 	}
 
 	maps := tfSet.List()
 
 	// Empty map
 	if len(maps) == 0 {
-		return make([]*models.EmailNotification, 0), errs
+		return make([]*models.EmailNotification, 0), nil
 	}
 
+	errs := make([]error, 0)
 	emailNotifs := make([]*models.EmailNotification, 0)
 
 	for ix, v := range maps {
