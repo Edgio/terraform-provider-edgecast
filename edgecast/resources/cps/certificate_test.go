@@ -511,11 +511,6 @@ func TestExpandNotifSettings(t *testing.T) {
 			args:        helper.NewTerraformSet([]any{1}),
 		},
 		{
-			name:        "Error - set contains non-map item",
-			expectError: true,
-			args:        helper.NewTerraformSet([]any{1}),
-		},
-		{
 			name:        "Error - missing attributes",
 			expectError: true,
 			args: helper.NewTerraformSet([]any{
@@ -544,11 +539,11 @@ func TestExpandNotifSettings(t *testing.T) {
 			}
 
 			if tt.expectError && len(errs) == 0 {
-				t.Log("expected error, but got none")
+				t.Fatal("expected error, but got none")
 			}
 
 			if !tt.expectError && len(errs) > 0 {
-				t.Logf("unexpected errors: %v", errs)
+				t.Fatalf("unexpected errors: %v", errs)
 			}
 
 			// TF sets do not guarantee order, so we must sort before comparing.

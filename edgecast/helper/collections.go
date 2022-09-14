@@ -50,7 +50,7 @@ func GetStringFromMap(m map[string]any, key string) (string, bool) {
 	return val, ok
 }
 
-// GetStringFromMap returns a bool value from the provided map using the
+// GetBoolFromMap returns a bool value from the provided map using the
 // provided key. If the item is not in the map or it is not a bool, this
 // function will return a false 'ok' value.
 func GetBoolFromMap(m map[string]any, key string) (bool, bool) {

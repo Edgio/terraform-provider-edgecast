@@ -179,7 +179,7 @@ func TestGetStringFromMap(t *testing.T) {
 			}
 
 			if got != tt.want {
-				t.Logf("got %s, want %s", got, tt.want)
+				t.Fatalf("got %s, want %s", got, tt.want)
 			}
 		})
 	}
@@ -243,7 +243,7 @@ func TestGetBoolFromMap(t *testing.T) {
 
 			// expect success, check results
 			if got != tt.want {
-				t.Logf("got %t, want %t", got, tt.want)
+				t.Fatalf("got %t, want %t", got, tt.want)
 			}
 		})
 	}
