@@ -36,3 +36,29 @@ func ConvertSliceToStrings(v []interface{}) ([]string, error) {
 
 	return strings, nil
 }
+
+// GetStringFromMap returns a string value from the provided map using the
+// provided key. If the item is not in the map or it is not a string, this
+// function will return an empty string and a false 'ok' value.
+func GetStringFromMap(m map[string]any, key string) (string, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return "", false
+	}
+
+	val, ok := raw.(string)
+	return val, ok
+}
+
+// GetBoolFromMap returns a bool value from the provided map using the
+// provided key. If the item is not in the map or it is not a bool, this
+// function will return a false 'ok' value.
+func GetBoolFromMap(m map[string]any, key string) (bool, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return false, false
+	}
+
+	val, ok := raw.(bool)
+	return val, ok
+}

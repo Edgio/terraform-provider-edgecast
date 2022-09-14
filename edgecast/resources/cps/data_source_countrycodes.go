@@ -75,7 +75,6 @@ func DataSourceCountryCodesRead(
 	}
 
 	resp, err := cpsService.Appendix.AppendixGet(params)
-
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -1,5 +1,6 @@
 resource "edgecast_cps_certificate" "certificate_1" {
 
+	# Note: certificate_label must be unique, including deleted certificates.
 	certificate_label = "cdn example tf ev11"
 	description = "cdn example"
 	auto_renew = true
@@ -43,6 +44,24 @@ resource "edgecast_cps_certificate" "certificate_1" {
 	domain {
 		is_common_name = false
 		name =  "testdomain2.com"
+	}
+
+	notification_setting {
+		notification_type = "CertificateRenewal"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
+
+	notification_setting {
+		notification_type = "CertificateExpiring"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
+
+	notification_setting {
+		notification_type = "PendingValidations"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
 	}
 }
 

@@ -5,9 +5,11 @@ package cps_test
 
 import (
 	"reflect"
+	"sort"
+	"testing"
+
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/resources/cps"
-	"testing"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-test/deep"
@@ -433,5 +435,208 @@ func TestFlattenActor(t *testing.T) {
 				actual,
 			)
 		}
+	}
+}
+
+func TestExpandNotifSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		expectError bool
+		args        interface{}
+		want        []*models.EmailNotification
+	}{
+		{
+			name:        "Happy Path",
+			expectError: false,
+			args: helper.NewTerraformSet([]any{
+				map[string]any{
+					"enabled":           true,
+					"notification_type": "CertificateRenewal",
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+				},
+				map[string]any{
+					"enabled":           false,
+					"notification_type": "CertificateExpiring",
+					"emails":            make([]string, 0),
+				},
+				map[string]any{
+					"enabled":           false,
+					"notification_type": "PendingValidations",
+					"emails":            make([]string, 0),
+				},
+			}),
+			want: []*models.EmailNotification{
+				{
+					Enabled:          true,
+					NotificationType: "CertificateRenewal",
+					Emails:           []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					Enabled:          false,
+					NotificationType: "CertificateExpiring",
+					Emails:           make([]string, 0),
+				},
+				{
+					Enabled:          false,
+					NotificationType: "PendingValidations",
+					Emails:           make([]string, 0),
+				},
+			},
+		},
+		{
+			name:        "Empty input results in empty non-nil result",
+			expectError: false,
+			args:        helper.NewTerraformSet(make([]any, 0)),
+			want:        make([]*models.EmailNotification, 0),
+		},
+		{
+			name:        "Nil input results in empty non-nil result",
+			expectError: false,
+			args:        nil,
+			want:        make([]*models.EmailNotification, 0),
+		},
+		{
+			name:        "Error - input is unexpected type",
+			expectError: true,
+			args:        1,
+		},
+		{
+			name:        "Error - set contains non-map item",
+			expectError: true,
+			args:        helper.NewTerraformSet([]any{1}),
+		},
+		{
+			name:        "Error - missing attributes",
+			expectError: true,
+			args: helper.NewTerraformSet([]any{
+				map[string]any{
+					"enabled": false,
+				},
+				map[string]any{
+					"notification_type": "CertificateExpiring",
+				},
+				map[string]any{
+					"emails": make([]string, 0),
+				},
+			}),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, errs := cps.ExpandNotifSettings(tt.args)
+
+			if tt.expectError && len(errs) > 0 {
+				return // successful test
+			}
+
+			if tt.expectError && len(errs) == 0 {
+				t.Fatal("expected error, but got none")
+			}
+
+			if !tt.expectError && len(errs) > 0 {
+				t.Fatalf("unexpected errors: %v", errs)
+			}
+
+			// TF sets do not guarantee order, so we must sort before comparing.
+			// We will sort on NotificationType.
+			sort.SliceStable(got, func(i, j int) bool {
+				return got[i].NotificationType < got[j].NotificationType
+			})
+
+			sort.SliceStable(tt.want, func(i, j int) bool {
+				return tt.want[i].NotificationType < tt.want[j].NotificationType
+			})
+
+			diffs := deep.Equal(got, tt.want)
+			if len(diffs) > 0 {
+				t.Logf("got %v, want %v", got, tt.want)
+				t.Errorf("Differences: %v", diffs)
+			}
+		})
+	}
+}
+
+func TestFlattenNotifSettings(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args []*models.EmailNotification
+		want []map[string]any
+	}{
+		{
+			name: "Happy Path",
+			args: []*models.EmailNotification{
+				{
+					Enabled:          true,
+					NotificationType: "CertificateRenewal",
+					Emails:           []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					Enabled:          false,
+					NotificationType: "CertificateExpiring",
+					Emails:           nil,
+				},
+				{
+					Enabled:          false,
+					NotificationType: "PendingValidations",
+					Emails:           make([]string, 0),
+				},
+			},
+			want: []map[string]any{
+				{
+					"enabled":           true,
+					"notification_type": "CertificateRenewal",
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+				},
+				{
+					"enabled":           false,
+					"notification_type": "CertificateExpiring",
+					"emails":            make([]string, 0),
+				},
+				{
+					"enabled":           false,
+					"notification_type": "PendingValidations",
+					"emails":            make([]string, 0),
+				},
+			},
+		},
+		{
+			name: "Empty input results in empty non-nil result",
+			args: make([]*models.EmailNotification, 0),
+			want: make([]map[string]any, 0),
+		},
+		{
+			name: "Nil input results in empty non-nil result",
+			args: nil,
+			want: make([]map[string]any, 0),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := cps.FlattenNotifSettings(tt.args)
+
+			diffs := deep.Equal(got, tt.want)
+			if len(diffs) > 0 {
+				t.Logf("got %v, want %v", got, tt.want)
+				t.Errorf("Differences: %v", diffs)
+			}
+		})
 	}
 }

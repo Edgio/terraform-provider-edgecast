@@ -21,7 +21,35 @@ const (
 	timeStampNumberBase = 10
 )
 
-// DiagsFromErrors creates a diag.Diagnostics instance from errors.
+// CreationErrorf is a helper function for errors encountered while
+// creating a new resource.
+func CreationErrorf(
+	d *schema.ResourceData,
+	format string,
+	a ...interface{},
+) diag.Diagnostics {
+	d.SetId("")
+
+	return diag.Errorf(format, a...)
+}
+
+// CreationError is a helper function for errors encountered while
+// creating a new resource.
+func CreationError(d *schema.ResourceData, err error) diag.Diagnostics {
+	d.SetId("")
+
+	return diag.FromErr(err)
+}
+
+// CreationErrors is a helper function for errors encountered while
+// creating a new resource.
+func CreationErrors(d *schema.ResourceData, errs []error) diag.Diagnostics {
+	d.SetId("")
+
+	return DiagsFromErrors(errs)
+}
+
+// DiagsFromErrors creates a diag.Diagnostics instance from multiple errors.
 func DiagsFromErrors(errs []error) diag.Diagnostics {
 	var diags diag.Diagnostics
 
@@ -61,6 +89,11 @@ func ConvertTFCollectionToSlice(v interface{}) ([]interface{}, error) {
 // ConvertTFCollectionToStrings converts Terraform's
 // TypeList and TypeSet collections into a []string.
 func ConvertTFCollectionToStrings(v interface{}) ([]string, error) {
+	// If the underlying type is already []string, just return it.
+	if strings, ok := v.([]string); ok {
+		return strings, nil
+	}
+
 	listItems, err := ConvertTFCollectionToSlice(v)
 
 	if err == nil {

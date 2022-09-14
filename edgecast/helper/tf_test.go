@@ -22,8 +22,14 @@ func TestConvertTFCollectionToStrings(t *testing.T) {
 		expectedOk bool
 	}{
 		{
-			name:       "Happy path - all strings",
+			name:       "Happy path - all strings as []interface{}",
 			input:      []interface{}{"val1", "val2", "val3"},
+			expected:   []string{"val1", "val2", "val3"},
+			expectedOk: true,
+		},
+		{
+			name:       "Happy path - all strings as []string",
+			input:      []string{"val1", "val2", "val3"},
 			expected:   []string{"val1", "val2", "val3"},
 			expectedOk: true,
 		},

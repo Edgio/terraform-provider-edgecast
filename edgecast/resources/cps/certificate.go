@@ -44,34 +44,62 @@ func ResourceCertificateCreate(
 	// Initialize CPS Service
 	config, ok := m.(**api.ClientConfig)
 	if !ok {
-		return diag.Errorf("failed to load configuration")
+		return helper.CreationErrorf(d, "failed to load configuration")
 	}
 
-	cpsService, err := buildCPSService(**config)
+	svc, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	certificateObj, errs := ExpandCertificate(d)
+	// Read from TF state.
+	cert, errs := ExpandCertificate(d)
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors(errs)
 	}
 
-	// Call create certificate API
-	params := certificate.NewCertificatePostParams()
-	params.Certificate = certificateObj
+	ns, errs := ExpandNotifSettings(d.Get("notification_setting"))
 
-	resp, err := cpsService.Certificate.CertificatePost(params)
+	if len(errs) > 0 {
+		return helper.CreationErrors(d, errs)
+	}
+
+	// Call APIs.
+	cparams := certificate.NewCertificatePostParams()
+	cparams.Certificate = cert
+
+	cresp, err := svc.Certificate.CertificatePost(cparams)
+	if err != nil {
+		return helper.CreationError(d, err)
+	}
+
+	nparams := certificate.NewCertificateUpdateRequestNotificationsParams()
+	nparams.ID = cresp.ID
+	nparams.Notifications = ns
+
+	_, err = svc.Certificate.CertificateUpdateRequestNotifications(nparams)
 	if err != nil {
 		d.SetId("")
+
+		// Cancel the created cert request.
+		cnclParams := certificate.NewCertificateCancelParams()
+		cnclParams.ID = cresp.ID
+		cnclParams.Apply = true
+		_, cancelErr := svc.Certificate.CertificateCancel(cnclParams)
+		if cancelErr != nil {
+			return diag.Errorf(
+				"failed to roll back cert request upon error: %v, original err: %v",
+				cancelErr.Error(),
+				err.Error())
+		}
 
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] certificate created: %# v", pretty.Formatter(resp))
-	log.Printf("[INFO] certificate id: %d", resp.ID)
+	log.Printf("[INFO] certificate created: %# v\n", pretty.Formatter(cresp))
+	log.Printf("[INFO] certificate id: %d\n", cresp.ID)
 
-	d.SetId(strconv.Itoa(int(resp.ID)))
+	d.SetId(strconv.Itoa(int(cresp.ID)))
 
 	return ResourceCertificateRead(ctx, d, m)
 }
@@ -142,7 +170,7 @@ func ResourceCertificateRead(ctx context.Context,
 		return diag.Errorf("failed to load configuration")
 	}
 
-	cpsService, err := buildCPSService(**config)
+	svc, err := buildCPSService(**config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -152,19 +180,33 @@ func ResourceCertificateRead(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieving certificate : ID: %d", certID)
+	// Call APIs.
+	log.Printf("[INFO] Retrieving certificate : ID: %d\n", certID)
 
 	params := certificate.NewCertificateGetParams()
 	params.ID = certID
 
-	resp, err := cpsService.Certificate.CertificateGet(params)
+	resp, err := svc.Certificate.CertificateGet(params)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	log.Printf("[INFO] Retrieved certificate: %# v", pretty.Formatter(resp))
+	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
 
-	err = setCertificateState(d, resp)
+	nparams := certificate.NewCertificateGetRequestNotificationsParams()
+	nparams.ID = certID
+
+	nresp, err := svc.Certificate.CertificateGetRequestNotifications(nparams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf(
+		"[INFO] Retrieved certificate notification settings: %# v\n",
+		pretty.Formatter(resp))
+
+	// Write TF state.
+	err = setCertificateState(d, resp, nresp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -175,6 +217,7 @@ func ResourceCertificateRead(ctx context.Context,
 func setCertificateState(
 	d *schema.ResourceData,
 	resp *certificate.CertificateGetOK,
+	nresp *certificate.CertificateGetRequestNotificationsOK,
 ) error {
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
@@ -219,7 +262,34 @@ func setCertificateState(
 		d.Set("modified_by", flattenedModifiedBy)
 	}
 
+	if nresp != nil {
+		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
+		d.Set("notification_setting", flattenedNotifSettings)
+	}
+
 	return nil
+}
+
+func FlattenNotifSettings(
+	notifSettings []*models.EmailNotification,
+) []map[string]any {
+	flattened := make([]map[string]any, len(notifSettings))
+
+	for ix, n := range notifSettings {
+		m := make(map[string]any)
+		m["notification_type"] = n.NotificationType
+		m["enabled"] = n.Enabled
+
+		if len(n.Emails) > 0 {
+			m["emails"] = n.Emails
+		} else {
+			m["emails"] = make([]string, 0)
+		}
+
+		flattened[ix] = m
+	}
+
+	return flattened
 }
 
 func ResourceCertificateUpdate(
@@ -277,6 +347,81 @@ func ExpandDomains(attr interface{}) ([]*models.DomainCreateUpdate, error) {
 		return nil,
 			errors.New("ExpandDomains: attr input was not a []interface{}")
 	}
+}
+
+// ExpandNotifSettings converts the Terraform representation of organization
+// into the EmailNotification API Model.
+func ExpandNotifSettings(
+	attr interface{},
+) ([]*models.EmailNotification, []error) {
+	if attr == nil {
+		return make([]*models.EmailNotification, 0), nil
+	}
+
+	tfSet, ok := attr.(*schema.Set)
+	if !ok {
+		return nil, []error{errors.New("error parsing notification settings")}
+	}
+
+	if tfSet == nil {
+		return make([]*models.EmailNotification, 0), nil
+	}
+
+	maps := tfSet.List()
+
+	// Empty map
+	if len(maps) == 0 {
+		return make([]*models.EmailNotification, 0), nil
+	}
+
+	errs := make([]error, 0)
+	emailNotifs := make([]*models.EmailNotification, 0)
+
+	for ix, v := range maps {
+		m, ok := v.(map[string]any)
+		if !ok {
+			errs = append(
+				errs,
+				fmt.Errorf("error parsing notification_setting[%d]", ix))
+
+			continue
+		}
+
+		emailNotif := &models.EmailNotification{}
+
+		if notifType, ok := helper.GetStringFromMap(m, "notification_type"); ok {
+			emailNotif.NotificationType = notifType
+		} else {
+			err := fmt.Errorf(
+				"error parsing notification_setting[%d].notification_type",
+				ix)
+			errs = append(errs, err)
+		}
+
+		if enabled, ok := helper.GetBoolFromMap(m, "enabled"); ok {
+			emailNotif.Enabled = enabled
+		} else {
+			err := fmt.Errorf(
+				"error parsing notification_setting[%d].enabled",
+				ix)
+			errs = append(errs, err)
+		}
+
+		emails, err := helper.ConvertTFCollectionToStrings(m["emails"])
+		if err == nil {
+			emailNotif.Emails = emails
+		} else {
+			err := fmt.Errorf(
+				"error parsing notification_setting[%d].emails: %w",
+				ix,
+				err)
+			errs = append(errs, err)
+		}
+
+		emailNotifs = append(emailNotifs, emailNotif)
+	}
+
+	return emailNotifs, errs
 }
 
 // ExpandOrganization converts the Terraform representation of organization

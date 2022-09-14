@@ -49,6 +49,12 @@ tasks:
     cmds:
       - go test -v -cover ./...
 
+  test-cover:
+    desc: 'runs tests and shows coverage report'
+    cmds:
+      - go test -v -race -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out
+
   default:
     cmds:
       - task: lint
