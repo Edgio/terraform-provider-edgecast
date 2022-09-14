@@ -13,7 +13,6 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestExpandOrganization(t *testing.T) {
@@ -445,7 +444,7 @@ func TestExpandNotifSettings(t *testing.T) {
 	tests := []struct {
 		name        string
 		expectError bool
-		args        *schema.Set
+		args        interface{}
 		want        []*models.EmailNotification
 	}{
 		{
@@ -500,6 +499,36 @@ func TestExpandNotifSettings(t *testing.T) {
 			expectError: false,
 			args:        nil,
 			want:        make([]*models.EmailNotification, 0),
+		},
+		{
+			name:        "Error - input is unexpected type",
+			expectError: true,
+			args:        1,
+		},
+		{
+			name:        "Error - set contains non-map item",
+			expectError: true,
+			args:        helper.NewTerraformSet([]any{1}),
+		},
+		{
+			name:        "Error - set contains non-map item",
+			expectError: true,
+			args:        helper.NewTerraformSet([]any{1}),
+		},
+		{
+			name:        "Error - missing attributes",
+			expectError: true,
+			args: helper.NewTerraformSet([]any{
+				map[string]any{
+					"enabled": false,
+				},
+				map[string]any{
+					"notification_type": "CertificateExpiring",
+				},
+				map[string]any{
+					"emails": make([]string, 0),
+				},
+			}),
 		},
 	}
 

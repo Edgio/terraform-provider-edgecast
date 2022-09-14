@@ -119,3 +119,132 @@ type ConvertSliceToStringsResult struct {
 	Array []string
 	Ok    bool
 }
+
+func TestGetStringFromMap(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		expectError bool
+		argMap      map[string]any
+		argKey      string
+		want        string
+	}{
+		{
+			name:        "Happy Path",
+			expectError: false,
+			argMap: map[string]any{
+				"k1": "v1",
+			},
+			argKey: "k1",
+			want:   "v1",
+		},
+		{
+			name:        "Error - value not in map",
+			expectError: true,
+			argMap: map[string]any{
+				"k1": "v1",
+			},
+			argKey: "k2",
+			want:   "",
+		},
+		{
+			name:        "Error - value is not a string",
+			expectError: true,
+			argMap: map[string]any{
+				"k1": 1,
+			},
+			argKey: "k1",
+			want:   "",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, ok := helper.GetStringFromMap(tt.argMap, tt.argKey)
+
+			if tt.expectError && ok {
+				t.Fatal("expected error but got not none")
+			}
+
+			if !tt.expectError && !ok {
+				t.Fatal("unexpected error")
+			}
+
+			if tt.expectError && !ok {
+				return // successful test, got expected error
+			}
+
+			if got != tt.want {
+				t.Logf("got %s, want %s", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGetBoolFromMap(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		expectError bool
+		argMap      map[string]any
+		argKey      string
+		want        bool
+	}{
+		{
+			name:        "Happy Path",
+			expectError: false,
+			argMap: map[string]any{
+				"k1": true,
+			},
+			argKey: "k1",
+			want:   true,
+		},
+		{
+			name:        "Error - value not in map",
+			expectError: true,
+			argMap: map[string]any{
+				"k1": "v1",
+			},
+			argKey: "k2",
+		},
+		{
+			name:        "Error - value is not a bool",
+			expectError: true,
+			argMap: map[string]any{
+				"k1": 1,
+			},
+			argKey: "k1",
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, ok := helper.GetBoolFromMap(tt.argMap, tt.argKey)
+
+			if tt.expectError && ok {
+				t.Fatal("expected error but got not none")
+			}
+
+			if !tt.expectError && !ok {
+				t.Fatal("unexpected error")
+			}
+
+			if tt.expectError && !ok {
+				return // successful test, got expected error
+			}
+
+			// expect success, check results
+			if got != tt.want {
+				t.Logf("got %t, want %t", got, tt.want)
+			}
+		})
+	}
+}

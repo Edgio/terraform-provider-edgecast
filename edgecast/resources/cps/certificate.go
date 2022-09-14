@@ -389,7 +389,7 @@ func ExpandNotifSettings(
 
 		emailNotif := &models.EmailNotification{}
 
-		if notifType, ok := GetStringFromMap(m, "notification_type"); ok {
+		if notifType, ok := helper.GetStringFromMap(m, "notification_type"); ok {
 			emailNotif.NotificationType = notifType
 		} else {
 			err := fmt.Errorf(
@@ -398,7 +398,7 @@ func ExpandNotifSettings(
 			errs = append(errs, err)
 		}
 
-		if enabled, ok := GetBoolFromMap(m, "enabled"); ok {
+		if enabled, ok := helper.GetBoolFromMap(m, "enabled"); ok {
 			emailNotif.Enabled = enabled
 		} else {
 			err := fmt.Errorf(
@@ -422,51 +422,6 @@ func ExpandNotifSettings(
 	}
 
 	return emailNotifs, errs
-}
-
-func GetStringFromMap(m map[string]any, key string) (string, bool) {
-	raw, ok := m[key]
-	if !ok {
-		return "", false
-	}
-
-	val, ok := raw.(string)
-	return val, ok
-}
-
-func GetBoolFromMap(m map[string]any, key string) (bool, bool) {
-	raw, ok := m[key]
-	if !ok {
-		return false, false
-	}
-
-	val, ok := raw.(bool)
-	return val, ok
-}
-
-func GetStringsFromMap(m map[string]any, key string) ([]string, bool) {
-	raw, ok := m[key]
-	if !ok {
-		return make([]string, 0), false
-	}
-
-	arr, ok := raw.([]any)
-	if !ok {
-		return make([]string, 0), false
-	}
-
-	strings := make([]string, len(arr))
-
-	for ix, v := range arr {
-		s, ok := v.(string)
-		if !ok {
-			return make([]string, 0), false
-		}
-
-		strings[ix] = s
-	}
-
-	return strings, true
 }
 
 // ExpandOrganization converts the Terraform representation of organization
