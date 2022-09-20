@@ -324,13 +324,15 @@ func ResourceCertificateDelete(
 	//Get certificate status
 	getStatusParams := certificate.NewCertificateGetCertificateStatusParams()
 	getStatusParams.ID = certID
-	statusResp, err := cpsService.Certificate.CertificateGetCertificateStatus(getStatusParams)
+	statusResp, err :=
+		cpsService.Certificate.CertificateGetCertificateStatus(getStatusParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	if statusResp.Status == "Processing" && statusResp.OrderValidation == nil {
-		
+	if statusResp.Status == "Processing" &&
+		statusResp.OrderValidation == nil {
+
 		//Certificate has not been placed yet.
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
@@ -342,8 +344,10 @@ func ResourceCertificateDelete(
 
 		log.Printf("[INFO] Canceled Certificate ID: %v", certID)
 
-	} else if (statusResp.Status == "DomainControlValidation" || statusResp.Status == "OtherValidation") && statusResp.OrderValidation.Status == "Pending" {
-		
+	} else if (statusResp.Status == "DomainControlValidation" ||
+		statusResp.Status == "OtherValidation") &&
+		statusResp.OrderValidation.Status == "Pending" {
+
 		//Certificate has been placed, but not issued yet.
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
@@ -356,7 +360,7 @@ func ResourceCertificateDelete(
 		log.Printf("[INFO] Canceled Certificate ID: %v", certID)
 
 	} else {
-		
+
 		//certificate has been issued.
 		deleteParams := certificate.NewCertificateDeleteParams()
 		deleteParams.ID = certID
@@ -364,12 +368,12 @@ func ResourceCertificateDelete(
 		if err != nil {
 			return diag.FromErr(err)
 		}
-		
+
 		log.Printf("[INFO] Deleted Certificate ID: %v", certID)
 	}
 
 	d.SetId("")
-	
+
 	return diag.Diagnostics{}
 }
 
