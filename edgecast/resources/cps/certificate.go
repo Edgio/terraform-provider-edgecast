@@ -322,10 +322,10 @@ func ResourceCertificateDelete(
 	}
 
 	//Get certificate status
-	getStatusParams := certificate.NewCertificateGetCertificateStatusParams()
-	getStatusParams.ID = certID
+	statusParams := certificate.NewCertificateGetCertificateStatusParams()
+	statusParams.ID = certID
 	statusResp, err :=
-		cpsService.Certificate.CertificateGetCertificateStatus(getStatusParams)
+		cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -346,7 +346,8 @@ func ResourceCertificateDelete(
 
 	} else if (statusResp.Status == "DomainControlValidation" ||
 		statusResp.Status == "OtherValidation") &&
-		statusResp.OrderValidation.Status == "Pending" {
+		(statusResp.OrderValidation != nil &&
+			statusResp.OrderValidation.Status == "Pending") {
 
 		//Certificate has been placed, but not issued yet.
 		cancelParams := certificate.NewCertificateCancelParams()
