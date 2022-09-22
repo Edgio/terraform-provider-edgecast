@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
 
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -53,20 +55,29 @@ func ResourceCertificateCreate(
 	}
 
 	// Read from TF state.
-	cert, errs := ExpandCertificate(d)
+	certState, errs := ExpandCertificate(d)
 	if len(errs) > 0 {
-		return helper.DiagsFromErrors(errs)
+		return helper.DiagsFromErrors("error parsing certificate", errs)
 	}
 
 	ns, errs := ExpandNotifSettings(d.Get("notification_setting"))
 
 	if len(errs) > 0 {
-		return helper.CreationErrors(d, errs)
+		return helper.CreationErrors(d, "error parsing notification_setting", errs)
 	}
 
 	// Call APIs.
 	cparams := certificate.NewCertificatePostParams()
-	cparams.Certificate = cert
+	cparams.Certificate = &models.CertificateCreate{
+		AutoRenew:            certState.AutoRenew,
+		CertificateAuthority: certState.CertificateAuthority,
+		CertificateLabel:     certState.CertificateLabel,
+		DcvMethod:            certState.DcvMethod,
+		Description:          certState.Description,
+		Domains:              certState.Domains,
+		Organization:         certState.Organization,
+		ValidationType:       certState.ValidationType,
+	}
 
 	cresp, err := svc.Certificate.CertificatePost(cparams)
 	if err != nil {
@@ -93,7 +104,7 @@ func ResourceCertificateCreate(
 				err.Error())
 		}
 
-		return diag.FromErr(err)
+		return diag.Errorf("failed to create certificate: %v", err)
 	}
 
 	log.Printf("[INFO] certificate created: %# v\n", pretty.Formatter(cresp))
@@ -106,7 +117,7 @@ func ResourceCertificateCreate(
 
 func ExpandCertificate(
 	d *schema.ResourceData,
-) (*models.CertificateCreate, []error) {
+) (*CertificateState, []error) {
 	errs := make([]error, 0)
 
 	autoRenew, ok := d.Get("auto_renew").(bool)
@@ -124,7 +135,7 @@ func ExpandCertificate(
 		errs = append(errs, errors.New("certificate_label not a string"))
 	}
 
-	dvcMethod, ok := d.Get("dcv_method").(string)
+	dcvMethod, ok := d.Get("dcv_method").(string)
 	if !ok {
 		errs = append(errs, errors.New("dcv_method not a string"))
 	}
@@ -144,20 +155,26 @@ func ExpandCertificate(
 		errs = append(errs, fmt.Errorf("error parsing domains: %w", err))
 	}
 
-	organization, err := ExpandOrganization(d.Get("organization"))
+	org, err := ExpandOrganization(d.Get("organization"))
 	if err != nil {
 		errs = append(errs, fmt.Errorf("error parsing organization: %w", err))
 	}
 
-	return &models.CertificateCreate{
+	certID, err := helper.ParseInt64(d.Id())
+	if err != nil {
+		errs = append(errs, fmt.Errorf("error parsing cert ID: %w", err))
+	}
+
+	return &CertificateState{
+		CertificateID:        certID,
 		AutoRenew:            autoRenew,
 		CertificateAuthority: certAuthority,
 		CertificateLabel:     certLabel,
-		DcvMethod:            dvcMethod,
+		DcvMethod:            dcvMethod,
 		Description:          desc,
 		ValidationType:       validationType,
 		Domains:              domains,
-		Organization:         organization,
+		Organization:         org,
 	}, errs
 }
 
@@ -297,7 +314,36 @@ func ResourceCertificateUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Not Yet Implemented
+	// Initialize CPS Service
+	config, ok := m.(**api.ClientConfig)
+	if !ok {
+		return helper.CreationErrorf(d, "failed to load configuration")
+	}
+
+	svc, err := buildCPSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	certState, errs := ExpandCertificate(d)
+	if len(errs) > 0 {
+		return helper.DiagsFromErrors("error parsing certificate", errs)
+	}
+
+	updater, err := GetUpdater(*svc, *certState)
+	if err != nil {
+		return helper.DiagFromError("failed to determine update flow", err)
+	}
+
+	err = updater.Update()
+	if err != nil {
+		return helper.DiagFromError("failed to update certificate", err)
+	}
+
+	if err != nil {
+		return helper.DiagFromError("failed to update certificate", err)
+	}
+
 	return ResourceCertificateRead(ctx, d, m)
 }
 
@@ -540,4 +586,168 @@ func FlattenDeployments(
 	}
 
 	return flattened
+}
+
+// CertificateState represents the state of a certificate as it exists in the
+// TF state file. This is an intermediate model before being translated to API
+// models.
+type CertificateState struct {
+	// Certificate ID
+	CertificateID int64
+
+	// auto renew
+	AutoRenew bool
+
+	// certificate authority
+	CertificateAuthority string
+
+	// certificate label
+	CertificateLabel string
+
+	// dcv method.
+	// Enum: [Email DnsCnameToken DnsTxtToken]
+	DcvMethod string
+
+	// description
+	Description string
+
+	// domains
+	Domains []*models.DomainCreateUpdate
+
+	// organization
+	Organization *models.OrganizationDetail
+
+	// validation type
+	// Enum: [None DV OV EV]
+	ValidationType string
+}
+
+func GetUpdater(
+	svc cps.CpsService,
+	state CertificateState,
+) (*CertUpdater, error) {
+	params := certificate.NewCertificateGetCertificateStatusParams()
+	params.ID = state.CertificateID
+
+	resp, err := svc.Certificate.CertificateGetCertificateStatus(params)
+	if err != nil {
+		return nil, fmt.Errorf("error retreiving certificate status: %w", err)
+	}
+
+	if strings.EqualFold(resp.Status, "Deleted") {
+		return nil, errors.New("attempted to update a certificate that is deleted")
+	}
+
+	if strings.EqualFold(resp.Status, "Processing") {
+		return &CertUpdater{
+			UpdateDomains:              false,
+			UpdateNotificationSettings: true,
+			UpdateDCVMethod:            true,
+			UpdateOrganization:         true,
+		}, nil
+	}
+
+	if strings.EqualFold(resp.Status, "DomainControlValidation") ||
+		strings.EqualFold(resp.Status, "OtherValidation") {
+		return &CertUpdater{
+			UpdateDomains:              false,
+			UpdateNotificationSettings: true,
+			UpdateDCVMethod:            true,
+			UpdateOrganization:         false,
+		}, nil
+	}
+
+	if strings.EqualFold(resp.Status, "Deployment") ||
+		strings.EqualFold(resp.Status, "Active") {
+		return &CertUpdater{
+			UpdateDomains:              true,
+			UpdateNotificationSettings: true,
+			UpdateDCVMethod:            true,
+			UpdateOrganization:         true,
+		}, nil
+	}
+
+	return nil, errors.New("unknown update flow")
+}
+
+type CertUpdater struct {
+	svc                        cps.CpsService
+	state                      CertificateState
+	UpdateDomains              bool
+	UpdateNotificationSettings bool
+	UpdateDCVMethod            bool
+	UpdateOrganization         bool
+}
+
+func (u CertUpdater) Update() error {
+	if err := u.updateBasicSettings(); err != nil {
+		return err
+	}
+
+	if err := u.updateNotificationSettings(); err != nil {
+		return err
+	}
+
+	if err := u.updateDCVMethod(); err != nil {
+		return err
+	}
+
+	if err := u.updateOrganization(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u CertUpdater) updateBasicSettings() error {
+	params := certificate.NewCertificatePatchParams()
+	params.ID = u.state.CertificateID
+	params.CertificateRequest = &models.CertificateUpdate{
+		AutoRenew:        u.state.AutoRenew,
+		CertificateLabel: u.state.CertificateLabel,
+		Description:      u.state.Description,
+	}
+
+	if u.UpdateDomains {
+		params.CertificateRequest.Domains = u.state.Domains
+	}
+
+	resp, err := u.svc.Certificate.CertificatePatch(params)
+	if err != nil {
+		return fmt.Errorf("failed to update certificate: %w", err)
+	}
+
+	log.Printf("[INFO] certificate updated: %# v\n", pretty.Formatter(resp))
+
+	return nil
+}
+
+func (u CertUpdater) updateNotificationSettings() error {
+	if u.UpdateNotificationSettings {
+		// not yet implemeted
+	} else {
+		log.Printf("[INFO] Skipped updating notification settings")
+	}
+
+	return nil
+}
+
+func (u CertUpdater) updateDCVMethod() error {
+	if u.UpdateNotificationSettings {
+		// not yet implemeted
+	} else {
+		log.Printf("[INFO] Skipped updating DCV method")
+	}
+
+	return nil
+}
+
+func (u CertUpdater) updateOrganization() error {
+	if u.UpdateNotificationSettings {
+		// not yet implemeted
+	} else {
+		log.Printf("[INFO] Skipped updating organization")
+	}
+
+	return nil
 }
