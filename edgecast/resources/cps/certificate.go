@@ -340,10 +340,6 @@ func ResourceCertificateUpdate(
 		return helper.DiagFromError("failed to update certificate", err)
 	}
 
-	if err != nil {
-		return helper.DiagFromError("failed to update certificate", err)
-	}
-
 	return ResourceCertificateRead(ctx, d, m)
 }
 
