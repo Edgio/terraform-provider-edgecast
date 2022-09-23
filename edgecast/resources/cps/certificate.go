@@ -306,10 +306,76 @@ func ResourceCertificateDelete(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Not Yet Implemented
-	var diags diag.Diagnostics
+	config, ok := m.(**api.ClientConfig)
+	if !ok {
+		return diag.Errorf("failed to load configuration")
+	}
 
-	return diags
+	cpsService, err := buildCPSService(**config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	certID, err := helper.ParseInt64(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	//Get certificate status
+	statusParams := certificate.NewCertificateGetCertificateStatusParams()
+	statusParams.ID = certID
+	statusResp, err :=
+		cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if statusResp.Status == "Processing" &&
+		statusResp.OrderValidation == nil {
+
+		//Certificate has not been placed yet.
+		cancelParams := certificate.NewCertificateCancelParams()
+		cancelParams.ID = certID
+		cancelParams.Apply = true
+		_, err := cpsService.Certificate.CertificateCancel(cancelParams)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		log.Printf("[INFO] Canceled Certificate ID: %v", certID)
+
+	} else if (statusResp.Status == "DomainControlValidation" ||
+		statusResp.Status == "OtherValidation") &&
+		(statusResp.OrderValidation != nil &&
+			statusResp.OrderValidation.Status == "Pending") {
+
+		//Certificate has been placed, but not issued yet.
+		cancelParams := certificate.NewCertificateCancelParams()
+		cancelParams.ID = certID
+		cancelParams.Apply = true
+		_, err := cpsService.Certificate.CertificateCancel(cancelParams)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		log.Printf("[INFO] Canceled Certificate ID: %v", certID)
+
+	} else {
+
+		//certificate has been issued.
+		deleteParams := certificate.NewCertificateDeleteParams()
+		deleteParams.ID = certID
+		_, err := cpsService.Certificate.CertificateDelete(deleteParams)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		log.Printf("[INFO] Deleted Certificate ID: %v", certID)
+	}
+
+	d.SetId("")
+
+	return diag.Diagnostics{}
 }
 
 // ExpandDomains converts the Terraform representation of Domains into
