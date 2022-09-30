@@ -856,7 +856,7 @@ func (svc mockCertificateService) CertificateUpdateRequestNotifications(params c
 func mockStatusFunc(status string) func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
 	return func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
 		return &certificate.CertificateGetCertificateStatusOK{
-			models.CertificateStatus{Status: status},
+			CertificateStatus: models.CertificateStatus{Status: status},
 		}, nil
 	}
 }
