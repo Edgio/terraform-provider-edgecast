@@ -4,6 +4,7 @@
 package cps_test
 
 import (
+	"errors"
 	"reflect"
 	"sort"
 	"testing"
@@ -11,6 +12,8 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/resources/cps"
 
+	sdkcps "github.com/EdgeCast/ec-sdk-go/edgecast/cps"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-test/deep"
 )
@@ -638,5 +641,222 @@ func TestFlattenNotifSettings(t *testing.T) {
 				t.Errorf("Differences: %v", diffs)
 			}
 		})
+	}
+}
+
+type UpdaterFlags struct {
+	UpdateDomains              bool
+	UpdateNotificationSettings bool
+	UpdateDCVMethod            bool
+	UpdateOrganization         bool
+}
+
+func TestGetUpdater(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		expectErr  bool
+		statusFunc func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
+		state      cps.CertificateState
+		want       UpdaterFlags
+	}{
+		{
+			name:       "Status Processing",
+			expectErr:  false,
+			statusFunc: mockStatusFunc("Processing"),
+			state:      cps.CertificateState{},
+			want: UpdaterFlags{
+				UpdateDomains:              false,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name:       "Status DomainControlValidation",
+			expectErr:  false,
+			statusFunc: mockStatusFunc("DomainControlValidation"),
+			state:      cps.CertificateState{},
+			want: UpdaterFlags{
+				UpdateDomains:              false,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         false,
+			},
+		},
+		{
+			name:       "Status OtherValidation",
+			expectErr:  false,
+			statusFunc: mockStatusFunc("OtherValidation"),
+			state:      cps.CertificateState{},
+			want: UpdaterFlags{
+				UpdateDomains:              false,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         false,
+			},
+		},
+		{
+			name:       "Status Deployment",
+			expectErr:  false,
+			statusFunc: mockStatusFunc("Deployment"),
+			state:      cps.CertificateState{},
+			want: UpdaterFlags{
+				UpdateDomains:              true,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name:       "Status Active",
+			expectErr:  false,
+			statusFunc: mockStatusFunc("Active"),
+			state:      cps.CertificateState{},
+			want: UpdaterFlags{
+				UpdateDomains:              true,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name:       "Status Active",
+			expectErr:  false,
+			statusFunc: mockStatusFunc("Active"),
+			state:      cps.CertificateState{},
+			want: UpdaterFlags{
+				UpdateDomains:              true,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name:      "Error path API Error",
+			expectErr: true,
+			statusFunc: func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
+				return nil, errors.New("some api error")
+			},
+		},
+		{
+			name:       "Error path deleted certificate",
+			expectErr:  true,
+			statusFunc: mockStatusFunc("Deleted"),
+		},
+		{
+			name:       "Error path unknown status",
+			expectErr:  true,
+			statusFunc: mockStatusFunc("unknown status"),
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mockSvc := sdkcps.CpsService{
+				Certificate: mockCertificateService{
+					funcCertificateGetCertificateStatus: tt.statusFunc,
+				},
+			}
+
+			got, err := cps.GetUpdater(mockSvc, tt.state)
+
+			if !tt.expectErr && err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if tt.expectErr && err == nil {
+				t.Fatal("expected error but got none")
+			}
+
+			if tt.expectErr && err != nil {
+				t.Logf("got error as expected (test is OK): %v", err)
+				return // successful error case
+			}
+
+			if got.UpdateDCVMethod != tt.want.UpdateDCVMethod {
+				t.Fatalf("UpdateDCVMethod: expected %t but got %t", tt.want.UpdateDCVMethod, got.UpdateDCVMethod)
+			}
+
+			if got.UpdateDomains != tt.want.UpdateDomains {
+				t.Fatalf("UpdateDomains: expected %t but got %t", tt.want.UpdateDomains, got.UpdateDomains)
+			}
+
+			if got.UpdateNotificationSettings != tt.want.UpdateNotificationSettings {
+				t.Fatalf("UpdateNotificationSettings: expected %t but got %t", tt.want.UpdateNotificationSettings, got.UpdateNotificationSettings)
+			}
+
+			if got.UpdateOrganization != tt.want.UpdateOrganization {
+				t.Fatalf("UpdateOrganization: expected %t but got %t", tt.want.UpdateOrganization, got.UpdateOrganization)
+			}
+		})
+	}
+}
+
+type mockCertificateService struct {
+	funcCertificateGetCertificateStatus func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
+}
+
+func (svc mockCertificateService) CertificateCancel(params certificate.CertificateCancelParams) (*certificate.CertificateCancelNoContent, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificateDelete(params certificate.CertificateDeleteParams) (*certificate.CertificateDeleteNoContent, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificateFind(params certificate.CertificateFindParams) (*certificate.CertificateFindOK, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificateGet(params certificate.CertificateGetParams) (*certificate.CertificateGetOK, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificateGetCertificateStatus(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
+	if svc.funcCertificateGetCertificateStatus != nil {
+		return svc.funcCertificateGetCertificateStatus(params)
+	}
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificateGetRequestNotifications(params certificate.CertificateGetRequestNotificationsParams) (*certificate.CertificateGetRequestNotificationsOK, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificatePatch(params certificate.CertificatePatchParams) (*certificate.CertificatePatchOK, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificatePost(params certificate.CertificatePostParams) (*certificate.CertificatePostCreated, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificatePutOrganizationDetails(params certificate.CertificatePutOrganizationDetailsParams) (*certificate.CertificatePutOrganizationDetailsOK, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificatePutRenewal(params certificate.CertificatePutRenewalParams) (*certificate.CertificatePutRenewalNoContent, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificatePutRetrigger(params certificate.CertificatePutRetriggerParams) (*certificate.CertificatePutRetriggerNoContent, error) {
+	// default implementation
+	return nil, nil
+}
+func (svc mockCertificateService) CertificateUpdateRequestNotifications(params certificate.CertificateUpdateRequestNotificationsParams) (*certificate.CertificateUpdateRequestNotificationsOK, error) {
+	// default implementation
+	return nil, nil
+}
+
+func mockStatusFunc(status string) func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
+	return func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
+		return &certificate.CertificateGetCertificateStatusOK{
+			models.CertificateStatus{Status: status},
+		}, nil
 	}
 }

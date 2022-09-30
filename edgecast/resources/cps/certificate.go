@@ -119,63 +119,64 @@ func ExpandCertificate(
 	d *schema.ResourceData,
 ) (*CertificateState, []error) {
 	errs := make([]error, 0)
+	certState := &CertificateState{}
 
-	autoRenew, ok := d.Get("auto_renew").(bool)
-	if !ok {
+	if autoRenew, ok := d.Get("auto_renew").(bool); ok {
+		certState.AutoRenew = autoRenew
+	} else {
 		errs = append(errs, errors.New("auto_renew not a bool"))
 	}
 
-	certAuthority, ok := d.Get("certificate_authority").(string)
-	if !ok {
+	if certAuthority, ok := d.Get("certificate_authority").(string); ok {
+		certState.CertificateAuthority = certAuthority
+	} else {
 		errs = append(errs, errors.New("certificate_authority not a string"))
 	}
 
-	certLabel, ok := d.Get("certificate_label").(string)
-	if !ok {
+	if certLabel, ok := d.Get("certificate_label").(string); ok {
+		certState.CertificateLabel = certLabel
+	} else {
 		errs = append(errs, errors.New("certificate_label not a string"))
 	}
 
-	dcvMethod, ok := d.Get("dcv_method").(string)
-	if !ok {
+	if dcvMethod, ok := d.Get("dcv_method").(string); ok {
+		certState.DcvMethod = dcvMethod
+	} else {
 		errs = append(errs, errors.New("dcv_method not a string"))
 	}
 
-	desc, ok := d.Get("description").(string)
-	if !ok {
+	if desc, ok := d.Get("description").(string); ok {
+		certState.Description = desc
+	} else {
 		errs = append(errs, errors.New("description not a string"))
 	}
 
-	validationType, ok := d.Get("validation_type").(string)
-	if !ok {
+	if validationType, ok := d.Get("validation_type").(string); ok {
+		certState.ValidationType = validationType
+	} else {
 		errs = append(errs, errors.New("validation_type not a string"))
 	}
 
-	domains, err := ExpandDomains(d.Get("domain"))
-	if err != nil {
+	if domains, err := ExpandDomains(d.Get("domain")); err == nil {
+		certState.Domains = domains
+	} else {
 		errs = append(errs, fmt.Errorf("error parsing domains: %w", err))
 	}
 
-	org, err := ExpandOrganization(d.Get("organization"))
-	if err != nil {
+	if org, err := ExpandOrganization(d.Get("organization")); err == nil {
+		certState.Organization = org
+	} else {
 		errs = append(errs, fmt.Errorf("error parsing organization: %w", err))
 	}
 
-	certID, err := helper.ParseInt64(d.Id())
-	if err != nil {
-		errs = append(errs, fmt.Errorf("error parsing cert ID: %w", err))
+	// ignore any errors, the creation flow will not have an ID
+	if certID, err := helper.ParseInt64(d.Id()); err == nil {
+		certState.CertificateID = certID
 	}
 
-	return &CertificateState{
-		CertificateID:        certID,
-		AutoRenew:            autoRenew,
-		CertificateAuthority: certAuthority,
-		CertificateLabel:     certLabel,
-		DcvMethod:            dcvMethod,
-		Description:          desc,
-		ValidationType:       validationType,
-		Domains:              domains,
-		Organization:         org,
-	}, errs
+	log.Printf("cert state: %# v\n", pretty.Formatter(certState))
+
+	return certState, errs
 }
 
 func ResourceCertificateRead(ctx context.Context,
@@ -636,6 +637,8 @@ func GetUpdater(
 
 	if strings.EqualFold(resp.Status, "Processing") {
 		return &CertUpdater{
+			svc:                        svc,
+			state:                      state,
 			UpdateDomains:              false,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
@@ -646,6 +649,8 @@ func GetUpdater(
 	if strings.EqualFold(resp.Status, "DomainControlValidation") ||
 		strings.EqualFold(resp.Status, "OtherValidation") {
 		return &CertUpdater{
+			svc:                        svc,
+			state:                      state,
 			UpdateDomains:              false,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
@@ -656,6 +661,8 @@ func GetUpdater(
 	if strings.EqualFold(resp.Status, "Deployment") ||
 		strings.EqualFold(resp.Status, "Active") {
 		return &CertUpdater{
+			svc:                        svc,
+			state:                      state,
 			UpdateDomains:              true,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
@@ -702,6 +709,7 @@ func (u CertUpdater) updateBasicSettings() error {
 		AutoRenew:        u.state.AutoRenew,
 		CertificateLabel: u.state.CertificateLabel,
 		Description:      u.state.Description,
+		DcvMethod:        u.state.DcvMethod,
 	}
 
 	if u.UpdateDomains {

@@ -159,9 +159,11 @@ func getCertificateSchema() map[string]*schema.Schema {
 		},
 
 		"auto_renew": {
-			Type:        schema.TypeBool,
-			Optional:    true,
-			Description: "Determines whether this certificate will automatically renew prior to its expiration date.",
+			Type:     schema.TypeBool,
+			Optional: true,
+			Default:  true,
+			Description: "Determines whether this certificate will automatically renew prior to its expiration date.\n" +
+				"Default Value: true",
 		},
 		"certificate_authority": {
 			Type:        schema.TypeString,
@@ -194,8 +196,7 @@ func getCertificateSchema() map[string]*schema.Schema {
 						Optional: true,
 						Description: "Determines whether this domain corresponds to the certificate's common name. \n" +
 							"Note: You may only designate a single domain as the common name.  \n" +
-							"Default Value:  \n" +
-							"If you do not designate a domain as the common name, then our system will assign it to one of your domains.",
+							"Default Value: If you do not designate a domain as the common name, then our system will assign it to one of your domains.",
 					},
 					"name": {
 						Type:     schema.TypeString,
