@@ -644,7 +644,7 @@ func TestFlattenNotifSettings(t *testing.T) {
 	}
 }
 
-type UpdaterFlags struct {
+type updaterFlags struct {
 	UpdateDomains              bool
 	UpdateNotificationSettings bool
 	UpdateDCVMethod            bool
@@ -658,15 +658,13 @@ func TestGetUpdater(t *testing.T) {
 		name       string
 		expectErr  bool
 		statusFunc func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
-		state      cps.CertificateState
-		want       UpdaterFlags
+		want       updaterFlags
 	}{
 		{
 			name:       "Status Processing",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("Processing"),
-			state:      cps.CertificateState{},
-			want: UpdaterFlags{
+			want: updaterFlags{
 				UpdateDomains:              false,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
@@ -677,8 +675,7 @@ func TestGetUpdater(t *testing.T) {
 			name:       "Status DomainControlValidation",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("DomainControlValidation"),
-			state:      cps.CertificateState{},
-			want: UpdaterFlags{
+			want: updaterFlags{
 				UpdateDomains:              false,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
@@ -689,8 +686,7 @@ func TestGetUpdater(t *testing.T) {
 			name:       "Status OtherValidation",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("OtherValidation"),
-			state:      cps.CertificateState{},
-			want: UpdaterFlags{
+			want: updaterFlags{
 				UpdateDomains:              false,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
@@ -701,8 +697,7 @@ func TestGetUpdater(t *testing.T) {
 			name:       "Status Deployment",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("Deployment"),
-			state:      cps.CertificateState{},
-			want: UpdaterFlags{
+			want: updaterFlags{
 				UpdateDomains:              true,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
@@ -713,8 +708,7 @@ func TestGetUpdater(t *testing.T) {
 			name:       "Status Active",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("Active"),
-			state:      cps.CertificateState{},
-			want: UpdaterFlags{
+			want: updaterFlags{
 				UpdateDomains:              true,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
@@ -725,8 +719,7 @@ func TestGetUpdater(t *testing.T) {
 			name:       "Status Active",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("Active"),
-			state:      cps.CertificateState{},
-			want: UpdaterFlags{
+			want: updaterFlags{
 				UpdateDomains:              true,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
@@ -763,7 +756,7 @@ func TestGetUpdater(t *testing.T) {
 				},
 			}
 
-			got, err := cps.GetUpdater(mockSvc, tt.state)
+			got, err := cps.GetUpdater(mockSvc, cps.CertificateState{})
 
 			if !tt.expectErr && err != nil {
 				t.Fatalf("unexpected error: %v", err)
