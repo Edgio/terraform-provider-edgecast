@@ -4,7 +4,7 @@ package cps
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-func getCertificateSchema() map[string]*schema.Schema {
+func GetCertificateSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,

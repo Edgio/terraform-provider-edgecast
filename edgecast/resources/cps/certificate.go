@@ -34,7 +34,7 @@ func ResourceCertificate() *schema.Resource {
 		UpdateContext: ResourceCertificateUpdate,
 		DeleteContext: ResourceCertificateDelete,
 		Importer:      helper.Import(ResourceCertificateRead, "id"),
-		Schema:        getCertificateSchema(),
+		Schema:        GetCertificateSchema(),
 	}
 }
 
@@ -118,60 +118,83 @@ func ResourceCertificateCreate(
 func ExpandCertificate(
 	d *schema.ResourceData,
 ) (*CertificateState, []error) {
+	if d == nil {
+		return nil, []error{errors.New("no data to read")}
+	}
+
 	errs := make([]error, 0)
 	certState := &CertificateState{}
 
-	if autoRenew, ok := d.Get("auto_renew").(bool); ok {
-		certState.AutoRenew = autoRenew
-	} else {
-		errs = append(errs, errors.New("auto_renew not a bool"))
+	if v, ok := d.GetOk("auto_renew"); ok {
+		if autoRenew, ok := v.(bool); ok {
+			certState.AutoRenew = autoRenew
+		} else {
+			errs = append(errs, errors.New("auto_renew not a bool"))
+		}
 	}
 
-	if certAuthority, ok := d.Get("certificate_authority").(string); ok {
-		certState.CertificateAuthority = certAuthority
-	} else {
-		errs = append(errs, errors.New("certificate_authority not a string"))
+	if v, ok := d.GetOk("certificate_authority"); ok {
+		if certAuthority, ok := v.(string); ok {
+			certState.CertificateAuthority = certAuthority
+		} else {
+			errs = append(errs, errors.New("certificate_authority not a string"))
+		}
 	}
 
-	if certLabel, ok := d.Get("certificate_label").(string); ok {
-		certState.CertificateLabel = certLabel
-	} else {
-		errs = append(errs, errors.New("certificate_label not a string"))
+	if v, ok := d.GetOk("certificate_label"); ok {
+		if certLabel, ok := v.(string); ok {
+			certState.CertificateLabel = certLabel
+		} else {
+			errs = append(errs, errors.New("certificate_label not a string"))
+		}
 	}
 
-	if dcvMethod, ok := d.Get("dcv_method").(string); ok {
-		certState.DcvMethod = dcvMethod
-	} else {
-		errs = append(errs, errors.New("dcv_method not a string"))
+	if v, ok := d.GetOk("dcv_method"); ok {
+		if dcvMethod, ok := v.(string); ok {
+			certState.DcvMethod = dcvMethod
+		} else {
+			errs = append(errs, errors.New("dcv_method not a string"))
+		}
 	}
 
-	if desc, ok := d.Get("description").(string); ok {
-		certState.Description = desc
-	} else {
-		errs = append(errs, errors.New("description not a string"))
+	if v, ok := d.GetOk("description"); ok {
+		if desc, ok := v.(string); ok {
+			certState.Description = desc
+		} else {
+			errs = append(errs, errors.New("description not a string"))
+		}
 	}
 
-	if validationType, ok := d.Get("validation_type").(string); ok {
-		certState.ValidationType = validationType
-	} else {
-		errs = append(errs, errors.New("validation_type not a string"))
+	if v, ok := d.GetOk("validation_type"); ok {
+		if validationType, ok := v.(string); ok {
+			certState.ValidationType = validationType
+		} else {
+			errs = append(errs, errors.New("validation_type not a string"))
+		}
 	}
 
-	if domains, err := ExpandDomains(d.Get("domain")); err == nil {
-		certState.Domains = domains
-	} else {
-		errs = append(errs, fmt.Errorf("error parsing domains: %w", err))
+	if v, ok := d.GetOk("domain"); ok {
+		if domains, err := ExpandDomains(v); err == nil {
+			certState.Domains = domains
+		} else {
+			errs = append(errs, fmt.Errorf("error parsing domains: %w", err))
+		}
 	}
 
-	if org, err := ExpandOrganization(d.Get("organization")); err == nil {
-		certState.Organization = org
-	} else {
-		errs = append(errs, fmt.Errorf("error parsing organization: %w", err))
+	if v, ok := d.GetOk("organization"); ok {
+		if org, err := ExpandOrganization(v); err == nil {
+			certState.Organization = org
+		} else {
+			errs = append(errs, fmt.Errorf("error parsing organization: %w", err))
+		}
 	}
 
-	// ignore any errors, the creation flow will not have an ID
-	if certID, err := helper.ParseInt64(d.Id()); err == nil {
-		certState.CertificateID = certID
+	if v, ok := d.GetOk("notification_setting"); ok {
+		if ns, nserrs := ExpandNotifSettings(v); len(errs) == 0 {
+			certState.NotificationSettings = ns
+		} else {
+			errs = append(errs, nserrs...)
+		}
 	}
 
 	log.Printf("cert state: %# v\n", pretty.Formatter(certState))
@@ -330,6 +353,13 @@ func ResourceCertificateUpdate(
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors("error parsing certificate", errs)
 	}
+
+	certID, err := helper.ParseInt64(d.Id())
+	if err != nil {
+		return helper.DiagFromError("id was not an int64", err)
+	}
+
+	certState.CertificateID = certID
 
 	updater, err := GetUpdater(*svc, *certState)
 	if err != nil {
@@ -617,6 +647,9 @@ type CertificateState struct {
 	// validation type
 	// Enum: [None DV OV EV]
 	ValidationType string
+
+	// notification settings
+	NotificationSettings []*models.EmailNotification
 }
 
 func GetUpdater(
