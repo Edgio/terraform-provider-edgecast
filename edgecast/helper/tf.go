@@ -43,15 +43,36 @@ func CreationError(d *schema.ResourceData, err error) diag.Diagnostics {
 
 // CreationErrors is a helper function for errors encountered while
 // creating a new resource.
-func CreationErrors(d *schema.ResourceData, errs []error) diag.Diagnostics {
+func CreationErrors(
+	d *schema.ResourceData,
+	msg string,
+	errs []error,
+) diag.Diagnostics {
 	d.SetId("")
 
-	return DiagsFromErrors(errs)
+	return DiagsFromErrors(msg, errs)
 }
 
-// DiagsFromErrors creates a diag.Diagnostics instance from multiple errors.
-func DiagsFromErrors(errs []error) diag.Diagnostics {
+// DiagFromError wraps an error in a diag.Diagnostic with an additional message.
+func DiagFromError(msg string, err error) diag.Diagnostics {
+	return diag.Diagnostics{
+		diag.Diagnostic{
+			Severity: diag.Error,
+			Summary:  msg,
+			Detail:   err.Error(),
+		},
+	}
+}
+
+// DiagsFromErrors creates a diag.Diagnostics instance from multiple errors and
+// a base message.
+func DiagsFromErrors(msg string, errs []error) diag.Diagnostics {
+	// start with a base message
 	var diags diag.Diagnostics
+	diags = append(diags, diag.Diagnostic{
+		Severity: diag.Error,
+		Summary:  msg,
+	})
 
 	for _, err := range errs {
 		diags = append(diags, diag.Diagnostic{

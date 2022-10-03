@@ -15,6 +15,7 @@ description: |-
 ```terraform
 resource "edgecast_cps_certificate" "certificate_1" {
 
+	# Note: certificate_label must be unique, including deleted certificates.
 	certificate_label = "cdn example tf ev11"
 	description = "cdn example"
 	auto_renew = true
@@ -59,6 +60,24 @@ resource "edgecast_cps_certificate" "certificate_1" {
 		is_common_name = false
 		name =  "testdomain2.com"
 	}
+
+	notification_setting {
+		notification_type = "CertificateRenewal"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
+
+	notification_setting {
+		notification_type = "CertificateExpiring"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
+
+	notification_setting {
+		notification_type = "PendingValidations"
+		enabled = true
+		emails = ["first.lastname@testuser.com"]
+	}
 }
 
 resource "edgecast_cps_certificate" "certificate_2" {
@@ -94,7 +113,9 @@ resource "edgecast_cps_certificate" "certificate_2" {
 ### Optional
 
 - `auto_renew` (Boolean) Determines whether this certificate will automatically renew prior to its expiration date.
+Default Value: true
 - `description` (String) Sets the certificate's description.
+- `notification_setting` (Block Set) Determine the conditions under which notifications will be sent and to whom they will be sent for a specific certificate request. (see [below for nested schema](#nestedblock--notification_setting))
 - `organization` (Block Set, Max: 1) Required for OV and EV certificates. 
 Describes the certificate request's organization. 
 Note: Do not specify an organization for DV certificates. (see [below for nested schema](#nestedblock--organization))
@@ -133,8 +154,21 @@ Optional:
 
 - `is_common_name` (Boolean) Determines whether this domain corresponds to the certificate's common name. 
 Note: You may only designate a single domain as the common name.  
-Default Value:  
-If you do not designate a domain as the common name, then our system will assign it to one of your domains.
+Default Value: If you do not designate a domain as the common name, then our system will assign it to one of your domains.
+
+
+<a id="nestedblock--notification_setting"></a>
+### Nested Schema for `notification_setting`
+
+Required:
+
+- `enabled` (Boolean) Determines whether emails for this type of notification will be sent.
+- `notification_type` (String) Identifies the type of notification that will be configured. Valid values are:
+CertificateRenewal | CertificateExpiring | PendingValidations
+
+Optional:
+
+- `emails` (List of String) Required when enabled=true. Defines one or more email addresses to which a notification will be sent. Set this parameter to an email address associated with a MCC user in your account. Your account manager may also define an email address associated with a partner user. Our service returns a 400 Bad Request when this parameter is set to any other email address.
 
 
 <a id="nestedblock--organization"></a>

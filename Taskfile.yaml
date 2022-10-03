@@ -22,8 +22,8 @@ includes:
 
 
 tasks:
-  generate:
-    desc: generates all necessary code and documentation
+  docs:
+    desc: generates documentation markdown
     cmds:
       - go generate
 
