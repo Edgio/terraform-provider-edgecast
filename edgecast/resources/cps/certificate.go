@@ -262,6 +262,8 @@ func setCertificateState(
 ) error {
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
+	d.Set("dcv_method", resp.DcvMethod)
+	d.Set("validation_type", resp.ValidationType)
 
 	tLastModified, err := time.Parse(datetimeFormat, resp.LastModified.String())
 	if err != nil {
@@ -292,6 +294,12 @@ func setCertificateState(
 
 	flattenedDeployments := FlattenDeployments(resp.Deployments)
 	d.Set("deployments", flattenedDeployments)
+
+	flattendDomains := FlattenDomains(resp.Domains)
+	d.Set("domain", flattendDomains)
+
+	flattendOrganization := FlattenOrganization(resp.Organization)
+	d.Set("organization", flattendOrganization)
 
 	if resp.CreatedBy != nil {
 		flattenedCreatedBy := FlattenActor(resp.CreatedBy)
@@ -674,6 +682,85 @@ func FlattenDeployments(
 		m["delivery_region"] = v.DeliveryRegion
 		m["hex_url"] = v.HexURL
 		m["platform"] = v.Platform
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+func FlattenDomains(
+	domains []*models.Domain,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range domains {
+		m := make(map[string]interface{})
+
+		m["id"] = v.ID
+		m["is_common_name"] = v.IsCommonName
+		m["name"] = v.Name
+		m["status"] = v.Status
+
+		tActive, _ := time.Parse(datetimeFormat, v.ActiveDate.String())
+		m["active_date"] = tActive.Format(datetimeFormat)
+
+		tCreated, _ := time.Parse(datetimeFormat, v.Created.String())
+		m["created"] = tCreated.Format(datetimeFormat)
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+func FlattenOrganization(
+	organization *models.OrganizationDetail,
+) []map[string]interface{} {
+	if organization == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["city"] = organization.City
+	m["company_address"] = organization.CompanyAddress
+	m["company_address2"] = organization.CompanyAddress2
+	m["company_name"] = organization.CompanyName
+	m["contact_email"] = organization.ContactEmail
+	m["contact_first_name"] = organization.ContactFirstName
+	m["contact_last_name"] = organization.ContactLastName
+	m["contact_phone"] = organization.ContactPhone
+	m["contact_title"] = organization.ContactTitle
+	m["country"] = organization.Country
+	m["id"] = organization.ID
+	m["organizational_unit"] = organization.OrganizationalUnit
+	m["state"] = organization.State
+	m["zip_code"] = organization.ZipCode
+	if organization.AdditionalContacts != nil {
+		m["additional_contact"] = flattenAdditionalContacts(organization.AdditionalContacts)
+	}
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenAdditionalContacts(
+	additionalcontacts []*models.OrganizationContact,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range additionalcontacts {
+		m := make(map[string]interface{})
+
+		m["contact_type"] = v.ContactType
+		m["email"] = v.Email
+		m["first_name"] = v.FirstName
+		m["id"] = v.ID
+		m["last_name"] = v.LastName
+		m["phone"] = v.Phone
+		m["title"] = v.Title
 
 		flattened = append(flattened, m)
 	}

@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/resources/cps"
@@ -15,6 +16,7 @@ import (
 	sdkcps "github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -181,22 +183,6 @@ func TestExpandCertificate(t *testing.T) {
 			expectedPtr: nil,
 			expectErrs:  true,
 		},
-		{
-			// There is only one error path that is testable, the others
-			// are not possible when using Terraform's schema.ResourceData
-			// struct. Instead of allowing incorrect data types for a property,
-			// a default instance of the property is used instead.
-			// The one exception seems to be the TypeList schema, thus we
-			// are only testing the domain property.
-			name:       "Error path - err checks",
-			expectErrs: true,
-			errCount:   1,
-			input: map[string]any{
-				"domain": []any{
-					"not a map[string]interface{}",
-				},
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -214,15 +200,15 @@ func TestExpandCertificate(t *testing.T) {
 
 			actualPtr, errs := cps.ExpandCertificate(rd)
 
-			if !tt.expectErrs && len(errs) > 0 {
+			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
 			}
 
-			if tt.expectErrs && len(errs) != tt.errCount {
+			if tt.expectErrs && (len(errs) != tt.errCount) {
 				t.Fatalf("expected %d errors but got %d", tt.errCount, len(errs))
 			}
 
-			if tt.expectErrs && len(errs) > 0 {
+			if tt.expectErrs && (len(errs) > 0) {
 				return // successful test for error case
 			}
 
@@ -889,6 +875,190 @@ func TestFlattenNotifSettings(t *testing.T) {
 				t.Errorf("Differences: %v", diffs)
 			}
 		})
+	}
+}
+
+func TestFlattenDomains(t *testing.T) {
+	cases := []struct {
+		name     string
+		input    []*models.Domain
+		expected []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			input: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+				},
+			},
+		},
+		{
+			name:     "Nil input",
+			input:    nil,
+			expected: make([]map[string]interface{}, 0),
+		},
+		{
+			name:     "Empty input",
+			input:    make([]*models.Domain, 0),
+			expected: make([]map[string]interface{}, 0),
+		},
+	}
+
+	for _, c := range cases {
+		actual := cps.FlattenDomains(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
+func TestFlattenOrganization(t *testing.T) {
+	cases := []struct {
+		name          string
+		input         *models.OrganizationDetail
+		expected      []map[string]interface{}
+		expectSuccess bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			input: &models.OrganizationDetail{
+				ID:                 0,
+				Country:            "US",
+				City:               "L.A.",
+				CompanyAddress:     "111 fantastic way",
+				CompanyAddress2:    "111 fantastic way",
+				CompanyName:        "Test Co.",
+				ContactEmail:       "user3@test.com",
+				ContactFirstName:   "test3",
+				ContactLastName:    "user",
+				ContactPhone:       "111-111-1111",
+				ContactTitle:       "N/A",
+				OrganizationalUnit: "Dept1",
+				State:              "CA",
+				ZipCode:            "90001",
+				AdditionalContacts: []*models.OrganizationContact{
+					{
+						ID:          0,
+						FirstName:   "contact1",
+						LastName:    "lastname",
+						Email:       "first.lastname@testuser.com",
+						Phone:       "111-111-2222",
+						Title:       "Manager",
+						ContactType: "EvApprover",
+					},
+					{
+						ID:          1,
+						FirstName:   "contact2",
+						LastName:    "lastname2",
+						Email:       "first.lastname2@testuser.com",
+						Phone:       "111-111-3333",
+						Title:       "Developer",
+						ContactType: "TechnicalContact",
+					},
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"id":                  int64(0),
+					"country":             "US",
+					"city":                "L.A.",
+					"company_address":     "111 fantastic way",
+					"company_address2":    "111 fantastic way",
+					"company_name":        "Test Co.",
+					"contact_email":       "user3@test.com",
+					"contact_first_name":  "test3",
+					"contact_last_name":   "user",
+					"contact_phone":       "111-111-1111",
+					"contact_title":       "N/A",
+					"organizational_unit": "Dept1",
+					"state":               "CA",
+					"zip_code":            "90001",
+					"additional_contact": []map[string]interface{}{
+						{
+							"id":           int64(0),
+							"first_name":   "contact1",
+							"last_name":    "lastname",
+							"email":        "first.lastname@testuser.com",
+							"phone":        "111-111-2222",
+							"title":        "Manager",
+							"contact_type": "EvApprover",
+						},
+						{
+							"id":           int64(1),
+							"first_name":   "contact2",
+							"last_name":    "lastname2",
+							"email":        "first.lastname2@testuser.com",
+							"phone":        "111-111-3333",
+							"title":        "Developer",
+							"contact_type": "TechnicalContact",
+						},
+					},
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			input:         nil,
+			expected:      make([]map[string]interface{}, 0),
+			expectSuccess: false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := cps.FlattenOrganization(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
 	}
 }
 
