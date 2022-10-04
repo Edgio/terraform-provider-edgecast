@@ -11,153 +11,21 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Computed:    true,
 			Description: "Indicates the system-defined ID assigned to this certificate.",
 		},
-		"notification_setting": {
-			Type:        schema.TypeSet,
+		"certificate_label": {
+			Type:        schema.TypeString,
+			Required:    true,
+			Description: "Sets the certificate's name. Specify a name that solely consists of alphanumeric characters, underscores, and dashes.",
+		},
+		"description": {
+			Type:        schema.TypeString,
 			Optional:    true,
-			Description: "Determine the conditions under which notifications will be sent and to whom they will be sent for a specific certificate request.",
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"notification_type": {
-						Type:     schema.TypeString,
-						Required: true,
-						Description: "Identifies the type of notification that will be configured. Valid values are:\n" +
-							"CertificateRenewal | CertificateExpiring | PendingValidations",
-					},
-					"enabled": {
-						Type:        schema.TypeBool,
-						Required:    true,
-						Description: "Determines whether emails for this type of notification will be sent.",
-					},
-					"emails": {
-						Type:        schema.TypeList,
-						Optional:    true,
-						Description: "Required when enabled=true. Defines one or more email addresses to which a notification will be sent. Set this parameter to an email address associated with a MCC user in your account. Your account manager may also define an email address associated with a partner user. Our service returns a 400 Bad Request when this parameter is set to any other email address.",
-						Elem: &schema.Schema{
-							Type: schema.TypeString,
-						},
-					},
-				},
-			},
+			Description: "Sets the certificate's description.",
 		},
-		"created": {
-			Type:     schema.TypeString,
-			Computed: true,
-			Description: "Indicates the timestamp at which this request for a certificate was initially submitted. \n" +
-				"Syntax: \n" +
-				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z",
-		},
-		"created_by": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"user_id": {
-						Type:     schema.TypeInt,
-						Computed: true,
-					},
-					"portal_type_id": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "[ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
-					},
-					"identity_id": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-					"identity_type": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "[ User, Client ]",
-					},
-				},
-			},
-			Description: "Describes the user that submitted this certificate request.",
-		},
-		"deployments": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"delivery_region": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "[ GlobalPremiumPlusAsia, NorthAmericaAndEurope, GlobalStandard, Internal, GlobalPremiumAsiaPlusChina, GlobalPremiumAsiaPlusIndia, GlobalPremiumAsiaPlusChinaAndIndia, GlobalPremiumAsiaPlusLatam, GlobalPremiumAsiaPremiumChinaPlusLatam ]",
-					},
-					"platform": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "[ HttpLarge, HttpSmall, Adn ]",
-					},
-					"hex_url": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-				},
-			},
-			Description: "Returns a null value.",
-		},
-		"expiration_date": {
-			Type:     schema.TypeString,
-			Computed: true,
-			Description: "Indicates the timestamp at which this certificate will expire. \n" +
-				"Syntax: \n" +
-				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z \n" +
-				"If the Certificate Authority (CA) is still processing the certificate request, then this property returns the following timestamp: \n" +
-				"0001-01-01T00:00:00Z",
-		},
-		"last_modified": {
-			Type:     schema.TypeString,
-			Computed: true,
-			Description: "Indicates the timestamp at which this request for a certificate was last modified. \n" +
-				"Syntax: \n" +
-				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z ",
-		},
-		"modified_by": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
-			Elem: &schema.Resource{
-				Schema: map[string]*schema.Schema{
-					"user_id": {
-						Type:     schema.TypeInt,
-						Computed: true,
-					},
-					"portal_type_id": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "[ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
-					},
-					"identity_id": {
-						Type:     schema.TypeString,
-						Computed: true,
-					},
-					"identity_type": {
-						Type:        schema.TypeString,
-						Computed:    true,
-						Description: "[ User, Client ]",
-					},
-				},
-			},
-			Description: "Returns a null value.",
-		},
-		"request_type": {
+		"certificate_authority": {
 			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "Returns Enterprise.",
+			Required:    true,
+			Description: "Set to DigiCert.",
 		},
-		"thumbprint": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "Returns a null value.",
-		},
-		"workflow_error_message": {
-			Type:        schema.TypeString,
-			Computed:    true,
-			Description: "Returns a null value.",
-		},
-
 		"auto_renew": {
 			Type:     schema.TypeBool,
 			Optional: true,
@@ -165,25 +33,15 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Description: "Determines whether this certificate will automatically renew prior to its expiration date.\n" +
 				"Default Value: true",
 		},
-		"certificate_authority": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Set to DigiCert.",
-		},
-		"certificate_label": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Sets the certificate's name. Specify a name that solely consists of alphanumeric characters, underscores, and dashes.",
-		},
 		"dcv_method": {
 			Type:        schema.TypeString,
 			Required:    true,
 			Description: "Determines the method through which your control over the domains associated with this certificate will be validated.",
 		},
-		"description": {
+		"validation_type": {
 			Type:        schema.TypeString,
-			Optional:    true,
-			Description: "Sets the certificate's description.",
+			Required:    true,
+			Description: "Determines the certificate's level of validation.",
 		},
 		"domain": {
 			Type:     schema.TypeList,
@@ -204,6 +62,28 @@ func GetCertificateSchema() map[string]*schema.Schema {
 						Description: "Sets the domain name. \n" +
 							"Example  \n" +
 							"cdn.example.com",
+					},
+					"active_date": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "Returns a null value.",
+					},
+					"created": {
+						Type:     schema.TypeString,
+						Computed: true,
+						Description: "Indicates the timestamp at which this domain was added to the certificate request. \n" +
+							"Syntax: \n" +
+							"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z",
+					},
+					"id": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Indicates the system-defined ID assigned to this domain.",
+					},
+					"status": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "Indicates status information for this domain.",
 					},
 				},
 			},
@@ -331,6 +211,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 					"id": {
 						Type:     schema.TypeInt,
 						Optional: true,
+						Computed: true,
 						Description: "Identifies an organization by its system-defined ID. \n" +
 							"Key information: \n" +
 							"Specify an existing organization by passing either of the following values: \n" +
@@ -361,10 +242,152 @@ func GetCertificateSchema() map[string]*schema.Schema {
 				"Describes the certificate request's organization. \n" +
 				"Note: Do not specify an organization for DV certificates.",
 		},
-		"validation_type": {
+		"notification_setting": {
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Determine the conditions under which notifications will be sent and to whom they will be sent for a specific certificate request.",
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"notification_type": {
+						Type:     schema.TypeString,
+						Required: true,
+						Description: "Identifies the type of notification that will be configured. Valid values are:\n" +
+							"CertificateRenewal | CertificateExpiring | PendingValidations",
+					},
+					"enabled": {
+						Type:        schema.TypeBool,
+						Required:    true,
+						Description: "Determines whether emails for this type of notification will be sent.",
+					},
+					"emails": {
+						Type:        schema.TypeList,
+						Optional:    true,
+						Description: "Required when enabled=true. Defines one or more email addresses to which a notification will be sent. Set this parameter to an email address associated with a MCC user in your account. Your account manager may also define an email address associated with a partner user. Our service returns a 400 Bad Request when this parameter is set to any other email address.",
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
+				},
+			},
+		},
+		"deployments": {
+			Type:     schema.TypeSet,
+			Computed: true,
+
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"delivery_region": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "[ GlobalPremiumPlusAsia, NorthAmericaAndEurope, GlobalStandard, Internal, GlobalPremiumAsiaPlusChina, GlobalPremiumAsiaPlusIndia, GlobalPremiumAsiaPlusChinaAndIndia, GlobalPremiumAsiaPlusLatam, GlobalPremiumAsiaPremiumChinaPlusLatam ]",
+					},
+					"platform": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "[ HttpLarge, HttpSmall, Adn ]",
+					},
+					"hex_url": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+				},
+			},
+			Description: "Returns a null value.",
+		},
+		"request_type": {
 			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Determines the certificate's level of validation.",
+			Computed:    true,
+			Description: "Returns Enterprise.",
+		},
+		"thumbprint": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Returns a null value.",
+		},
+		"created": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Description: "Indicates the timestamp at which this request for a certificate was initially submitted. \n" +
+				"Syntax: \n" +
+				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z",
+		},
+		"created_by": {
+			Type:     schema.TypeSet,
+			Computed: true,
+
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"user_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"portal_type_id": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "[ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
+					},
+					"identity_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"identity_type": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "[ User, Client ]",
+					},
+				},
+			},
+			Description: "Describes the user that submitted this certificate request.",
+		},
+		"expiration_date": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Description: "Indicates the timestamp at which this certificate will expire. \n" +
+				"Syntax: \n" +
+				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z \n" +
+				"If the Certificate Authority (CA) is still processing the certificate request, then this property returns the following timestamp: \n" +
+				"0001-01-01T00:00:00Z",
+		},
+		"last_modified": {
+			Type:     schema.TypeString,
+			Computed: true,
+			Description: "Indicates the timestamp at which this request for a certificate was last modified. \n" +
+				"Syntax: \n" +
+				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z ",
+		},
+		"modified_by": {
+			Type:     schema.TypeSet,
+			Computed: true,
+
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"user_id": {
+						Type:     schema.TypeInt,
+						Computed: true,
+					},
+					"portal_type_id": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "[ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
+					},
+					"identity_id": {
+						Type:     schema.TypeString,
+						Computed: true,
+					},
+					"identity_type": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "[ User, Client ]",
+					},
+				},
+			},
+			Description: "Returns a null value.",
+		},
+
+		"workflow_error_message": {
+			Type:        schema.TypeString,
+			Computed:    true,
+			Description: "Returns a null value.",
 		},
 	}
 }
