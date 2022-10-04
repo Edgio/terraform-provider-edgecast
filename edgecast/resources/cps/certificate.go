@@ -43,7 +43,7 @@ func ResourceCertificateCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
+	// Initialize CPS Service.
 	config, ok := m.(**api.ClientConfig)
 	if !ok {
 		return helper.CreationErrorf(d, "failed to load configuration")
@@ -346,7 +346,7 @@ func ResourceCertificateUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
+	// Initialize CPS Service.
 	config, ok := m.(**api.ClientConfig)
 	if !ok {
 		return helper.CreationErrorf(d, "failed to load configuration")
@@ -402,7 +402,7 @@ func ResourceCertificateDelete(
 		return diag.FromErr(err)
 	}
 
-	// Get certificate status
+	// Get certificate status.
 	statusParams := certificate.NewCertificateGetCertificateStatusParams()
 	statusParams.ID = certID
 	statusResp, err := cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
@@ -515,7 +515,7 @@ func ExpandNotifSettings(
 
 	maps := tfSet.List()
 
-	// Empty map
+	// Empty map.
 	if len(maps) == 0 {
 		return make([]*models.EmailNotification, 0), nil
 	}
@@ -578,7 +578,7 @@ func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 		return nil, fmt.Errorf("error expanding orgnization detail: %w", err)
 	}
 
-	// Empty map
+	// Empty map.
 	if len(curr) == 0 {
 		return nil, nil
 	}
@@ -771,36 +771,36 @@ func flattenAdditionalContacts(
 // TF state file. This is an intermediate model before being translated to API
 // models.
 type CertificateState struct {
-	// Certificate ID
+	// Certificate ID.
 	CertificateID int64
 
-	// auto renew
+	// auto renew.
 	AutoRenew bool
 
-	// certificate authority
+	// certificate authority.
 	CertificateAuthority string
 
-	// certificate label
+	// certificate label.
 	CertificateLabel string
 
 	// dcv method.
-	// Enum: [Email DnsCnameToken DnsTxtToken]
+	// Enum: [Email DnsCnameToken DnsTxtToken].
 	DcvMethod string
 
-	// description
+	// description.
 	Description string
 
-	// domains
+	// domains.
 	Domains []*models.DomainCreateUpdate
 
-	// organization
+	// organization.
 	Organization *models.OrganizationDetail
 
 	// validation type
-	// Enum: [None DV OV EV]
+	// Enum: [None DV OV EV].
 	ValidationType string
 
-	// notification settings
+	// notification settings.
 	NotificationSettings []*models.EmailNotification
 }
 
@@ -921,7 +921,7 @@ func (u CertUpdater) updateNotificationSettings() error {
 }
 
 func (u CertUpdater) updateDCVMethod() error {
-	// not yet implemeted
+	// not yet implemeted.
 	if !u.UpdateDCVMethod {
 		log.Printf("[INFO] Skipped updating DCV method")
 		return nil
@@ -931,7 +931,7 @@ func (u CertUpdater) updateDCVMethod() error {
 }
 
 func (u CertUpdater) updateOrganization() error {
-	// not yet implemeted
+	// not yet implemeted.
 	if !u.UpdateOrganization {
 		log.Printf("[INFO] Skipped updating organization")
 		return nil
