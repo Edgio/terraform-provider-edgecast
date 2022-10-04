@@ -402,11 +402,10 @@ func ResourceCertificateDelete(
 		return diag.FromErr(err)
 	}
 
-	//Get certificate status
+	// Get certificate status
 	statusParams := certificate.NewCertificateGetCertificateStatusParams()
 	statusParams.ID = certID
-	statusResp, err :=
-		cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
+	statusResp, err := cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -414,7 +413,7 @@ func ResourceCertificateDelete(
 	if statusResp.Status == "Processing" &&
 		statusResp.OrderValidation == nil {
 
-		//Certificate has not been placed yet.
+		// Certificate has not been placed yet.
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
 		cancelParams.Apply = true
@@ -430,7 +429,7 @@ func ResourceCertificateDelete(
 		(statusResp.OrderValidation != nil &&
 			statusResp.OrderValidation.Status == "Pending") {
 
-		//Certificate has been placed, but not issued yet.
+		// Certificate has been placed, but not issued yet.
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
 		cancelParams.Apply = true
@@ -443,7 +442,7 @@ func ResourceCertificateDelete(
 
 	} else {
 
-		//certificate has been issued.
+		// certificate has been issued.
 		deleteParams := certificate.NewCertificateDeleteParams()
 		deleteParams.ID = certID
 		_, err := cpsService.Certificate.CertificateDelete(deleteParams)
@@ -913,30 +912,29 @@ func (u CertUpdater) updateBasicSettings() error {
 }
 
 func (u CertUpdater) updateNotificationSettings() error {
-	if u.UpdateNotificationSettings {
-		// not yet implemeted
-	} else {
+	if !u.UpdateNotificationSettings {
 		log.Printf("[INFO] Skipped updating notification settings")
+		return nil
 	}
 
 	return nil
 }
 
 func (u CertUpdater) updateDCVMethod() error {
-	if u.UpdateNotificationSettings {
-		// not yet implemeted
-	} else {
+	// not yet implemeted
+	if !u.UpdateDCVMethod {
 		log.Printf("[INFO] Skipped updating DCV method")
+		return nil
 	}
 
 	return nil
 }
 
 func (u CertUpdater) updateOrganization() error {
-	if u.UpdateNotificationSettings {
-		// not yet implemeted
-	} else {
+	// not yet implemeted
+	if !u.UpdateOrganization {
 		log.Printf("[INFO] Skipped updating organization")
+		return nil
 	}
 
 	return nil
