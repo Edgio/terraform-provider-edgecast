@@ -183,22 +183,6 @@ func TestExpandCertificate(t *testing.T) {
 			expectedPtr: nil,
 			expectErrs:  true,
 		},
-		{
-			// There is only one error path that is testable, the others
-			// are not possible when using Terraform's schema.ResourceData
-			// struct. Instead of allowing incorrect data types for a property,
-			// a default instance of the property is used instead.
-			// The one exception seems to be the TypeList schema, thus we
-			// are only testing the domain property.
-			name:       "Error path - err checks",
-			expectErrs: true,
-			errCount:   1,
-			input: map[string]any{
-				"domain": []any{
-					"not a map[string]interface{}",
-				},
-			},
-		},
 	}
 
 	for _, tt := range tests {
@@ -216,15 +200,15 @@ func TestExpandCertificate(t *testing.T) {
 
 			actualPtr, errs := cps.ExpandCertificate(rd)
 
-			if !tt.expectErrs && len(errs) > 0 {
+			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
 			}
 
-			if tt.expectErrs && len(errs) != tt.errCount {
+			if tt.expectErrs && (len(errs) != tt.errCount) {
 				t.Fatalf("expected %d errors but got %d", tt.errCount, len(errs))
 			}
 
-			if tt.expectErrs && len(errs) > 0 {
+			if tt.expectErrs && (len(errs) > 0) {
 				return // successful test for error case
 			}
 
