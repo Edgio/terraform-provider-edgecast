@@ -43,7 +43,7 @@ func ResourceCertificateCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
+	// Initialize CPS Service.
 	config, ok := m.(**api.ClientConfig)
 	if !ok {
 		return helper.CreationErrorf(d, "failed to load configuration")
@@ -260,10 +260,35 @@ func setCertificateState(
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 ) error {
+	// Modifiable properties.
+	d.Set("certificate_authority", resp.CertificateAuthority)
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
 	d.Set("dcv_method", resp.DcvMethod)
 	d.Set("validation_type", resp.ValidationType)
+	d.Set("auto_renew", resp.AutoRenew)
+
+	flattendDomains := FlattenDomains(resp.Domains)
+	d.Set("domain", flattendDomains)
+
+	flattendOrganization := FlattenOrganization(resp.Organization)
+	d.Set("organization", flattendOrganization)
+
+	if nresp != nil {
+		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
+		d.Set("notification_setting", flattenedNotifSettings)
+	}
+
+	// Computed/Read-Only properties.
+	if resp.CreatedBy != nil {
+		flattenedCreatedBy := FlattenActor(resp.CreatedBy)
+		d.Set("created_by", flattenedCreatedBy)
+	}
+
+	if resp.ModifiedBy != nil {
+		flattenedModifiedBy := FlattenActor(resp.ModifiedBy)
+		d.Set("modified_by", flattenedModifiedBy)
+	}
 
 	tLastModified, err := time.Parse(datetimeFormat, resp.LastModified.String())
 	if err != nil {
@@ -288,33 +313,10 @@ func setCertificateState(
 
 	d.Set("request_type", resp.RequestType)
 	d.Set("thumbprint", resp.Thumbprint)
-
 	d.Set("workflow_error_message", resp.WorkflowErrorMessage)
-	d.Set("auto_renew", resp.AutoRenew)
 
 	flattenedDeployments := FlattenDeployments(resp.Deployments)
 	d.Set("deployments", flattenedDeployments)
-
-	flattendDomains := FlattenDomains(resp.Domains)
-	d.Set("domain", flattendDomains)
-
-	flattendOrganization := FlattenOrganization(resp.Organization)
-	d.Set("organization", flattendOrganization)
-
-	if resp.CreatedBy != nil {
-		flattenedCreatedBy := FlattenActor(resp.CreatedBy)
-		d.Set("created_by", flattenedCreatedBy)
-	}
-
-	if resp.ModifiedBy != nil {
-		flattenedModifiedBy := FlattenActor(resp.ModifiedBy)
-		d.Set("modified_by", flattenedModifiedBy)
-	}
-
-	if nresp != nil {
-		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
-		d.Set("notification_setting", flattenedNotifSettings)
-	}
 
 	return nil
 }
@@ -346,7 +348,7 @@ func ResourceCertificateUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Initialize CPS Service
+	// Initialize CPS Service.
 	config, ok := m.(**api.ClientConfig)
 	if !ok {
 		return helper.CreationErrorf(d, "failed to load configuration")
@@ -402,11 +404,10 @@ func ResourceCertificateDelete(
 		return diag.FromErr(err)
 	}
 
-	//Get certificate status
+	// Get certificate status.
 	statusParams := certificate.NewCertificateGetCertificateStatusParams()
 	statusParams.ID = certID
-	statusResp, err :=
-		cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
+	statusResp, err := cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -414,7 +415,7 @@ func ResourceCertificateDelete(
 	if statusResp.Status == "Processing" &&
 		statusResp.OrderValidation == nil {
 
-		//Certificate has not been placed yet.
+		// Certificate has not been placed yet.
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
 		cancelParams.Apply = true
@@ -430,7 +431,7 @@ func ResourceCertificateDelete(
 		(statusResp.OrderValidation != nil &&
 			statusResp.OrderValidation.Status == "Pending") {
 
-		//Certificate has been placed, but not issued yet.
+		// Certificate has been placed, but not issued yet.
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
 		cancelParams.Apply = true
@@ -443,7 +444,7 @@ func ResourceCertificateDelete(
 
 	} else {
 
-		//certificate has been issued.
+		// certificate has been issued.
 		deleteParams := certificate.NewCertificateDeleteParams()
 		deleteParams.ID = certID
 		_, err := cpsService.Certificate.CertificateDelete(deleteParams)
@@ -516,7 +517,7 @@ func ExpandNotifSettings(
 
 	maps := tfSet.List()
 
-	// Empty map
+	// Empty map.
 	if len(maps) == 0 {
 		return make([]*models.EmailNotification, 0), nil
 	}
@@ -579,7 +580,7 @@ func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 		return nil, fmt.Errorf("error expanding orgnization detail: %w", err)
 	}
 
-	// Empty map
+	// Empty map.
 	if len(curr) == 0 {
 		return nil, nil
 	}
@@ -772,36 +773,36 @@ func flattenAdditionalContacts(
 // TF state file. This is an intermediate model before being translated to API
 // models.
 type CertificateState struct {
-	// Certificate ID
+	// Certificate ID.
 	CertificateID int64
 
-	// auto renew
+	// auto renew.
 	AutoRenew bool
 
-	// certificate authority
+	// certificate authority.
 	CertificateAuthority string
 
-	// certificate label
+	// certificate label.
 	CertificateLabel string
 
 	// dcv method.
-	// Enum: [Email DnsCnameToken DnsTxtToken]
+	// Enum: [Email DnsCnameToken DnsTxtToken].
 	DcvMethod string
 
-	// description
+	// description.
 	Description string
 
-	// domains
+	// domains.
 	Domains []*models.DomainCreateUpdate
 
-	// organization
+	// organization.
 	Organization *models.OrganizationDetail
 
 	// validation type
-	// Enum: [None DV OV EV]
+	// Enum: [None DV OV EV].
 	ValidationType string
 
-	// notification settings
+	// notification settings.
 	NotificationSettings []*models.EmailNotification
 }
 
@@ -823,8 +824,8 @@ func GetUpdater(
 
 	if strings.EqualFold(resp.Status, "Processing") {
 		return &CertUpdater{
-			svc:                        svc,
-			state:                      state,
+			Svc:                        svc,
+			State:                      state,
 			UpdateDomains:              false,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
@@ -835,8 +836,8 @@ func GetUpdater(
 	if strings.EqualFold(resp.Status, "DomainControlValidation") ||
 		strings.EqualFold(resp.Status, "OtherValidation") {
 		return &CertUpdater{
-			svc:                        svc,
-			state:                      state,
+			Svc:                        svc,
+			State:                      state,
 			UpdateDomains:              false,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
@@ -847,8 +848,8 @@ func GetUpdater(
 	if strings.EqualFold(resp.Status, "Deployment") ||
 		strings.EqualFold(resp.Status, "Active") {
 		return &CertUpdater{
-			svc:                        svc,
-			state:                      state,
+			Svc:                        svc,
+			State:                      state,
 			UpdateDomains:              true,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
@@ -860,8 +861,8 @@ func GetUpdater(
 }
 
 type CertUpdater struct {
-	svc                        cps.CpsService
-	state                      CertificateState
+	Svc                        cps.CpsService
+	State                      CertificateState
 	UpdateDomains              bool
 	UpdateNotificationSettings bool
 	UpdateDCVMethod            bool
@@ -890,19 +891,19 @@ func (u CertUpdater) Update() error {
 
 func (u CertUpdater) updateBasicSettings() error {
 	params := certificate.NewCertificatePatchParams()
-	params.ID = u.state.CertificateID
+	params.ID = u.State.CertificateID
 	params.CertificateRequest = &models.CertificateUpdate{
-		AutoRenew:        u.state.AutoRenew,
-		CertificateLabel: u.state.CertificateLabel,
-		Description:      u.state.Description,
-		DcvMethod:        u.state.DcvMethod,
+		AutoRenew:        u.State.AutoRenew,
+		CertificateLabel: u.State.CertificateLabel,
+		Description:      u.State.Description,
+		DcvMethod:        u.State.DcvMethod,
 	}
 
 	if u.UpdateDomains {
-		params.CertificateRequest.Domains = u.state.Domains
+		params.CertificateRequest.Domains = u.State.Domains
 	}
 
-	resp, err := u.svc.Certificate.CertificatePatch(params)
+	resp, err := u.Svc.Certificate.CertificatePatch(params)
 	if err != nil {
 		return fmt.Errorf("failed to update certificate: %w", err)
 	}
@@ -913,30 +914,40 @@ func (u CertUpdater) updateBasicSettings() error {
 }
 
 func (u CertUpdater) updateNotificationSettings() error {
-	if u.UpdateNotificationSettings {
-		// not yet implemeted
-	} else {
+	if !u.UpdateNotificationSettings {
 		log.Printf("[INFO] Skipped updating notification settings")
+		return nil
 	}
+
+	params := certificate.NewCertificateUpdateRequestNotificationsParams()
+	params.ID = u.State.CertificateID
+	params.Notifications = u.State.NotificationSettings
+
+	resp, err := u.Svc.Certificate.CertificateUpdateRequestNotifications(params)
+	if err != nil {
+		return fmt.Errorf("failed to update notif settings: %w", err)
+	}
+
+	log.Printf("[INFO] notif settings updated: %# v\n", pretty.Formatter(resp))
 
 	return nil
 }
 
 func (u CertUpdater) updateDCVMethod() error {
-	if u.UpdateNotificationSettings {
-		// not yet implemeted
-	} else {
+	// not yet implemeted.
+	if !u.UpdateDCVMethod {
 		log.Printf("[INFO] Skipped updating DCV method")
+		return nil
 	}
 
 	return nil
 }
 
 func (u CertUpdater) updateOrganization() error {
-	if u.UpdateNotificationSettings {
-		// not yet implemeted
-	} else {
+	// not yet implemeted.
+	if !u.UpdateOrganization {
 		log.Printf("[INFO] Skipped updating organization")
+		return nil
 	}
 
 	return nil
