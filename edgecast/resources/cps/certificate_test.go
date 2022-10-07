@@ -1062,6 +1062,101 @@ func TestFlattenOrganization(t *testing.T) {
 	}
 }
 
+func TestFlattenRequestStatus(t *testing.T) {
+	cases := []struct {
+		name          string
+		input         *models.CertificateStatus
+		expected      []map[string]interface{}
+		expectSuccess bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			input: &models.CertificateStatus{
+				Step:              0,
+				Status:            "Step 0",
+				RequiresAttention: false,
+				ErrorMessage:      "Error Message",
+				OrderValidation: &models.OrderValidation{
+					Status: "Active",
+					OrganizationValidation: &models.OrganizationValidation{
+						ValidationType: "Validation Type 1",
+						Status:         "Active",
+					},
+					DomainValidations: []*models.DomainValidation{
+						{
+							Status: "Active",
+							DomainNames: []string{
+								"domain1",
+								"domain2",
+							},
+						},
+						{
+							Status: "Active",
+							DomainNames: []string{
+								"domain3",
+								"domain4",
+							},
+						},
+					},
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"step":               int32(0),
+					"status":             "Step 0",
+					"requires_attention": false,
+					"error_message":      "Error Message",
+					"order_validation": []map[string]interface{}{
+						{
+							"status": "Active",
+
+							"organization_validation": []map[string]interface{}{
+								{
+									"validation_type": "Validation Type 1",
+									"status":          "Active",
+								},
+							},
+							"domain_validation": []map[string]interface{}{
+								{
+									"status":       "Active",
+									"domain_names": []string{"domain1", "domain2"},
+								},
+								{
+									"status":       "Active",
+									"domain_names": []string{"domain3", "domain4"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			input:         nil,
+			expected:      make([]map[string]interface{}, 0),
+			expectSuccess: false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := cps.FlattenRequestStatus(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
 type updaterFlags struct {
 	UpdateDomains              bool
 	UpdateNotificationSettings bool

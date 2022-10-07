@@ -234,6 +234,18 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
 
+	statusparams := certificate.NewCertificateGetCertificateStatusParams()
+	statusparams.ID = certID
+
+	statusresp, err := svc.Certificate.CertificateGetCertificateStatus(statusparams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf(
+		"[INFO] Retrieved certificate request status: %# v\n",
+		pretty.Formatter(statusresp))
+
 	nparams := certificate.NewCertificateGetRequestNotificationsParams()
 	nparams.ID = certID
 
@@ -247,7 +259,7 @@ func ResourceCertificateRead(ctx context.Context,
 		pretty.Formatter(resp))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp)
+	err = setCertificateState(d, resp, nresp, statusresp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -259,6 +271,7 @@ func setCertificateState(
 	d *schema.ResourceData,
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
+	sresp *certificate.CertificateGetCertificateStatusOK,
 ) error {
 	d.Set("certificate_label", resp.CertificateLabel)
 	d.Set("description", resp.Description)
@@ -314,6 +327,11 @@ func setCertificateState(
 	if nresp != nil {
 		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
 		d.Set("notification_setting", flattenedNotifSettings)
+	}
+
+	if sresp != nil {
+		flattenedRequestStatus := FlattenRequestStatus(&sresp.CertificateStatus)
+		d.Set("validation_status", flattenedRequestStatus)
 	}
 
 	return nil
@@ -761,6 +779,87 @@ func flattenAdditionalContacts(
 		m["last_name"] = v.LastName
 		m["phone"] = v.Phone
 		m["title"] = v.Title
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+func FlattenRequestStatus(
+	reqStatus *models.CertificateStatus,
+) []map[string]interface{} {
+	if reqStatus == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["step"] = reqStatus.Step
+	m["status"] = reqStatus.Status
+	m["requires_attention"] = reqStatus.RequiresAttention
+	m["error_message"] = reqStatus.ErrorMessage
+
+	if reqStatus.OrderValidation != nil {
+		m["order_validation"] = flattenOrderValidation(reqStatus.OrderValidation)
+	}
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenOrderValidation(
+	orderValidation *models.OrderValidation,
+) []map[string]interface{} {
+	if orderValidation == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["status"] = orderValidation.Status
+
+	if orderValidation.OrganizationValidation != nil {
+		m["organization_validation"] = flattenOrgValidation(orderValidation.OrganizationValidation)
+	}
+
+	if orderValidation.DomainValidations != nil {
+		m["domain_validation"] = flattenDomainValidation(orderValidation.DomainValidations)
+	}
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenOrgValidation(
+	orgValidation *models.OrganizationValidation,
+) []map[string]interface{} {
+	if orgValidation == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["status"] = orgValidation.Status
+	m["validation_type"] = orgValidation.ValidationType
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenDomainValidation(
+	domainValidation []*models.DomainValidation,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range domainValidation {
+		m := make(map[string]interface{})
+
+		m["status"] = v.Status
+		m["domain_names"] = v.DomainNames
 
 		flattened = append(flattened, m)
 	}
