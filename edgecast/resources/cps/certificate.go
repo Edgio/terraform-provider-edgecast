@@ -237,7 +237,8 @@ func ResourceCertificateRead(ctx context.Context,
 	statusparams := certificate.NewCertificateGetCertificateStatusParams()
 	statusparams.ID = certID
 
-	statusresp, err := svc.Certificate.CertificateGetCertificateStatus(statusparams)
+	statusresp, err :=
+		svc.Certificate.CertificateGetCertificateStatus(statusparams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -623,7 +624,8 @@ func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	}
 
 	if curr["additional_contact"] != nil {
-		additionalContacts, err := ExpandAdditionalContacts(curr["additional_contact"])
+		additionalContacts, err :=
+			ExpandAdditionalContacts(curr["additional_contact"])
 		if err != nil {
 			return nil, err
 		}
@@ -757,7 +759,8 @@ func FlattenOrganization(
 	m["state"] = organization.State
 	m["zip_code"] = organization.ZipCode
 	if organization.AdditionalContacts != nil {
-		m["additional_contact"] = flattenAdditionalContacts(organization.AdditionalContacts)
+		m["additional_contact"] =
+			flattenAdditionalContacts(organization.AdditionalContacts)
 	}
 
 	flattened = append(flattened, m)
@@ -822,18 +825,20 @@ func flattenOrderValidation(
 	m["status"] = orderValidation.Status
 
 	if orderValidation.OrganizationValidation != nil {
-		m["organization_validation"] = flattenOrgValidation(orderValidation.OrganizationValidation)
+		m["organization_validation"] =
+			flattenOrganizationValidation(orderValidation.OrganizationValidation)
 	}
 
 	if orderValidation.DomainValidations != nil {
-		m["domain_validation"] = flattenDomainValidation(orderValidation.DomainValidations)
+		m["domain_validation"] =
+			flattenDomainValidation(orderValidation.DomainValidations)
 	}
 
 	flattened = append(flattened, m)
 	return flattened
 }
 
-func flattenOrgValidation(
+func flattenOrganizationValidation(
 	orgValidation *models.OrganizationValidation,
 ) []map[string]interface{} {
 	if orgValidation == nil {
