@@ -1,31 +1,41 @@
-package helper
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// See LICENSE file in project root for terms.
+
+package helper_test
 
 import (
 	"context"
+	"strings"
+	"testing"
+
+	"terraform-provider-edgecast/edgecast/helper"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/stretchr/testify/assert"
-	"strings"
-	"testing"
 )
 
 func readSchema(_ context.Context, d *schema.ResourceData, _ interface{}) diag.Diagnostics {
 	return nil
 }
+
 func createResourceData(t *testing.T, keys ...string) (*schema.ResourceImporter, *schema.ResourceData) {
-	i := Import(readSchema, keys...)
+	i := helper.Import(readSchema, keys...)
 	s := make(map[string]*schema.Schema)
 
 	for _, key := range keys {
 		if strings.EqualFold(key, "id") {
 			continue
 		}
+
 		s[key] = &schema.Schema{
 			Type:     schema.TypeString,
 			Required: true,
 		}
 	}
+
 	rd := schema.TestResourceDataRaw(t, s, map[string]interface{}{})
+
 	return i, rd
 }
 
@@ -55,7 +65,6 @@ func TestImporter_OptionalKeys(t *testing.T) {
 	expect.Equal("123", rd.Get("account_number"))
 	expect.Equal("", rd.Get("portal_type_id"))
 	expect.Equal("", rd.Get("customer_user_id"))
-
 }
 
 func TestImporter_AccountNumberWithID_MediaType(t *testing.T) {

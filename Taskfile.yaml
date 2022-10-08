@@ -22,8 +22,8 @@ includes:
 
 
 tasks:
-  generate:
-    desc: generates all necessary code and documentation
+  docs:
+    desc: generates documentation markdown
     cmds:
       - go generate
 
@@ -48,6 +48,12 @@ tasks:
     desc: runs go test against go files
     cmds:
       - go test -v -cover ./...
+
+  test-cover:
+    desc: 'runs tests and shows coverage report'
+    cmds:
+      - go test -v -race -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out
 
   default:
     cmds:

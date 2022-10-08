@@ -188,7 +188,6 @@ about how to get involved. We welcome issues, questions, and pull requests.
 - Steven Paz: steven.paz@edgecast.com
 - Shikha Saluja: shikha.saluja@edgecast.com
 - Frank Contreras: frank.contreras@edgecast.com
-- Hector Gray: hector.gray@edgecast.com
 
 ## License
 This project is licensed under the terms of the [Apache 2.0](LICENSE) open 

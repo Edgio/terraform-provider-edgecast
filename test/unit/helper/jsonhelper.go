@@ -5,7 +5,7 @@ package helper
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"os"
 	"terraform-provider-edgecast/test/unit/model"
 )
 
@@ -24,8 +24,7 @@ type User struct {
 }
 
 func ReadCredentialJsonfile(path string, credential *model.Credentials) error {
-
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return err
 	}

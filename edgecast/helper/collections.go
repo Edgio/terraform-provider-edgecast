@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-// IsInterfaceArray deterimins if an interface{} is actually an []interface{}
+// IsInterfaceArray deterimins if an interface{} is actually an []interface{}.
 func IsInterfaceArray(input interface{}) bool {
 	switch input.(type) {
 	case []interface{}:
@@ -22,7 +22,9 @@ func ConvertSliceToStrings(v []interface{}) ([]string, error) {
 	if v == nil {
 		return nil, nil
 	}
+
 	strings := make([]string, len(v))
+
 	for i, val := range v {
 		if s, ok := val.(string); ok {
 			strings[i] = s
@@ -33,4 +35,30 @@ func ConvertSliceToStrings(v []interface{}) ([]string, error) {
 	}
 
 	return strings, nil
+}
+
+// GetStringFromMap returns a string value from the provided map using the
+// provided key. If the item is not in the map or it is not a string, this
+// function will return an empty string and a false 'ok' value.
+func GetStringFromMap(m map[string]any, key string) (string, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return "", false
+	}
+
+	val, ok := raw.(string)
+	return val, ok
+}
+
+// GetBoolFromMap returns a bool value from the provided map using the
+// provided key. If the item is not in the map or it is not a bool, this
+// function will return a false 'ok' value.
+func GetBoolFromMap(m map[string]any, key string) (bool, bool) {
+	raw, ok := m[key]
+	if !ok {
+		return false, false
+	}
+
+	val, ok := raw.(bool)
+	return val, ok
 }
