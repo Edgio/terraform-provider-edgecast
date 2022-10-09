@@ -5,6 +5,7 @@ package cps_test
 
 import (
 	"errors"
+	"log"
 	"reflect"
 	"sort"
 	"testing"
@@ -1292,58 +1293,183 @@ func TestGetUpdater(t *testing.T) {
 	}
 }
 
+func TestUpdaterUpdate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		args updaterFlags
+	}{
+		{
+			name: "Status Processing",
+			args: updaterFlags{
+				UpdateDomains:              false,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name: "Status DomainControlValidation",
+			args: updaterFlags{
+				UpdateDomains:              false,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         false,
+			},
+		},
+		{
+			name: "Status OtherValidation",
+			args: updaterFlags{
+				UpdateDomains:              false,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         false,
+			},
+		},
+		{
+			name: "Status Deployment",
+			args: updaterFlags{
+				UpdateDomains:              true,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name: "Status Active",
+			args: updaterFlags{
+				UpdateDomains:              true,
+				UpdateNotificationSettings: true,
+				UpdateDCVMethod:            true,
+				UpdateOrganization:         true,
+			},
+		},
+		{
+			name: "Null path no flags",
+			args: updaterFlags{},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mockFunc := NewMockUpdateNotificationsFunc()
+
+			mockSvc := sdkcps.CpsService{
+				Certificate: mockCertificateService{
+					funcCertificateUpdateRequestNotifications: mockFunc,
+				},
+			}
+
+			updater := cps.CertUpdater{
+				Svc: mockSvc,
+				State: cps.CertificateState{
+					CertificateID: 1,
+					NotificationSettings: []*models.EmailNotification{
+						{
+							Enabled:          true,
+							NotificationType: "CertificateRenewal",
+							Emails:           []string{"admin@mysite.com"},
+						},
+					},
+				},
+				UpdateDomains:              tt.args.UpdateDomains,
+				UpdateNotificationSettings: tt.args.UpdateNotificationSettings,
+				UpdateDCVMethod:            tt.args.UpdateDCVMethod,
+				UpdateOrganization:         tt.args.UpdateOrganization,
+			}
+
+			updater.Update()
+
+			// UpdateNotificationSettings set.
+			if tt.args.UpdateNotificationSettings &&
+				len(mockFunc.ParamsPassed) == 0 {
+				t.Fatal("expected UpdateNotificationSettings to be called, but no call recorded")
+			}
+
+			// No flags set.
+			if !tt.args.UpdateNotificationSettings &&
+				!tt.args.UpdateDCVMethod &&
+				!tt.args.UpdateDomains &&
+				!tt.args.UpdateOrganization &&
+				len(mockFunc.ParamsPassed) > 0 {
+				t.Fatalf("expected no update actions, but found %d calls", len(mockFunc.ParamsPassed))
+			}
+		})
+	}
+}
+
 type mockCertificateService struct {
-	funcCertificateGetCertificateStatus func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
+	funcCertificateGetCertificateStatus       func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
+	funcCertificateUpdateRequestNotifications *MockUpdateNotificationsFunc
 }
 
 func (svc mockCertificateService) CertificateCancel(params certificate.CertificateCancelParams) (*certificate.CertificateCancelNoContent, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificateDelete(params certificate.CertificateDeleteParams) (*certificate.CertificateDeleteNoContent, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificateFind(params certificate.CertificateFindParams) (*certificate.CertificateFindOK, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificateGet(params certificate.CertificateGetParams) (*certificate.CertificateGetOK, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificateGetCertificateStatus(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error) {
 	if svc.funcCertificateGetCertificateStatus != nil {
 		return svc.funcCertificateGetCertificateStatus(params)
 	}
+
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificateGetRequestNotifications(params certificate.CertificateGetRequestNotificationsParams) (*certificate.CertificateGetRequestNotificationsOK, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificatePatch(params certificate.CertificatePatchParams) (*certificate.CertificatePatchOK, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificatePost(params certificate.CertificatePostParams) (*certificate.CertificatePostCreated, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificatePutOrganizationDetails(params certificate.CertificatePutOrganizationDetailsParams) (*certificate.CertificatePutOrganizationDetailsOK, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificatePutRenewal(params certificate.CertificatePutRenewalParams) (*certificate.CertificatePutRenewalNoContent, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificatePutRetrigger(params certificate.CertificatePutRetriggerParams) (*certificate.CertificatePutRetriggerNoContent, error) {
 	// default implementation
 	return nil, nil
 }
+
 func (svc mockCertificateService) CertificateUpdateRequestNotifications(params certificate.CertificateUpdateRequestNotificationsParams) (*certificate.CertificateUpdateRequestNotificationsOK, error) {
+	if svc.funcCertificateUpdateRequestNotifications != nil {
+		return svc.funcCertificateUpdateRequestNotifications.Func(params)
+	}
 	// default implementation
 	return nil, nil
 }
@@ -1354,4 +1480,34 @@ func mockStatusFunc(status string) func(params certificate.CertificateGetCertifi
 			CertificateStatus: models.CertificateStatus{Status: status},
 		}, nil
 	}
+}
+
+type MockUpdateNotificationsFunc struct {
+	ParamsPassed []certificate.CertificateUpdateRequestNotificationsParams
+	Func         func(
+		params certificate.CertificateUpdateRequestNotificationsParams,
+	) (*certificate.CertificateUpdateRequestNotificationsOK, error)
+}
+
+func NewMockUpdateNotificationsFunc() *MockUpdateNotificationsFunc {
+	mf := &MockUpdateNotificationsFunc{
+		ParamsPassed: make([]certificate.CertificateUpdateRequestNotificationsParams, 0),
+	}
+
+	mf.Func = func(
+		params certificate.CertificateUpdateRequestNotificationsParams,
+	) (*certificate.CertificateUpdateRequestNotificationsOK, error) {
+		log.Printf("MockUpdateNotificationsFunc called with %v", params)
+		mf.ParamsPassed = append(mf.ParamsPassed, params)
+		log.Printf("MockUpdateNotificationsFunc calls: %d", len(mf.ParamsPassed))
+
+		return &certificate.CertificateUpdateRequestNotificationsOK{
+			HyperionCollectionEmailNotification: models.HyperionCollectionEmailNotification{
+				Items:      params.Notifications,
+				TotalItems: int32(len(params.Notifications)),
+			},
+		}, nil
+	}
+
+	return mf
 }
