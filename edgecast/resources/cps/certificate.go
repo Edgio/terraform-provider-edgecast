@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -196,8 +197,6 @@ func ExpandCertificate(
 			errs = append(errs, nserrs...)
 		}
 	}
-
-	log.Printf("cert state: %# v\n", pretty.Formatter(certState))
 
 	return certState, errs
 }
@@ -594,10 +593,20 @@ func ExpandNotifSettings(
 // ExpandOrganization converts the Terraform representation of organization
 // into the Organization API Model.
 func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
-	curr, err := helper.ConvertSingletonSetToMap(attr)
-	if err != nil {
-		return nil, fmt.Errorf("error expanding orgnization detail: %w", err)
+	raw, ok := attr.([]any)
+	if !ok {
+		return nil, errors.New("attr was not a TypeList")
 	}
+
+	if len(raw) == 0 {
+		return nil, nil
+	}
+
+	if len(raw) > 1 {
+		return nil, errors.New("only one organization is allowed")
+	}
+
+	curr := raw[0].(map[string]any)
 
 	// Empty map.
 	if len(curr) == 0 {
@@ -741,6 +750,7 @@ func FlattenOrganization(
 	if organization == nil {
 		return make([]map[string]interface{}, 0)
 	}
+
 	flattened := make([]map[string]interface{}, 0)
 
 	m := make(map[string]interface{})
@@ -765,15 +775,22 @@ func FlattenOrganization(
 	}
 
 	flattened = append(flattened, m)
+
 	return flattened
 }
 
 func flattenAdditionalContacts(
-	additionalcontacts []*models.OrganizationContact,
+	contacts []*models.OrganizationContact,
 ) []map[string]interface{} {
+	// Order needs to be the same or a diff will be produced.
+	// So we'll sort by ID before flattening.
+	sort.SliceStable(contacts, func(i, j int) bool {
+		return contacts[i].ID < contacts[j].ID
+	})
+
 	flattened := make([]map[string]interface{}, 0)
 
-	for _, v := range additionalcontacts {
+	for _, v := range contacts {
 		m := make(map[string]interface{})
 
 		m["contact_type"] = v.ContactType
@@ -933,7 +950,7 @@ func GetUpdater(
 			UpdateDomains:              false,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
-			UpdateOrganization:         true,
+			UpdateOrganization:         false,
 		}, nil
 	}
 
@@ -1048,11 +1065,21 @@ func (u CertUpdater) updateDCVMethod() error {
 }
 
 func (u CertUpdater) updateOrganization() error {
-	// not yet implemeted.
 	if !u.UpdateOrganization {
 		log.Printf("[INFO] Skipped updating organization")
 		return nil
 	}
+
+	params := certificate.NewCertificatePutOrganizationDetailsParams()
+	params.ID = u.State.CertificateID
+	params.OrgDetails = u.State.Organization
+
+	resp, err := u.Svc.Certificate.CertificatePutOrganizationDetails(params)
+	if err != nil {
+		return fmt.Errorf("failed to update org details: %w", err)
+	}
+
+	log.Printf("[INFO] org details updated: %# v\n", pretty.Formatter(resp))
 
 	return nil
 }

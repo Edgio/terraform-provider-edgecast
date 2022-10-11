@@ -185,7 +185,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Description: "Contains the certificate's domain(s).",
 		},
 		"organization": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
 
@@ -217,6 +217,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 								},
 								"id": {
 									Type:        schema.TypeInt,
+									Computed:    true,
 									Optional:    true,
 									Description: "Reserved for future use.",
 								},

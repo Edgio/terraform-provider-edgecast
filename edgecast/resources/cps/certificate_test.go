@@ -256,14 +256,14 @@ func TestExpandCertificate(t *testing.T) {
 func TestExpandOrganization(t *testing.T) {
 	cases := []struct {
 		name          string
-		input         interface{}
+		input         any
 		expectedPtr   *models.OrganizationDetail
 		expectSuccess bool
 	}{
 		{
 			name: "Happy path",
-			input: helper.NewTerraformSet([]interface{}{
-				map[string]interface{}{
+			input: []any{
+				map[string]any{
 					"city":                "L.A.",
 					"company_address":     "111 fantastic way",
 					"company_address2":    "111 fantastic way",
@@ -277,8 +277,8 @@ func TestExpandOrganization(t *testing.T) {
 					"organizational_unit": "Dept1",
 					"state":               "CA",
 					"zip_code":            "90001",
-					"additional_contact": []interface{}{
-						map[string]interface{}{
+					"additional_contact": []any{
+						map[string]any{
 							"first_name":   "contact1",
 							"last_name":    "lastname",
 							"email":        "first.lastname@testuser.com",
@@ -286,7 +286,7 @@ func TestExpandOrganization(t *testing.T) {
 							"title":        "Manager",
 							"contact_type": "EvApprover",
 						},
-						map[string]interface{}{
+						map[string]any{
 							"first_name":   "contact2",
 							"last_name":    "lastname2",
 							"email":        "first.lastname2@testuser.com",
@@ -296,7 +296,7 @@ func TestExpandOrganization(t *testing.T) {
 						},
 					},
 				},
-			}),
+			},
 			expectedPtr: &models.OrganizationDetail{
 				City:               "L.A.",
 				CompanyAddress:     "111 fantastic way",
@@ -1182,7 +1182,7 @@ func TestGetUpdater(t *testing.T) {
 				UpdateDomains:              false,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
-				UpdateOrganization:         true,
+				UpdateOrganization:         false,
 			},
 		},
 		{
@@ -1356,25 +1356,22 @@ func TestUpdaterUpdate(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			mockFunc := NewMockUpdateNotificationsFunc()
+			mockNotifFunc := NewMockUpdateNotificationsFunc()
+			mockOrgFunc := NewMockUpdateOrgFunc()
 
 			mockSvc := sdkcps.CpsService{
 				Certificate: mockCertificateService{
-					funcCertificateUpdateRequestNotifications: mockFunc,
+					funcCertificateUpdateRequestNotifications: mockNotifFunc,
+					funcCertificatePutOrganizationDetails:     mockOrgFunc,
 				},
 			}
 
 			updater := cps.CertUpdater{
 				Svc: mockSvc,
 				State: cps.CertificateState{
-					CertificateID: 1,
-					NotificationSettings: []*models.EmailNotification{
-						{
-							Enabled:          true,
-							NotificationType: "CertificateRenewal",
-							Emails:           []string{"admin@mysite.com"},
-						},
-					},
+					CertificateID:        1,
+					NotificationSettings: make([]*models.EmailNotification, 0),
+					Organization:         &models.OrganizationDetail{},
 				},
 				UpdateDomains:              tt.args.UpdateDomains,
 				UpdateNotificationSettings: tt.args.UpdateNotificationSettings,
@@ -1384,19 +1381,24 @@ func TestUpdaterUpdate(t *testing.T) {
 
 			updater.Update()
 
-			// UpdateNotificationSettings set.
-			if tt.args.UpdateNotificationSettings &&
-				len(mockFunc.ParamsPassed) == 0 {
-				t.Fatal("expected UpdateNotificationSettings to be called, but no call recorded")
+			// If UpdateNotificationSettings, assert that call did occurred.
+			if tt.args.UpdateNotificationSettings && len(mockNotifFunc.ParamsPassed) == 0 {
+				t.Fatal("expected UpdateNotificationSettings to be called")
 			}
 
-			// No flags set.
-			if !tt.args.UpdateNotificationSettings &&
-				!tt.args.UpdateDCVMethod &&
-				!tt.args.UpdateDomains &&
-				!tt.args.UpdateOrganization &&
-				len(mockFunc.ParamsPassed) > 0 {
-				t.Fatalf("expected no update actions, but found %d calls", len(mockFunc.ParamsPassed))
+			// If !UpdateNotificationSettings, assert call did not occurr.
+			if !tt.args.UpdateNotificationSettings && len(mockNotifFunc.ParamsPassed) > 0 {
+				t.Fatal("expected no call to UpdateNotificationSettings")
+			}
+
+			// If UpdateOrganiztion, assert that call did occurred.
+			if tt.args.UpdateOrganization && len(mockOrgFunc.ParamsPassed) == 0 {
+				t.Fatal("expected UpdateOrganization to be called")
+			}
+
+			// If !UpdateOrganiztion, assert call did not occurr.
+			if !tt.args.UpdateOrganization && len(mockOrgFunc.ParamsPassed) > 0 {
+				t.Fatal("expected no call to UpdateOrganization")
 			}
 		})
 	}
@@ -1405,6 +1407,7 @@ func TestUpdaterUpdate(t *testing.T) {
 type mockCertificateService struct {
 	funcCertificateGetCertificateStatus       func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
 	funcCertificateUpdateRequestNotifications *MockUpdateNotificationsFunc
+	funcCertificatePutOrganizationDetails     *MockUpdateOrgFunc
 }
 
 func (svc mockCertificateService) CertificateCancel(params certificate.CertificateCancelParams) (*certificate.CertificateCancelNoContent, error) {
@@ -1452,8 +1455,38 @@ func (svc mockCertificateService) CertificatePost(params certificate.Certificate
 }
 
 func (svc mockCertificateService) CertificatePutOrganizationDetails(params certificate.CertificatePutOrganizationDetailsParams) (*certificate.CertificatePutOrganizationDetailsOK, error) {
+	if svc.funcCertificatePutOrganizationDetails != nil {
+		return svc.funcCertificatePutOrganizationDetails.Func(params)
+	}
 	// default implementation
 	return nil, nil
+}
+
+type MockUpdateOrgFunc struct {
+	ParamsPassed []certificate.CertificatePutOrganizationDetailsParams
+	Func         func(
+		params certificate.CertificatePutOrganizationDetailsParams,
+	) (*certificate.CertificatePutOrganizationDetailsOK, error)
+}
+
+func NewMockUpdateOrgFunc() *MockUpdateOrgFunc {
+	mf := &MockUpdateOrgFunc{
+		ParamsPassed: make([]certificate.CertificatePutOrganizationDetailsParams, 0),
+	}
+
+	mf.Func = func(
+		params certificate.CertificatePutOrganizationDetailsParams,
+	) (*certificate.CertificatePutOrganizationDetailsOK, error) {
+		log.Printf("MockUpdateOrgFunc called with %v", params)
+		mf.ParamsPassed = append(mf.ParamsPassed, params)
+		log.Printf("MockUpdateOrgFunc calls: %d", len(mf.ParamsPassed))
+
+		return &certificate.CertificatePutOrganizationDetailsOK{
+			OrganizationDetail: *params.OrgDetails,
+		}, nil
+	}
+
+	return mf
 }
 
 func (svc mockCertificateService) CertificatePutRenewal(params certificate.CertificatePutRenewalParams) (*certificate.CertificatePutRenewalNoContent, error) {
