@@ -332,9 +332,9 @@ func setCertificateState(
 	flattenedDeployments := FlattenDeployments(resp.Deployments)
 	d.Set("deployments", flattenedDeployments)
 
-	if nresp != nil {
-		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
-		d.Set("notification_setting", flattenedNotifSettings)
+	if sresp != nil {
+		flattenedRequestStatus := FlattenRequestStatus(&sresp.CertificateStatus)
+		d.Set("validation_status", flattenedRequestStatus)
 	}
 
 	return nil
