@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -197,8 +198,6 @@ func ExpandCertificate(
 		}
 	}
 
-	log.Printf("cert state: %# v\n", pretty.Formatter(certState))
-
 	return certState, errs
 }
 
@@ -234,6 +233,19 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
 
+	statusparams := certificate.NewCertificateGetCertificateStatusParams()
+	statusparams.ID = certID
+
+	statusresp, err :=
+		svc.Certificate.CertificateGetCertificateStatus(statusparams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf(
+		"[INFO] Retrieved certificate request status: %# v\n",
+		pretty.Formatter(statusresp))
+
 	nparams := certificate.NewCertificateGetRequestNotificationsParams()
 	nparams.ID = certID
 
@@ -247,7 +259,7 @@ func ResourceCertificateRead(ctx context.Context,
 		pretty.Formatter(resp))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp)
+	err = setCertificateState(d, resp, nresp, statusresp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -259,6 +271,7 @@ func setCertificateState(
 	d *schema.ResourceData,
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
+	sresp *certificate.CertificateGetCertificateStatusOK,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -317,6 +330,11 @@ func setCertificateState(
 
 	flattenedDeployments := FlattenDeployments(resp.Deployments)
 	d.Set("deployments", flattenedDeployments)
+
+	if sresp != nil {
+		flattenedRequestStatus := FlattenRequestStatus(&sresp.CertificateStatus)
+		d.Set("validation_status", flattenedRequestStatus)
+	}
 
 	return nil
 }
@@ -575,10 +593,20 @@ func ExpandNotifSettings(
 // ExpandOrganization converts the Terraform representation of organization
 // into the Organization API Model.
 func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
-	curr, err := helper.ConvertSingletonSetToMap(attr)
-	if err != nil {
-		return nil, fmt.Errorf("error expanding orgnization detail: %w", err)
+	raw, ok := attr.([]any)
+	if !ok {
+		return nil, errors.New("attr was not a TypeList")
 	}
+
+	if len(raw) == 0 {
+		return nil, nil
+	}
+
+	if len(raw) > 1 {
+		return nil, errors.New("only one organization is allowed")
+	}
+
+	curr := raw[0].(map[string]any)
 
 	// Empty map.
 	if len(curr) == 0 {
@@ -606,7 +634,8 @@ func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	}
 
 	if curr["additional_contact"] != nil {
-		additionalContacts, err := ExpandAdditionalContacts(curr["additional_contact"])
+		additionalContacts, err :=
+			ExpandAdditionalContacts(curr["additional_contact"])
 		if err != nil {
 			return nil, err
 		}
@@ -721,6 +750,7 @@ func FlattenOrganization(
 	if organization == nil {
 		return make([]map[string]interface{}, 0)
 	}
+
 	flattened := make([]map[string]interface{}, 0)
 
 	m := make(map[string]interface{})
@@ -740,19 +770,27 @@ func FlattenOrganization(
 	m["state"] = organization.State
 	m["zip_code"] = organization.ZipCode
 	if organization.AdditionalContacts != nil {
-		m["additional_contact"] = flattenAdditionalContacts(organization.AdditionalContacts)
+		m["additional_contact"] =
+			flattenAdditionalContacts(organization.AdditionalContacts)
 	}
 
 	flattened = append(flattened, m)
+
 	return flattened
 }
 
 func flattenAdditionalContacts(
-	additionalcontacts []*models.OrganizationContact,
+	contacts []*models.OrganizationContact,
 ) []map[string]interface{} {
+	// Order needs to be the same or a diff will be produced.
+	// So we'll sort by ID before flattening.
+	sort.SliceStable(contacts, func(i, j int) bool {
+		return contacts[i].ID < contacts[j].ID
+	})
+
 	flattened := make([]map[string]interface{}, 0)
 
-	for _, v := range additionalcontacts {
+	for _, v := range contacts {
 		m := make(map[string]interface{})
 
 		m["contact_type"] = v.ContactType
@@ -762,6 +800,89 @@ func flattenAdditionalContacts(
 		m["last_name"] = v.LastName
 		m["phone"] = v.Phone
 		m["title"] = v.Title
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
+
+func FlattenRequestStatus(
+	reqStatus *models.CertificateStatus,
+) []map[string]interface{} {
+	if reqStatus == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["step"] = reqStatus.Step
+	m["status"] = reqStatus.Status
+	m["requires_attention"] = reqStatus.RequiresAttention
+	m["error_message"] = reqStatus.ErrorMessage
+
+	if reqStatus.OrderValidation != nil {
+		m["order_validation"] = flattenOrderValidation(reqStatus.OrderValidation)
+	}
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenOrderValidation(
+	orderValidation *models.OrderValidation,
+) []map[string]interface{} {
+	if orderValidation == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["status"] = orderValidation.Status
+
+	if orderValidation.OrganizationValidation != nil {
+		m["organization_validation"] =
+			flattenOrganizationValidation(orderValidation.OrganizationValidation)
+	}
+
+	if orderValidation.DomainValidations != nil {
+		m["domain_validation"] =
+			flattenDomainValidation(orderValidation.DomainValidations)
+	}
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenOrganizationValidation(
+	orgValidation *models.OrganizationValidation,
+) []map[string]interface{} {
+	if orgValidation == nil {
+		return make([]map[string]interface{}, 0)
+	}
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["status"] = orgValidation.Status
+	m["validation_type"] = orgValidation.ValidationType
+
+	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenDomainValidation(
+	domainValidation []*models.DomainValidation,
+) []map[string]interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range domainValidation {
+		m := make(map[string]interface{})
+
+		m["status"] = v.Status
+		m["domain_names"] = v.DomainNames
 
 		flattened = append(flattened, m)
 	}
@@ -829,7 +950,7 @@ func GetUpdater(
 			UpdateDomains:              false,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
-			UpdateOrganization:         true,
+			UpdateOrganization:         false,
 		}, nil
 	}
 
@@ -944,11 +1065,21 @@ func (u CertUpdater) updateDCVMethod() error {
 }
 
 func (u CertUpdater) updateOrganization() error {
-	// not yet implemeted.
 	if !u.UpdateOrganization {
 		log.Printf("[INFO] Skipped updating organization")
 		return nil
 	}
+
+	params := certificate.NewCertificatePutOrganizationDetailsParams()
+	params.ID = u.State.CertificateID
+	params.OrgDetails = u.State.Organization
+
+	resp, err := u.Svc.Certificate.CertificatePutOrganizationDetails(params)
+	if err != nil {
+		return fmt.Errorf("failed to update org details: %w", err)
+	}
+
+	log.Printf("[INFO] org details updated: %# v\n", pretty.Formatter(resp))
 
 	return nil
 }

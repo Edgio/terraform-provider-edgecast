@@ -43,6 +43,101 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Required:    true,
 			Description: "Determines the certificate's level of validation.",
 		},
+		"validation_status": {
+			Type:     schema.TypeSet,
+			Computed: true,
+
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"step": {
+						Type:     schema.TypeInt,
+						Computed: true,
+						Description: "Indicates the order's current step in the certificate provisioning workflow.\n" +
+							"Example:\n" +
+							"This property returns 3 when a certificate order is currently in step 3. Domain Validation (DCV).",
+					},
+					"status": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "Indicates the status for this certificate request.",
+					},
+					"requires_attention": {
+						Type:        schema.TypeBool,
+						Computed:    true,
+						Description: "Indicates whether this certificate request requires your attention before it can proceed to the next step.",
+					},
+					"error_message": {
+						Type:        schema.TypeString,
+						Computed:    true,
+						Description: "Indicates the reason why an error occurred. Returns a null value if an error has not occurred.",
+					},
+					"order_validation": {
+						Type:     schema.TypeSet,
+						Computed: true,
+
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"status": {
+									Type:        schema.TypeString,
+									Computed:    true,
+									Description: "Indicates the status for this certificate order.",
+								},
+								"organization_validation": {
+									Type:     schema.TypeSet,
+									Computed: true,
+
+									Elem: &schema.Resource{
+										Schema: map[string]*schema.Schema{
+											"validation_type": {
+												Type:        schema.TypeString,
+												Computed:    true,
+												Description: "Indicates the validation level for the requested certificate.",
+											},
+											"status": {
+												Type:     schema.TypeString,
+												Computed: true,
+												Description: "Indicates the organization validation status for EV and OV certificates.\n" +
+													"Returns NA for DV certificates.",
+											},
+										},
+									},
+									Description: "Describes the requested certificate's validation level and its status.",
+								},
+								"domain_validation": {
+									Type:     schema.TypeList,
+									Computed: true,
+
+									Elem: &schema.Resource{
+										Schema: map[string]*schema.Schema{
+											"status": {
+												Type:        schema.TypeString,
+												Computed:    true,
+												Description: "Indicates the current domain control validation (DCV) status for the domain identified within the domain_names array.",
+											},
+											"domain_names": {
+												Type:        schema.TypeList,
+												Optional:    true,
+												Description: "Indicates the domain name.",
+												Elem: &schema.Schema{
+													Type: schema.TypeString,
+												},
+											},
+										},
+									},
+									Description: "describes each domain associated with this certificate request and its current domain control validation status",
+								},
+							},
+						},
+						Description: "Describes order status information for this certificate",
+					},
+				},
+			},
+			Description: "Retrieve status information for your certificate request. This includes:\n" +
+				"Certificate request status.\n" +
+				"Certificate order status.\n" +
+				"Organization validation status.\n" +
+				"Domain control validation (DCV) status.",
+		},
 		"domain": {
 			Type:     schema.TypeList,
 			Required: true,
@@ -90,7 +185,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Description: "Contains the certificate's domain(s).",
 		},
 		"organization": {
-			Type:     schema.TypeSet,
+			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
 
@@ -122,6 +217,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 								},
 								"id": {
 									Type:        schema.TypeInt,
+									Computed:    true,
 									Optional:    true,
 									Description: "Reserved for future use.",
 								},
@@ -383,7 +479,6 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			},
 			Description: "Returns a null value.",
 		},
-
 		"workflow_error_message": {
 			Type:        schema.TypeString,
 			Computed:    true,

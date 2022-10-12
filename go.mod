@@ -3,7 +3,7 @@
 
 module terraform-provider-edgecast
 
-go 1.19
+go 1.18
 
 require (
 	github.com/EdgeCast/ec-sdk-go v0.1.26
@@ -43,6 +43,7 @@ require (
 	github.com/go-openapi/loads v0.21.0 // indirect
 	github.com/go-openapi/runtime v0.21.0 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
+	github.com/go-openapi/strfmt v0.21.1 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-openapi/validate v0.20.3 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
