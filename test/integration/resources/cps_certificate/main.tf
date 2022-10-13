@@ -31,6 +31,7 @@ variable "account_number" {
 
 variable "mcc_account_email" {
   type = string
+  default = "" # This prevents being prompted during integration test run
 }
 
 ##########################################

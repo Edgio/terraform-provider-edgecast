@@ -161,7 +161,7 @@ tasks:
       - task: cps_certificate:default
         vars:
           RESOURCE_NAME: edgecast_cps_certificate
-          #IMPORT_ID: $CERTIFICATE_ID # TODO: Fix prompting for email address
+          IMPORT_ID: $CERTIFICATE_ID
 
   default:
     cmds:
