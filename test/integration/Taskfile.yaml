@@ -12,6 +12,7 @@ env:
 vars:
   CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
   ACCOUNT: -var "account_number=$ACCOUNT_NUMBER"
+  EMAIL: -var "mcc_account_email=$MCC_ACCOUNT_EMAIL"
 
 
 includes:
@@ -76,8 +77,12 @@ includes:
     dir: ./resources/waf_rate_rule
 
   waf_scopes:
-    dir: ./resources/waf_scopes
     taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_scopes
+
+  cps_certificate:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/cps_certificate
 
 
 tasks:
@@ -153,6 +158,10 @@ tasks:
         vars:
           RESOURCE_NAME: edgecast_rules_engine_policy
           IMPORT_ID: $ACCOUNT_NUMBER:$RULES_ENGINE_IMPORT_ID
+      - task: cps_certificate:default
+        vars:
+          RESOURCE_NAME: edgecast_cps_certificate
+          #IMPORT_ID: $CERTIFICATE_ID # TODO: Fix prompting for email address
 
   default:
     cmds:

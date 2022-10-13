@@ -6,6 +6,7 @@ You can specify the environment you wish to run the tests against by specifying 
 
 ```bash
   ACCOUNT_NUMBER      = ""
+  MCC_ACCOUNT_EMAIL   = ""
   
   API_ADDRESS         = ""
   API_ADDRESS_LEGACY  = ""
@@ -31,6 +32,7 @@ You can specify the environment you wish to run the tests against by specifying 
   WAF_MANAGED_RULE_IMPORT_ID          = ""
   WAF_RATE_RULE_IMPORT_ID             = ""
   WAF_SCOPES_IMPORT_ID                = ""
+  CERTIFICATE_ID                      = ""
 ```
 
 ## Usage
