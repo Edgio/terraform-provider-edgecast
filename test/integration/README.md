@@ -5,17 +5,17 @@ You can specify the environment you wish to run the tests against by specifying 
 
 
 ```bash
-  ACCOUNT_NUMBER      = ""
-  MCC_ACCOUNT_EMAIL   = ""
+  ACCOUNT_NUMBER             = ""
+  TF_VAR_mcc_account_email   = ""
   
-  API_ADDRESS         = ""
-  API_ADDRESS_LEGACY  = ""
-  API_TOKEN           = ""
+  API_ADDRESS                = ""
+  API_ADDRESS_LEGACY         = ""
+  API_TOKEN                  = ""
   
-  IDS_ADDRESS         = ""
-  IDS_CLIENT_ID       = ""
-  IDS_CLIENT_SECRET   = ""
-  IDS_SCOPE           = ""
+  IDS_ADDRESS                = ""
+  IDS_CLIENT_ID              = ""
+  IDS_CLIENT_SECRET          = ""
+  IDS_SCOPE                  = ""
   
   # SUPPLYING THESE VALUES ENABLE IMPORT TESTING ON THE RESOURCE
   CUSTOMER_USER_IMPORT_ID             = ""

@@ -1,5 +1,5 @@
 resource "edgecast_cps_certificate" "certificate_1" {
-	certificate_label = "Terraform Integration Test 013"
+	certificate_label = "Terraform Integration Test ${var.cert_label_random}"
 	description = "Terraform DV Cert"
 	auto_renew = true
 	certificate_authority = "DigiCert"
@@ -36,7 +36,7 @@ resource "edgecast_cps_certificate" "certificate_1" {
 resource "edgecast_cps_certificate" "certificate_2" {
 
 	# Note: certificate_label must be unique, including deleted certificates.
-	certificate_label = "Terraform Integration Test EV 013"
+	certificate_label = "Terraform Integration Test EV ${var.cert_label_random}"
 	description = "Terraform EV Cert"
 	auto_renew = true
 	certificate_authority = "DigiCert"

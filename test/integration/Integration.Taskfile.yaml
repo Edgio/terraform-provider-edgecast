@@ -27,12 +27,12 @@ tasks:
           RESOURCE_NAME: "{{.RESOURCE_NAME}}"
           IMPORT_ID: "{{.IMPORT_ID}}"
       - defer: rm -rf {{.CLEANUP_FILES}}
-      - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}} {{.EMAIL}}
+      - defer: terraform apply -auto-approve -destroy {{.CREDS}} {{.ACCOUNT}}
       - rm -rf {{.CLEANUP_FILES}}
       - terraform init
       - cp create.tf.step resource.tf
       - terraform validate
-      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}} {{.EMAIL}}
+      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}
       - cp update.tf.step resource.tf
       - terraform validate
-      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}} {{.EMAIL}}
+      - terraform $MODE -auto-approve {{.CREDS}} {{.ACCOUNT}}

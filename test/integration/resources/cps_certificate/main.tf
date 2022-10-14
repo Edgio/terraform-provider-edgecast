@@ -34,6 +34,11 @@ variable "mcc_account_email" {
   default = "" # This prevents being prompted during integration test run
 }
 
+variable "cert_label_random" {
+  type = string
+  default = ""
+}
+
 ##########################################
 # Providers
 ##########################################
