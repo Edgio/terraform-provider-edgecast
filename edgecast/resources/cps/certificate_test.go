@@ -879,15 +879,17 @@ func TestFlattenNotifSettings(t *testing.T) {
 	}
 }
 
-func TestFlattenDomains(t *testing.T) {
+func TestFlattenDomainsDV(t *testing.T) {
 	cases := []struct {
-		name     string
-		input    []*models.Domain
-		expected []map[string]interface{}
+		name          string
+		inputDomains  []*models.Domain
+		inputMetadata []*models.DomainDcvFull
+		input         string
+		expected      []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []*models.Domain{
+			inputDomains: []*models.Domain{
 				{
 					ID:           1,
 					Name:         "domain 1",
@@ -905,6 +907,66 @@ func TestFlattenDomains(t *testing.T) {
 					Created:      strfmt.DateTime(time.Now()),
 				},
 			},
+			inputMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DV",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  0,
+					Emails:    []string{"email1@test.com", "email2@test.com"},
+				},
+			},
+			input: "DV",
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token",
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token",
+				},
+			},
+		},
+		{
+			name: "Happy path - no metadata",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+			},
+			inputMetadata: nil,
+			input:         "DV",
 			expected: []map[string]interface{}{
 				{
 					"id":             int64(1),
@@ -925,19 +987,187 @@ func TestFlattenDomains(t *testing.T) {
 			},
 		},
 		{
-			name:     "Nil input",
-			input:    nil,
-			expected: make([]map[string]interface{}, 0),
+			name:          "Nil input",
+			inputDomains:  nil,
+			inputMetadata: nil,
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
 		},
 		{
-			name:     "Empty input",
-			input:    make([]*models.Domain, 0),
-			expected: make([]map[string]interface{}, 0),
+			name:          "Empty input",
+			inputDomains:  make([]*models.Domain, 0),
+			inputMetadata: make([]*models.DomainDcvFull, 0),
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
 		},
 	}
 
 	for _, c := range cases {
-		actual := cps.FlattenDomains(c.input)
+		actual, _ := cps.FlattenDomains(c.inputDomains, c.inputMetadata, c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
+func TestFlattenDomainsOV(t *testing.T) {
+	cases := []struct {
+		name          string
+		inputDomains  []*models.Domain
+		inputMetadata []*models.DomainDcvFull
+		input         string
+		expected      []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+			},
+			inputMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 1"},
+					DomainID:  1,
+					Emails:    []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 2"},
+					DomainID:  2,
+					Emails:    []string{"email3@test.com", "email4@test.com"},
+				},
+			},
+			input: "OV",
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token 1",
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+					"emails": []string{
+						"email3@test.com",
+						"email4@test.com",
+					},
+					"dcv_token": "token 2",
+				},
+			},
+		},
+		{
+			name: "missing id in metadata",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   strfmt.DateTime(time.Now()),
+					Created:      strfmt.DateTime(time.Now()),
+				},
+			},
+			inputMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 2"},
+					DomainID:  2,
+					Emails:    []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 4"},
+					DomainID:  4,
+					Emails:    []string{"email3@test.com", "email4@test.com"},
+				},
+			},
+			input: "OV",
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    strfmt.DateTime(time.Now()).String(),
+					"created":        strfmt.DateTime(time.Now()).String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token 2",
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			inputDomains:  nil,
+			inputMetadata: nil,
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
+		},
+		{
+			name:          "Empty input",
+			inputDomains:  make([]*models.Domain, 0),
+			inputMetadata: make([]*models.DomainDcvFull, 0),
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
+		},
+	}
+
+	for _, c := range cases {
+		actual, _ := cps.FlattenDomains(c.inputDomains, c.inputMetadata, c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to

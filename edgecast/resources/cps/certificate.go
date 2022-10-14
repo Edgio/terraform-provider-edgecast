@@ -18,7 +18,9 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/dcv"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
+	"github.com/ahmetalpbalkan/go-linq"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
@@ -233,6 +235,8 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
 
+	log.Printf("[INFO] Retrieving certificate Status : ID: %d\n", certID)
+
 	statusparams := certificate.NewCertificateGetCertificateStatusParams()
 	statusparams.ID = certID
 
@@ -245,6 +249,34 @@ func ResourceCertificateRead(ctx context.Context,
 	log.Printf(
 		"[INFO] Retrieved certificate request status: %# v\n",
 		pretty.Formatter(statusresp))
+
+	log.Printf("[INFO] Retrieving certificate dcv metadata : ID: %d\n", certID)
+
+	dcvmetadata := dcv.NewDcvGetCertificateDomainDetailsOK()
+
+	domainids := make([]string, 0)
+	for _, domain := range resp.Domains {
+		domainid := strconv.Itoa(int(domain.ID))
+		domainids = append(domainids, domainid)
+	}
+	tempids := strings.Join(domainids, ",")
+	var ids *string = &tempids
+
+	dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+	dcvparams.ID = certID
+	dcvparams.DomainIds = ids
+
+	dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+	if err == nil {
+		//continue
+		dcvmetadata = dcvresp
+	}
+
+	log.Printf(
+		"[INFO] Retrieved dcv metadata: %# v\n",
+		pretty.Formatter(dcvresp))
+
+	log.Printf("[INFO] Retrieving certificate notification settings: ID: %d\n", certID)
 
 	nparams := certificate.NewCertificateGetRequestNotificationsParams()
 	nparams.ID = certID
@@ -259,7 +291,7 @@ func ResourceCertificateRead(ctx context.Context,
 		pretty.Formatter(resp))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp)
+	err = setCertificateState(d, resp, nresp, statusresp, dcvmetadata)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -272,6 +304,7 @@ func setCertificateState(
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
+	dcvresp *dcv.DcvGetCertificateDomainDetailsOK,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -281,7 +314,10 @@ func setCertificateState(
 	d.Set("validation_type", resp.ValidationType)
 	d.Set("auto_renew", resp.AutoRenew)
 
-	flattendDomains := FlattenDomains(resp.Domains)
+	flattendDomains, err := FlattenDomains(resp.Domains, dcvresp.Items, resp.ValidationType)
+	if err != nil {
+		return fmt.Errorf("error parsing domains: %w", err)
+	}
 	d.Set("domain", flattendDomains)
 
 	flattendOrganization := FlattenOrganization(resp.Organization)
@@ -721,7 +757,9 @@ func FlattenDeployments(
 
 func FlattenDomains(
 	domains []*models.Domain,
-) []map[string]interface{} {
+	dcvmetadata []*models.DomainDcvFull,
+	validationType string,
+) ([]map[string]interface{}, error) {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, v := range domains {
@@ -738,10 +776,43 @@ func FlattenDomains(
 		tCreated, _ := time.Parse(datetimeFormat, v.Created.String())
 		m["created"] = tCreated.Format(datetimeFormat)
 
+		if dcvmetadata != nil {
+
+			switch strings.ToLower(validationType) {
+			case strings.ToLower(models.CdnProvidedCertificateValidationTypeDV):
+
+				m["emails"] = dcvmetadata[0].Emails
+				if dcvmetadata[0].DcvToken != nil {
+					m["dcv_token"] = dcvmetadata[0].DcvToken.Token
+				}
+
+			case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
+				strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
+
+				var domainMetaData []*models.DomainDcvFull
+
+				linq.From(dcvmetadata).Where(func(c interface{}) bool {
+					return c.(*models.DomainDcvFull).DomainID == v.ID
+				}).Select(func(c interface{}) interface{} {
+					return (c.(*models.DomainDcvFull))
+				}).ToSlice(&domainMetaData)
+
+				if domainMetaData != nil {
+					m["emails"] = domainMetaData[0].Emails
+					if domainMetaData[0].DcvToken != nil {
+						m["dcv_token"] = domainMetaData[0].DcvToken.Token
+					}
+				}
+
+			default:
+				return nil, errors.New("only one organization is allowed")
+			}
+		}
+
 		flattened = append(flattened, m)
 	}
 
-	return flattened
+	return flattened, nil
 }
 
 func FlattenOrganization(
