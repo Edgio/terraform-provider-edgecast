@@ -17,19 +17,19 @@ resource "edgecast_cps_certificate" "certificate_1" {
   notification_setting {
     notification_type = "CertificateRenewal"
     enabled = true
-    emails = ["${var.mcc_account_email}"]
+    emails = ["${var.MCC_ACCOUNT_EMAIL}"]
   }
 
   notification_setting {
     notification_type = "CertificateExpiring"
     enabled = true
-    emails = ["${var.mcc_account_email}"]
+    emails = ["${var.MCC_ACCOUNT_EMAIL}"]
   }
 
   notification_setting {
     notification_type = "PendingValidations"
     enabled = true
-    emails = ["${var.mcc_account_email}"]
+    emails = ["${var.MCC_ACCOUNT_EMAIL}"]
   }
 }
 
@@ -84,18 +84,18 @@ resource "edgecast_cps_certificate" "certificate_2" {
 	notification_setting {
 		notification_type = "CertificateRenewal"
 		enabled = true
-		emails = ["${var.mcc_account_email}"]
+		emails = ["${var.MCC_ACCOUNT_EMAIL}"]
 	}
 
 	notification_setting {
 		notification_type = "CertificateExpiring"
 		enabled = true
-		emails = ["${var.mcc_account_email}"]
+		emails = ["${var.MCC_ACCOUNT_EMAIL}"]
 	}
 
 	notification_setting {
 		notification_type = "PendingValidations"
 		enabled = true
-		emails = ["${var.mcc_account_email}"]
+		emails = ["${var.MCC_ACCOUNT_EMAIL}"]
 	}
 }

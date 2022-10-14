@@ -6,7 +6,7 @@ You can specify the environment you wish to run the tests against by specifying 
 
 ```bash
   ACCOUNT_NUMBER             = ""
-  TF_VAR_mcc_account_email   = ""
+  TF_VAR_MCC_ACCOUNT_EMAIL   = "" # Email associated to above account number
   
   API_ADDRESS                = ""
   API_ADDRESS_LEGACY         = ""

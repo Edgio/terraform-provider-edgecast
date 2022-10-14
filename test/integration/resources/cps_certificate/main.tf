@@ -29,7 +29,7 @@ variable "account_number" {
   type = string
 }
 
-variable "mcc_account_email" {
+variable "MCC_ACCOUNT_EMAIL" {
   type = string
   default = "" # This prevents being prompted during integration test run
 }
