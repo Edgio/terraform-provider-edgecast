@@ -20,7 +20,6 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/dcv"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
-	"github.com/ahmetalpbalkan/go-linq"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
@@ -252,29 +251,177 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieving certificate dcv metadata : ID: %d\n", certID)
 
-	dcvmetadata := dcv.NewDcvGetCertificateDomainDetailsOK()
+	//dcvmetadata := dcv.NewDcvGetCertificateDomainDetailsOK()
+	metadata := make([]models.HyperionCollectionDomainDcvFull, 0)
+	domaingroups := make(map[int64][]*models.Domain, 0)
 
-	domainids := make([]string, 0)
-	for _, domain := range resp.Domains {
-		domainid := strconv.Itoa(int(domain.ID))
-		domainids = append(domainids, domainid)
+	//dv
+	if resp.ValidationType == models.CdnProvidedCertificateValidationTypeDV {
+		domainids := make([]string, 0)
+		for _, domain := range resp.Domains {
+			domainid := strconv.Itoa(int(domain.ID))
+			domainids = append(domainids, domainid)
+		}
+		tempids := strings.Join(domainids, ",")
+		var ids *string = &tempids
+
+		dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+		dcvparams.ID = certID
+		dcvparams.DomainIds = ids
+
+		dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+		if err == nil {
+			//continue
+			//dcvmetadata = dcvresp
+			metadata = append(metadata, dcvresp.HyperionCollectionDomainDcvFull)
+		}
+
+		log.Printf(
+			"[INFO] Retrieved dcv metadata: %# v\n",
+			pretty.Formatter(dcvresp))
+
+	} else {
+		//do the funky stuff
+		//ev | ov
+
+		domainsAll := make([]*models.Domain, len(resp.Domains))
+
+		copy(domainsAll, resp.Domains)
+		sort.Slice(domainsAll, func(i, j int) bool {
+			return len(domainsAll[i].Name) < len(domainsAll[j].Name)
+		})
+
+		log.Printf("[INFO] step 1: creating domainsAll, sorted by domainname: %# v\n",
+			pretty.Formatter(domainsAll))
+
+		//round 1
+		for kdomain, vdomain := range domainsAll {
+			splitdomain := strings.Split(vdomain.Name, ".")
+			if len(splitdomain) <= 2 { //parent domain
+				domains := make([]*models.Domain, 0)
+				domains = append(domains, vdomain)
+				domaingroups[vdomain.ID] = domains
+				domainsAll[kdomain] = nil //maybe this will work?
+			}
+		}
+		log.Printf("[INFO] after round 1 - parent domains. domaingroups: %# v\n",
+			pretty.Formatter(domaingroups))
+
+		log.Printf("[INFO] after round 1 - parent domains. domainsAll %# v\n",
+			pretty.Formatter(domainsAll))
+
+		//parent-child match
+		for kparent, vparent := range domaingroups {
+
+			for k, v := range domainsAll {
+				if domainsAll[k] != nil {
+					if strings.HasSuffix(v.Name, "."+vparent[0].Name) {
+						log.Printf("[INFO] do i get here?, %s, %s", v.Name, vparent[0].Name)
+						vparent = append(vparent, v)
+						domaingroups[kparent] = vparent
+						log.Printf("[INFO] vparent after append: %# v\n", pretty.Formatter(vparent))
+						domainsAll[k] = nil //nil here again.
+					}
+				}
+			}
+		}
+
+		log.Printf("[INFO] after round 1 - parent-child matched. domaingroups: %# v\n",
+			pretty.Formatter(domaingroups))
+
+		log.Printf("[INFO] after round 1 - parent-child matched. domainsAll %# v\n",
+			pretty.Formatter(domainsAll))
+
+		//use linq
+		domainscounter := 0
+		for _, v := range domainsAll {
+			if v != nil {
+				domainscounter++
+			}
+		}
+
+		for {
+			for ak, av := range domainsAll {
+				if av != nil {
+					//parent
+					parent := make([]*models.Domain, 0)
+					parent = append(parent, av)
+					domaingroups[av.ID] = parent
+					domainsAll[ak] = nil
+					domainscounter--
+
+					//another loop through to match
+					for k, v := range domainsAll {
+						if v != nil {
+							if strings.HasSuffix(v.Name, "."+av.Name) {
+								parent = append(parent, v)
+								domaingroups[av.ID] = parent
+								domainsAll[k] = nil
+								domainscounter--
+							}
+						}
+					}
+				}
+			}
+
+			if domainscounter == 0 {
+				break //no more domains left to match
+			}
+		}
+
+		log.Printf("[INFO] final round - domaingroups: %# v\n",
+			pretty.Formatter(domaingroups))
+
+		log.Printf("[INFO] final round - domainsAll %# v\n",
+			pretty.Formatter(domainsAll))
+
+		//retrieve metadata from API
+		domainidsnochildren := make([]string, 0)
+		for groupk, groupv := range domaingroups {
+			if len(groupv) > 1 {
+				//has children
+				dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+				dcvparams.ID = certID
+				tempid := strconv.Itoa(int(groupk))
+				dcvparams.DomainIds = &tempid
+
+				dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+				if err == nil {
+					//continue
+					metadata = append(metadata, dcvresp.HyperionCollectionDomainDcvFull)
+				}
+
+				log.Printf(
+					"[INFO] Retrieved dcv metadata: %# v\n",
+					pretty.Formatter(dcvresp))
+
+			} else {
+				domainid := strconv.Itoa(int(groupk))
+				domainidsnochildren = append(domainidsnochildren, domainid)
+			}
+		}
+		//one call for domains with no children
+		tempids := strings.Join(domainidsnochildren, ",")
+		var ids *string = &tempids
+
+		dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+		dcvparams.ID = certID
+		dcvparams.DomainIds = ids
+
+		dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+		if err == nil {
+			//continue
+			metadata = append(metadata, dcvresp.HyperionCollectionDomainDcvFull)
+		}
+
+		log.Printf(
+			"[INFO] Retrieved dcv metadata: %# v\n",
+			pretty.Formatter(dcvresp))
+
+		log.Printf(
+			"[INFO] metadata ALL: %# v\n",
+			pretty.Formatter(metadata))
 	}
-	tempids := strings.Join(domainids, ",")
-	var ids *string = &tempids
-
-	dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
-	dcvparams.ID = certID
-	dcvparams.DomainIds = ids
-
-	dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
-	if err == nil {
-		//continue
-		dcvmetadata = dcvresp
-	}
-
-	log.Printf(
-		"[INFO] Retrieved dcv metadata: %# v\n",
-		pretty.Formatter(dcvresp))
 
 	log.Printf("[INFO] Retrieving certificate notification settings: ID: %d\n", certID)
 
@@ -291,7 +438,7 @@ func ResourceCertificateRead(ctx context.Context,
 		pretty.Formatter(resp))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp, dcvmetadata)
+	err = setCertificateState(d, resp, nresp, statusresp, metadata, domaingroups)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -304,7 +451,8 @@ func setCertificateState(
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
-	dcvresp *dcv.DcvGetCertificateDomainDetailsOK,
+	dcvresp []models.HyperionCollectionDomainDcvFull, //*dcv.DcvGetCertificateDomainDetailsOK,
+	domaingroups map[int64][]*models.Domain,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -314,7 +462,7 @@ func setCertificateState(
 	d.Set("validation_type", resp.ValidationType)
 	d.Set("auto_renew", resp.AutoRenew)
 
-	flattendDomains, err := FlattenDomains(resp.Domains, dcvresp.Items, resp.ValidationType)
+	flattendDomains, err := FlattenDomains(resp.Domains, dcvresp, domaingroups, resp.ValidationType)
 	if err != nil {
 		return fmt.Errorf("error parsing domains: %w", err)
 	}
@@ -757,7 +905,8 @@ func FlattenDeployments(
 
 func FlattenDomains(
 	domains []*models.Domain,
-	dcvmetadata []*models.DomainDcvFull,
+	metadata []models.HyperionCollectionDomainDcvFull,
+	domaingroups map[int64][]*models.Domain,
 	validationType string,
 ) ([]map[string]interface{}, error) {
 	flattened := make([]map[string]interface{}, 0)
@@ -776,37 +925,37 @@ func FlattenDomains(
 		tCreated, _ := time.Parse(datetimeFormat, v.Created.String())
 		m["created"] = tCreated.Format(datetimeFormat)
 
-		if dcvmetadata != nil {
+		if metadata != nil {
+			/*
+				switch strings.ToLower(validationType) {
+				case strings.ToLower(models.CdnProvidedCertificateValidationTypeDV):
 
-			switch strings.ToLower(validationType) {
-			case strings.ToLower(models.CdnProvidedCertificateValidationTypeDV):
-
-				m["emails"] = dcvmetadata[0].Emails
-				if dcvmetadata[0].DcvToken != nil {
-					m["dcv_token"] = dcvmetadata[0].DcvToken.Token
-				}
-
-			case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
-				strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
-
-				var domainMetaData []*models.DomainDcvFull
-
-				linq.From(dcvmetadata).Where(func(c interface{}) bool {
-					return c.(*models.DomainDcvFull).DomainID == v.ID
-				}).Select(func(c interface{}) interface{} {
-					return (c.(*models.DomainDcvFull))
-				}).ToSlice(&domainMetaData)
-
-				if domainMetaData != nil {
-					m["emails"] = domainMetaData[0].Emails
-					if domainMetaData[0].DcvToken != nil {
-						m["dcv_token"] = domainMetaData[0].DcvToken.Token
+					m["emails"] = metadata[0].Items[0].Emails
+					if metadata[0].Items[0].DcvToken != nil {
+						m["dcv_token"] = metadata[0].Items[0].DcvToken.Token
 					}
-				}
 
-			default:
-				return nil, errors.New("only one organization is allowed")
-			}
+				case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
+					strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
+
+					var domainMetaData []*models.DomainDcvFull
+
+					linq.From(metadata).Where(func(c interface{}) bool {
+						return c.(*models.DomainDcvFull).DomainID == v.ID
+					}).Select(func(c interface{}) interface{} {
+						return (c.(*models.DomainDcvFull))
+					}).ToSlice(&domainMetaData)
+
+					if domainMetaData != nil {
+						m["emails"] = domainMetaData[0].Emails
+						if domainMetaData[0].DcvToken != nil {
+							m["dcv_token"] = domainMetaData[0].DcvToken.Token
+						}
+					}
+
+				default:
+					return nil, errors.New("only one organization is allowed")
+				}*/
 		}
 
 		flattened = append(flattened, m)
