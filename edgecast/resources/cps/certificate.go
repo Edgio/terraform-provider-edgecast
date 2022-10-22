@@ -20,6 +20,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/dcv"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
+	"github.com/ahmetalpbalkan/go-linq"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
@@ -251,11 +252,10 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieving certificate dcv metadata : ID: %d\n", certID)
 
-	//dcvmetadata := dcv.NewDcvGetCertificateDomainDetailsOK()
-	metadata := make([]models.HyperionCollectionDomainDcvFull, 0)
+	metadata := make([]*models.DomainDcvFull, 0)
 	domaingroups := make(map[int64][]*models.Domain, 0)
 
-	//dv
+	//TODO: move the grouping to a separate method
 	if resp.ValidationType == models.CdnProvidedCertificateValidationTypeDV {
 		domainids := make([]string, 0)
 		for _, domain := range resp.Domains {
@@ -271,19 +271,16 @@ func ResourceCertificateRead(ctx context.Context,
 
 		dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
 		if err == nil {
-			//continue
-			//dcvmetadata = dcvresp
-			metadata = append(metadata, dcvresp.HyperionCollectionDomainDcvFull)
+			metadata = append(metadata, dcvresp.Items...)
 		}
 
 		log.Printf(
-			"[INFO] Retrieved dcv metadata: %# v\n",
+			"[INFO] Retrieved dcv metadata for DV cert: %# v\n",
 			pretty.Formatter(dcvresp))
 
 	} else {
-		//do the funky stuff
-		//ev | ov
-
+		//EV | OV
+		//TODO: use a different data structure, so we can delete instead of nil.
 		domainsAll := make([]*models.Domain, len(resp.Domains))
 
 		copy(domainsAll, resp.Domains)
@@ -291,55 +288,38 @@ func ResourceCertificateRead(ctx context.Context,
 			return len(domainsAll[i].Name) < len(domainsAll[j].Name)
 		})
 
-		log.Printf("[INFO] step 1: creating domainsAll, sorted by domainname: %# v\n",
-			pretty.Formatter(domainsAll))
-
-		//round 1
+		//grab all the obvious parents
 		for kdomain, vdomain := range domainsAll {
 			splitdomain := strings.Split(vdomain.Name, ".")
-			if len(splitdomain) <= 2 { //parent domain
+			if len(splitdomain) <= 2 {
+				//parent domain
 				domains := make([]*models.Domain, 0)
 				domains = append(domains, vdomain)
 				domaingroups[vdomain.ID] = domains
-				domainsAll[kdomain] = nil //maybe this will work?
+				domainsAll[kdomain] = nil
 			}
 		}
-		log.Printf("[INFO] after round 1 - parent domains. domaingroups: %# v\n",
-			pretty.Formatter(domaingroups))
-
-		log.Printf("[INFO] after round 1 - parent domains. domainsAll %# v\n",
-			pretty.Formatter(domainsAll))
 
 		//parent-child match
 		for kparent, vparent := range domaingroups {
-
 			for k, v := range domainsAll {
 				if domainsAll[k] != nil {
 					if strings.HasSuffix(v.Name, "."+vparent[0].Name) {
-						log.Printf("[INFO] do i get here?, %s, %s", v.Name, vparent[0].Name)
 						vparent = append(vparent, v)
 						domaingroups[kparent] = vparent
-						log.Printf("[INFO] vparent after append: %# v\n", pretty.Formatter(vparent))
-						domainsAll[k] = nil //nil here again.
+						domainsAll[k] = nil
 					}
 				}
 			}
 		}
 
-		log.Printf("[INFO] after round 1 - parent-child matched. domaingroups: %# v\n",
-			pretty.Formatter(domaingroups))
-
-		log.Printf("[INFO] after round 1 - parent-child matched. domainsAll %# v\n",
-			pretty.Formatter(domainsAll))
-
-		//use linq
 		domainscounter := 0
 		for _, v := range domainsAll {
 			if v != nil {
 				domainscounter++
 			}
 		}
-
+		//check for any other parents/child combination left
 		for {
 			for ak, av := range domainsAll {
 				if av != nil {
@@ -369,14 +349,9 @@ func ResourceCertificateRead(ctx context.Context,
 			}
 		}
 
-		log.Printf("[INFO] final round - domaingroups: %# v\n",
-			pretty.Formatter(domaingroups))
-
-		log.Printf("[INFO] final round - domainsAll %# v\n",
-			pretty.Formatter(domainsAll))
-
 		//retrieve metadata from API
 		domainidsnochildren := make([]string, 0)
+
 		for groupk, groupv := range domaingroups {
 			if len(groupv) > 1 {
 				//has children
@@ -385,12 +360,11 @@ func ResourceCertificateRead(ctx context.Context,
 				tempid := strconv.Itoa(int(groupk))
 				dcvparams.DomainIds = &tempid
 
-				dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+				dcvresp, err :=
+					svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
 				if err == nil {
-					//continue
-					metadata = append(metadata, dcvresp.HyperionCollectionDomainDcvFull)
+					metadata = append(metadata, dcvresp.Items...)
 				}
-
 				log.Printf(
 					"[INFO] Retrieved dcv metadata: %# v\n",
 					pretty.Formatter(dcvresp))
@@ -400,6 +374,7 @@ func ResourceCertificateRead(ctx context.Context,
 				domainidsnochildren = append(domainidsnochildren, domainid)
 			}
 		}
+
 		//one call for domains with no children
 		tempids := strings.Join(domainidsnochildren, ",")
 		var ids *string = &tempids
@@ -411,7 +386,7 @@ func ResourceCertificateRead(ctx context.Context,
 		dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
 		if err == nil {
 			//continue
-			metadata = append(metadata, dcvresp.HyperionCollectionDomainDcvFull)
+			metadata = append(metadata, dcvresp.Items...)
 		}
 
 		log.Printf(
@@ -419,11 +394,13 @@ func ResourceCertificateRead(ctx context.Context,
 			pretty.Formatter(dcvresp))
 
 		log.Printf(
-			"[INFO] metadata ALL: %# v\n",
+			"[INFO] dcv metadata combined: %# v\n",
 			pretty.Formatter(metadata))
 	}
 
-	log.Printf("[INFO] Retrieving certificate notification settings: ID: %d\n", certID)
+	log.Printf(
+		"[INFO] Retrieving certificate notification settings: ID: %d\n",
+		certID)
 
 	nparams := certificate.NewCertificateGetRequestNotificationsParams()
 	nparams.ID = certID
@@ -437,8 +414,10 @@ func ResourceCertificateRead(ctx context.Context,
 		"[INFO] Retrieved certificate notification settings: %# v\n",
 		pretty.Formatter(resp))
 
+	log.Printf("[INFO] metadata ALL: %# v\n", pretty.Formatter(metadata))
+
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp, metadata, domaingroups)
+	err = setCertificateState(d, resp, nresp, statusresp, metadata)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -451,8 +430,7 @@ func setCertificateState(
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
-	dcvresp []models.HyperionCollectionDomainDcvFull, //*dcv.DcvGetCertificateDomainDetailsOK,
-	domaingroups map[int64][]*models.Domain,
+	dcvresp []*models.DomainDcvFull,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -462,7 +440,12 @@ func setCertificateState(
 	d.Set("validation_type", resp.ValidationType)
 	d.Set("auto_renew", resp.AutoRenew)
 
-	flattendDomains, err := FlattenDomains(resp.Domains, dcvresp, domaingroups, resp.ValidationType)
+	log.Printf(
+		"[INFO] metadata in setcertificatestate: %# v\n",
+		pretty.Formatter(dcvresp))
+
+	flattendDomains, err :=
+		FlattenDomains(resp.Domains, dcvresp, resp.ValidationType)
 	if err != nil {
 		return fmt.Errorf("error parsing domains: %w", err)
 	}
@@ -905,8 +888,7 @@ func FlattenDeployments(
 
 func FlattenDomains(
 	domains []*models.Domain,
-	metadata []models.HyperionCollectionDomainDcvFull,
-	domaingroups map[int64][]*models.Domain,
+	metadata []*models.DomainDcvFull,
 	validationType string,
 ) ([]map[string]interface{}, error) {
 	flattened := make([]map[string]interface{}, 0)
@@ -926,36 +908,39 @@ func FlattenDomains(
 		m["created"] = tCreated.Format(datetimeFormat)
 
 		if metadata != nil {
-			/*
-				switch strings.ToLower(validationType) {
-				case strings.ToLower(models.CdnProvidedCertificateValidationTypeDV):
 
-					m["emails"] = metadata[0].Items[0].Emails
-					if metadata[0].Items[0].DcvToken != nil {
-						m["dcv_token"] = metadata[0].Items[0].DcvToken.Token
+			switch strings.ToLower(validationType) {
+
+			case strings.ToLower(models.CdnProvidedCertificateValidationTypeDV):
+
+				//all domains share the same token/emails
+				m["emails"] = metadata[0].Emails
+				if metadata[0].DcvToken != nil {
+					m["dcv_token"] = metadata[0].DcvToken.Token
+				}
+
+			case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
+				strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
+
+				//Only parent tokens/emails. Ignore children tokens/emails
+				var domainMetaData []*models.DomainDcvFull
+
+				linq.From(metadata).Where(func(c interface{}) bool {
+					return c.(*models.DomainDcvFull).DomainID == v.ID
+				}).Select(func(c interface{}) interface{} {
+					return (c.(*models.DomainDcvFull))
+				}).ToSlice(&domainMetaData)
+
+				if domainMetaData != nil {
+					m["emails"] = domainMetaData[0].Emails
+					if domainMetaData[0].DcvToken != nil {
+						m["dcv_token"] = domainMetaData[0].DcvToken.Token
 					}
+				}
 
-				case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
-					strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
-
-					var domainMetaData []*models.DomainDcvFull
-
-					linq.From(metadata).Where(func(c interface{}) bool {
-						return c.(*models.DomainDcvFull).DomainID == v.ID
-					}).Select(func(c interface{}) interface{} {
-						return (c.(*models.DomainDcvFull))
-					}).ToSlice(&domainMetaData)
-
-					if domainMetaData != nil {
-						m["emails"] = domainMetaData[0].Emails
-						if domainMetaData[0].DcvToken != nil {
-							m["dcv_token"] = domainMetaData[0].DcvToken.Token
-						}
-					}
-
-				default:
-					return nil, errors.New("only one organization is allowed")
-				}*/
+			default:
+				return nil, errors.New("not a valid dcv validation type")
+			}
 		}
 
 		flattened = append(flattened, m)
