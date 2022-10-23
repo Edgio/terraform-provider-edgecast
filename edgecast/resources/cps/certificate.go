@@ -253,9 +253,7 @@ func ResourceCertificateRead(ctx context.Context,
 	log.Printf("[INFO] Retrieving certificate dcv metadata : ID: %d\n", certID)
 
 	metadata := make([]*models.DomainDcvFull, 0)
-	domaingroups := make(map[int64][]*models.Domain, 0)
 
-	//TODO: move the grouping to a separate method
 	if resp.ValidationType == models.CdnProvidedCertificateValidationTypeDV {
 		domainids := make([]string, 0)
 		for _, domain := range resp.Domains {
@@ -271,6 +269,7 @@ func ResourceCertificateRead(ctx context.Context,
 
 		dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
 		if err == nil {
+			//continue
 			metadata = append(metadata, dcvresp.Items...)
 		}
 
@@ -280,76 +279,9 @@ func ResourceCertificateRead(ctx context.Context,
 
 	} else {
 		//EV | OV
-		//TODO: use a different data structure, so we can delete instead of nil.
-		domainsAll := make([]*models.Domain, len(resp.Domains))
+		//dcv info is grouped by parent domain
 
-		copy(domainsAll, resp.Domains)
-		sort.Slice(domainsAll, func(i, j int) bool {
-			return len(domainsAll[i].Name) < len(domainsAll[j].Name)
-		})
-
-		//grab all the obvious parents
-		for kdomain, vdomain := range domainsAll {
-			splitdomain := strings.Split(vdomain.Name, ".")
-			if len(splitdomain) <= 2 {
-				//parent domain
-				domains := make([]*models.Domain, 0)
-				domains = append(domains, vdomain)
-				domaingroups[vdomain.ID] = domains
-				domainsAll[kdomain] = nil
-			}
-		}
-
-		//parent-child match
-		for kparent, vparent := range domaingroups {
-			for k, v := range domainsAll {
-				if domainsAll[k] != nil {
-					if strings.HasSuffix(v.Name, "."+vparent[0].Name) {
-						vparent = append(vparent, v)
-						domaingroups[kparent] = vparent
-						domainsAll[k] = nil
-					}
-				}
-			}
-		}
-
-		domainscounter := 0
-		for _, v := range domainsAll {
-			if v != nil {
-				domainscounter++
-			}
-		}
-		//check for any other parents/child combination left
-		for {
-			for ak, av := range domainsAll {
-				if av != nil {
-					//parent
-					parent := make([]*models.Domain, 0)
-					parent = append(parent, av)
-					domaingroups[av.ID] = parent
-					domainsAll[ak] = nil
-					domainscounter--
-
-					//another loop through to match
-					for k, v := range domainsAll {
-						if v != nil {
-							if strings.HasSuffix(v.Name, "."+av.Name) {
-								parent = append(parent, v)
-								domaingroups[av.ID] = parent
-								domainsAll[k] = nil
-								domainscounter--
-							}
-						}
-					}
-				}
-			}
-
-			if domainscounter == 0 {
-				break //no more domains left to match
-			}
-		}
-
-		//retrieve metadata from API
+		domaingroups := getDomainGroups(resp.Domains)
 		domainidsnochildren := make([]string, 0)
 
 		for groupk, groupv := range domaingroups {
@@ -363,6 +295,7 @@ func ResourceCertificateRead(ctx context.Context,
 				dcvresp, err :=
 					svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
 				if err == nil {
+					//continue
 					metadata = append(metadata, dcvresp.Items...)
 				}
 				log.Printf(
@@ -922,7 +855,8 @@ func FlattenDomains(
 			case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
 				strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
 
-				//Only parent tokens/emails. Ignore children tokens/emails
+				//Only match parent tokens/emails.
+				//Ok to ignore children tokens/emails
 				var domainMetaData []*models.DomainDcvFull
 
 				linq.From(metadata).Where(func(c interface{}) bool {
@@ -1093,6 +1027,77 @@ func flattenDomainValidation(
 	}
 
 	return flattened
+}
+
+func getDomainGroups(domains []*models.Domain) map[int64][]*models.Domain {
+
+	domaingroups := make(map[int64][]*models.Domain, 0)
+	domainsAll := make([]*models.Domain, len(domains))
+
+	copy(domainsAll, domains)
+	sort.Slice(domainsAll, func(i, j int) bool {
+		return len(domainsAll[i].Name) < len(domainsAll[j].Name)
+	})
+
+	//grab all the obvious parents
+	for kdomain, vdomain := range domainsAll {
+		splitdomain := strings.Split(vdomain.Name, ".")
+		if len(splitdomain) <= 2 {
+			//parent domain
+			domains := make([]*models.Domain, 0)
+			domains = append(domains, vdomain)
+			domaingroups[vdomain.ID] = domains
+			domainsAll[kdomain] = nil
+		}
+	}
+
+	//parent-child match
+	for kparent, vparent := range domaingroups {
+		for k, v := range domainsAll {
+			if domainsAll[k] != nil {
+				if strings.HasSuffix(v.Name, "."+vparent[0].Name) {
+					vparent = append(vparent, v)
+					domaingroups[kparent] = vparent
+					domainsAll[k] = nil
+				}
+			}
+		}
+	}
+
+	domainscounter := linq.From(domainsAll).Where(func(i interface{}) bool {
+		return i.(*models.Domain) != nil
+	}).Count()
+
+	//check for any other parents/child combination left
+	for {
+		for ak, av := range domainsAll {
+			if av != nil {
+				//parent
+				parent := make([]*models.Domain, 0)
+				parent = append(parent, av)
+				domaingroups[av.ID] = parent
+				domainsAll[ak] = nil
+				domainscounter--
+
+				//another loop through to match
+				for k, v := range domainsAll {
+					if v != nil {
+						if strings.HasSuffix(v.Name, "."+av.Name) {
+							parent = append(parent, v)
+							domaingroups[av.ID] = parent
+							domainsAll[k] = nil
+							domainscounter--
+						}
+					}
+				}
+			}
+		}
+
+		if domainscounter == 0 {
+			break //no more domains left to match
+		}
+	}
+	return domaingroups
 }
 
 // CertificateState represents the state of a certificate as it exists in the
