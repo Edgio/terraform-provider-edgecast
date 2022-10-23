@@ -19,7 +19,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestExpandCertificate(t *testing.T) {

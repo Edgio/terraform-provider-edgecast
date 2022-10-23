@@ -12,19 +12,13 @@ require (
 	github.com/gruntwork-io/terratest v0.40.13
 	github.com/hashicorp/go-retryablehttp v0.7.1
 	github.com/hashicorp/terraform-plugin-docs v0.9.0
-	github.com/hashicorp/terraform-plugin-sdk v1.17.2
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.17.0
 	github.com/joho/godotenv v1.4.0
 	github.com/kr/pretty v0.3.0
 	github.com/stretchr/testify v1.7.1
 )
 
-require (
-	github.com/apparentlymart/go-cidr v1.1.0 // indirect
-	github.com/go-openapi/strfmt v0.21.1
-	github.com/spf13/afero v1.2.2 // indirect
-	github.com/zclconf/go-cty-yaml v1.0.2 // indirect
-)
+require github.com/go-openapi/strfmt v0.21.1
 
 require (
 	cloud.google.com/go v0.83.0 // indirect
