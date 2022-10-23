@@ -373,10 +373,6 @@ func setCertificateState(
 	d.Set("validation_type", resp.ValidationType)
 	d.Set("auto_renew", resp.AutoRenew)
 
-	log.Printf(
-		"[INFO] metadata in setcertificatestate: %# v\n",
-		pretty.Formatter(dcvresp))
-
 	flattendDomains, err :=
 		FlattenDomains(resp.Domains, dcvresp, resp.ValidationType)
 	if err != nil {
