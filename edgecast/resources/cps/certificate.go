@@ -836,7 +836,7 @@ func FlattenDomains(
 		tCreated, _ := time.Parse(datetimeFormat, v.Created.String())
 		m["created"] = tCreated.Format(datetimeFormat)
 
-		if metadata != nil {
+		if len(metadata) > 0 {
 
 			switch strings.ToLower(validationType) {
 
