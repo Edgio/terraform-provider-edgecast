@@ -879,6 +879,9 @@ func TestFlattenNotifSettings(t *testing.T) {
 }
 
 func TestFlattenDomainsDV(t *testing.T) {
+	activeDate := strfmt.DateTime(time.Now())
+	createdDate := strfmt.DateTime(time.Now())
+
 	cases := []struct {
 		name          string
 		inputDomains  []*models.Domain
@@ -894,16 +897,16 @@ func TestFlattenDomainsDV(t *testing.T) {
 					Name:         "domain 1",
 					Status:       "Active",
 					IsCommonName: true,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 				{
 					ID:           2,
 					Name:         "domain 2",
 					Status:       "Active",
 					IsCommonName: false,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 			},
 			inputMetadata: []*models.DomainDcvFull{
@@ -921,8 +924,8 @@ func TestFlattenDomainsDV(t *testing.T) {
 					"name":           "domain 1",
 					"status":         "Active",
 					"is_common_name": true,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 					"emails": []string{
 						"email1@test.com",
 						"email2@test.com",
@@ -934,8 +937,8 @@ func TestFlattenDomainsDV(t *testing.T) {
 					"name":           "domain 2",
 					"status":         "Active",
 					"is_common_name": false,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 					"emails": []string{
 						"email1@test.com",
 						"email2@test.com",
@@ -952,16 +955,16 @@ func TestFlattenDomainsDV(t *testing.T) {
 					Name:         "domain 1",
 					Status:       "Active",
 					IsCommonName: true,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 				{
 					ID:           2,
 					Name:         "domain 2",
 					Status:       "Active",
 					IsCommonName: false,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 			},
 			inputMetadata: nil,
@@ -972,16 +975,16 @@ func TestFlattenDomainsDV(t *testing.T) {
 					"name":           "domain 1",
 					"status":         "Active",
 					"is_common_name": true,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 				},
 				{
 					"id":             int64(2),
 					"name":           "domain 2",
 					"status":         "Active",
 					"is_common_name": false,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 				},
 			},
 		},
@@ -1019,6 +1022,9 @@ func TestFlattenDomainsDV(t *testing.T) {
 }
 
 func TestFlattenDomainsOV(t *testing.T) {
+	activeDate := strfmt.DateTime(time.Now())
+	createdDate := strfmt.DateTime(time.Now())
+
 	cases := []struct {
 		name          string
 		inputDomains  []*models.Domain
@@ -1034,16 +1040,16 @@ func TestFlattenDomainsOV(t *testing.T) {
 					Name:         "domain 1",
 					Status:       "Active",
 					IsCommonName: true,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 				{
 					ID:           2,
 					Name:         "domain 2",
 					Status:       "Active",
 					IsCommonName: false,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 			},
 			inputMetadata: []*models.DomainDcvFull{
@@ -1067,8 +1073,8 @@ func TestFlattenDomainsOV(t *testing.T) {
 					"name":           "domain 1",
 					"status":         "Active",
 					"is_common_name": true,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 					"emails": []string{
 						"email1@test.com",
 						"email2@test.com",
@@ -1080,8 +1086,8 @@ func TestFlattenDomainsOV(t *testing.T) {
 					"name":           "domain 2",
 					"status":         "Active",
 					"is_common_name": false,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 					"emails": []string{
 						"email3@test.com",
 						"email4@test.com",
@@ -1098,16 +1104,16 @@ func TestFlattenDomainsOV(t *testing.T) {
 					Name:         "domain 1",
 					Status:       "Active",
 					IsCommonName: true,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 				{
 					ID:           2,
 					Name:         "domain 2",
 					Status:       "Active",
 					IsCommonName: false,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 			},
 			inputMetadata: []*models.DomainDcvFull{
@@ -1131,16 +1137,16 @@ func TestFlattenDomainsOV(t *testing.T) {
 					"name":           "domain 1",
 					"status":         "Active",
 					"is_common_name": true,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 				},
 				{
 					"id":             int64(2),
 					"name":           "domain 2",
 					"status":         "Active",
 					"is_common_name": false,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
 					"emails": []string{
 						"email1@test.com",
 						"email2@test.com",

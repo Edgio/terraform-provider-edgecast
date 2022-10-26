@@ -15,6 +15,7 @@ terraform {
 ##########################################
 
 variable credentials {
+  sensitive = true
   type = object ({
     ids_client_secret = string
     ids_client_id = string
