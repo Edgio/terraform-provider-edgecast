@@ -15,15 +15,14 @@ terraform {
 ##########################################
 
 variable "credentials" {
-    sensitive = true
-    type = object({
-        api_token         = string
-        ids_client_secret = string
-        ids_client_id     = string
-        ids_scope         = string
-        api_address       = string
-        ids_address       = string
-    })
+  type = object({
+    api_token         = string
+    ids_client_secret = string
+    ids_client_id     = string
+    ids_scope         = string
+    api_address       = string
+    ids_address       = string
+  })
 }
 
 variable "account_number" {
@@ -52,3 +51,5 @@ provider "edgecast" {
   ids_address       = var.credentials.ids_address
   api_address       = var.credentials.api_address
 }
+
+
