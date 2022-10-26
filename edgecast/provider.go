@@ -5,9 +5,9 @@ package edgecast
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/resources/cps"
 	"terraform-provider-edgecast/edgecast/resources/customer"
 	"terraform-provider-edgecast/edgecast/resources/dnsroute"
@@ -45,50 +45,21 @@ func configureProvider(
 	tx context.Context,
 	d *schema.ResourceData,
 ) (interface{}, diag.Diagnostics) {
-	// For debugging purpose
-	// time.Sleep(10 * time.Second)
-	var diags diag.Diagnostics
-	var err error
-	config, err := api.NewClientConfig(
-		d.Get("api_token").(string),
-		d.Get("account_number").(string),
-		d.Get("ids_client_id").(string),
-		d.Get("ids_client_secret").(string),
-		d.Get("ids_scope").(string),
-		d.Get("api_address").(string),
-		d.Get("ids_address").(string),
-		d.Get("api_address_legacy").(string),
-	)
+	config, err := api.ExpandClientConfig(d)
 	if err != nil {
-		return nil, diag.FromErr(fmt.Errorf("failed to read edgecast Provider configuration data: %v", err))
-	}
-
-	config.BaseClient = api.NewBaseClient(config)
-	config.BaseClientLegacy = api.NewLegacyBaseClient(config)
-
-	log.Printf("config[api_token]:%s", config.APIToken)
-	log.Printf("config[ids_client_id]:%s", config.IdsClientID)
-	log.Printf("config[ids_scope]:%s", config.IdsScope)
-	log.Printf("config[api_address]:%s", config.APIURL)
-	log.Printf("config[ids_address]:%s", config.IdsURL)
-	log.Printf("config[api_address_legacy]:%s", config.APIURLLegacy)
-	log.Printf("config[account_number]:%s", config.AccountNumber)
-	log.Printf("config[BaseClient]:%v", config.BaseClient)
-	log.Printf("config[BaseClientLegacy]:%v", config.BaseClientLegacy)
-
-	if partnerUserIDValue, ok := d.GetOk("partner_user_id"); ok {
-		partnerUserID := partnerUserIDValue.(int)
-		config.PartnerUserID = partnerUserID
-	}
-
-	if partnerIDValue, ok := d.GetOk("partner_id"); ok {
-		partnerID := partnerIDValue.(int)
-		config.PartnerID = partnerID
+		return nil, diag.Diagnostics{
+			{
+				Summary:  "Failed to read provider configuration.",
+				Severity: diag.Error,
+				Detail:   err.Error(),
+			},
+		}
 	}
 
 	config.UserAgent = fmt.Sprintf(userAgentFormat, Version)
+	helper.LogInstanceAsPrettyJson("Provider Configuration", config)
 
-	return &config, diags
+	return &config, nil
 }
 
 func getProviderSchema() map[string]*schema.Schema {
@@ -96,21 +67,25 @@ func getProviderSchema() map[string]*schema.Schema {
 		"api_token": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			Description: "API Token for managing the following resources: Origin, CNAME, Customer, Customer User",
 		},
 		"ids_client_secret": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			Description: "OAuth 2.0 Client Secret for managing the following resources: Rules Engine Policy",
 		},
 		"ids_client_id": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			Description: "OAuth 2.0 Client ID for managing the following resources: Rules Engine Policy",
 		},
 		"ids_scope": {
 			Type:        schema.TypeString,
 			Optional:    true,
+			Sensitive:   true,
 			Description: "OAuth 2.0 Scopes for managing the following resources: Rules Engine Policy",
 		},
 		"account_number": {

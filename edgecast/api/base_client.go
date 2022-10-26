@@ -17,6 +17,7 @@ import (
 	"time"
 
 	retryablehttp "github.com/hashicorp/go-retryablehttp"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 const (
@@ -34,15 +35,16 @@ type IDSToken struct {
 	ExpirationTime time.Time
 }
 
-// ClientConfig a config needed for the provider to interact with EdgeCast APIs,
-// reading data comes from terraform main.tf
+/* TODO: Rename ClientConfig to ProviderConfig and move to provider.go */
+
+// ClientConfig holds configuration values for the provider.
 type ClientConfig struct {
-	APIToken         string
+	APIToken         string `json:"-"` // sensitive.
 	AccountNumber    string
-	IdsClientID      string
-	IdsClientSecret  string
-	IdsScope         string
-	IdsAddress       string
+	IdsClientID      string `json:"-"` // sensitive.
+	IdsClientSecret  string `json:"-"` // sensitive.
+	IdsScope         string `json:"-"` // sensitive.
+	IDSAddress       string
 	APIAddress       string
 	APIAddressLegacy string
 	APIURL           *url.URL
@@ -50,42 +52,45 @@ type ClientConfig struct {
 	APIURLLegacy     *url.URL
 	PartnerID        int
 	PartnerUserID    int
-	BaseClient       *BaseClient
-	BaseClientLegacy *BaseClient
 	UserAgent        string
 }
 
-// NewClientConfig constructor of ClientConfig
-func NewClientConfig(apiToken string, accountNumber string, idsClientID string, idsClientSecret string, idsScope string, apiURL string, idsURL string, apiURLLegacy string) (*ClientConfig, error) {
-	config := ClientConfig{
-		APIToken:         apiToken,
-		AccountNumber:    accountNumber,
-		IdsClientID:      idsClientID,
-		IdsClientSecret:  idsClientSecret,
-		IdsScope:         idsScope,
-		PartnerID:        0,
-		PartnerUserID:    0,
-		BaseClient:       nil,
-		IdsAddress:       idsURL,
-		APIAddress:       apiURL,
-		APIAddressLegacy: apiURLLegacy,
+/*  TODO: Rename to ExpandProviderConfig and move to provider.go */
+
+// ExpandClientConfig reads ClientConfig using the TF Resource Data.
+func ExpandClientConfig(d *schema.ResourceData) (*ClientConfig, error) {
+	config := &ClientConfig{
+		APIToken:         d.Get("api_token").(string),
+		AccountNumber:    d.Get("account_number").(string),
+		IdsClientID:      d.Get("ids_client_id").(string),
+		IdsClientSecret:  d.Get("ids_client_secret").(string),
+		IdsScope:         d.Get("ids_scope").(string),
+		IDSAddress:       d.Get("ids_address").(string),
+		APIAddress:       d.Get("api_address").(string),
+		APIAddressLegacy: d.Get("api_address_legacy").(string),
 	}
 	var err error
-	log.Printf("idsaddress from main.tf: %s", idsURL)
-	config.IdsURL, err = url.Parse(idsURL)
+	config.IdsURL, err = url.Parse(config.IDSAddress)
 	if err != nil {
-		return nil, fmt.Errorf("NewClientConfig: Parse IDS URL: %v", err)
+		return nil, fmt.Errorf("failed to parse API URL: %w", err)
 	}
-	log.Printf("config.IdsURL: %s", config.IdsURL)
-	config.APIURL, err = url.Parse(apiURL)
+	config.APIURL, err = url.Parse(config.APIAddress)
 	if err != nil {
-		return nil, fmt.Errorf("NewClientConfig: Parse API URL: %v", err)
+		return nil, fmt.Errorf("failed to parse API URL: %w", err)
 	}
-	config.APIURLLegacy, err = url.Parse(apiURLLegacy)
+	config.APIURLLegacy, err = url.Parse(config.APIAddressLegacy)
 	if err != nil {
-		return nil, fmt.Errorf("NewClientConfig: Parse Legacy API URL: %v", err)
+		return nil, fmt.Errorf("failed to parse legacy API URL: %w", err)
 	}
-	return &config, nil
+	if partnerUserIDValue, ok := d.GetOk("partner_user_id"); ok {
+		config.PartnerUserID = partnerUserIDValue.(int)
+	}
+
+	if partnerIDValue, ok := d.GetOk("partner_id"); ok {
+		config.PartnerID = partnerIDValue.(int)
+	}
+
+	return config, nil
 }
 
 // BaseClient -

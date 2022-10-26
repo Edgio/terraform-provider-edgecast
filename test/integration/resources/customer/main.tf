@@ -13,6 +13,7 @@ terraform {
 # Variables
 ##########################################
 variable "credentials" {
+  sensitive = true
   type = object({
     api_token          = string
     ids_client_secret  = string
@@ -22,7 +23,6 @@ variable "credentials" {
     api_address_legacy = string
     ids_address        = string
   })
-  sensitive = true
 }
 
 variable "account_number" {

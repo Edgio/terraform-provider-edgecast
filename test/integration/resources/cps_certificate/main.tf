@@ -15,19 +15,29 @@ terraform {
 ##########################################
 
 variable "credentials" {
-  sensitive = true
-  type = object({
-    api_token         = string
-    ids_client_secret = string
-    ids_client_id     = string
-    ids_scope         = string
-    api_address       = string
-    ids_address       = string
-  })
+    sensitive = true
+    type = object({
+        api_token         = string
+        ids_client_secret = string
+        ids_client_id     = string
+        ids_scope         = string
+        api_address       = string
+        ids_address       = string
+    })
 }
 
 variable "account_number" {
   type = string
+}
+
+variable "MCC_ACCOUNT_EMAIL" {
+  type = string
+  default = "" # This prevents being prompted during integration test run
+}
+
+variable "cert_label_random" {
+  type = string
+  default = ""
 }
 
 ##########################################
@@ -42,6 +52,3 @@ provider "edgecast" {
   ids_address       = var.credentials.ids_address
   api_address       = var.credentials.api_address
 }
-
-
-
