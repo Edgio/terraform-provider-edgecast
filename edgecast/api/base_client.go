@@ -69,19 +69,24 @@ func ExpandClientConfig(d *schema.ResourceData) (*ClientConfig, error) {
 		APIAddress:       d.Get("api_address").(string),
 		APIAddressLegacy: d.Get("api_address_legacy").(string),
 	}
+
 	var err error
+
 	config.IdsURL, err = url.Parse(config.IDSAddress)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse API URL: %w", err)
+		return nil, fmt.Errorf("failed to parse IDS URL: %w", err)
 	}
+
 	config.APIURL, err = url.Parse(config.APIAddress)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse API URL: %w", err)
 	}
+
 	config.APIURLLegacy, err = url.Parse(config.APIAddressLegacy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse legacy API URL: %w", err)
 	}
+
 	if partnerUserIDValue, ok := d.GetOk("partner_user_id"); ok {
 		config.PartnerUserID = partnerUserIDValue.(int)
 	}
