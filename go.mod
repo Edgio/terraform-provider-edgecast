@@ -7,7 +7,6 @@ go 1.18
 
 require (
 	github.com/EdgeCast/ec-sdk-go v0.1.26
-	github.com/go-openapi/strfmt v0.21.1
 	github.com/go-test/deep v1.0.8
 	github.com/google/uuid v1.3.0
 	github.com/gruntwork-io/terratest v0.40.13
@@ -19,6 +18,8 @@ require (
 	github.com/stretchr/testify v1.7.1
 )
 
+require github.com/go-openapi/strfmt v0.21.1
+
 require (
 	cloud.google.com/go v0.83.0 // indirect
 	cloud.google.com/go/storage v1.10.0 // indirect
@@ -28,6 +29,7 @@ require (
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
+	github.com/ahmetalpbalkan/go-linq v3.0.0+incompatible
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20200907205600-7a23bdc65eef // indirect

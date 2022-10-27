@@ -180,6 +180,22 @@ func GetCertificateSchema() map[string]*schema.Schema {
 						Computed:    true,
 						Description: "Indicates status information for this domain.",
 					},
+					"dcv_token": {
+						Type:     schema.TypeString,
+						Computed: true,
+						Description: "This property's data type varies according to the certificate request's DCV method. \n" +
+							"DNS Text: Returns a string set to the token value through which you may prove control over your certificate request's domains.\n" +
+							"DNS CNAME: Returns an object that contains DCV metadata for a specific domain in your certificate request.",
+					},
+					"emails": {
+						Type:     schema.TypeList,
+						Computed: true,
+						Description: "Email only \n" +
+							"Contains a list of email addresses to which DCV instructions will be sent.",
+						Elem: &schema.Schema{
+							Type: schema.TypeString,
+						},
+					},
 				},
 			},
 			Description: "Contains the certificate's domain(s).",

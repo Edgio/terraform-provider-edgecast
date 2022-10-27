@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"terraform-provider-edgecast/edgecast/api"
@@ -18,7 +19,9 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/dcv"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
+	"github.com/ahmetalpbalkan/go-linq"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
@@ -233,11 +236,12 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
 
+	log.Printf("[INFO] Retrieving certificate Status : ID: %d\n", certID)
+
 	statusparams := certificate.NewCertificateGetCertificateStatusParams()
 	statusparams.ID = certID
 
-	statusresp, err :=
-		svc.Certificate.CertificateGetCertificateStatus(statusparams)
+	statusresp, err := svc.Certificate.CertificateGetCertificateStatus(statusparams)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -245,6 +249,24 @@ func ResourceCertificateRead(ctx context.Context,
 	log.Printf(
 		"[INFO] Retrieved certificate request status: %# v\n",
 		pretty.Formatter(statusresp))
+
+	log.Printf("[INFO] Retrieving certificate dcv metadata : ID: %d\n", certID)
+
+	var metadata []*models.DomainDcvFull
+
+	if resp.ValidationType == models.CdnProvidedCertificateValidationTypeDV {
+		// DV
+		// Use one API call for all domains.
+		metadata = GetDomainMetadata(resp, svc)
+	} else {
+		// EV | OV
+		// Group domains by parent domain and call api for each group.
+		metadata = GetDomainGroupedMetadata(resp, svc)
+	}
+
+	log.Printf(
+		"[INFO] Retrieving certificate notification settings: ID: %d\n",
+		certID)
 
 	nparams := certificate.NewCertificateGetRequestNotificationsParams()
 	nparams.ID = certID
@@ -258,8 +280,10 @@ func ResourceCertificateRead(ctx context.Context,
 		"[INFO] Retrieved certificate notification settings: %# v\n",
 		pretty.Formatter(resp))
 
+	log.Printf("[INFO] metadata ALL: %# v\n", pretty.Formatter(metadata))
+
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp)
+	err = setCertificateState(d, resp, nresp, statusresp, metadata)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -267,11 +291,118 @@ func ResourceCertificateRead(ctx context.Context,
 	return diag.Diagnostics{}
 }
 
+func GetDomainMetadata(
+	resp *certificate.CertificateGetOK,
+	svc *cps.CpsService,
+) []*models.DomainDcvFull {
+	metadata := make([]*models.DomainDcvFull, 0)
+	domainIDs := ""
+
+	for _, domain := range resp.Domains {
+		domainID := strconv.FormatInt(domain.ID, 10)
+
+		if len(domainIDs) == 0 {
+			domainIDs = domainID
+		} else {
+			domainIDs = domainIDs + "," + domainID
+		}
+	}
+
+	dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+	dcvparams.ID = resp.ID // Cert ID.
+	dcvparams.DomainIds = &domainIDs
+
+	dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+	if err == nil {
+		// continue
+		metadata = append(metadata, dcvresp.Items...)
+	}
+
+	log.Printf(
+		"[INFO] Retrieved dcv metadata for DV cert: %# v\n",
+		pretty.Formatter(dcvresp))
+
+	return metadata
+}
+
+func GetDomainGroupedMetadata(
+	resp *certificate.CertificateGetOK,
+	svc *cps.CpsService,
+) []*models.DomainDcvFull {
+	domainidsnochildren := ""
+	metadata := make([]*models.DomainDcvFull, 0)
+	mlock := &sync.Mutex{}
+	wg := sync.WaitGroup{}
+
+	domaingroups := getDomainGroups(resp.Domains)
+	for groupk, groupv := range domaingroups {
+		tempID := strconv.FormatInt(groupk, 10)
+
+		if len(groupv) > 1 {
+			// Has children.
+			dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+			dcvparams.ID = resp.ID
+			dcvparams.DomainIds = &tempID
+
+			// Spin up a worker to call the api.
+			wg.Add(1)
+			go func(dcvparams dcv.DcvGetCertificateDomainDetailsParams) {
+				defer wg.Done()
+
+				dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+				if err == nil {
+					mlock.Lock()
+					metadata = append(metadata, dcvresp.Items...)
+					mlock.Unlock()
+				}
+			}(dcvparams)
+
+		} else {
+			if len(domainidsnochildren) == 0 {
+				domainidsnochildren = tempID
+			} else {
+				domainidsnochildren = domainidsnochildren + "," + tempID
+			}
+		}
+	}
+
+	// Use one call for all of the domains with no children.
+	dcvparams := dcv.NewDcvGetCertificateDomainDetailsParams()
+	dcvparams.ID = resp.ID
+	dcvparams.DomainIds = &domainidsnochildren
+
+	wg.Add(1)
+	go func(dcvparams dcv.DcvGetCertificateDomainDetailsParams) {
+		defer wg.Done()
+
+		dcvresp, err := svc.Dcv.DcvGetCertificateDomainDetails(dcvparams)
+		if err == nil {
+			mlock.Lock()
+			metadata = append(metadata, dcvresp.Items...)
+			mlock.Unlock()
+		}
+	}(dcvparams)
+
+	// log.Printf(
+	// 	"[INFO] Retrieved dcv metadata (no children): %# v\n",
+	// 	pretty.Formatter(dcvresp))
+
+	// Wait for all api workers to finish.
+	wg.Wait()
+
+	// log.Printf(
+	// 	"[INFO] dcv metadata combined: %# v\n",
+	// 	pretty.Formatter(metadata))
+
+	return metadata
+}
+
 func setCertificateState(
 	d *schema.ResourceData,
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
+	dcvresp []*models.DomainDcvFull,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -281,7 +412,10 @@ func setCertificateState(
 	d.Set("validation_type", resp.ValidationType)
 	d.Set("auto_renew", resp.AutoRenew)
 
-	flattendDomains := FlattenDomains(resp.Domains)
+	flattendDomains, err := FlattenDomains(resp.Domains, dcvresp, resp.ValidationType)
+	if err != nil {
+		return fmt.Errorf("error parsing domains: %w", err)
+	}
 	d.Set("domain", flattendDomains)
 
 	flattendOrganization := FlattenOrganization(resp.Organization)
@@ -721,7 +855,9 @@ func FlattenDeployments(
 
 func FlattenDomains(
 	domains []*models.Domain,
-) []map[string]interface{} {
+	metadata []*models.DomainDcvFull,
+	validationType string,
+) ([]map[string]interface{}, error) {
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, v := range domains {
@@ -738,10 +874,46 @@ func FlattenDomains(
 		tCreated, _ := time.Parse(datetimeFormat, v.Created.String())
 		m["created"] = tCreated.Format(datetimeFormat)
 
+		if len(metadata) > 0 {
+			switch strings.ToLower(validationType) {
+
+			case strings.ToLower(models.CdnProvidedCertificateValidationTypeDV):
+
+				// all domains share the same token/emails.
+				m["emails"] = metadata[0].Emails
+				if metadata[0].DcvToken != nil {
+					m["dcv_token"] = metadata[0].DcvToken.Token
+				}
+
+			case strings.ToLower(models.CdnProvidedCertificateValidationTypeEV),
+				strings.ToLower(models.CdnProvidedCertificateValidationTypeOV):
+
+				// Only match parent tokens/emails.
+				// Ok to ignore children tokens/emails.
+				var domainMetaData []*models.DomainDcvFull
+
+				linq.From(metadata).Where(func(c interface{}) bool {
+					return c.(*models.DomainDcvFull).DomainID == v.ID
+				}).Select(func(c interface{}) interface{} {
+					return (c.(*models.DomainDcvFull))
+				}).ToSlice(&domainMetaData)
+
+				if domainMetaData != nil {
+					m["emails"] = domainMetaData[0].Emails
+					if domainMetaData[0].DcvToken != nil {
+						m["dcv_token"] = domainMetaData[0].DcvToken.Token
+					}
+				}
+
+			default:
+				return nil, errors.New("not a valid dcv validation type")
+			}
+		}
+
 		flattened = append(flattened, m)
 	}
 
-	return flattened
+	return flattened, nil
 }
 
 func FlattenOrganization(
@@ -888,6 +1060,76 @@ func flattenDomainValidation(
 	}
 
 	return flattened
+}
+
+func getDomainGroups(domains []*models.Domain) map[int64][]*models.Domain {
+	domaingroups := make(map[int64][]*models.Domain, 0)
+	domainsAll := make([]*models.Domain, len(domains))
+
+	copy(domainsAll, domains)
+	sort.Slice(domainsAll, func(i, j int) bool {
+		return len(domainsAll[i].Name) < len(domainsAll[j].Name)
+	})
+
+	// grab all the obvious parents.
+	for kdomain, vdomain := range domainsAll {
+		splitdomain := strings.Split(vdomain.Name, ".")
+		if len(splitdomain) <= 2 {
+			// parent domain
+			domains := make([]*models.Domain, 0)
+			domains = append(domains, vdomain)
+			domaingroups[vdomain.ID] = domains
+			domainsAll[kdomain] = nil
+		}
+	}
+
+	// parent-child match
+	for kparent, vparent := range domaingroups {
+		for k, v := range domainsAll {
+			if domainsAll[k] != nil {
+				if strings.HasSuffix(v.Name, "."+vparent[0].Name) {
+					vparent = append(vparent, v)
+					domaingroups[kparent] = vparent
+					domainsAll[k] = nil
+				}
+			}
+		}
+	}
+
+	domainscounter := linq.From(domainsAll).Where(func(i interface{}) bool {
+		return i.(*models.Domain) != nil
+	}).Count()
+
+	// check for any other parents/child combination left
+	for {
+		for ak, av := range domainsAll {
+			if av != nil {
+				// parent
+				parent := make([]*models.Domain, 0)
+				parent = append(parent, av)
+				domaingroups[av.ID] = parent
+				domainsAll[ak] = nil
+				domainscounter--
+
+				// another loop through to match
+				for k, v := range domainsAll {
+					if v != nil {
+						if strings.HasSuffix(v.Name, "."+av.Name) {
+							parent = append(parent, v)
+							domaingroups[av.ID] = parent
+							domainsAll[k] = nil
+							domainscounter--
+						}
+					}
+				}
+			}
+		}
+
+		if domainscounter == 0 {
+			break // no more domains left to match
+		}
+	}
+	return domaingroups
 }
 
 // CertificateState represents the state of a certificate as it exists in the

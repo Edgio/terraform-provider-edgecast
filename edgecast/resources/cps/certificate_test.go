@@ -1,7 +1,7 @@
 // Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
 // license. See LICENSE file in project root for terms.
 
-package cps_test
+package cps
 
 import (
 	"errors"
@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"terraform-provider-edgecast/edgecast/helper"
-	"terraform-provider-edgecast/edgecast/resources/cps"
 
 	sdkcps "github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
@@ -28,7 +27,7 @@ func TestExpandCertificate(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       map[string]any
-		expectedPtr *cps.CertificateState
+		expectedPtr *CertificateState
 		expectErrs  bool
 		errCount    int
 	}{
@@ -108,7 +107,7 @@ func TestExpandCertificate(t *testing.T) {
 					},
 				},
 			},
-			expectedPtr: &cps.CertificateState{
+			expectedPtr: &CertificateState{
 				CertificateLabel:     "my_cert",
 				CertificateAuthority: "authorityA",
 				DcvMethod:            "methodA",
@@ -195,11 +194,11 @@ func TestExpandCertificate(t *testing.T) {
 			if tt.input != nil {
 				rd = schema.TestResourceDataRaw(
 					t,
-					cps.GetCertificateSchema(),
+					GetCertificateSchema(),
 					tt.input)
 			}
 
-			actualPtr, errs := cps.ExpandCertificate(rd)
+			actualPtr, errs := ExpandCertificate(rd)
 
 			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
@@ -347,7 +346,7 @@ func TestExpandOrganization(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := cps.ExpandOrganization(v.input)
+		actualPtr, err := ExpandOrganization(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -441,7 +440,7 @@ func TestExpandOrganizationContact(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := cps.ExpandAdditionalContacts(v.input)
+		actualPtr, err := ExpandAdditionalContacts(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -519,7 +518,7 @@ func TestExpandDomains(t *testing.T) {
 	}
 
 	for _, v := range cases {
-		actualPtr, err := cps.ExpandDomains(v.input)
+		actualPtr, err := ExpandDomains(v.input)
 
 		if v.expectSuccess {
 			if err == nil {
@@ -597,7 +596,7 @@ func TestFlattenDeployments(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := cps.FlattenDeployments(c.input)
+		actual := FlattenDeployments(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -660,7 +659,7 @@ func TestFlattenActor(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := cps.FlattenActor(c.input)
+		actual := FlattenActor(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -770,7 +769,7 @@ func TestExpandNotifSettings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got, errs := cps.ExpandNotifSettings(tt.args)
+			got, errs := ExpandNotifSettings(tt.args)
 
 			if tt.expectError && len(errs) > 0 {
 				return // successful test
@@ -868,7 +867,7 @@ func TestFlattenNotifSettings(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := cps.FlattenNotifSettings(tt.args)
+			got := FlattenNotifSettings(tt.args)
 
 			diffs := deep.Equal(got, tt.want)
 			if len(diffs) > 0 {
@@ -879,65 +878,301 @@ func TestFlattenNotifSettings(t *testing.T) {
 	}
 }
 
-func TestFlattenDomains(t *testing.T) {
+func TestFlattenDomainsDV(t *testing.T) {
+	activeDate := strfmt.DateTime(time.Now())
+	createdDate := strfmt.DateTime(time.Now())
+
 	cases := []struct {
-		name     string
-		input    []*models.Domain
-		expected []map[string]interface{}
+		name          string
+		inputDomains  []*models.Domain
+		inputMetadata []*models.DomainDcvFull
+		input         string
+		expected      []map[string]interface{}
 	}{
 		{
 			name: "Happy path",
-			input: []*models.Domain{
+			inputDomains: []*models.Domain{
 				{
 					ID:           1,
 					Name:         "domain 1",
 					Status:       "Active",
 					IsCommonName: true,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 				{
 					ID:           2,
 					Name:         "domain 2",
 					Status:       "Active",
 					IsCommonName: false,
-					ActiveDate:   strfmt.DateTime(time.Now()),
-					Created:      strfmt.DateTime(time.Now()),
+					ActiveDate:   activeDate,
+					Created:      createdDate,
 				},
 			},
+			inputMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DV",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  0,
+					Emails:    []string{"email1@test.com", "email2@test.com"},
+				},
+			},
+			input: "DV",
 			expected: []map[string]interface{}{
 				{
 					"id":             int64(1),
 					"name":           "domain 1",
 					"status":         "Active",
 					"is_common_name": true,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token",
 				},
 				{
 					"id":             int64(2),
 					"name":           "domain 2",
 					"status":         "Active",
 					"is_common_name": false,
-					"active_date":    strfmt.DateTime(time.Now()).String(),
-					"created":        strfmt.DateTime(time.Now()).String(),
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token",
 				},
 			},
 		},
 		{
-			name:     "Nil input",
-			input:    nil,
-			expected: make([]map[string]interface{}, 0),
+			name: "Happy path - no metadata",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   activeDate,
+					Created:      createdDate,
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   activeDate,
+					Created:      createdDate,
+				},
+			},
+			inputMetadata: nil,
+			input:         "DV",
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+				},
+			},
 		},
 		{
-			name:     "Empty input",
-			input:    make([]*models.Domain, 0),
-			expected: make([]map[string]interface{}, 0),
+			name:          "Nil input",
+			inputDomains:  nil,
+			inputMetadata: nil,
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
+		},
+		{
+			name:          "Empty input",
+			inputDomains:  make([]*models.Domain, 0),
+			inputMetadata: make([]*models.DomainDcvFull, 0),
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
 		},
 	}
 
 	for _, c := range cases {
-		actual := cps.FlattenDomains(c.input)
+		actual, _ := FlattenDomains(c.inputDomains, c.inputMetadata, c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
+func TestFlattenDomainsOV(t *testing.T) {
+	activeDate := strfmt.DateTime(time.Now())
+	createdDate := strfmt.DateTime(time.Now())
+
+	cases := []struct {
+		name          string
+		inputDomains  []*models.Domain
+		inputMetadata []*models.DomainDcvFull
+		input         string
+		expected      []map[string]interface{}
+	}{
+		{
+			name: "Happy path",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   activeDate,
+					Created:      createdDate,
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   activeDate,
+					Created:      createdDate,
+				},
+			},
+			inputMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 1"},
+					DomainID:  1,
+					Emails:    []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 2"},
+					DomainID:  2,
+					Emails:    []string{"email3@test.com", "email4@test.com"},
+				},
+			},
+			input: "OV",
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token 1",
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+					"emails": []string{
+						"email3@test.com",
+						"email4@test.com",
+					},
+					"dcv_token": "token 2",
+				},
+			},
+		},
+		{
+			name: "missing id in metadata",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "domain 1",
+					Status:       "Active",
+					IsCommonName: true,
+					ActiveDate:   activeDate,
+					Created:      createdDate,
+				},
+				{
+					ID:           2,
+					Name:         "domain 2",
+					Status:       "Active",
+					IsCommonName: false,
+					ActiveDate:   activeDate,
+					Created:      createdDate,
+				},
+			},
+			inputMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 2"},
+					DomainID:  2,
+					Emails:    []string{"email1@test.com", "email2@test.com"},
+				},
+				{
+					DcvMethod: "OV",
+					DcvToken:  &models.DcvToken{Token: "token 4"},
+					DomainID:  4,
+					Emails:    []string{"email3@test.com", "email4@test.com"},
+				},
+			},
+			input: "OV",
+			expected: []map[string]interface{}{
+				{
+					"id":             int64(1),
+					"name":           "domain 1",
+					"status":         "Active",
+					"is_common_name": true,
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+				},
+				{
+					"id":             int64(2),
+					"name":           "domain 2",
+					"status":         "Active",
+					"is_common_name": false,
+					"active_date":    activeDate.String(),
+					"created":        createdDate.String(),
+					"emails": []string{
+						"email1@test.com",
+						"email2@test.com",
+					},
+					"dcv_token": "token 2",
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			inputDomains:  nil,
+			inputMetadata: nil,
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
+		},
+		{
+			name:          "Empty input",
+			inputDomains:  make([]*models.Domain, 0),
+			inputMetadata: make([]*models.DomainDcvFull, 0),
+			input:         "",
+			expected:      make([]map[string]interface{}, 0),
+		},
+	}
+
+	for _, c := range cases {
+		actual, _ := FlattenDomains(c.inputDomains, c.inputMetadata, c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -1047,7 +1282,7 @@ func TestFlattenOrganization(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := cps.FlattenOrganization(c.input)
+		actual := FlattenOrganization(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -1142,7 +1377,185 @@ func TestFlattenRequestStatus(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		actual := cps.FlattenRequestStatus(c.input)
+		actual := FlattenRequestStatus(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
+func TestGroupDomains(t *testing.T) {
+	cases := []struct {
+		name         string
+		inputDomains []*models.Domain
+		expected     map[int64][]*models.Domain
+	}{
+		{
+			name: "parent child relationships",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "testparentdomain.com",
+					Status:       "Active",
+					IsCommonName: true,
+				},
+				{
+					ID:           2,
+					Name:         "subdomain.testparentdomain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+				{
+					ID:           3,
+					Name:         "subdomain2.testparentdomain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+				{
+					ID:           4,
+					Name:         "test.anotherparentdomain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+				{
+					ID:           5,
+					Name:         "Subdomain.test.anotherparentdomain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+				{
+					ID:           6,
+					Name:         "parentdomain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+				{
+					ID:           7,
+					Name:         "someparentdomain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+			},
+			expected: map[int64][]*models.Domain{
+				int64(1): {
+					{
+						ID:           1,
+						Name:         "testparentdomain.com",
+						Status:       "Active",
+						IsCommonName: true,
+					},
+					{
+						ID:           2,
+						Name:         "subdomain.testparentdomain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+					{
+						ID:           3,
+						Name:         "subdomain2.testparentdomain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+				},
+				int64(4): {
+					{
+						ID:           4,
+						Name:         "test.anotherparentdomain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+					{
+						ID:           5,
+						Name:         "Subdomain.test.anotherparentdomain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+				},
+				int64(6): {
+					{
+						ID:           6,
+						Name:         "parentdomain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+				},
+				int64(7): {
+					{
+						ID:           7,
+						Name:         "someparentdomain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+				},
+			},
+		},
+		{
+			name: "no parent child relationships",
+			inputDomains: []*models.Domain{
+				{
+					ID:           1,
+					Name:         "testdomain.com",
+					Status:       "Active",
+					IsCommonName: true,
+				},
+				{
+					ID:           2,
+					Name:         "subdomain.test.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+				{
+					ID:           3,
+					Name:         "subdomain2.domain.com",
+					Status:       "Active",
+					IsCommonName: false,
+				},
+			},
+			expected: map[int64][]*models.Domain{
+				int64(1): {
+					{
+						ID:           1,
+						Name:         "testdomain.com",
+						Status:       "Active",
+						IsCommonName: true,
+					},
+				},
+				int64(2): {
+					{
+						ID:           2,
+						Name:         "subdomain.test.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+				},
+				int64(3): {
+					{
+						ID:           3,
+						Name:         "subdomain2.domain.com",
+						Status:       "Active",
+						IsCommonName: false,
+					},
+				},
+			},
+		},
+		{
+			name:         "Empty input",
+			inputDomains: make([]*models.Domain, 0),
+			expected:     make(map[int64][]*models.Domain, 0),
+		},
+	}
+
+	for _, c := range cases {
+		actual := getDomainGroups(c.inputDomains)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
@@ -1259,7 +1672,7 @@ func TestGetUpdater(t *testing.T) {
 				},
 			}
 
-			got, err := cps.GetUpdater(mockSvc, cps.CertificateState{})
+			got, err := GetUpdater(mockSvc, CertificateState{})
 
 			if !tt.expectErr && err != nil {
 				t.Fatalf("unexpected error: %v", err)
@@ -1366,9 +1779,9 @@ func TestUpdaterUpdate(t *testing.T) {
 				},
 			}
 
-			updater := cps.CertUpdater{
+			updater := CertUpdater{
 				Svc: mockSvc,
-				State: cps.CertificateState{
+				State: CertificateState{
 					CertificateID:        1,
 					NotificationSettings: make([]*models.EmailNotification, 0),
 					Organization:         &models.OrganizationDetail{},
