@@ -14,8 +14,8 @@ import (
 	"sync"
 	"time"
 
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
@@ -48,12 +48,12 @@ func ResourceCertificateCreate(
 	m interface{},
 ) diag.Diagnostics {
 	// Initialize CPS Service.
-	config, ok := m.(**api.ClientConfig)
+	config, ok := m.(internal.ProviderConfig)
 	if !ok {
 		return helper.CreationErrorf(d, "failed to load configuration")
 	}
 
-	svc, err := buildCPSService(**config)
+	svc, err := buildCPSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -208,12 +208,12 @@ func ResourceCertificateRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config, ok := m.(**api.ClientConfig)
+	config, ok := m.(internal.ProviderConfig)
 	if !ok {
 		return diag.Errorf("failed to load configuration")
 	}
 
-	svc, err := buildCPSService(**config)
+	svc, err := buildCPSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -501,12 +501,12 @@ func ResourceCertificateUpdate(
 	m interface{},
 ) diag.Diagnostics {
 	// Initialize CPS Service.
-	config, ok := m.(**api.ClientConfig)
+	config, ok := m.(internal.ProviderConfig)
 	if !ok {
 		return helper.CreationErrorf(d, "failed to load configuration")
 	}
 
-	svc, err := buildCPSService(**config)
+	svc, err := buildCPSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -541,12 +541,12 @@ func ResourceCertificateDelete(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config, ok := m.(**api.ClientConfig)
+	config, ok := m.(internal.ProviderConfig)
 	if !ok {
 		return diag.Errorf("failed to load configuration")
 	}
 
-	cpsService, err := buildCPSService(**config)
+	cpsService, err := buildCPSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

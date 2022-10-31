@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"log"
 
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
@@ -22,7 +22,7 @@ import (
 // buildCPSService builds the SDK CPS service to manage CPS
 // resources.
 func buildCPSService(
-	config api.ClientConfig,
+	config internal.ProviderConfig,
 ) (*cps.CpsService, error) {
 	idsCredentials := edgecast.IDSCredentials{
 		ClientID:     config.IdsClientID,
@@ -48,9 +48,9 @@ func DataSourceNamedEntityRead(
 	readFunc func(svc *cps.CpsService, d *schema.ResourceData) (*models.HyperionCollectionNamedEntity, error),
 ) diag.Diagnostics {
 	// Initialize CPS Service
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	cpsService, err := buildCPSService(**config)
+	cpsService, err := buildCPSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

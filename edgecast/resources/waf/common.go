@@ -6,8 +6,8 @@ package waf
 import (
 	"errors"
 	"fmt"
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	sdkwaf "github.com/EdgeCast/ec-sdk-go/edgecast/waf"
@@ -15,8 +15,9 @@ import (
 )
 
 // buildWAFService builds the SDK WAF service to managed WAF resources
-func buildWAFService(config api.ClientConfig) (*sdkwaf.WafService, error) {
-
+func buildWAFService(
+	config internal.ProviderConfig,
+) (*sdkwaf.WafService, error) {
 	idsCredentials := edgecast.IDSCredentials{
 		ClientID:     config.IdsClientID,
 		ClientSecret: config.IdsClientSecret,

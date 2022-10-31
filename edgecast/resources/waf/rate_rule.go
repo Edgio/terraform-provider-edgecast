@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/rate"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -174,8 +174,8 @@ func ResourceRateRuleCreate(
 	m interface{},
 ) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -218,14 +218,14 @@ func ResourceRateRuleRead(
 	m interface{},
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	ruleID := d.Id()
 	log.Printf(
 		"[INFO] Retrieving Rate Rule '%s' for account number %s",
 		ruleID,
 		accountNumber)
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -260,8 +260,8 @@ func ResourceRateRuleUpdate(
 	m interface{},
 ) diag.Diagnostics {
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -306,8 +306,8 @@ func ResourceRateRuleDelete(
 	var diags diag.Diagnostics
 	ruleID := d.Id()
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)

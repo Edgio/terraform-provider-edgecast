@@ -9,8 +9,7 @@ import (
 	"log"
 	"strconv"
 	"terraform-provider-edgecast/edgecast/helper"
-
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/origin"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/shared/enums"
@@ -191,7 +190,7 @@ func ResourceOriginCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	mediaTypeID := d.Get("media_type_id").(int)
 
@@ -236,7 +235,7 @@ func ResourceOriginCreate(
 	log.Printf("resourceOriginCreate>>origin object:%v\n", originObj)
 
 	// Initialize Origin Service
-	originService, err := buildOriginService(**config)
+	originService, err := buildOriginService(config)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -264,7 +263,7 @@ func ResourceOriginRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	mediaTypeID := d.Get("media_type_id").(int)
 	customerOriginID, err := strconv.Atoi(d.Id())
@@ -273,7 +272,7 @@ func ResourceOriginRead(
 	}
 
 	// Initialize Origin Service
-	originService, err := buildOriginService(**config)
+	originService, err := buildOriginService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -317,7 +316,7 @@ func ResourceOriginUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	mediaTypeID := d.Get("media_type_id").(int)
 	customerOriginID, err := strconv.Atoi(d.Id())
@@ -326,7 +325,7 @@ func ResourceOriginUpdate(
 	}
 
 	// Initialize Origin Service
-	originService, err := buildOriginService(**config)
+	originService, err := buildOriginService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -396,7 +395,7 @@ func ResourceOriginDelete(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	mediaTypeID := d.Get("media_type_id").(int)
 	customerOriginID, err := strconv.Atoi(d.Id())
@@ -405,7 +404,7 @@ func ResourceOriginDelete(
 	}
 
 	// Initialize Origin Service
-	originService, err := buildOriginService(**config)
+	originService, err := buildOriginService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

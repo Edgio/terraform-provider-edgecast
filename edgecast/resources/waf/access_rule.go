@@ -7,8 +7,8 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/access"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -308,8 +308,8 @@ func ResourceAccessRuleCreate(
 		accessRule.CustomerID)
 	helper.LogInstanceAsPrettyJson("[DEBUG] ACCESSRULE", accessRule)
 
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		d.SetId("")
@@ -340,10 +340,10 @@ func ResourceAccessRuleRead(
 	var diags diag.Diagnostics
 	accountNumber := d.Get("account_number").(string)
 	ruleID := d.Id()
-	config := m.(**api.ClientConfig)
-	(*config).AccountNumber = accountNumber
+	config := m.(internal.ProviderConfig)
+	config.AccountNumber = accountNumber
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -411,8 +411,8 @@ func ResourceAccessRuleUpdate(
 		ruleID,
 		accessRule.CustomerID)
 
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -447,8 +447,8 @@ func ResourceAccessRuleDelete(
 		ruleID,
 		accountNumber)
 
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)

@@ -4,7 +4,7 @@
 package rulesengine
 
 import (
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
@@ -13,7 +13,7 @@ import (
 // buildRulesEngineService builds the SDK Rules Engine service to manage Rule
 // resources
 func buildRulesEngineService(
-	config api.ClientConfig,
+	config internal.ProviderConfig,
 ) (*rulesengine.RulesEngineService, error) {
 
 	idsCredentials := edgecast.IDSCredentials{

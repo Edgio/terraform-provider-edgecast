@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"terraform-provider-edgecast/edgecast/helper"
-
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -414,8 +413,8 @@ func ResourceGroupCreate(
 
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -457,10 +456,10 @@ func ResourceGroupRead(
 	} else if strings.ToLower(rawGroupProductType) == "loadbalancing" {
 		groupProductType = routedns.LoadBalancing
 	}
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
 	// Initialize Route DNS Service
-	routeDNSService, err := buildRouteDNSService(**config)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -523,8 +522,8 @@ func ResourceGroupUpdate(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -636,8 +635,8 @@ func ResourceGroupDelete(
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
 	groupID := d.Get("group_id").(int)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

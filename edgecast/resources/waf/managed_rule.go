@@ -8,8 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/managed"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -292,9 +292,9 @@ func ResourceManagedRuleCreate(ctx context.Context, d *schema.ResourceData, m in
 		return diags
 	}
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -327,8 +327,8 @@ func ResourceManagedRuleRead(ctx context.Context, d *schema.ResourceData, m inte
 	log.Printf("[INFO] Reading WAF Managed Rule ID %s for Account >> %s", ruleID, accountNumber)
 
 	// Initialize WAF Service
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -435,9 +435,9 @@ func ResourceManagedRuleUpdate(ctx context.Context, d *schema.ResourceData, m in
 		return diags
 	}
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -467,9 +467,9 @@ func ResourceManagedRuleDelete(ctx context.Context, d *schema.ResourceData, m in
 
 	log.Printf("[INFO] Deleting WAF Managed Rule ID %s for Account >> %s", managedRuleID, accountNumber)
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)

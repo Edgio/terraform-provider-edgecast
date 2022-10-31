@@ -9,8 +9,7 @@ import (
 	"log"
 	"strconv"
 	"terraform-provider-edgecast/edgecast/helper"
-
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -52,18 +51,18 @@ func ResourceEdgeCname() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
 				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
 			},
 			"name": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
 				Description: "Identifies a hostname through which your content will be delivered. It should only consist of lower-case alphanumeric characters, dashes, and periods. From your DNS service provider, configure a CNAME record for this hostname.",
 			},
 			"dir_path": {
-				Type:     schema.TypeString,
-				Optional: true,
+				Type:        schema.TypeString,
+				Optional:    true,
 				Description: "Identifies a location on the origin server. Specify a relative path from the root folder of the origin server to the desired location. Set this argument to an empty string to point the edge CNAME to the root folder of the origin server.",
 			},
 			"enable_custom_reports": {
@@ -89,8 +88,8 @@ func ResourceEdgeCname() *schema.Resource {
 					" * `<Customer Origin Group ID>` - Customer Origin Group. Specify the system-defined ID for the desired customer origin group.",
 			},
 			"origin_string": {
-				Type:     schema.TypeString,
-				Computed: true,
+				Type:        schema.TypeString,
+				Computed:    true,
 				Description: "Indicates the origin identifier, the account number, and the relative path associated with the edge CNAME.",
 			},
 		},
@@ -114,8 +113,8 @@ func ResourceEdgeCnameCreate(
 
 	// Initialize Edge CNAME Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	edgecnameService, err := buildEdgeCnameService(**config)
+	config := m.(internal.ProviderConfig)
+	edgecnameService, err := buildEdgeCnameService(config)
 	if err != nil {
 		d.SetId("") // Terraform requires an empty ID for failed creation
 		return diag.FromErr(err)
@@ -152,8 +151,8 @@ func ResourceEdgeCnameRead(
 ) diag.Diagnostics {
 	// Initialize Edge CNAME Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	edgecnameService, err := buildEdgeCnameService(**config)
+	config := m.(internal.ProviderConfig)
+	edgecnameService, err := buildEdgeCnameService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -198,8 +197,8 @@ func ResourceEdgeCnameUpdate(
 	// Initialize Edge CNAME Service
 	accountNumber := d.Get("account_number").(string)
 	edgecnameID, _ := strconv.Atoi(d.Id())
-	config := m.(**api.ClientConfig)
-	edgecnameService, err := buildEdgeCnameService(**config)
+	config := m.(internal.ProviderConfig)
+	edgecnameService, err := buildEdgeCnameService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -250,8 +249,8 @@ func ResourceEdgeCnameDelete(
 	// Initialize Edge CNAME Service
 	accountNumber := d.Get("account_number").(string)
 	edgecnameID, _ := strconv.Atoi(d.Id())
-	config := m.(**api.ClientConfig)
-	edgecnameService, err := buildEdgeCnameService(**config)
+	config := m.(internal.ProviderConfig)
+	edgecnameService, err := buildEdgeCnameService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

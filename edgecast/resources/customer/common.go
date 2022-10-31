@@ -4,7 +4,7 @@
 package customer
 
 import (
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
@@ -13,7 +13,7 @@ import (
 // buildCustomerService builds the SDK Customer service to manage Customer
 // resources
 func buildCustomerService(
-	config api.ClientConfig,
+	config internal.ProviderConfig,
 ) (*customer.CustomerService, error) {
 
 	idsCredentials := edgecast.IDSCredentials{

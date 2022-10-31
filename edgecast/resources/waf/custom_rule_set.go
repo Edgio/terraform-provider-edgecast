@@ -8,8 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/custom"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -21,9 +20,9 @@ func ResourceCustomRuleSetCreate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -70,7 +69,7 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 
 	var diags diag.Diagnostics
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	ruleID := d.Id()
 
@@ -79,7 +78,7 @@ func ResourceCustomRuleSetRead(ctx context.Context,
 		accountNumber,
 	)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -133,9 +132,9 @@ func ResourceCustomRuleSetUpdate(ctx context.Context,
 	log.Printf("[DEBUG] Name: %+v\n", customRuleSetRequest.Name)
 	log.Printf("[DEBUG] Directives: %+v\n", customRuleSetRequest.Directives)
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -171,9 +170,9 @@ func ResourceCustomRuleSetDelete(ctx context.Context,
 		accountNumber,
 	)
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
