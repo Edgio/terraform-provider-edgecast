@@ -9,8 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"terraform-provider-edgecast/edgecast/helper"
-
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -63,8 +62,8 @@ func ResourceTsigCreate(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -100,8 +99,8 @@ func ResourceTsigCreate(
 func ResourceTsigRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -144,8 +143,8 @@ func ResourceTsigUpdate(
 		return diag.FromErr(err)
 	}
 
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -194,8 +193,8 @@ func ResourceTsigDelete(
 		return diag.FromErr(err)
 	}
 
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

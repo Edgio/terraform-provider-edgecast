@@ -6,8 +6,8 @@ import (
 	"context"
 	"fmt"
 
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 	"terraform-provider-edgecast/edgecast/resources/cps"
 	"terraform-provider-edgecast/edgecast/resources/customer"
 	"terraform-provider-edgecast/edgecast/resources/dnsroute"
@@ -45,7 +45,7 @@ func configureProvider(
 	tx context.Context,
 	d *schema.ResourceData,
 ) (interface{}, diag.Diagnostics) {
-	config, err := api.ExpandClientConfig(d)
+	config, err := internal.ExpandProviderConfig(d)
 	if err != nil {
 		return nil, diag.Diagnostics{
 			{
@@ -59,7 +59,7 @@ func configureProvider(
 	config.UserAgent = fmt.Sprintf(userAgentFormat, Version)
 	helper.LogInstanceAsPrettyJson("Provider Configuration", config)
 
-	return &config, nil
+	return *config, nil
 }
 
 func getProviderSchema() map[string]*schema.Schema {

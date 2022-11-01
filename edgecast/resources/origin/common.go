@@ -4,7 +4,7 @@
 package origin
 
 import (
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/origin"
@@ -13,7 +13,7 @@ import (
 // buildOriginService builds the SDK Origin service to manage Origin
 // resources
 func buildOriginService(
-	config api.ClientConfig,
+	config internal.ProviderConfig,
 ) (*origin.OriginService, error) {
 
 	idsCredentials := edgecast.IDSCredentials{

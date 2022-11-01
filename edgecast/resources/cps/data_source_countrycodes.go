@@ -7,8 +7,8 @@ import (
 	"context"
 	"log"
 
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/appendix"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -59,9 +59,9 @@ func DataSourceCountryCodesRead(
 	m interface{},
 ) diag.Diagnostics {
 	// Initialize CPS Service
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	cpsService, err := buildCPSService(**config)
+	cpsService, err := buildCPSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

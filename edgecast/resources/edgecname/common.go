@@ -4,7 +4,7 @@
 package edgecname
 
 import (
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
@@ -13,7 +13,7 @@ import (
 // buildEdgeCnameService builds the SDK Edge CNAME service to manage Edge CNAME
 // resources
 func buildEdgeCnameService(
-	config api.ClientConfig,
+	config internal.ProviderConfig,
 ) (*edgecname.EdgeCnameService, error) {
 
 	idsCredentials := edgecast.IDSCredentials{

@@ -4,7 +4,7 @@
 package dnsroute
 
 import (
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
@@ -13,7 +13,7 @@ import (
 // buildRouteDNSService builds the SDK Route DNS service to manage DNS
 // resources
 func buildRouteDNSService(
-	config api.ClientConfig,
+	config internal.ProviderConfig,
 ) (*routedns.RouteDNSService, error) {
 
 	idsCredentials := edgecast.IDSCredentials{

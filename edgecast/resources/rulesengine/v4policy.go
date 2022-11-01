@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -345,7 +345,7 @@ func getPolicy(
 	d *schema.ResourceData,
 ) (map[string]interface{}, error) {
 	// Retrieve data needed by API call
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	portalTypeID := d.Get("portaltypeid").(string) // 1=MCC 2=PCC 3=WCC 4=UCC
 	customerUserID := d.Get("customeruserid").(string)
@@ -360,7 +360,7 @@ func getPolicy(
 	log.Printf("[INFO] Retrieving policy %d", policyID)
 
 	// Initialize Rules Engine Service
-	rulesengineService, err := buildRulesEngineService(**config)
+	rulesengineService, err := buildRulesEngineService(config)
 	if err != nil {
 		d.SetId("")
 		return nil, fmt.Errorf("addPolicy: buildRulesEngineService: %v", err)
@@ -384,14 +384,14 @@ func addPolicy(
 	m interface{},
 ) error {
 	// Retrieve data needed by API calls
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	customerUserID := d.Get("customeruserid").(string)
 	portalTypeID := d.Get("portaltypeid").(string) // 1=MCC 2=PCC 3=WCC 4=UCC
 	ownerID := d.Get("ownerid").(string)
 
 	// Initialize Rules Engine Service
-	rulesengineService, err := buildRulesEngineService(**config)
+	rulesengineService, err := buildRulesEngineService(config)
 	if err != nil {
 		d.SetId("")
 		return fmt.Errorf("addPolicy: buildRulesEngineService: %v", err)

@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -21,8 +21,8 @@ func ResourceBotRuleSetCreate(ctx context.Context,
 	m interface{},
 ) diag.Diagnostics {
 
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -71,7 +71,7 @@ func ResourceBotRuleSetRead(ctx context.Context,
 
 	var diags diag.Diagnostics
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 	accountNumber := d.Get("account_number").(string)
 	botRuleSetID := d.Id()
 
@@ -80,7 +80,7 @@ func ResourceBotRuleSetRead(ctx context.Context,
 		accountNumber,
 	)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -137,9 +137,9 @@ func ResourceBotRuleSetUpdate(ctx context.Context,
 	log.Printf("[DEBUG] Name: %+v\n", botRuleSet.Name)
 	log.Printf("[DEBUG] Directives: %+v\n", botRuleSet.Directives)
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -175,9 +175,9 @@ func ResourceBotRuleSetDelete(ctx context.Context,
 		accountNumber,
 	)
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	wafService, err := buildWAFService(**config)
+	wafService, err := buildWAFService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

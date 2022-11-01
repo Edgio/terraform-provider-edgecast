@@ -6,7 +6,7 @@ package customer
 import (
 	"context"
 	"strconv"
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"time"
 
@@ -48,9 +48,9 @@ func DataSourceCustomerServicesRead(
 ) diag.Diagnostics {
 	var diags diag.Diagnostics
 
-	config := m.(**api.ClientConfig)
+	config := m.(internal.ProviderConfig)
 
-	customerService, err := buildCustomerService(**config)
+	customerService, err := buildCustomerService(config)
 
 	if err != nil {
 		return diag.FromErr(err)

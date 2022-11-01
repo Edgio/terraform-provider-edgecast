@@ -9,8 +9,8 @@ import (
 	"log"
 	"strconv"
 
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -79,8 +79,8 @@ func ResourceCustomerUserCreate(
 	)
 
 	// Initialize Customer Service
-	config := m.(**api.ClientConfig)
-	customerService, err := buildCustomerService(**config)
+	config := m.(internal.ProviderConfig)
+	customerService, err := buildCustomerService(config)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -137,8 +137,8 @@ func ResourceCustomerUserUpdate(
 	)
 
 	// Initialize Customer Service
-	config := m.(**api.ClientConfig)
-	customerService, err := buildCustomerService(**config)
+	config := m.(internal.ProviderConfig)
+	customerService, err := buildCustomerService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -210,8 +210,8 @@ func ResourceCustomerUserRead(
 	)
 
 	// Initialize Customer Service
-	config := m.(**api.ClientConfig)
-	customerService, err := buildCustomerService(**config)
+	config := m.(internal.ProviderConfig)
+	customerService, err := buildCustomerService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -300,8 +300,8 @@ func ResourceCustomerUserDelete(
 	)
 
 	// Initialize Customer Service
-	config := m.(**api.ClientConfig)
-	customerService, err := buildCustomerService(**config)
+	config := m.(internal.ProviderConfig)
+	customerService, err := buildCustomerService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -7,8 +7,8 @@ import (
 	"context"
 	"errors"
 	"log"
-	"terraform-provider-edgecast/edgecast/api"
 	"terraform-provider-edgecast/edgecast/helper"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/scopes"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -537,8 +537,8 @@ func ResourceScopesRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -948,8 +948,8 @@ func modifyAllScopes(
 		Scopes:     scps,
 	}
 	logScopes(payload)
-	config := m.(**api.ClientConfig)
-	wafService, err := buildWAFService(**config)
+	config := m.(internal.ProviderConfig)
+	wafService, err := buildWAFService(config)
 
 	if err != nil {
 		return err

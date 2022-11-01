@@ -8,8 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"terraform-provider-edgecast/edgecast/helper"
-
-	"terraform-provider-edgecast/edgecast/api"
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -595,8 +594,8 @@ func ResourceZoneCreate(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		d.SetId("")
 		return diag.FromErr(err)
@@ -692,8 +691,8 @@ func ResourceZoneRead(
 		return diag.FromErr(err)
 	}
 
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -814,8 +813,8 @@ func ResourceZoneUpdate(
 		return diag.FromErr(err)
 	}
 
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -934,8 +933,8 @@ func ResourceZoneDelete(
 ) diag.Diagnostics {
 	// Initialize Route DNS Service
 	accountNumber := d.Get("account_number").(string)
-	config := m.(**api.ClientConfig)
-	routeDNSService, err := buildRouteDNSService(**config)
+	config := m.(internal.ProviderConfig)
+	routeDNSService, err := buildRouteDNSService(config)
 	if err != nil {
 		return diag.FromErr(err)
 	}
