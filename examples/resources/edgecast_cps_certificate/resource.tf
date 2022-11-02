@@ -6,7 +6,6 @@ resource "edgecast_cps_certificate" "certificate_1" {
 	auto_renew = true
 	certificate_authority = "DigiCert"
 	validation_type = "EV"
-
 	organization {
 		city =               "L.A."
 		company_address =    "111 fantastic way"
