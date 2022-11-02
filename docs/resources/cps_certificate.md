@@ -116,17 +116,18 @@ resource "edgecast_cps_certificate" "certificate_2" {
 Default Value: true
 - `description` (String) Sets the certificate's description.
 - `notification_setting` (Block Set) Determine the conditions under which notifications will be sent and to whom they will be sent for a specific certificate request. (see [below for nested schema](#nestedblock--notification_setting))
-- `organization` (Block Set, Max: 1) Required for OV and EV certificates. 
+- `organization` (Block List, Max: 1) Required for OV and EV certificates. 
 Describes the certificate request's organization. 
 Note: Do not specify an organization for DV certificates. (see [below for nested schema](#nestedblock--organization))
+- `validation_status` (Block Set) Retrieve status information for your certificate request. This includes Certificate request status, Organization validation status, and Domain control validation (DCV) status. (see [below for nested schema](#nestedblock--validation_status))
 
 ### Read-Only
 
 - `created` (String) Indicates the timestamp at which this request for a certificate was initially submitted. 
 Syntax: 
 {YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z
-- `created_by` (Set of Object) Describes the user that submitted this certificate request. (see [below for nested schema](#nestedatt--created_by))
-- `deployments` (Set of Object) Returns a null value. (see [below for nested schema](#nestedatt--deployments))
+- `created_by` (Block Set) Describes the user that submitted this certificate request. (see [below for nested schema](#nestedblock--created_by))
+- `deployments` (Block Set) Returns a null value. (see [below for nested schema](#nestedblock--deployments))
 - `expiration_date` (String) Indicates the timestamp at which this certificate will expire. 
 Syntax: 
 {YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z 
@@ -136,7 +137,7 @@ If the Certificate Authority (CA) is still processing the certificate request, t
 - `last_modified` (String) Indicates the timestamp at which this request for a certificate was last modified. 
 Syntax: 
 {YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z
-- `modified_by` (Set of Object) Returns a null value. (see [below for nested schema](#nestedatt--modified_by))
+- `modified_by` (Block Set) Returns a null value. (see [below for nested schema](#nestedblock--modified_by))
 - `request_type` (String) Returns Enterprise.
 - `thumbprint` (String) Returns a null value.
 - `workflow_error_message` (String) Returns a null value.
@@ -155,6 +156,20 @@ Optional:
 - `is_common_name` (Boolean) Determines whether this domain corresponds to the certificate's common name. 
 Note: You may only designate a single domain as the common name.  
 Default Value: If you do not designate a domain as the common name, then our system will assign it to one of your domains.
+
+Read-Only:
+
+- `active_date` (String) Returns a null value.
+- `created` (String) Indicates the timestamp at which this domain was added to the certificate request. 
+Syntax: 
+{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z
+- `dcv_token` (String) This property's data type varies according to the certificate request's DCV method. 
+DNS Text: Returns a string set to the token value through which you may prove control over your certificate request's domains.
+DNS CNAME: Returns an object that contains DCV metadata for a specific domain in your certificate request.
+- `emails` (List of String) Email only 
+Contains a list of email addresses to which DCV instructions will be sent.
+- `id` (Number) Indicates the system-defined ID assigned to this domain.
+- `status` (String) Indicates status information for this domain.
 
 
 <a id="nestedblock--notification_setting"></a>
@@ -231,35 +246,87 @@ Sets the title of the current contact.
 
 
 
-<a id="nestedatt--created_by"></a>
+<a id="nestedblock--validation_status"></a>
+### Nested Schema for `validation_status`
+
+Optional:
+
+- `order_validation` (Block Set) Describes order status information for this certificate (see [below for nested schema](#nestedblock--validation_status--order_validation))
+
+Read-Only:
+
+- `error_message` (String) Indicates the reason why an error occurred. Returns a null value if an error has not occurred.
+- `requires_attention` (Boolean) Indicates whether this certificate request requires your attention before it can proceed to the next step.
+- `status` (String) Indicates the status for this certificate request.
+- `step` (Number) Indicates the order's current step in the certificate provisioning workflow.
+Example:
+This property returns 3 when a certificate order is currently in step 3. Domain Validation (DCV).
+
+<a id="nestedblock--validation_status--order_validation"></a>
+### Nested Schema for `validation_status.order_validation`
+
+Optional:
+
+- `domain_validation` (Block List) describes each domain associated with this certificate request and its current domain control validation status (see [below for nested schema](#nestedblock--validation_status--order_validation--domain_validation))
+
+Read-Only:
+
+- `organization_validation` (Block Set) Describes the requested certificate's validation level and its status. (see [below for nested schema](#nestedblock--validation_status--order_validation--organization_validation))
+- `status` (String) Indicates the status for this certificate order.
+
+<a id="nestedblock--validation_status--order_validation--domain_validation"></a>
+### Nested Schema for `validation_status.order_validation.domain_validation`
+
+Optional:
+
+- `domain_names` (List of String) Indicates the domain name.
+
+Read-Only:
+
+- `status` (String) Indicates the current domain control validation (DCV) status for the domain identified within the domain_names array.
+
+
+<a id="nestedblock--validation_status--order_validation--organization_validation"></a>
+### Nested Schema for `validation_status.order_validation.organization_validation`
+
+Read-Only:
+
+- `status` (String) Indicates the organization validation status for EV and OV certificates.
+Returns NA for DV certificates.
+- `validation_type` (String) Indicates the validation level for the requested certificate.
+
+
+
+
+<a id="nestedblock--created_by"></a>
 ### Nested Schema for `created_by`
 
 Read-Only:
 
 - `identity_id` (String)
-- `identity_type` (String)
-- `portal_type_id` (String)
+- `identity_type` (String) [ User, Client ]
+- `portal_type_id` (String) [ Customer, Partner, Wholesaler, Uber, OpenCdn ]
 - `user_id` (Number)
 
 
-<a id="nestedatt--deployments"></a>
+<a id="nestedblock--deployments"></a>
 ### Nested Schema for `deployments`
 
 Read-Only:
 
-- `delivery_region` (String)
+- `delivery_region` (String) [ GlobalPremiumPlusAsia, NorthAmericaAndEurope, GlobalStandard, Internal, GlobalPremiumAsiaPlusChina, GlobalPremiumAsiaPlusIndia, GlobalPremiumAsiaPlusChinaAndIndia, GlobalPremiumAsiaPlusLatam, GlobalPremiumAsiaPremiumChinaPlusLatam ]
 - `hex_url` (String)
-- `platform` (String)
+- `platform` (String) [ HttpLarge, HttpSmall, Adn ]
 
 
-<a id="nestedatt--modified_by"></a>
+<a id="nestedblock--modified_by"></a>
 ### Nested Schema for `modified_by`
 
 Read-Only:
 
 - `identity_id` (String)
-- `identity_type` (String)
-- `portal_type_id` (String)
+- `identity_type` (String) [ User, Client ]
+- `portal_type_id` (String) [ Customer, Partner, Wholesaler, Uber, OpenCdn ]
 - `user_id` (Number)
 
 

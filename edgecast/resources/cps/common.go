@@ -99,7 +99,7 @@ func namedEntitySchema(resource string) map[string]*schema.Schema {
 		},
 		"items": {
 			Type:     schema.TypeList,
-			Computed: true,
+			Optional: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"name": {

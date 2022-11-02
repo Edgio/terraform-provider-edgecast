@@ -20,7 +20,7 @@ func DataSourceCustomerServices() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"services": {
 				Type:     schema.TypeList,
-				Computed: true,
+				Optional: true,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"id": {

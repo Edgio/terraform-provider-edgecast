@@ -224,7 +224,7 @@ Optional:
 - `variable` (Block List) Contains criteria that identifies a request element. (see [below for nested schema](#nestedblock--directive--sec_rule--chained_rule--variable))
 
 <a id="nestedblock--directive--sec_rule--chained_rule--action"></a>
-### Nested Schema for `directive.sec_rule.chained_rule.variable`
+### Nested Schema for `directive.sec_rule.chained_rule.action`
 
 Optional:
 
@@ -238,7 +238,7 @@ Optional:
 
 
 <a id="nestedblock--directive--sec_rule--chained_rule--operator"></a>
-### Nested Schema for `directive.sec_rule.chained_rule.variable`
+### Nested Schema for `directive.sec_rule.chained_rule.operator`
 
 Required:
 

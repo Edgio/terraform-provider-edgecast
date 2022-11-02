@@ -15,13 +15,13 @@ This data source is not ready for production use.
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `services` (List of Object) (see [below for nested schema](#nestedatt--services))
+- `services` (Block List) (see [below for nested schema](#nestedblock--services))
 
-<a id="nestedatt--services"></a>
+<a id="nestedblock--services"></a>
 ### Nested Schema for `services`
 
 Read-Only:
 
-- `id` (Number)
+- `id` (Number) The ID of this resource.
 - `name` (String)
 - `parent_id` (Number)
