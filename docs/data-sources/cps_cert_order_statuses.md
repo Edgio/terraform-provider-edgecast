@@ -18,14 +18,14 @@ description: |-
 ### Read-Only
 
 - `id` (String) The unix timestamp when the data source was refreshed.
-- `items` (List of Object) Contains a list of Certificate Order Status. (see [below for nested schema](#nestedatt--items))
+- `items` (Block List) Contains a list of Certificate Order Status. (see [below for nested schema](#nestedblock--items))
 
-<a id="nestedatt--items"></a>
+<a id="nestedblock--items"></a>
 ### Nested Schema for `items`
 
 Read-Only:
 
-- `id` (Number)
-- `name` (String)
+- `id` (Number) Indicates the system-defined ID for the Certificate Order Status.
+- `name` (String) Indicates the name of the Certificate Order Status.
 
 

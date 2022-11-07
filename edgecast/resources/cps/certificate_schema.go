@@ -44,9 +44,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Description: "Determines the certificate's level of validation.",
 		},
 		"validation_status": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Retrieve status information for your certificate request. This includes Certificate request status, Organization validation status, and Domain control validation (DCV) status.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"step": {
@@ -72,9 +72,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 						Description: "Indicates the reason why an error occurred. Returns a null value if an error has not occurred.",
 					},
 					"order_validation": {
-						Type:     schema.TypeSet,
-						Computed: true,
-
+						Type:        schema.TypeSet,
+						Optional:    true,
+						Description: "Describes order status information for this certificate",
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"status": {
@@ -83,9 +83,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 									Description: "Indicates the status for this certificate order.",
 								},
 								"organization_validation": {
-									Type:     schema.TypeSet,
-									Computed: true,
-
+									Type:        schema.TypeSet,
+									Optional:    true,
+									Description: "Describes the requested certificate's validation level and its status.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"validation_type": {
@@ -101,12 +101,11 @@ func GetCertificateSchema() map[string]*schema.Schema {
 											},
 										},
 									},
-									Description: "Describes the requested certificate's validation level and its status.",
 								},
 								"domain_validation": {
-									Type:     schema.TypeList,
-									Computed: true,
-
+									Type:        schema.TypeList,
+									Optional:    true,
+									Description: "describes each domain associated with this certificate request and its current domain control validation status",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"status": {
@@ -124,24 +123,16 @@ func GetCertificateSchema() map[string]*schema.Schema {
 											},
 										},
 									},
-									Description: "describes each domain associated with this certificate request and its current domain control validation status",
 								},
 							},
 						},
-						Description: "Describes order status information for this certificate",
 					},
 				},
 			},
-			Description: "Retrieve status information for your certificate request. This includes:\n" +
-				"Certificate request status.\n" +
-				"Certificate order status.\n" +
-				"Organization validation status.\n" +
-				"Domain control validation (DCV) status.",
 		},
 		"domain": {
 			Type:     schema.TypeList,
 			Required: true,
-
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"is_common_name": {
@@ -204,13 +195,11 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
-
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"additional_contact": {
 						Type:     schema.TypeList,
 						Optional: true,
-
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"contact_type": {
@@ -383,9 +372,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			},
 		},
 		"deployments": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"delivery_region": {
@@ -404,7 +393,6 @@ func GetCertificateSchema() map[string]*schema.Schema {
 					},
 				},
 			},
-			Description: "Returns a null value.",
 		},
 		"request_type": {
 			Type:        schema.TypeString,
@@ -424,9 +412,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z",
 		},
 		"created_by": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Describes the user that submitted this certificate request.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"user_id": {
@@ -449,7 +437,6 @@ func GetCertificateSchema() map[string]*schema.Schema {
 					},
 				},
 			},
-			Description: "Describes the user that submitted this certificate request.",
 		},
 		"expiration_date": {
 			Type:     schema.TypeString,
@@ -468,9 +455,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 				"{YYYY}-{MM}-{DD}T{hh}:{mm}:{ss}.{ffffff}Z ",
 		},
 		"modified_by": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"user_id": {
@@ -493,7 +480,6 @@ func GetCertificateSchema() map[string]*schema.Schema {
 					},
 				},
 			},
-			Description: "Returns a null value.",
 		},
 		"workflow_error_message": {
 			Type:        schema.TypeString,
