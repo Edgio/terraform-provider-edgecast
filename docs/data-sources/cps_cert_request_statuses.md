@@ -30,12 +30,12 @@ output "fetched_info_request_status_all" {
 ### Read-Only
 
 - `id` (String) Indicates the Unix timestamp at which the data source was refreshed.
-- `items` (List of Object) Contains a list of Certificate Request Status objects. (see [below for nested schema](#nestedatt--items))
+- `items` (Block List) Contains a list of Certificate Request Status objects. (see [below for nested schema](#nestedblock--items))
 
-<a id="nestedatt--items"></a>
+<a id="nestedblock--items"></a>
 ### Nested Schema for `items`
 
 Read-Only:
 
-- `id` (Number)
-- `name` (String)
+- `id` (Number) Indicates the system-defined ID for a resource of type Certificate Request Status.
+- `name` (String) Indicates the name for a resource of type Certificate Request Status.

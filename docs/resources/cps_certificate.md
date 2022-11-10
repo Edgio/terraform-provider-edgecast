@@ -149,13 +149,14 @@ resource "edgecast_cps_certificate" "certificate_2" {
 Describes the certificate request's organization.  
 
     ->Do not specify an organization for DV certificates. (see [below for nested schema](#nestedblock--organization))
+- `validation_status` (Block Set) Retrieve status information for your certificate request. This includes certificate request status, certificate order status, organization validation status, and domain control validation (DCV) status. (see [below for nested schema](#nestedblock--validation_status))
 
 ### Read-Only
 
 - `created` (String) Indicates the timestamp at which this request for a certificate was initially submitted.  
 **Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z
-- `created_by` (Set of Object) Describes the user that submitted this certificate request. (see [below for nested schema](#nestedatt--created_by))
-- `deployments` (Set of Object) Returns a null value. (see [below for nested schema](#nestedatt--deployments))
+- `created_by` (Block Set) Describes the user that submitted this certificate request. (see [below for nested schema](#nestedblock--created_by))
+- `deployments` (Block Set) Returns a null value. (see [below for nested schema](#nestedblock--deployments))
 - `expiration_date` (String) Indicates the timestamp at which this certificate will expire.  
 **Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z  
 If the Certificate Authority (CA) is still processing the certificate request, then this argument returns the following timestamp:   
@@ -163,10 +164,9 @@ If the Certificate Authority (CA) is still processing the certificate request, t
 - `id` (String) Indicates the system-defined ID assigned to this certificate.
 - `last_modified` (String) Indicates the timestamp at which this request for a certificate was last modified.  
 **Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z
-- `modified_by` (Set of Object) Returns a null value. (see [below for nested schema](#nestedatt--modified_by))
+- `modified_by` (Block Set) Returns a null value. (see [below for nested schema](#nestedblock--modified_by))
 - `request_type` (String) Returns `Enterprise`.
 - `thumbprint` (String) Returns a null value.
-- `validation_status` (Set of Object) Retrieve status information for your certificate request. This includes certificate request status, certificate order status, organization validation status, and domain control validation (DCV) status. (see [below for nested schema](#nestedatt--validation_status))
 - `workflow_error_message` (String) Returns a null value.
 
 <a id="nestedblock--domain"></a>
@@ -280,74 +280,91 @@ Sets the title of the current contact.
 
 
 
-<a id="nestedatt--created_by"></a>
-### Nested Schema for `created_by`
-
-Read-Only:
-
-- `identity_id` (String)
-- `identity_type` (String)
-- `portal_type_id` (String)
-- `user_id` (Number)
-
-
-<a id="nestedatt--deployments"></a>
-### Nested Schema for `deployments`
-
-Read-Only:
-
-- `delivery_region` (String)
-- `hex_url` (String)
-- `platform` (String)
-
-
-<a id="nestedatt--modified_by"></a>
-### Nested Schema for `modified_by`
-
-Read-Only:
-
-- `identity_id` (String)
-- `identity_type` (String)
-- `portal_type_id` (String)
-- `user_id` (Number)
-
-
-<a id="nestedatt--validation_status"></a>
+<a id="nestedblock--validation_status"></a>
 ### Nested Schema for `validation_status`
 
+Optional:
+
+- `order_validation` (Block Set) Describes order status information for this certificate request. (see [below for nested schema](#nestedblock--validation_status--order_validation))
+
 Read-Only:
 
-- `error_message` (String)
-- `order_validation` (Set of Object) (see [below for nested schema](#nestedobjatt--validation_status--order_validation))
-- `requires_attention` (Boolean)
-- `status` (String)
-- `step` (Number)
+- `error_message` (String) Indicates the reason why an error occurred. Returns a null value if an error has not occurred.
+- `requires_attention` (Boolean) Indicates whether this certificate request requires your attention before it can proceed to the next step.
+- `status` (String) Indicates the status for this certificate request.
+- `step` (Number) Indicates the order's current step in the certificate provisioning workflow.
+**Example:**  
+This argument returns `3` when a certificate order is currently in step 3. Domain Validation (DCV).
 
-<a id="nestedobjatt--validation_status--order_validation"></a>
+<a id="nestedblock--validation_status--order_validation"></a>
 ### Nested Schema for `validation_status.order_validation`
 
+Optional:
+
+- `domain_validation` (Block List) Contains the domains associated with this certificate request and their current Domain Control Validation (DCV) status. (see [below for nested schema](#nestedblock--validation_status--order_validation--domain_validation))
+
 Read-Only:
 
-- `domain_validation` (List of Object) (see [below for nested schema](#nestedobjatt--validation_status--order_validation--domain_validation))
-- `organization_validation` (Set of Object) (see [below for nested schema](#nestedobjatt--validation_status--order_validation--organization_validation))
-- `status` (String)
+- `organization_validation` (Block Set) Describes the requested certificate's validation level and its status. (see [below for nested schema](#nestedblock--validation_status--order_validation--organization_validation))
+- `status` (String) Indicates the status for this certificate order.
 
-<a id="nestedobjatt--validation_status--order_validation--domain_validation"></a>
+<a id="nestedblock--validation_status--order_validation--domain_validation"></a>
 ### Nested Schema for `validation_status.order_validation.domain_validation`
 
+Optional:
+
+- `domain_names` (List of String) Indicates the domain name.
+
 Read-Only:
 
-- `domain_names` (List of String)
-- `status` (String)
+- `status` (String) Indicates the current Domain Control Validation (DCV) status for the domain identified within the `domain_names` list.  
+
+    -> Use the [edgecast_cps_validation_statuses data source](../data-sources/cps_validation_statuses) to retrieve a list of Domain Control Validation (DCV) statuses.
 
 
-<a id="nestedobjatt--validation_status--order_validation--organization_validation"></a>
+<a id="nestedblock--validation_status--order_validation--organization_validation"></a>
 ### Nested Schema for `validation_status.order_validation.organization_validation`
 
 Read-Only:
 
-- `status` (String)
-- `validation_type` (String)
+- `status` (String) Indicates the organization validation status for EV and OV certificates.  Returns `NA` for DV certificates.  
+
+    -> Use the [edgecast_cps_validation_statuses data source](../data-sources/cps_validation_statuses) to retrieve a list of organization validation statuses.
+- `validation_type` (String) Indicates the validation level for the requested certificate.
+
+
+
+
+<a id="nestedblock--created_by"></a>
+### Nested Schema for `created_by`
+
+Read-Only:
+
+- `identity_id` (String) Reserved for future use.
+- `identity_type` (String) Reserved for future use. [ User, Client ]
+- `portal_type_id` (String) Reserved for future use. [ Customer, Partner, Wholesaler, Uber, OpenCdn ]
+- `user_id` (Number) Reserved for future use.
+
+
+<a id="nestedblock--deployments"></a>
+### Nested Schema for `deployments`
+
+Read-Only:
+
+- `delivery_region` (String) Indicates the name of the delivery region to which this certificate was deployed.
+- `hex_url` (String) Indicates the CDN domain through which requests for this certificate will be routed.
+- `platform` (String) Identifies the delivery platform (e.g., `HttpLarge`) associated with this certificate.
+
+
+<a id="nestedblock--modified_by"></a>
+### Nested Schema for `modified_by`
+
+Read-Only:
+
+- `identity_id` (String) Reserved for future use.
+- `identity_type` (String) Reserved for future use. [ User, Client ]
+- `portal_type_id` (String) Reserved for future use. [ Customer, Partner, Wholesaler, Uber, OpenCdn ]
+- `user_id` (Number) Reserved for future use. [ User, Client ]
 
 ## Import Resource
 Manage an existing TLS certificate through Terraform by importing it as a resource. Perform the following steps:

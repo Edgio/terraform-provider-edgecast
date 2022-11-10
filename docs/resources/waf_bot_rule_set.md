@@ -216,7 +216,7 @@ Optional:
 - `variable` (Block List) Identifies each request element for which a comparison will be made. (see [below for nested schema](#nestedblock--directive--sec_rule--chained_rule--variable))
 
 <a id="nestedblock--directive--sec_rule--chained_rule--action"></a>
-### Nested Schema for `directive.sec_rule.chained_rule.variable`
+### Nested Schema for `directive.sec_rule.chained_rule.action`
 
 Optional:
 
@@ -229,7 +229,7 @@ Optional:
 
 
 <a id="nestedblock--directive--sec_rule--chained_rule--operator"></a>
-### Nested Schema for `directive.sec_rule.chained_rule.variable`
+### Nested Schema for `directive.sec_rule.chained_rule.operator`
 
 Required:
 

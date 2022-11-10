@@ -46,9 +46,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
                         "    -> Use the [edgecast_cps_cert_validation_levels data source](../data-sources/cps_cert_validation_levels) to retrieve a list of certificate validation levels. ",
 		},
 		"validation_status": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Retrieve status information for your certificate request. This includes certificate request status, certificate order status, organization validation status, and domain control validation (DCV) status.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"step": {
@@ -74,9 +74,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 						Description: "Indicates the reason why an error occurred. Returns a null value if an error has not occurred.",
 					},
 					"order_validation": {
-						Type:     schema.TypeSet,
-						Computed: true,
-
+						Type:        schema.TypeSet,
+						Optional:    true,
+						Description: "Describes order status information for this certificate request.",
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"status": {
@@ -85,9 +85,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 									Description: "Indicates the status for this certificate order.",
 								},
 								"organization_validation": {
-									Type:     schema.TypeSet,
-									Computed: true,
-
+									Type:        schema.TypeSet,
+									Optional:    true,
+									Description: "Describes the requested certificate's validation level and its status.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"validation_type": {
@@ -98,22 +98,23 @@ func GetCertificateSchema() map[string]*schema.Schema {
 											"status": {
 												Type:     schema.TypeString,
 												Computed: true,
-												Description: "Indicates the organization validation status for EV and OV certificates.  Returns `NA` for DV certificates.",
+												Description: "Indicates the organization validation status for EV and OV certificates.  Returns `NA` for DV certificates.  \n\n" +
+                                                                                                "    -> Use the [edgecast_cps_validation_statuses data source](../data-sources/cps_validation_statuses) to retrieve a list of organization validation statuses. ",
 											},
 										},
 									},
-									Description: "Describes the requested certificate's validation level and its status.",
 								},
 								"domain_validation": {
-									Type:     schema.TypeList,
-									Computed: true,
-
+									Type:        schema.TypeList,
+									Optional:    true,
+									Description: "Contains the domains associated with this certificate request and their current Domain Control Validation (DCV) status.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
 											"status": {
 												Type:        schema.TypeString,
 												Computed:    true,
-												Description: "Indicates the current domain control validation (DCV) status for the domain identified within the `domain_names` list.",
+												Description: "Indicates the current Domain Control Validation (DCV) status for the domain identified within the `domain_names` list.  \n\n" +
+                                                                                                "    -> Use the [edgecast_cps_validation_statuses data source](../data-sources/cps_validation_statuses) to retrieve a list of Domain Control Validation (DCV) statuses. ",
 											},
 											"domain_names": {
 												Type:        schema.TypeList,
@@ -125,20 +126,16 @@ func GetCertificateSchema() map[string]*schema.Schema {
 											},
 										},
 									},
-									Description: "Contains the domains associated with this certificate request and their current domain control validation status.",
 								},
 							},
 						},
-						Description: "Describes order status information for this certificate request.",
 					},
 				},
 			},
-			Description: "Retrieve status information for your certificate request. This includes certificate request status, certificate order status, organization validation status, and domain control validation (DCV) status.",
 		},
 		"domain": {
 			Type:     schema.TypeList,
 			Required: true,
-
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"is_common_name": {
@@ -200,13 +197,11 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Type:     schema.TypeList,
 			Optional: true,
 			MaxItems: 1,
-
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"additional_contact": {
 						Type:     schema.TypeList,
 						Optional: true,
-
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
 								"contact_type": {
@@ -380,9 +375,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			},
 		},
 		"deployments": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"delivery_region": {
@@ -402,7 +397,6 @@ func GetCertificateSchema() map[string]*schema.Schema {
 					},
 				},
 			},
-			Description: "Returns a null value.",
 		},
 		"request_type": {
 			Type:        schema.TypeString,
@@ -421,32 +415,33 @@ func GetCertificateSchema() map[string]*schema.Schema {
                                 "**Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z",
 		},
 		"created_by": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Describes the user that submitted this certificate request.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"user_id": {
 						Type:     schema.TypeInt,
 						Computed: true,
+                                                Description: "Reserved for future use.",
 					},
 					"portal_type_id": {
 						Type:        schema.TypeString,
 						Computed:    true,
-						Description: "[ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
+						Description: "Reserved for future use. [ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
 					},
 					"identity_id": {
 						Type:     schema.TypeString,
 						Computed: true,
+                                                Description: "Reserved for future use.",
 					},
 					"identity_type": {
 						Type:        schema.TypeString,
 						Computed:    true,
-						Description: "[ User, Client ]",
+						Description: "Reserved for future use. [ User, Client ]",
 					},
 				},
 			},
-			Description: "Describes the user that submitted this certificate request.",
 		},
 		"expiration_date": {
 			Type:     schema.TypeString,
@@ -463,32 +458,33 @@ func GetCertificateSchema() map[string]*schema.Schema {
                                 "**Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z",
 		},
 		"modified_by": {
-			Type:     schema.TypeSet,
-			Computed: true,
-
+			Type:        schema.TypeSet,
+			Optional:    true,
+			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
 					"user_id": {
 						Type:     schema.TypeInt,
 						Computed: true,
+                                                Description: "Reserved for future use. [ User, Client ]",
 					},
 					"portal_type_id": {
 						Type:        schema.TypeString,
 						Computed:    true,
-						Description: "[ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
+						Description: "Reserved for future use. [ Customer, Partner, Wholesaler, Uber, OpenCdn ]",
 					},
 					"identity_id": {
 						Type:     schema.TypeString,
 						Computed: true,
+                                                Description: "Reserved for future use.",
 					},
 					"identity_type": {
 						Type:        schema.TypeString,
 						Computed:    true,
-						Description: "[ User, Client ]",
+						Description: "Reserved for future use. [ User, Client ]",
 					},
 				},
 			},
-			Description: "Returns a null value.",
 		},
 		"workflow_error_message": {
 			Type:        schema.TypeString,
