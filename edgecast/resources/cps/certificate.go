@@ -88,27 +88,29 @@ func ResourceCertificateCreate(
 		return helper.CreationError(d, err)
 	}
 
-	nparams := certificate.NewCertificateUpdateRequestNotificationsParams()
-	nparams.ID = cresp.ID
-	nparams.Notifications = ns
+	if len(ns) > 0 {
+		nparams := certificate.NewCertificateUpdateRequestNotificationsParams()
+		nparams.ID = cresp.ID
+		nparams.Notifications = ns
 
-	_, err = svc.Certificate.CertificateUpdateRequestNotifications(nparams)
-	if err != nil {
-		d.SetId("")
+		_, err = svc.Certificate.CertificateUpdateRequestNotifications(nparams)
+		if err != nil {
+			d.SetId("")
 
-		// Cancel the created cert request.
-		cnclParams := certificate.NewCertificateCancelParams()
-		cnclParams.ID = cresp.ID
-		cnclParams.Apply = true
-		_, cancelErr := svc.Certificate.CertificateCancel(cnclParams)
-		if cancelErr != nil {
-			return diag.Errorf(
-				"failed to roll back cert request upon error: %v, original err: %v",
-				cancelErr.Error(),
-				err.Error())
+			// Cancel the created cert request.
+			cnclParams := certificate.NewCertificateCancelParams()
+			cnclParams.ID = cresp.ID
+			cnclParams.Apply = true
+			_, cancelErr := svc.Certificate.CertificateCancel(cnclParams)
+			if cancelErr != nil {
+				return diag.Errorf(
+					"failed to roll back cert request upon error: %v, original err: %v",
+					cancelErr.Error(),
+					err.Error())
+			}
+
+			return diag.Errorf("failed to create certificate: %v", err)
 		}
-
-		return diag.Errorf("failed to create certificate: %v", err)
 	}
 
 	log.Printf("[INFO] certificate created: %# v\n", pretty.Formatter(cresp))
