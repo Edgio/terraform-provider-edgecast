@@ -1,0 +1,24 @@
+---
+page_title: "edgecast_cps_countrycodes Data Source"
+subcategory: "Certificate Provisioning System (CPS)"
+description: |-
+  edgecast_cps_countrycodes Data Source
+---
+
+# edgecast_cps_countrycodes Data Source
+
+Use the `edgecast_cps_countrycodes` data source to retrieve country codes. 
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `sec.cps.certificates` scope.
+
+## Usage
+
+By default, this data source contains all country codes. However, you may limit it to a specific country by passing the `name` argument.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_cps_countrycodes/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

@@ -1,0 +1,20 @@
+---
+page_title: "edgecast_cps_cert_request_cancel_actions Data Source"
+subcategory: "Certificate Provisioning System (CPS)"
+description: |-
+  edgecast_cps_cert_request_cancel_actions Data Source
+---
+
+# edgecast_cps_cert_request_cancel_actions Data Source
+
+Use the `edgecast_cps_cert_request_cancel_actions` data source to retrieve the set of available actions that may occur upon requesting the cancellation of a certificate request.
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `sec.cps.certificates` scope.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_cps_cert_request_cancel_actions/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

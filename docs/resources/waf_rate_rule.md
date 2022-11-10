@@ -18,6 +18,10 @@ Requests that exceed the rate limit may be dropped, redirected to another URL, o
 -> You may manage an existing rate rule by importing it as a resource.  
 [Learn more.](#import-resource)
 
+## Authentication
+
+This resource requires a [REST API token](../guides/authentication#rest-api-token).
+
 ## Example Usage
 
 ```terraform

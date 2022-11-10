@@ -29,6 +29,7 @@ Use a REST API token to provision the following types of resources:
 * edgecast_waf_rate_rule
 * edgecast_waf_scopes
 
+
 ### Requirements
 A REST API token must meet the following requirements:
 * It must be associated with a user that has sufficient privileges to manage the desired resource. 
@@ -60,13 +61,24 @@ A REST API (OAuth 2.0) client consists of a client ID, a secret key, and a scope
 [Learn more.](https://developer.edgecast.com/cdn/api/index.html#Identity/REST-API-OAuth-Client-Management.htm)
 
 ### Resources
-Use REST API (OAuth 2.0) client credentials to provision the following type of resource:
+Use REST API (OAuth 2.0) client credentials when working with the following resources and data sources:
 * edgecast_rules_engine_policy
+* edgecast_cps_certificate
+* edgecast_cps_cert_order_statuses
+* edgecast_cps_cert_request_cancel_actions
+* edgecast_cps_cert_request_statuses
+* edgecast_cps_cert_validation_levels
+* edgecast_cps_countrycodes
+* edgecast_cps_dcv_types
+* edgecast_cps_domain_statuses
+* edgecast_cps_validation_statuses
 
 ### Scope
-Verify that the desired credentials belong to a REST API client that has been granted the scope (e.g., ec.rules) required to manage the desired resource. 
+Verify that the desired credentials belong to a REST API client that has been granted the scope (e.g., `ec.rules` and `sec.cps.certificates`) required to manage the desired resource. 
 
 [View root scopes.](https://developer.edgecast.com/cdn/api/index.html#Identity/REST-API-OAuth-Client-Management.htm)
+
+!> Our Terraform implementation only supports a single scope per REST API client. If you plan on managing both `edgecast_rules_engine_policy` and `edgecast_cps_certificate` resources, then you will need to use a separate working directory for each type of resource.
 
 ### Authentication
 You may define REST API client credentials as variables within your **main.tf** file as shown in the following excerpt: 

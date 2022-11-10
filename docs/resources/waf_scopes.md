@@ -18,6 +18,10 @@ A Security Application Manager configuration:
 -> You may manage an existing Security Application Manager configuration by importing it as a resource.  
 [Learn more.](#import-resource)
 
+## Authentication
+
+This resource requires a [REST API token](../guides/authentication#rest-api-token).
+
 ## Example Usage
 
 ```terraform

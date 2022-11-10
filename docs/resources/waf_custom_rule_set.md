@@ -13,6 +13,10 @@ Use custom rules to tailor how WAF identifies malicious traffic. This provides a
 -> You may manage an existing custom rule set by importing it as a resource.  
 [Learn more.](#import-resource)
 
+## Authentication
+
+This resource requires a [REST API token](../guides/authentication#rest-api-token).
+
 ## Example Usage
 
 ```terraform

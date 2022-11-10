@@ -9,8 +9,21 @@ description: |-
 
 Use the `edgecast_rules_engine_policy` resource to deploy a Rules Engine policy. A policy defines how specific types of requests are processed by the CDN. 
 
--> You may manage an existing Rules Engine policy by importing it as a resource.  
-[Learn more.](#import-resource)
+-> You cannot modify or delete an existing Rules Engine policy through Terraform. However, if you modify an `edgecast_rules_engine_policy` resource, we will deploy a new Rules Engine policy.
+
+Rules Engine policies created through Terraform use the following naming convention:
+
+        tf--<ENVIRONMENT>-<PLATFORM>-<UNIX TIMESTAMP>
+
+**Example:** tf--staging-http_large-1650317692
+
+-> Although you may define a name through the `name` property within your JSON file, we will always use the above naming convention instead. 
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `ec.rules` scope.
+
+!> Our Terraform implementation only supports a single scope per REST API client. If you plan on managing both `edgecast_rules_engine_policy` and `edgecast_cps_certificate` resources, then you will need to use a separate working directory for each type of resource.
 
 ## Format
 
@@ -48,27 +61,3 @@ resource "edgecast_rules_engine_policy" "my_policy" {
 
 - `deploy_request_id` (String) Indicates the system-defined ID for the policy's deploy request.
 - `id` (String) The ID of this resource.
-
-## Import Resource
-Manage an existing Rules Engine policy through Terraform by importing it as a resource. Perform the following steps:
-1. Insert an empty resource block within your resource configuration.
-
-        resource "edgecast_rules_engine_policy" "<RESOURCE>" {
-          
-        }
-    **Example:**
-
-        resource "edgecast_rules_engine_policy" "sample_policy" {
-          
-        }
-1. Run the following command to attach a policy to your resource configuration.
-
-        terraform import edgecast_rules_engine_policy.<RESOURCE> <ACCOUNT_NUMBER>:<POLICY_ID>
-    * `<RESOURCE>` - Replace this term with the name of the resource defined in step 1.
-    * `<ACCOUNT_NUMBER>` - Replace this term with your customer account number. Find your account number in the upper right-hand corner of the MCC.
-    * `<POLICY_ID>` - Replace this term with the system-defined ID assigned to the desired Rules Engine policy. You may retrieve a list of policies and their system-defined IDs through our [REST API](https://developer.edgecast.com/cdn/api/index.html#Media_Management/REv4/Get-All-Policies.htm).
-
-    **Example:**
-
-        terraform import edgecast_rules_engine_policy.sample_policy 0001:123456
-->Upon running the above command, a resource for that policy will be recorded in the state file.
