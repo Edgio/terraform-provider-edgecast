@@ -1,0 +1,20 @@
+---
+page_title: "edgecast_cps_cert_request_statuses Data Source"
+subcategory: "Certificate Provisioning System (CPS)"
+description: |-
+  edgecast_cps_cert_request_statuses Data Source
+---
+
+# edgecast_cps_cert_request_statuses Data Source
+
+Use the `edgecast_cps_cert_request_statuses` data source to retrieve the set of available statuses for certificate requests.
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `sec.cps.certificates` scope.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_cps_cert_request_statuses/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

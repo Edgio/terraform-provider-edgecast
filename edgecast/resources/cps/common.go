@@ -94,7 +94,7 @@ func namedEntitySchema(resource string) map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,
-			Description: "The unix timestamp when the data source was refreshed.",
+			Description: "Indicates the Unix timestamp at which the data source was refreshed.",
 			Computed:    true,
 		},
 		"items": {
@@ -104,17 +104,17 @@ func namedEntitySchema(resource string) map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"name": {
 						Type:        schema.TypeString,
-						Description: fmt.Sprintf("Indicates the name of the %s.", resource),
+						Description: fmt.Sprintf("Indicates the name for a resource of type %s.", resource),
 						Computed:    true,
 					},
 					"id": {
 						Type:        schema.TypeInt,
-						Description: fmt.Sprintf("Indicates the system-defined ID for the %s.", resource),
+						Description: fmt.Sprintf("Indicates the system-defined ID for a resource of type %s.", resource),
 						Computed:    true,
 					},
 				},
 			},
-			Description: fmt.Sprintf("Contains a list of %s.", resource),
+			Description: fmt.Sprintf("Contains a list of %s objects.", resource),
 		},
 	}
 }

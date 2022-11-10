@@ -22,13 +22,13 @@ func DataSourceCountryCodes() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"id": {
 				Type:        schema.TypeString,
-				Description: "The unix timestamp when the data source was refreshed.",
+				Description: "Indicates the Unix timestamp at which the data source was refreshed.",
 				Computed:    true,
 			},
 			"name": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "The name of a specific country. If provided, only that country will be present in `items`.",
+				Description: "Identifies a country by its name. If provided, the `items` list will only contain that country.",
 			},
 			"items": {
 				Type:     schema.TypeList,

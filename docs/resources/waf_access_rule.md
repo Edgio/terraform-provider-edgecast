@@ -13,6 +13,10 @@ Use the `edgecast_waf_access_rule` resource to create an access rule. An access 
 
 -> Apply an access rule to your traffic by adding it to a [Security Application Manager](https://docs.edgecast.com/cdn/#Web-Security/SAM.htm) configuration.
 
+## Authentication
+
+This resource requires a [REST API token](../guides/authentication#rest-api-token).
+
 ## Example Usage
 
 ```terraform

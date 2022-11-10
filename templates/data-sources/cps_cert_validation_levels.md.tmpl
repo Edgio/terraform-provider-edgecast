@@ -1,0 +1,20 @@
+---
+page_title: "edgecast_cps_cert_validation_levels Data Source"
+subcategory: "Certificate Provisioning System (CPS)"
+description: |-
+  edgecast_cps_cert_validation_levels Data Source
+---
+
+# edgecast_cps_cert_validation_levels Data Source
+
+Use the `edgecast_cps_cert_validation_levels` data source to retrieve a list of certificate validation levels.
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `sec.cps.certificates` scope.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_cps_cert_validation_levels/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

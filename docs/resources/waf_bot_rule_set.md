@@ -14,6 +14,10 @@ Use bot rules to require a client (e.g., a web browser) to solve a challenge bef
 -> You may manage an existing bot rule set by importing it as a resource.  
 [Learn more.](#import-resource)
 
+## Authentication
+
+This resource requires a [REST API token](../guides/authentication#rest-api-token).
+
 ## Example Usage
 
 ```terraform
