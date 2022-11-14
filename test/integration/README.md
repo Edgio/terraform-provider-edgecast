@@ -83,7 +83,7 @@ Within the newly-created directory, perform the following steps:
     terraform {
       required_providers {
         edgecast = {
-           version = "0.6.0"
+          version = "0.6.1"
           source  = "Edgio/edgecast"
         }
       }
