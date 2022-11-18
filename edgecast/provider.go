@@ -13,6 +13,7 @@ import (
 	"terraform-provider-edgecast/edgecast/resources/dnsroute"
 	"terraform-provider-edgecast/edgecast/resources/edgecname"
 	"terraform-provider-edgecast/edgecast/resources/origin"
+	"terraform-provider-edgecast/edgecast/resources/originv3"
 	"terraform-provider-edgecast/edgecast/resources/rulesengine"
 	"terraform-provider-edgecast/edgecast/resources/waf"
 
@@ -143,6 +144,7 @@ func buildResourcesMap() map[string]*schema.Resource {
 		"edgecast_waf_scopes":             waf.ResourceScopes(),
 		"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
 		"edgecast_cps_certificate":        cps.ResourceCertificate(),
+		"edgecast_originv3":               originv3.ResourceOriginV3(),
 	}
 }
 
