@@ -125,9 +125,9 @@ func ConvertTFCollectionToStrings(v interface{}) ([]string, error) {
 }
 
 // ConvertTFCollectionToPtrStrings converts Terraform's
-// TypeList and TypeSet collections into a []string.
+// TypeList and TypeSet collections into a []*string.
 func ConvertTFCollectionToPtrStrings(v interface{}) ([]*string, error) {
-	// If the underlying type is already []string, just return it.
+	// If the underlying type is already []*string, just return it.
 	if strings, ok := v.([]*string); ok {
 		return strings, nil
 	}

@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 
@@ -18,18 +19,18 @@ import (
 	"github.com/kr/pretty"
 )
 
-func ResourceOriginV3() *schema.Resource {
+func ResourceOriginV3Group() *schema.Resource {
 	return &schema.Resource{
-		CreateContext: ResourceOriginV3Create,
-		ReadContext:   ResourceOriginV3Read,
-		UpdateContext: ResourceOriginV3Update,
-		DeleteContext: ResourceOriginV3Delete,
-		Importer:      helper.Import(ResourceOriginV3Read, "id"),
-		Schema:        GetOriginV3Schema(),
+		CreateContext: ResourceOriginV3GroupCreate,
+		ReadContext:   ResourceOriginV3GroupRead,
+		UpdateContext: ResourceOriginV3GroupUpdate,
+		DeleteContext: ResourceOriginV3GroupDelete,
+		Importer:      helper.Import(ResourceOriginV3GroupRead, "id", "platform"),
+		Schema:        GetOriginV3GroupSchema(),
 	}
 }
 
-func ResourceOriginV3Create(
+func ResourceOriginV3GroupCreate(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
@@ -46,64 +47,155 @@ func ResourceOriginV3Create(
 		return diag.FromErr(err)
 	}
 
-	// Read from TF state.
-	originGroupState, errs := expandOriginGroup(d)
-	if len(errs) > 0 {
-		return helper.DiagsFromErrors("error parsing origin group", errs)
+	var platform string
+	if v, ok := d.GetOk("platform"); ok {
+		if p, ok := v.(string); ok {
+			platform = p
+		} else {
+			return helper.CreationErrorf(d, "platform is not a string")
+		}
+	}
+	switch strings.ToLower(platform) {
+	case "http-large":
+		originGroupState, errs := expandHttpLargeOriginGroup(d)
+		if len(errs) > 0 {
+			return helper.DiagsFromErrors("error parsing origin group", errs)
+		}
+		// Call APIs.
+		cparams := originv3.NewAddHttpLargeGroupParams()
+		cparams.CustomerOriginGroupHTTPRequest =
+			originv3.CustomerOriginGroupHTTPRequest{
+				Name:               originGroupState.Name,
+				HostHeader:         originGroupState.HostHeader,
+				ShieldPops:         originGroupState.ShieldPops,
+				NetworkTypeId:      originGroupState.NetworkTypeId,
+				StrictPciCertified: originGroupState.StrictPciCertified,
+				TlsSettings:        originGroupState.TlsSettings,
+			}
+
+		cresp, err := svc.HttpLargeOnly.AddHttpLargeGroup(cparams)
+		if err != nil {
+			return helper.CreationError(d, err)
+		}
+		log.Printf("[INFO] origin group created: %# v\n", pretty.Formatter(cresp))
+		log.Printf("[INFO] origin group id: %d\n", cresp.Id)
+
+		d.SetId(strconv.Itoa(int(*cresp.Id)))
+
+	case "adn":
+		return helper.CreationErrorf(d, "platform adn not supported.")
+	default:
+		return helper.CreationErrorf(d, "platform not supported.")
 	}
 
-	// Call APIs.
-	cparams := originv3.NewAddHttpLargeGroupParams()
-	cparams.CustomerOriginGroupHTTPRequest =
-		originv3.CustomerOriginGroupHTTPRequest{
-			Name:               originGroupState.Name,
-			HostHeader:         originGroupState.HostHeader,
-			ShieldPops:         originGroupState.ShieldPops,
-			NetworkTypeId:      originGroupState.NetworkTypeId,
-			StrictPciCertified: originGroupState.StrictPciCertified,
-			TlsSettings:        originGroupState.TlsSettings,
+	return ResourceOriginV3GroupRead(ctx, d, m)
+}
+
+func ResourceOriginV3GroupRead(
+	ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	config, ok := m.(internal.ProviderConfig)
+	if !ok {
+		return diag.Errorf("failed to load configuration")
+	}
+
+	svc, err := buildOriginV3Service(config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	grpID, err := helper.ParseInt64(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	platform := d.Get("platform").(string)
+
+	switch strings.ToLower(platform) {
+	case "http-large":
+
+		log.Printf("[INFO] Retrieving origin group : ID: %d\n", grpID)
+		// call APIs
+		params := originv3.NewGetHttpLargeGroupParams()
+		params.GroupId = int32(grpID)
+
+		resp, err := svc.HttpLargeOnly.GetHttpLargeGroup(params)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+		log.Printf("[INFO] Retrieved origin group: %# v\n", pretty.Formatter(resp))
+
+		// Write TF state.
+		err = setHttpLargeOriginGroupState(d, resp)
+		if err != nil {
+			return diag.FromErr(err)
 		}
 
-	cresp, err := svc.HttpLargeOnly.AddHttpLargeGroup(cparams)
-	if err != nil {
-		return helper.CreationError(d, err)
+	case "adn":
+		return helper.CreationErrorf(d, "platform adn not supported.")
+	default:
+		return helper.CreationErrorf(d, "platform not supported.")
 	}
-	log.Printf("[INFO] origin group created: %# v\n", pretty.Formatter(cresp))
-	log.Printf("[INFO] origin group id: %d\n", cresp.Id)
-
-	d.SetId(strconv.Itoa(int(*cresp.Id)))
 
 	return diag.Diagnostics{}
 }
 
-func ResourceOriginV3Read(
+func ResourceOriginV3GroupUpdate(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	//Not implemented
+	// Not implemented
 	return diag.Diagnostics{}
 }
 
-func ResourceOriginV3Update(
+func ResourceOriginV3GroupDelete(
 	ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	//Not implemented
+	config, ok := m.(internal.ProviderConfig)
+	if !ok {
+		return diag.Errorf("failed to load configuration")
+	}
+
+	svc, err := buildOriginV3Service(config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	grpID, err := helper.ParseInt64(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	platform := d.Get("platform").(string)
+
+	switch strings.ToLower(platform) {
+	case "http-large":
+		params := originv3.NewDeleteGroupParams()
+		params.GroupId = int32(grpID)
+		params.MediaType = platform
+		err := svc.Common.DeleteGroup(params)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		log.Printf("[INFO] Deleted origin group id: %v", grpID)
+		d.SetId("")
+
+	case "adn":
+		return helper.CreationErrorf(d, "platform adn not supported.")
+	default:
+		return helper.CreationErrorf(d, "platform not supported.")
+	}
+
 	return diag.Diagnostics{}
 }
 
-func ResourceOriginV3Delete(
-	ctx context.Context,
-	d *schema.ResourceData,
-	m interface{},
-) diag.Diagnostics {
-	//Not implemented
-	return diag.Diagnostics{}
-}
-
-func expandOriginGroup(
+func expandHttpLargeOriginGroup(
 	d *schema.ResourceData,
 ) (*originv3.CustomerOriginGroupHTTPRequest, []error) {
 	if d == nil {
@@ -206,4 +298,50 @@ func expandTLSSettings(attr interface{}) (*originv3.TlsSettings, error) {
 	}
 
 	return &tls, nil
+}
+
+func setHttpLargeOriginGroupState(
+	d *schema.ResourceData,
+	resp *originv3.CustomerOriginGroupHTTP,
+) error {
+
+	d.Set("name", resp.Name)
+	d.Set("host_header", resp.HostHeader)
+	d.Set("network_type_id", resp.NetworkTypeId)
+	d.Set("strict_pci_certified", resp.StrictPciCertified)
+
+	if len(resp.ShieldPops) > 0 {
+		d.Set("shield_pops", resp.ShieldPops)
+	} else {
+		d.Set("shield_pops", make([]string, 0))
+	}
+
+	flattenedTLSSettings := flattenTLSSettings(resp.TlsSettings)
+	d.Set("tls_settings", flattenedTLSSettings)
+
+	return nil
+}
+
+func flattenTLSSettings(
+	settings *originv3.TlsSettings,
+) []map[string]interface{} {
+	if settings == nil {
+		return make([]map[string]interface{}, 0)
+	}
+
+	flattened := make([]map[string]interface{}, 0)
+
+	m := make(map[string]interface{})
+
+	m["allow_self_signed"] = settings.AllowSelfSigned
+	m["sni_hostname"] = settings.SniHostname
+	if len(settings.PublicKeysToVerify) > 0 {
+		m["public_keys_to_verify"] = settings.PublicKeysToVerify
+	} else {
+		m["public_keys_to_verify"] = make([]string, 0)
+	}
+
+	flattened = append(flattened, m)
+
+	return flattened
 }

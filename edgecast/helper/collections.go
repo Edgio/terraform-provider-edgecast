@@ -37,7 +37,7 @@ func ConvertSliceToStrings(v []interface{}) ([]string, error) {
 	return strings, nil
 }
 
-// ConvertSliceToStrings converts a []interface{} to []string.
+// ConvertSliceToPtrStrings converts a []interface{} to []*string.
 func ConvertSliceToPtrStrings(v []interface{}) ([]*string, error) {
 	if v == nil {
 		return nil, nil

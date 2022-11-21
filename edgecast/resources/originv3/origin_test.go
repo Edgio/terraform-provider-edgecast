@@ -12,10 +12,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestExpandOriginGrp(t *testing.T) {
+func TestExpandHttpLargeOriginGrp(t *testing.T) {
 	t.Parallel()
 
-	IsAllowSelfSigned := false
+	isAllowSelfSigned := false
 	pop1 := "pop1"
 	pop2 := "pop2"
 
@@ -31,6 +31,7 @@ func TestExpandOriginGrp(t *testing.T) {
 			expectErrs: false,
 			input: map[string]any{
 				"name":            "my_origin_group",
+				"platform":        "http-large",
 				"host_header":     "myhost",
 				"network_type_id": 2,
 				"shield_pops":     []any{"pop1", "pop2"},
@@ -49,7 +50,7 @@ func TestExpandOriginGrp(t *testing.T) {
 				ShieldPops:    []*string{&pop1, &pop2},
 				TlsSettings: &originv3.TlsSettings{
 					SniHostname:        originv3.NewNullableString("mysnihost"),
-					AllowSelfSigned:    &IsAllowSelfSigned,
+					AllowSelfSigned:    &isAllowSelfSigned,
 					PublicKeysToVerify: []string{"key1", "key2"},
 				},
 			},
@@ -72,11 +73,11 @@ func TestExpandOriginGrp(t *testing.T) {
 			if tt.input != nil {
 				rd = schema.TestResourceDataRaw(
 					t,
-					GetOriginV3Schema(),
+					GetOriginV3GroupSchema(),
 					tt.input)
 			}
 
-			actualPtr, errs := expandOriginGroup(rd)
+			actualPtr, errs := expandHttpLargeOriginGroup(rd)
 
 			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
@@ -109,7 +110,7 @@ func TestExpandOriginGrp(t *testing.T) {
 }
 
 func TestExpandTLSSettings(t *testing.T) {
-	IsAllowSelfSigned := false
+	isAllowSelfSigned := false
 
 	cases := []struct {
 		name          string
@@ -128,7 +129,7 @@ func TestExpandTLSSettings(t *testing.T) {
 			},
 			expectedPtr: &originv3.TlsSettings{
 				SniHostname:        originv3.NewNullableString("mysnihost"),
-				AllowSelfSigned:    &IsAllowSelfSigned,
+				AllowSelfSigned:    &isAllowSelfSigned,
 				PublicKeysToVerify: []string{"key1", "key2"},
 			},
 			expectSuccess: true,
@@ -176,6 +177,57 @@ func TestExpandTLSSettings(t *testing.T) {
 			if err == nil {
 				t.Fatalf("%s: Expected error, but got no error", v.name)
 			}
+		}
+	}
+}
+
+func TestFlattenTLSSettings(t *testing.T) {
+
+	isAllowSelfSigned := false
+	sniHost := originv3.NewNullableString("mysnihost")
+	cases := []struct {
+		name          string
+		input         *originv3.TlsSettings
+		expected      []map[string]interface{}
+		expectSuccess bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			input: &originv3.TlsSettings{
+				SniHostname:        sniHost,
+				AllowSelfSigned:    &isAllowSelfSigned,
+				PublicKeysToVerify: []string{"key1", "key2"},
+			},
+			expected: []map[string]interface{}{
+				{
+					"sni_hostname":          sniHost,
+					"allow_self_signed":     &isAllowSelfSigned,
+					"public_keys_to_verify": []string{"key1", "key2"},
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			input:         nil,
+			expected:      make([]map[string]interface{}, 0),
+			expectSuccess: false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := flattenTLSSettings(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
 		}
 	}
 }

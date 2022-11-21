@@ -7,14 +7,14 @@ import (
 	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/originv3"
+	sdkoriginv3 "github.com/EdgeCast/ec-sdk-go/edgecast/originv3"
 )
 
 // buildOriginV3Service builds the SDK OriginV3 service to manage Origin Groups
 // and Origin resources.
 func buildOriginV3Service(
 	config internal.ProviderConfig,
-) (*originv3.Service, error) {
+) (*sdkoriginv3.Service, error) {
 	idsCredentials := edgecast.IDSCredentials{
 		ClientID:     config.IdsClientID,
 		ClientSecret: config.IdsClientSecret,
@@ -29,5 +29,5 @@ func buildOriginV3Service(
 	sdkConfig.BaseIDSURL = *config.IdsURL
 	sdkConfig.UserAgent = config.UserAgent
 
-	return originv3.New(sdkConfig)
+	return sdkoriginv3.New(sdkConfig)
 }
