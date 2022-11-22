@@ -144,7 +144,7 @@ func buildResourcesMap() map[string]*schema.Resource {
 		"edgecast_waf_scopes":             waf.ResourceScopes(),
 		"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
 		"edgecast_cps_certificate":        cps.ResourceCertificate(),
-		"edgecast_originv3_group":         originv3.ResourceOriginV3Group(),
+		"edgecast_originv3_httplarge":     originv3.ResourceOriginGrpHttpLarge(),
 	}
 }
 

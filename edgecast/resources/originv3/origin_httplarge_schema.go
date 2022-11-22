@@ -4,7 +4,7 @@ package originv3
 
 import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-func GetOriginV3GroupSchema() map[string]*schema.Schema {
+func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"id": {
 			Type:        schema.TypeString,
@@ -20,11 +20,6 @@ func GetOriginV3GroupSchema() map[string]*schema.Schema {
 			Type:        schema.TypeString,
 			Optional:    true,
 			Description: "Indicates the value that will be assigned to the Host header for all requests to this customer origin configuration.",
-		},
-		"platform": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Indicates the platform. Valid values: 'http-large', 'adn'",
 		},
 		"network_type_id": {
 			Type:     schema.TypeInt,

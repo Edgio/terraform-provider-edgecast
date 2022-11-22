@@ -73,7 +73,7 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 			if tt.input != nil {
 				rd = schema.TestResourceDataRaw(
 					t,
-					GetOriginV3GroupSchema(),
+					GetOriginGrpHttpLargeSchema(),
 					tt.input)
 			}
 
