@@ -37,6 +37,26 @@ func ConvertSliceToStrings(v []interface{}) ([]string, error) {
 	return strings, nil
 }
 
+// ConvertSliceToPtrStrings converts a []interface{} to []*string.
+func ConvertSliceToPtrStrings(v []interface{}) ([]*string, error) {
+	if v == nil {
+		return nil, nil
+	}
+
+	strings := make([]*string, len(v))
+
+	for i, val := range v {
+		if s, ok := val.(string); ok {
+			strings[i] = &s
+		} else {
+			return nil,
+				errors.New("slice contained a non-string value")
+		}
+	}
+
+	return strings, nil
+}
+
 // GetStringFromMap returns a string value from the provided map using the
 // provided key. If the item is not in the map or it is not a string, this
 // function will return an empty string and a false 'ok' value.

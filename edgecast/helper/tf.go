@@ -124,6 +124,23 @@ func ConvertTFCollectionToStrings(v interface{}) ([]string, error) {
 	return nil, err
 }
 
+// ConvertTFCollectionToPtrStrings converts Terraform's
+// TypeList and TypeSet collections into a []*string.
+func ConvertTFCollectionToPtrStrings(v interface{}) ([]*string, error) {
+	// If the underlying type is already []*string, just return it.
+	if strings, ok := v.([]*string); ok {
+		return strings, nil
+	}
+
+	listItems, err := ConvertTFCollectionToSlice(v)
+
+	if err == nil {
+		return ConvertSliceToPtrStrings(listItems)
+	}
+
+	return nil, err
+}
+
 // ConvertSingletonSetToMap converts a interface{} that is actually a Terraform
 // schema.TypeSet into a Map. This is useful when using the schema.TypeSet
 // with MaxItems=1 workaround.
