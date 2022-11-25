@@ -120,8 +120,39 @@ func ResourceOriginGroupUpdate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	// Not implemented
-	return diag.Diagnostics{}
+	config, ok := m.(internal.ProviderConfig)
+	if !ok {
+		return diag.Errorf("failed to load configuration")
+	}
+
+	svc, err := buildOriginV3Service(config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	grpID, err := helper.ParseInt64(d.Id())
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	originGroupState, errs := expandHttpLargeOriginGroup(d)
+	if len(errs) > 0 {
+		return helper.DiagsFromErrors("error parsing origin group", errs)
+	}
+
+	log.Printf("[INFO] Updating origin group : ID: %d\n", grpID)
+	updateParams := originv3.NewUpdateHttpLargeGroupParams()
+	updateParams.GroupId = int32(grpID)
+	updateParams.CustomerOriginGroupHTTPRequest = *originGroupState
+
+	_, err = svc.HttpLargeOnly.UpdateHttpLargeGroup(updateParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Updated origin group ID: %v", grpID)
+
+	return ResourceOriginGroupRead(ctx, d, m)
 }
 
 func ResourceOriginGroupDelete(
