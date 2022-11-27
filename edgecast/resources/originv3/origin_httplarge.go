@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"strconv"
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 
@@ -35,19 +34,19 @@ func ResourceOriginGroupCreate(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	/*
+		// Initialize Servicee
+		config, ok := m.(internal.ProviderConfig)
+		if !ok {
+			return helper.CreationErrorf(d, "failed to load configuration")
+		}
 
-	// Initialize Servicee
-	config, ok := m.(internal.ProviderConfig)
-	if !ok {
-		return helper.CreationErrorf(d, "failed to load configuration")
-	}
-
-	svc, err := buildOriginV3Service(config)
-	if err != nil {
-		return diag.FromErr(err)
-	}
-
-	originGroupState, errs := expandHttpLargeOriginGroup(d)
+			svc, err := buildOriginV3Service(config)
+			if err != nil {
+				return diag.FromErr(err)
+			}
+	*/
+	originGroupState, originsState, errs := expandHttpLargeOriginGroup(d)
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors("error parsing origin group", errs)
 	}
@@ -62,17 +61,25 @@ func ResourceOriginGroupCreate(
 			StrictPciCertified: originGroupState.StrictPciCertified,
 			TlsSettings:        originGroupState.TlsSettings,
 		}
-
-	cresp, err := svc.HttpLargeOnly.AddHttpLargeGroup(cparams)
-	if err != nil {
-		return helper.CreationError(d, err)
+		/*
+			cresp, err := svc.HttpLargeOnly.AddHttpLargeGroup(cparams)
+			if err != nil {
+				return helper.CreationError(d, err)
+			}
+			log.Printf("[INFO] origin group created: %# v\n", pretty.Formatter(cresp))
+			log.Printf("[INFO] origin group id: %d\n", cresp.Id)
+		*/
+	if originsState != nil {
+		//foreach origin set groupid
+		//call create origin apis --> parallelize this!
+		log.Printf("[INFO] Retrieved origin group: %# v\n", pretty.Formatter(originsState))
 	}
-	log.Printf("[INFO] origin group created: %# v\n", pretty.Formatter(cresp))
-	log.Printf("[INFO] origin group id: %d\n", cresp.Id)
+	//rollback?
 
-	d.SetId(strconv.Itoa(int(*cresp.Id)))
+	//d.SetId(strconv.Itoa(int(*cresp.Id)))
 
-	return ResourceOriginGroupRead(ctx, d, m)
+	//return ResourceOriginGroupRead(ctx, d, m)
+	return diag.Diagnostics{}
 }
 
 func ResourceOriginGroupRead(
@@ -161,14 +168,15 @@ func ResourceOriginGroupDelete(
 
 func expandHttpLargeOriginGroup(
 	d *schema.ResourceData,
-) (*originv3.CustomerOriginGroupHTTPRequest, []error) {
+) (*originv3.CustomerOriginGroupHTTPRequest, []*originv3.CustomerOriginRequest, []error) {
 	if d == nil {
-		return nil, []error{errors.New("no data to read")}
+		return nil, nil, []error{errors.New("no data to read")}
 	}
 
 	errs := make([]error, 0)
 
 	originGrpState := &originv3.CustomerOriginGroupHTTPRequest{}
+	originsState := []*originv3.CustomerOriginRequest{}
 
 	if v, ok := d.GetOk("name"); ok {
 		if name, ok := v.(string); ok {
@@ -219,7 +227,17 @@ func expandHttpLargeOriginGroup(
 		}
 	}
 
-	return originGrpState, errs
+	if v, ok := d.GetOk("origin"); ok {
+		if origins, err := expandOrigins(v); err == nil {
+			originsState = origins
+		} else {
+			errs = append(errs, fmt.Errorf("error parsing origins: %w", err))
+		}
+	}
+
+	//log.Printf("[INFO] Origins: %# v\n", pretty.Formatter(originsState))
+
+	return originGrpState, originsState, errs
 }
 
 func setHttpLargeOriginGroupState(
