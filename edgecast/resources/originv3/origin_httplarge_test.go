@@ -3,20 +3,30 @@
 
 package originv3
 
-/*
+import (
+	"reflect"
+	"testing"
+
+	"github.com/EdgeCast/ec-sdk-go/edgecast/originv3"
+	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
 func TestExpandHttpLargeOriginGrp(t *testing.T) {
 	t.Parallel()
 
 	isAllowSelfSigned := false
 	pop1 := "pop1"
 	pop2 := "pop2"
+	port := int32(443)
 
 	tests := []struct {
-		name        string
-		input       map[string]any
-		expectedPtr *originv3.CustomerOriginGroupHTTPRequest
-		expectErrs  bool
-		errCount    int
+		name           string
+		input          map[string]any
+		expectedGrpPtr *originv3.CustomerOriginGroupHTTPRequest
+		expectedPtr    []*originv3.CustomerOriginRequest
+		expectErrs     bool
+		errCount       int
 	}{
 		{
 			name:       "Happy path",
@@ -34,8 +44,18 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 						"public_keys_to_verify": []any{"key1", "key2"},
 					},
 				},
+				"origin": []any{
+					map[string]any{
+						"name":             "marketing-origin-entry-a",
+						"host":             "https://cdn-la.example.com",
+						"port":             443,
+						"is_primary":       true,
+						"storage_type_id":  1,
+						"protocol_type_id": 2,
+					},
+				},
 			},
-			expectedPtr: &originv3.CustomerOriginGroupHTTPRequest{
+			expectedGrpPtr: &originv3.CustomerOriginGroupHTTPRequest{
 				Name:          "my_origin_group",
 				HostHeader:    originv3.NewNullableString("myhost"),
 				NetworkTypeId: originv3.NewNullableInt32(2),
@@ -46,13 +66,24 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					PublicKeysToVerify: []string{"key1", "key2"},
 				},
 			},
+			expectedPtr: []*originv3.CustomerOriginRequest{
+				{
+					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
+					Host:           "https://cdn-la.example.com",
+					Port:           &port,
+					IsPrimary:      true,
+					StorageTypeId:  originv3.NewNullableInt32(1),
+					ProtocolTypeId: originv3.NewNullableInt32(2),
+				},
+			},
 		},
 		{
-			name:        "nil input",
-			errCount:    1,
-			input:       nil,
-			expectedPtr: nil,
-			expectErrs:  true,
+			name:           "nil input",
+			errCount:       1,
+			input:          nil,
+			expectedPtr:    nil,
+			expectedGrpPtr: nil,
+			expectErrs:     true,
 		},
 	}
 
@@ -69,7 +100,7 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					tt.input)
 			}
 
-			actualPtr, errs := expandHttpLargeOriginGroup(rd)
+			actualGrpPtr, actualPtr, errs := expandHttpLargeOriginGroup(rd)
 
 			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
@@ -83,8 +114,25 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 				return // successful test for error case
 			}
 
-			actual := *actualPtr
-			expected := *tt.expectedPtr
+			//Group
+			actualGrp := *actualGrpPtr
+			expectedGrp := *tt.expectedGrpPtr
+
+			if !reflect.DeepEqual(actualGrp, expectedGrp) {
+				// deep.Equal doesn't compare pointer values, so we just use it to
+				// generate a human friendly diff
+				diff := deep.Equal(actualGrp, expectedGrp)
+				t.Errorf("Diff: %+v", diff)
+				t.Fatalf("%s: Expected %+v but got %+v",
+					tt.name,
+					expectedGrp,
+					actualGrp,
+				)
+			}
+
+			//Origins
+			actual := actualPtr
+			expected := tt.expectedPtr
 
 			if !reflect.DeepEqual(actual, expected) {
 				// deep.Equal doesn't compare pointer values, so we just use it to
@@ -173,6 +221,102 @@ func TestExpandTLSSettings(t *testing.T) {
 	}
 }
 
+func TestExpandOrigins(t *testing.T) {
+	port := int32(443)
+
+	cases := []struct {
+		name          string
+		input         interface{}
+		expectedPtr   []*originv3.CustomerOriginRequest
+		expectSuccess bool
+	}{
+		{
+			name: "Happy path",
+			input: []any{
+				map[string]any{
+					"name":             "marketing-origin-entry-a",
+					"host":             "https://cdn-la.example.com",
+					"port":             443,
+					"is_primary":       true,
+					"storage_type_id":  1,
+					"protocol_type_id": 2,
+				},
+				map[string]any{
+					"name":             "marketing-origin-entry-b",
+					"host":             "https://cdn-lb.example.com",
+					"port":             443,
+					"is_primary":       true,
+					"storage_type_id":  1,
+					"protocol_type_id": 2,
+				},
+			},
+			expectedPtr: []*originv3.CustomerOriginRequest{
+				{
+					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
+					Host:           "https://cdn-la.example.com",
+					Port:           &port,
+					IsPrimary:      true,
+					StorageTypeId:  originv3.NewNullableInt32(1),
+					ProtocolTypeId: originv3.NewNullableInt32(2),
+				},
+				{
+					Name:           originv3.NewNullableString("marketing-origin-entry-b"),
+					Host:           "https://cdn-lb.example.com",
+					Port:           &port,
+					IsPrimary:      true,
+					StorageTypeId:  originv3.NewNullableInt32(1),
+					ProtocolTypeId: originv3.NewNullableInt32(2),
+				},
+			},
+			expectSuccess: true,
+		},
+		{
+			name:          "Error path - incorrect input type",
+			input:         "not a []interface{}",
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+		{
+			name:          "nil input",
+			input:         nil,
+			expectedPtr:   make([]*originv3.CustomerOriginRequest, 0),
+			expectSuccess: false,
+		},
+	}
+
+	for _, v := range cases {
+		actualPtr, err := expandOrigins(v.input)
+
+		if v.expectSuccess {
+			if err == nil {
+				actual := actualPtr
+				expected := v.expectedPtr
+
+				if !reflect.DeepEqual(actual, expected) {
+					// deep.Equal doesn't compare pointer values, so we just use it to
+					// generate a human friendly diff
+					diff := deep.Equal(actual, expected)
+					t.Errorf("Diff: %+v", diff)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						v.name,
+						expected,
+						actual,
+					)
+				}
+			} else {
+				t.Fatalf("%s: Encountered error where one was not expected: %+v",
+					v.name,
+					err,
+				)
+			}
+		} else {
+			if err == nil {
+				t.Fatalf("%s: Expected error, but got no error", v.name)
+			}
+		}
+	}
+}
+
 func TestFlattenTLSSettings(t *testing.T) {
 
 	isAllowSelfSigned := false
@@ -223,4 +367,3 @@ func TestFlattenTLSSettings(t *testing.T) {
 		}
 	}
 }
-*/
