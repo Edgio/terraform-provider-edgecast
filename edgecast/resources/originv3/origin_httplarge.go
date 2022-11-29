@@ -139,8 +139,18 @@ func ResourceOriginGroupRead(
 	}
 	log.Printf("[INFO] Retrieved origin group: %# v\n", pretty.Formatter(resp))
 
+	originsParams := originv3.NewGetOriginsByGroupParams()
+	originsParams.GroupId = int32(grpID)
+	originsParams.MediaType = enums.HttpLarge.String()
+
+	originsResp, err := svc.Common.GetOriginsByGroup(originsParams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+	log.Printf("[INFO] Retrieved origins: %# v\n", pretty.Formatter(originsResp))
+
 	// Write TF state.
-	err = setHttpLargeOriginGroupState(d, resp)
+	err = setHttpLargeOriginGroupState(d, resp, originsResp)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -269,6 +279,7 @@ func expandHttpLargeOriginGroup(
 func setHttpLargeOriginGroupState(
 	d *schema.ResourceData,
 	resp *originv3.CustomerOriginGroupHTTP,
+	originsResp []originv3.CustomerOriginFailoverOrder,
 ) error {
 
 	d.Set("name", resp.Name)
@@ -284,6 +295,9 @@ func setHttpLargeOriginGroupState(
 
 	flattenedTLSSettings := flattenTLSSettings(resp.TlsSettings)
 	d.Set("tls_settings", flattenedTLSSettings)
+
+	flattenedOrigins := flattenOrigins(originsResp)
+	d.Set("origin", flattenedOrigins)
 
 	return nil
 }

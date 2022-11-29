@@ -160,3 +160,27 @@ func flattenTLSSettings(
 	flattened = append(flattened, m)
 	return flattened
 }
+
+func flattenOrigins(
+	origins []originv3.CustomerOriginFailoverOrder,
+) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range origins {
+		m := make(map[string]interface{})
+
+		m["id"] = v.Id
+		m["host"] = v.Host
+		m["is_primary"] = v.IsPrimary
+		m["name"] = v.Name
+		m["port"] = v.Port
+		m["protocol_type_id"] = v.ProtocolTypeId
+		m["storage_type_id"] = v.StorageTypeId
+		//m["failover_order"] = v.FailoverOrder
+
+		flattened = append(flattened, m)
+	}
+
+	return flattened
+}
