@@ -271,7 +271,7 @@ func expandHttpLargeOriginGroup(
 		}
 	}
 
-	//log.Printf("[INFO] Origins: %# v\n", pretty.Formatter(originsState))
+	log.Printf("[INFO] Origins: %# v\n", pretty.Formatter(originsState))
 
 	return originGrpState, originsState, errs
 }
