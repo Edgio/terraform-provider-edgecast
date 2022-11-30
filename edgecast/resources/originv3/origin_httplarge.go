@@ -196,7 +196,7 @@ func expandHttpLargeOriginGroup(
 	d *schema.ResourceData,
 ) (*originv3.CustomerOriginGroupHTTPRequest, []*originv3.CustomerOriginRequest, []error) {
 	if d == nil {
-		return nil, nil, []error{errors.New("no data to read")}
+		return nil, make([]*originv3.CustomerOriginRequest, 0), []error{errors.New("no data to read")}
 	}
 
 	errs := make([]error, 0)
