@@ -9,146 +9,146 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/originv3"
 	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestExpandHttpLargeOriginGrp(t *testing.T) {
-	t.Parallel()
+/*
+	func TestExpandHttpLargeOriginGrp(t *testing.T) {
+		t.Parallel()
 
-	isAllowSelfSigned := false
-	pop1 := "pop1"
-	pop2 := "pop2"
-	port := int32(443)
+		isAllowSelfSigned := false
+		pop1 := "pop1"
+		pop2 := "pop2"
+		port := int32(443)
 
-	tests := []struct {
-		name           string
-		input          map[string]any
-		expectedGrpPtr *originv3.CustomerOriginGroupHTTPRequest
-		expectedPtr    []*originv3.CustomerOriginRequest
-		expectErrs     bool
-		errCount       int
-	}{
-		{
-			name:       "Happy path",
-			expectErrs: false,
-			input: map[string]any{
-				"name":            "my_origin_group",
-				"platform":        "http-large",
-				"host_header":     "myhost",
-				"network_type_id": 2,
-				"shield_pops":     []any{"pop1", "pop2"},
-				"tls_settings": []any{
-					map[string]any{
-						"sni_hostname":          "mysnihost",
-						"allow_self_signed":     false,
-						"public_keys_to_verify": []any{"key1", "key2"},
+		tests := []struct {
+			name           string
+			input          map[string]any
+			expectedGrpPtr *originv3.CustomerOriginGroupHTTPRequest
+			expectedPtr    []*originv3.CustomerOriginRequest
+			expectErrs     bool
+			errCount       int
+		}{
+			{
+				name:       "Happy path",
+				expectErrs: false,
+				input: map[string]any{
+					"name":            "my_origin_group",
+					"platform":        "http-large",
+					"host_header":     "myhost",
+					"network_type_id": 2,
+					"shield_pops":     []any{"pop1", "pop2"},
+					"tls_settings": []any{
+						map[string]any{
+							"sni_hostname":          "mysnihost",
+							"allow_self_signed":     false,
+							"public_keys_to_verify": []any{"key1", "key2"},
+						},
+					},
+					"origin": []any{
+						map[string]any{
+							"name":             "marketing-origin-entry-a",
+							"host":             "https://cdn-la.example.com",
+							"port":             443,
+							"is_primary":       true,
+							"storage_type_id":  1,
+							"protocol_type_id": 2,
+						},
 					},
 				},
-				"origin": []any{
-					map[string]any{
-						"name":             "marketing-origin-entry-a",
-						"host":             "https://cdn-la.example.com",
-						"port":             443,
-						"is_primary":       true,
-						"storage_type_id":  1,
-						"protocol_type_id": 2,
+				expectedGrpPtr: &originv3.CustomerOriginGroupHTTPRequest{
+					Name:          "my_origin_group",
+					HostHeader:    originv3.NewNullableString("myhost"),
+					NetworkTypeId: originv3.NewNullableInt32(2),
+					ShieldPops:    []*string{&pop1, &pop2},
+					TlsSettings: &originv3.TlsSettings{
+						SniHostname:        originv3.NewNullableString("mysnihost"),
+						AllowSelfSigned:    &isAllowSelfSigned,
+						PublicKeysToVerify: []string{"key1", "key2"},
+					},
+				},
+				expectedPtr: []*originv3.CustomerOriginRequest{
+					{
+						Name:           originv3.NewNullableString("marketing-origin-entry-a"),
+						Host:           "https://cdn-la.example.com",
+						Port:           &port,
+						IsPrimary:      true,
+						StorageTypeId:  originv3.NewNullableInt32(1),
+						ProtocolTypeId: originv3.NewNullableInt32(2),
 					},
 				},
 			},
-			expectedGrpPtr: &originv3.CustomerOriginGroupHTTPRequest{
-				Name:          "my_origin_group",
-				HostHeader:    originv3.NewNullableString("myhost"),
-				NetworkTypeId: originv3.NewNullableInt32(2),
-				ShieldPops:    []*string{&pop1, &pop2},
-				TlsSettings: &originv3.TlsSettings{
-					SniHostname:        originv3.NewNullableString("mysnihost"),
-					AllowSelfSigned:    &isAllowSelfSigned,
-					PublicKeysToVerify: []string{"key1", "key2"},
-				},
+			{
+				name:           "nil input",
+				errCount:       1,
+				input:          nil,
+				expectedPtr:    nil,
+				expectedGrpPtr: nil,
+				expectErrs:     true,
 			},
-			expectedPtr: []*originv3.CustomerOriginRequest{
-				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
-					Host:           "https://cdn-la.example.com",
-					Port:           &port,
-					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
-				},
-			},
-		},
-		{
-			name:           "nil input",
-			errCount:       1,
-			input:          nil,
-			expectedPtr:    nil,
-			expectedGrpPtr: nil,
-			expectErrs:     true,
-		},
+		}
+
+		for _, tt := range tests {
+			tt := tt
+			t.Run(tt.name, func(t *testing.T) {
+				t.Parallel()
+
+				var rd *schema.ResourceData
+				if tt.input != nil {
+					rd = schema.TestResourceDataRaw(
+						t,
+						GetOriginGrpHttpLargeSchema(),
+						tt.input)
+				}
+
+				actualGrpPtr, actualPtr, errs := expandHttpLargeOriginGroup(rd)
+
+				if !tt.expectErrs && (len(errs) > 0) {
+					t.Fatalf("unexpected errors: %v", errs)
+				}
+
+				if tt.expectErrs && (len(errs) != tt.errCount) {
+					t.Fatalf("expected %d errors but got %d", tt.errCount, len(errs))
+				}
+
+				if tt.expectErrs && (len(errs) > 0) {
+					return // successful test for error case
+				}
+
+				//Group
+				actualGrp := *actualGrpPtr
+				expectedGrp := *tt.expectedGrpPtr
+
+				if !reflect.DeepEqual(actualGrp, expectedGrp) {
+					// deep.Equal doesn't compare pointer values, so we just use it to
+					// generate a human friendly diff
+					diff := deep.Equal(actualGrp, expectedGrp)
+					t.Errorf("Diff: %+v", diff)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						tt.name,
+						expectedGrp,
+						actualGrp,
+					)
+				}
+
+				//Origins
+				actual := actualPtr
+				expected := tt.expectedPtr
+
+				if !reflect.DeepEqual(actual, expected) {
+					// deep.Equal doesn't compare pointer values, so we just use it to
+					// generate a human friendly diff
+					diff := deep.Equal(actual, expected)
+					t.Errorf("Diff: %+v", diff)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						tt.name,
+						expected,
+						actual,
+					)
+				}
+			})
+		}
 	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-
-			var rd *schema.ResourceData
-			if tt.input != nil {
-				rd = schema.TestResourceDataRaw(
-					t,
-					GetOriginGrpHttpLargeSchema(),
-					tt.input)
-			}
-
-			actualGrpPtr, actualPtr, errs := expandHttpLargeOriginGroup(rd)
-
-			if !tt.expectErrs && (len(errs) > 0) {
-				t.Fatalf("unexpected errors: %v", errs)
-			}
-
-			if tt.expectErrs && (len(errs) != tt.errCount) {
-				t.Fatalf("expected %d errors but got %d", tt.errCount, len(errs))
-			}
-
-			if tt.expectErrs && (len(errs) > 0) {
-				return // successful test for error case
-			}
-
-			//Group
-			actualGrp := *actualGrpPtr
-			expectedGrp := *tt.expectedGrpPtr
-
-			if !reflect.DeepEqual(actualGrp, expectedGrp) {
-				// deep.Equal doesn't compare pointer values, so we just use it to
-				// generate a human friendly diff
-				diff := deep.Equal(actualGrp, expectedGrp)
-				t.Errorf("Diff: %+v", diff)
-				t.Fatalf("%s: Expected %+v but got %+v",
-					tt.name,
-					expectedGrp,
-					actualGrp,
-				)
-			}
-
-			//Origins
-			actual := actualPtr
-			expected := tt.expectedPtr
-
-			if !reflect.DeepEqual(actual, expected) {
-				// deep.Equal doesn't compare pointer values, so we just use it to
-				// generate a human friendly diff
-				diff := deep.Equal(actual, expected)
-				t.Errorf("Diff: %+v", diff)
-				t.Fatalf("%s: Expected %+v but got %+v",
-					tt.name,
-					expected,
-					actual,
-				)
-			}
-		})
-	}
-}
-
+*/
 func TestExpandTLSSettings(t *testing.T) {
 	isAllowSelfSigned := false
 
