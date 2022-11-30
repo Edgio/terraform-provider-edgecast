@@ -76,6 +76,68 @@ func expandTLSSettings(attr interface{}) (*originv3.TlsSettings, error) {
 	return &tls, nil
 }
 
+func expandOrigins(attr interface{}) ([]*originv3.CustomerOriginRequest, error) {
+	if items, ok := attr.([]interface{}); ok {
+		origins := make([]*originv3.CustomerOriginRequest, 0)
+
+		for _, item := range items {
+			curr, ok := item.(map[string]interface{})
+			if !ok {
+				return nil, errors.New("origin was not map[string]interface{}")
+			}
+
+			host, ok := curr["host"].(string)
+			if !ok {
+				return nil, errors.New("origin.host was not a string")
+			}
+
+			name, ok := curr["name"].(string)
+			if !ok {
+				return nil, errors.New("origin.name was not a string")
+			}
+
+			port, ok := curr["port"].(int)
+			if !ok {
+				return nil, errors.New("origin.port was not an int")
+			}
+			port32 := int32(port)
+
+			isPrimary, ok := curr["is_primary"].(bool)
+			if !ok {
+				return nil, errors.New("domain.is_primary was not a bool")
+			}
+
+			storageTypeID, ok := curr["storage_type_id"].(int)
+			if !ok {
+				return nil, errors.New("origin.storage_type_id was not an int")
+			}
+			storageTypeID32 := int32(storageTypeID)
+
+			protocolTypeID, ok := curr["protocol_type_id"].(int)
+			if !ok {
+				return nil, errors.New("origin.protocol_type_id was not an int")
+			}
+			protocolTypeID32 := int32(protocolTypeID)
+
+			origin := originv3.CustomerOriginRequest{
+				Name:           originv3.NewNullableString(name),
+				Host:           host,
+				Port:           &port32,
+				IsPrimary:      isPrimary,
+				StorageTypeId:  originv3.NewNullableInt32(storageTypeID32),
+				ProtocolTypeId: originv3.NewNullableInt32(protocolTypeID32),
+			}
+
+			origins = append(origins, &origin)
+		}
+
+		return origins, nil
+	} else {
+		return nil,
+			errors.New("ExpandOrigins: attr input was not a []interface{}")
+	}
+}
+
 func flattenTLSSettings(
 	settings *originv3.TlsSettings,
 ) []map[string]interface{} {

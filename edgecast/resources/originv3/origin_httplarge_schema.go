@@ -98,5 +98,74 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 				},
 			},
 		},
+		"origin": {
+			Type:     schema.TypeList,
+			Optional: true,
+			Elem: &schema.Resource{
+				Schema: map[string]*schema.Schema{
+					"host": {
+						Type:     schema.TypeString,
+						Required: true,
+						Description: "Identifies the web server(s) that will be associated with this origin entry through either a hostname or IP address.  \n" +
+							"Key information:  \n\n" +
+							"    -> If you set the protocol_type_id property to either the HTTPS Only or HTTP Only mode, then you may also define a protocol for edge to origin communication. \n" +
+							"    -> You may not specify a hostname or IP address that points to our network. This type of configuration is disallowed since it may cause your traffic to infinitely loop within our network. \n" +
+							"    -> Use any combination of hostnames and IP addresses when defining a customer origin group's origin entries. \n" +
+							"    -> Our service resolve hostnames to an IP address prior to delivery. The customer origin group's network_type_id property determines how hostnames will be resolved to an IP address. \n" +
+							"    -> Syntax: \n" +
+							"    	-> HTTPS Only and HTTP Only Modes: {Protocol}{Hostname or IP Address} \n" +
+							"    	If you choose to assign a protocol, make sure that all origin entries within a customer origin group for a given mode use the same protocol. For example, you may not configure some HTTPS Only origin entries to use the HTTP protocol and others to use the HTTPS protocol. \n" +
+							"    	Hostname Example: https://www.mydomain.com \n" +
+							"    	IPv6 Example: [1:2:3:4:5:6:7:8] \n" +
+							"    	-> Match Client Mode: {Hostname or IP Address} \n" +
+							"    	IPv4 Example:: 10.10.10.255 \n" +
+							"		Brackets are required when identifying an origin server through the use of IPv6 notation. This is the standard URI convention for IPv6 addresses. \n" +
+							"",
+					},
+					"is_primary": {
+						Type:     schema.TypeBool,
+						Required: true,
+						Description: "Determines whether this origin entry identifies the primary hostname or IP address for the protocol defined within the protocol_type_id property.  \n\n" +
+							"You may only enable this property on a single origin entry within a customer origin group per protocol. For the purpose of this restriction, an origin entry that uses the Match Client mode is considered to be assigned both HTTP and HTTPS.  \n\n" +
+							"For example, enabling this property on an origin entry that uses the Match Client mode will cause it to be the primary origin entry for both HTTP and HTTPS. \n\n" +
+							"This property is critical for determining how requests are load balanced. Setup for both modes are described below. \n" +
+							"    -> Primary / Failover: Our service load balances requests using primary / failover mode when this property is enabled on an origin entry within the desired customer origin group. This load balancing mode is restricted to that origin entry's protocol. If that origin entry has been configured to use the Match Client mode, then requests will be load balanced for both HTTP and HTTPS. \n" +
+							"    -> Round-Robin: Our service load balances requests using round-robin mode when this property is disabled on all origin entries within the desired customer origin group for the desired protocol. \n" +
+							"",
+					},
+					"name": {
+						Type:        schema.TypeString,
+						Optional:    true,
+						Description: "Defines the origin entry's name.",
+					},
+					"port": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Description: "Determines the port for communication with your origin servers.  \n" +
+							"Default Value: \n " +
+							"This property's default value varies according to the value defined within the protocol_type_id property. \n " +
+							"80 | 443",
+					},
+					"protocol_type_id": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  1,
+						Description: "Determines this origin entry's protocol through its system-defined ID. Valid values are: \n " +
+							"1: HTTP Only" +
+							"2: HTTPS Only \n " +
+							"3: Match Client \n " +
+							"",
+					},
+					"storage_type_id": {
+						Type:     schema.TypeInt,
+						Optional: true,
+						Default:  1,
+						Description: "Identifies the origin group's type through its system-defined ID. Valid values are: \n\n" +
+							"1: Customer origin group ",
+					},
+				},
+			},
+			Description: "Contains the origin entry(s) associated with this origin group.",
+		},
 	}
 }

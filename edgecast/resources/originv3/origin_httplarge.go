@@ -47,7 +47,7 @@ func ResourceOriginGroupCreate(
 		return diag.FromErr(err)
 	}
 
-	originGroupState, errs := expandHttpLargeOriginGroup(d)
+	originGroupState, originsState, errs := expandHttpLargeOriginGroup(d)
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors("error parsing origin group", errs)
 	}
@@ -70,7 +70,40 @@ func ResourceOriginGroupCreate(
 	log.Printf("[INFO] origin group created: %# v\n", pretty.Formatter(cresp))
 	log.Printf("[INFO] origin group id: %d\n", cresp.Id)
 
-	d.SetId(strconv.Itoa(int(*cresp.Id)))
+	grpID := cresp.Id
+
+	if len(originsState) > 0 {
+		for key, origin := range originsState {
+			originsState[key].GroupId = *grpID
+
+			params := originv3.NewAddOriginParams()
+			params.MediaType = enums.HttpLarge.String()
+			params.CustomerOriginRequest = *origin
+
+			resp, err := svc.Common.AddOrigin(params)
+			if err != nil {
+				d.SetId("")
+
+				//delete the created origin group
+				deleteparams := originv3.NewDeleteGroupParams()
+				deleteparams.GroupId = *grpID
+				params.MediaType = enums.HttpLarge.String()
+
+				deleteErr := svc.Common.DeleteGroup(deleteparams)
+				if deleteErr != nil {
+					return diag.Errorf(
+						"failed to roll back origin group request upon error: %v, original err: %v",
+						deleteErr.Error(),
+						err.Error())
+				}
+				return diag.Errorf("failed to create origin group: %v", err)
+			}
+
+			log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
+		}
+	}
+
+	d.SetId(strconv.Itoa(int(*grpID)))
 
 	return ResourceOriginGroupRead(ctx, d, m)
 }
@@ -135,7 +168,7 @@ func ResourceOriginGroupUpdate(
 		return diag.FromErr(err)
 	}
 
-	originGroupState, errs := expandHttpLargeOriginGroup(d)
+	originGroupState, _, errs := expandHttpLargeOriginGroup(d)
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors("error parsing origin group", errs)
 	}
@@ -192,14 +225,15 @@ func ResourceOriginGroupDelete(
 
 func expandHttpLargeOriginGroup(
 	d *schema.ResourceData,
-) (*originv3.CustomerOriginGroupHTTPRequest, []error) {
+) (*originv3.CustomerOriginGroupHTTPRequest, []*originv3.CustomerOriginRequest, []error) {
 	if d == nil {
-		return nil, []error{errors.New("no data to read")}
+		return nil, make([]*originv3.CustomerOriginRequest, 0), []error{errors.New("no data to read")}
 	}
 
 	errs := make([]error, 0)
 
 	originGrpState := &originv3.CustomerOriginGroupHTTPRequest{}
+	originsState := make([]*originv3.CustomerOriginRequest, 0)
 
 	if v, ok := d.GetOk("name"); ok {
 		if name, ok := v.(string); ok {
@@ -250,7 +284,17 @@ func expandHttpLargeOriginGroup(
 		}
 	}
 
-	return originGrpState, errs
+	if v, ok := d.GetOk("origin"); ok {
+		if origins, err := expandOrigins(v); err == nil {
+			originsState = origins
+		} else {
+			errs = append(errs, fmt.Errorf("error parsing origins: %w", err))
+		}
+	}
+
+	log.Printf("[INFO] Origins: %# v\n", pretty.Formatter(originsState))
+
+	return originGrpState, originsState, errs
 }
 
 func setHttpLargeOriginGroupState(
