@@ -149,8 +149,8 @@ func flattenTLSSettings(
 
 	m := make(map[string]interface{})
 
-	m["allow_self_signed"] = settings.AllowSelfSigned
-	m["sni_hostname"] = settings.SniHostname
+	m["allow_self_signed"] = settings.GetAllowSelfSigned()
+	m["sni_hostname"] = settings.SniHostname.Get()
 	if len(settings.PublicKeysToVerify) > 0 {
 		m["public_keys_to_verify"] = settings.PublicKeysToVerify
 	} else {
@@ -158,5 +158,29 @@ func flattenTLSSettings(
 	}
 
 	flattened = append(flattened, m)
+	return flattened
+}
+
+func flattenOrigins(
+	origins []originv3.CustomerOriginFailoverOrder,
+) []map[string]interface{} {
+
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range origins {
+		m := make(map[string]interface{})
+
+		m["id"] = int(v.GetId())
+		m["host"] = v.GetHost()
+		m["is_primary"] = v.GetIsPrimary()
+		m["name"] = v.GetName()
+		m["port"] = int(v.GetPort())
+		m["protocol_type_id"] = int(v.GetProtocolTypeId())
+		m["storage_type_id"] = int(v.GetStorageTypeId())
+		m["failover_order"] = int(v.GetFailoverOrder())
+
+		flattened = append(flattened, m)
+	}
+
 	return flattened
 }

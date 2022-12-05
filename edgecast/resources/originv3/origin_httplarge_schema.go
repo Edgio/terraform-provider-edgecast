@@ -103,6 +103,11 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 			Optional: true,
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
+					"id": {
+						Type:        schema.TypeInt,
+						Computed:    true,
+						Description: "Indicates the origin entry's system-defined ID.",
+					},
 					"host": {
 						Type:     schema.TypeString,
 						Required: true,
@@ -162,6 +167,17 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 						Default:  1,
 						Description: "Identifies the origin group's type through its system-defined ID. Valid values are: \n\n" +
 							"1: Customer origin group ",
+					},
+					"failover_order": {
+						Type:     schema.TypeInt,
+						Computed: true,
+						Description: "Indicates this origin entry's sort position as a 0-based number. \n\n" +
+							"Position 0 is reserved for the primary origin entry as determined by the is_primary field. \n\n" +
+							"The primary purpose of this position is to determine the order in which requests are load balanced \n " +
+							"for Primary / Failover mode. If a primary origin entry has been defined for this protocol, \n " +
+							"then all traffic for that protocol will be directed to the origin entry that has the lowest value. \n " +
+							"If the hostname or IP address associated with that origin entry is unreachable, then traffic will be directed \n " +
+							"to the next lowest value. This process will continue until our service can establish communication with your origin.",
 					},
 				},
 			},

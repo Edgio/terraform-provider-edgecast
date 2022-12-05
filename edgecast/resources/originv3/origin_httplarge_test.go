@@ -337,8 +337,8 @@ func TestFlattenTLSSettings(t *testing.T) {
 			},
 			expected: []map[string]interface{}{
 				{
-					"sni_hostname":          sniHost,
-					"allow_self_signed":     &isAllowSelfSigned,
+					"sni_hostname":          sniHost.Get(),
+					"allow_self_signed":     false,
 					"public_keys_to_verify": []string{"key1", "key2"},
 				},
 			},
@@ -353,6 +353,102 @@ func TestFlattenTLSSettings(t *testing.T) {
 
 	for _, c := range cases {
 		actual := flattenTLSSettings(c.input)
+
+		if !reflect.DeepEqual(actual, c.expected) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actual, c.expected)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				c.expected,
+				actual,
+			)
+		}
+	}
+}
+
+func TestFlattenOrigins(t *testing.T) {
+	origin1ID := int32(1)
+	origin1Name := "origin1"
+	host1 := "host1"
+	isOrigin1Primary := true
+	failoverOrder1 := int32(0)
+
+	origin2ID := int32(2)
+	origin2Name := "origin2"
+	host2 := "host2"
+	isOrigin2Primary := false
+	failoverOrder2 := int32(1)
+
+	port := int32(443)
+	storogeTypeID := int32(1)
+	protocolTypeID := int32(2)
+
+	cases := []struct {
+		name          string
+		input         []originv3.CustomerOriginFailoverOrder
+		expected      []map[string]interface{}
+		expectSuccess bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			input: []originv3.CustomerOriginFailoverOrder{
+				{
+					Id:             &origin1ID,
+					Name:           &origin1Name,
+					Host:           &host1,
+					Port:           &port,
+					IsPrimary:      &isOrigin1Primary,
+					StorageTypeId:  &storogeTypeID,
+					ProtocolTypeId: &protocolTypeID,
+					FailoverOrder:  &failoverOrder1,
+				},
+				{
+					Id:             &origin2ID,
+					Name:           &origin2Name,
+					Host:           &host2,
+					Port:           &port,
+					IsPrimary:      &isOrigin2Primary,
+					StorageTypeId:  &storogeTypeID,
+					ProtocolTypeId: &protocolTypeID,
+					FailoverOrder:  &failoverOrder2,
+				},
+			},
+			expected: []map[string]interface{}{
+				{
+					"id":               1,
+					"name":             "origin1",
+					"host":             "host1",
+					"port":             443,
+					"is_primary":       true,
+					"storage_type_id":  1,
+					"protocol_type_id": 2,
+					"failover_order":   0,
+				},
+				{
+					"id":               2,
+					"name":             "origin2",
+					"host":             "host2",
+					"port":             443,
+					"is_primary":       false,
+					"storage_type_id":  1,
+					"protocol_type_id": 2,
+					"failover_order":   1,
+				},
+			},
+		},
+		{
+			name:          "Nil input",
+			input:         nil,
+			expected:      make([]map[string]interface{}, 0),
+			expectSuccess: false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := flattenOrigins(c.input)
 
 		if !reflect.DeepEqual(actual, c.expected) {
 			// deep.Equal doesn't compare pointer values, so we just use it to
