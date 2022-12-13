@@ -3,24 +3,28 @@
 
 package originv3
 
-//"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"reflect"
+	"testing"
 
-/*
+	"github.com/EdgeCast/ec-sdk-go/edgecast/originv3"
+	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+)
+
 func TestExpandHttpLargeOriginGrp(t *testing.T) {
 	t.Parallel()
 
 	isAllowSelfSigned := false
 	pop1 := "pop1"
 	pop2 := "pop2"
-	port := int32(443)
 
 	tests := []struct {
-		name           string
-		input          map[string]any
-		expectedGrpPtr *originv3.CustomerOriginGroupHTTPRequest
-		expectedPtr    []*originv3.CustomerOriginRequest
-		expectErrs     bool
-		errCount       int
+		name        string
+		input       map[string]any
+		expectedPtr *OriginGroupState
+		expectErrs  bool
+		errCount    int
 	}{
 		{
 			name:       "Happy path",
@@ -49,35 +53,36 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					},
 				},
 			},
-			expectedGrpPtr: &originv3.CustomerOriginGroupHTTPRequest{
+			expectedPtr: &OriginGroupState{
 				Name:          "my_origin_group",
-				HostHeader:    originv3.NewNullableString("myhost"),
-				NetworkTypeId: originv3.NewNullableInt32(2),
+				HostHeader:    "myhost",
+				NetworkTypeID: 2,
 				ShieldPops:    []*string{&pop1, &pop2},
-				TlsSettings: &originv3.TlsSettings{
+				TLSSettings: &originv3.TlsSettings{
 					SniHostname:        originv3.NewNullableString("mysnihost"),
 					AllowSelfSigned:    &isAllowSelfSigned,
 					PublicKeysToVerify: []string{"key1", "key2"},
 				},
-			},
-			expectedPtr: []*originv3.CustomerOriginRequest{
-				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
-					Host:           "https://cdn-la.example.com",
-					Port:           &port,
-					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
+				Origins: []*OriginState{
+					{
+						ID:             0,
+						GroupID:        0,
+						Name:           "marketing-origin-entry-a",
+						Host:           "https://cdn-la.example.com",
+						Port:           443,
+						IsPrimary:      true,
+						StorageTypeID:  1,
+						ProtocolTypeID: 2,
+					},
 				},
 			},
 		},
 		{
-			name:           "nil input",
-			errCount:       1,
-			input:          nil,
-			expectedPtr:    nil,
-			expectedGrpPtr: nil,
-			expectErrs:     true,
+			name:        "nil input",
+			errCount:    1,
+			input:       nil,
+			expectedPtr: nil,
+			expectErrs:  true,
 		},
 	}
 
@@ -94,7 +99,7 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					tt.input)
 			}
 
-			actualGrpPtr, actualPtr, errs := expandHttpLargeOriginGroup(rd)
+			actualGrpPtr, errs := expandHttpLargeOriginGroup(rd)
 
 			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
@@ -110,7 +115,7 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 
 			//Group
 			actualGrp := *actualGrpPtr
-			expectedGrp := *tt.expectedGrpPtr
+			expectedGrp := *tt.expectedPtr
 
 			if !reflect.DeepEqual(actualGrp, expectedGrp) {
 				// deep.Equal doesn't compare pointer values, so we just use it to
@@ -121,22 +126,6 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					tt.name,
 					expectedGrp,
 					actualGrp,
-				)
-			}
-
-			//Origins
-			actual := actualPtr
-			expected := tt.expectedPtr
-
-			if !reflect.DeepEqual(actual, expected) {
-				// deep.Equal doesn't compare pointer values, so we just use it to
-				// generate a human friendly diff
-				diff := deep.Equal(actual, expected)
-				t.Errorf("Diff: %+v", diff)
-				t.Fatalf("%s: Expected %+v but got %+v",
-					tt.name,
-					expected,
-					actual,
 				)
 			}
 		})
@@ -216,18 +205,17 @@ func TestExpandTLSSettings(t *testing.T) {
 }
 
 func TestExpandOrigins(t *testing.T) {
-	port := int32(443)
-
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   []*originv3.CustomerOriginRequest
+		expectedPtr   []*OriginState
 		expectSuccess bool
 	}{
 		{
 			name: "Happy path",
 			input: []any{
 				map[string]any{
+					"id":               1,
 					"name":             "marketing-origin-entry-a",
 					"host":             "https://cdn-la.example.com",
 					"port":             443,
@@ -236,6 +224,7 @@ func TestExpandOrigins(t *testing.T) {
 					"protocol_type_id": 2,
 				},
 				map[string]any{
+					"id":               2,
 					"name":             "marketing-origin-entry-b",
 					"host":             "https://cdn-lb.example.com",
 					"port":             443,
@@ -244,22 +233,26 @@ func TestExpandOrigins(t *testing.T) {
 					"protocol_type_id": 2,
 				},
 			},
-			expectedPtr: []*originv3.CustomerOriginRequest{
+			expectedPtr: []*OriginState{
 				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
+					ID:             1,
+					GroupID:        0,
+					Name:           "marketing-origin-entry-a",
 					Host:           "https://cdn-la.example.com",
-					Port:           &port,
+					Port:           443,
 					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
+					StorageTypeID:  1,
+					ProtocolTypeID: 2,
 				},
 				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-b"),
+					ID:             2,
+					GroupID:        0,
+					Name:           "marketing-origin-entry-b",
 					Host:           "https://cdn-lb.example.com",
-					Port:           &port,
+					Port:           443,
 					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
+					StorageTypeID:  1,
+					ProtocolTypeID: 2,
 				},
 			},
 			expectSuccess: true,
@@ -273,7 +266,7 @@ func TestExpandOrigins(t *testing.T) {
 		{
 			name:          "nil input",
 			input:         nil,
-			expectedPtr:   make([]*originv3.CustomerOriginRequest, 0),
+			expectedPtr:   make([]*OriginState, 0),
 			expectSuccess: false,
 		},
 	}
@@ -457,4 +450,3 @@ func TestFlattenOrigins(t *testing.T) {
 		}
 	}
 }
-*/
