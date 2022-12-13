@@ -3,15 +3,9 @@
 
 package originv3
 
-import (
-	"reflect"
-	"testing"
+//"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast/originv3"
-	"github.com/go-test/deep"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-)
-
+/*
 func TestExpandHttpLargeOriginGrp(t *testing.T) {
 	t.Parallel()
 
@@ -463,3 +457,4 @@ func TestFlattenOrigins(t *testing.T) {
 		}
 	}
 }
+*/
