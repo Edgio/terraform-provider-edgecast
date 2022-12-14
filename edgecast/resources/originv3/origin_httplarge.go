@@ -77,7 +77,7 @@ func ResourceOriginGroupCreate(
 	wg := sync.WaitGroup{}
 
 	if len(originsState) > 0 {
-		origincreated := true
+		errs := make([]error, 0)
 		for key, origin := range originsState {
 			originsState[key].GroupId = *grpID
 
@@ -97,7 +97,9 @@ func ResourceOriginGroupCreate(
 					log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
 					mlock.Unlock()
 				} else {
-					origincreated = false
+					mlock.Lock()
+					errs = append(errs, err)
+					mlock.Unlock()
 				}
 			}(params)
 
@@ -105,7 +107,7 @@ func ResourceOriginGroupCreate(
 			wg.Wait()
 		}
 
-		if !origincreated {
+		if len(errs) > 0 {
 			d.SetId("")
 
 			//delete the created origin group
@@ -115,12 +117,9 @@ func ResourceOriginGroupCreate(
 
 			deleteErr := svc.Common.DeleteGroup(deleteparams)
 			if deleteErr != nil {
-				return diag.Errorf(
-					"failed to roll back origin group request upon error: %v, original err: %v",
-					deleteErr.Error(),
-					err.Error())
+				errs = append(errs, deleteErr)
 			}
-			return diag.Errorf("failed to create origin group: %v", err)
+			return helper.DiagsFromErrors("error updating origin group", errs)
 		}
 	}
 
