@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 
@@ -72,7 +73,11 @@ func ResourceOriginGroupCreate(
 
 	grpID := cresp.Id
 
+	mlock := &sync.Mutex{}
+	wg := sync.WaitGroup{}
+
 	if len(originsState) > 0 {
+		origincreated := true
 		for key, origin := range originsState {
 			originsState[key].GroupId = *grpID
 
@@ -80,26 +85,42 @@ func ResourceOriginGroupCreate(
 			params.MediaType = enums.HttpLarge.String()
 			params.CustomerOriginRequest = *origin
 
-			resp, err := svc.Common.AddOrigin(params)
-			if err != nil {
-				d.SetId("")
+			// Spin up a worker to call the api.
+			wg.Add(1)
 
-				//delete the created origin group
-				deleteparams := originv3.NewDeleteGroupParams()
-				deleteparams.GroupId = *grpID
-				params.MediaType = enums.HttpLarge.String()
+			go func(params originv3.AddOriginParams) {
+				defer wg.Done()
 
-				deleteErr := svc.Common.DeleteGroup(deleteparams)
-				if deleteErr != nil {
-					return diag.Errorf(
-						"failed to roll back origin group request upon error: %v, original err: %v",
-						deleteErr.Error(),
-						err.Error())
+				resp, err := svc.Common.AddOrigin(params)
+				if err == nil {
+					mlock.Lock()
+					log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
+					mlock.Unlock()
+				} else {
+					origincreated = false
 				}
-				return diag.Errorf("failed to create origin group: %v", err)
-			}
+			}(params)
 
-			log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
+			// Wait for all api workers to finish.
+			wg.Wait()
+		}
+
+		if !origincreated {
+			d.SetId("")
+
+			//delete the created origin group
+			deleteparams := originv3.NewDeleteGroupParams()
+			deleteparams.GroupId = *grpID
+			deleteparams.MediaType = enums.HttpLarge.String()
+
+			deleteErr := svc.Common.DeleteGroup(deleteparams)
+			if deleteErr != nil {
+				return diag.Errorf(
+					"failed to roll back origin group request upon error: %v, original err: %v",
+					deleteErr.Error(),
+					err.Error())
+			}
+			return diag.Errorf("failed to create origin group: %v", err)
 		}
 	}
 
