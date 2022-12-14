@@ -160,5 +160,7 @@ func buildDataSourcesMap() map[string]*schema.Resource {
 		"edgecast_cps_cert_request_statuses":             cps.DataSourceCertReqStatuses(),
 		"edgecast_cps_cert_order_statuses":               cps.DataSourceCertOrderStatuses(),
 		"edgecast_originv3_httplarge_origin_shield_pops": originv3.DataSourceOriginShieldPops(),
+		"edgecast_originv3_protocoltypes":                originv3.DataSourceProtocolTypes(),
+		"edgecast_originv3_hostname_resolution_methods":  originv3.DataSourceHostnameResolutionMethods(),
 	}
 }
