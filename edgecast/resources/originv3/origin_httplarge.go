@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 
@@ -186,13 +187,17 @@ func ResourceOriginGroupUpdate(
 		return diag.FromErr(err)
 	}
 
-	originGroupState, errs := expandHttpLargeOriginGroup(d)
-	if len(errs) > 0 {
-		return helper.DiagsFromErrors("error parsing origin group", errs)
+	originGroupState, errors := expandHttpLargeOriginGroup(d)
+	if len(errors) > 0 {
+		return helper.DiagsFromErrors("error parsing origin group", errors)
 	}
 	originGroupState.ID = int32(grpID)
 
 	log.Printf("[INFO] Updating origin group : ID: %d\n", grpID)
+	errs := make([]error, 0)
+	mlock := &sync.Mutex{}
+	wg := sync.WaitGroup{}
+
 	updateParams := originv3.NewUpdateHttpLargeGroupParams()
 	updateParams.GroupId = int32(grpID)
 	updateParams.CustomerOriginGroupHTTPRequest = originv3.CustomerOriginGroupHTTPRequest{
@@ -204,17 +209,25 @@ func ResourceOriginGroupUpdate(
 		TlsSettings:        originGroupState.TLSSettings,
 	}
 
-	_, err = svc.HttpLargeOnly.UpdateHttpLargeGroup(updateParams)
-	if err != nil {
-		return diag.FromErr(err)
-	}
+	// Spin up a worker to call the api.
+	wg.Add(1)
+	go func(updateParams originv3.UpdateHttpLargeGroupParams) {
+		defer wg.Done()
+
+		_, err = svc.HttpLargeOnly.UpdateHttpLargeGroup(updateParams)
+		if err == nil {
+			mlock.Lock()
+			log.Printf("[INFO] Updated origin group info: ID: %d\n", grpID)
+			mlock.Unlock()
+		} else {
+			mlock.Lock()
+			errs = append(errs, err)
+			mlock.Unlock()
+		}
+	}(updateParams)
 
 	if d.HasChange("origin") {
-		//TODO : optimize api calls
-		log.Printf("[INFO] Updating origins for Group: ID: %d\n", grpID)
-
 		toadd, todelete, toupdate := getOriginsDelta(d)
-
 		log.Printf("[INFO] toadd: %# v\n", pretty.Formatter(toadd))
 		log.Printf("[INFO] todelete: %# v\n", pretty.Formatter(todelete))
 		log.Printf("[INFO] toupdate: %# v\n", pretty.Formatter(toupdate))
@@ -234,10 +247,21 @@ func ResourceOriginGroupUpdate(
 					ProtocolTypeId: originv3.NewNullableInt32(v.ProtocolTypeID),
 				}
 
-				_, err := svc.Common.AddOrigin(params)
-				if err != nil {
-					return diag.FromErr(err) //refresh state and try again?
-				}
+				wg.Add(1)
+				go func(params originv3.AddOriginParams) {
+					defer wg.Done()
+
+					resp, err := svc.Common.AddOrigin(params)
+					if err == nil {
+						mlock.Lock()
+						log.Printf("[INFO] Added origin: ID: %d\n", *resp.Id)
+						mlock.Unlock()
+					} else {
+						mlock.Lock()
+						errs = append(errs, err)
+						mlock.Unlock()
+					}
+				}(params)
 			}
 		}
 
@@ -247,10 +271,21 @@ func ResourceOriginGroupUpdate(
 				params.Id = v.ID
 				params.MediaType = enums.HttpLarge.String()
 
-				err := svc.Common.DeleteOrigin(params)
-				if err != nil {
-					return diag.FromErr(err) //refresh state and try again?
-				}
+				wg.Add(1)
+				go func(params originv3.DeleteOriginParams) {
+					defer wg.Done()
+
+					err := svc.Common.DeleteOrigin(params)
+					if err == nil {
+						mlock.Lock()
+						log.Printf("[INFO] Deleted origin: ID: %d\n", params.Id)
+						mlock.Unlock()
+					} else {
+						mlock.Lock()
+						errs = append(errs, err)
+						mlock.Unlock()
+					}
+				}(params)
 			}
 		}
 
@@ -269,15 +304,30 @@ func ResourceOriginGroupUpdate(
 					ProtocolTypeId: originv3.NewNullableInt32(v.ProtocolTypeID),
 				}
 
-				_, err := svc.Common.UpdateOrigin(params)
-				if err != nil {
-					return diag.FromErr(err) //refresh state and try again?
-				}
+				wg.Add(1)
+				go func(params originv3.UpdateOriginParams) {
+					defer wg.Done()
+
+					_, err := svc.Common.UpdateOrigin(params)
+					if err == nil {
+						mlock.Lock()
+						log.Printf("[INFO] Updated origin: ID: %d\n", params.Id)
+						mlock.Unlock()
+					} else {
+						mlock.Lock()
+						errs = append(errs, err)
+						mlock.Unlock()
+					}
+				}(params)
 			}
 		}
-		log.Printf("[INFO] Updated origins for group ID: %v", grpID)
 	}
+	// Wait for all api workers to finish.
+	wg.Wait()
 
+	if len(errs) > 0 {
+		return helper.DiagsFromErrors("error updating origin group", errs)
+	}
 	log.Printf("[INFO] Updated origin group ID: %v", grpID)
 
 	return ResourceOriginGroupRead(ctx, d, m)
