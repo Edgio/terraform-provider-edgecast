@@ -93,9 +93,7 @@ func ResourceOriginGroupCreate(
 
 				resp, err := svc.Common.AddOrigin(params)
 				if err == nil {
-					mlock.Lock()
 					log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
-					mlock.Unlock()
 				} else {
 					mlock.Lock()
 					errs = append(errs, err)
