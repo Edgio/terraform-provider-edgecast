@@ -528,7 +528,7 @@ func getOriginsToUpdate(
 		return (c.(*OriginState))
 	}).ToSlice(&toUpdate)
 
-	log.Printf("[INFO] toadd: %# v\n", pretty.Formatter(toUpdate))
+	log.Printf("[INFO] toupdate: %# v\n", pretty.Formatter(toUpdate))
 	return toUpdate
 }
 
