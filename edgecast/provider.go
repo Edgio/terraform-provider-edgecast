@@ -150,14 +150,17 @@ func buildResourcesMap() map[string]*schema.Resource {
 
 func buildDataSourcesMap() map[string]*schema.Resource {
 	return map[string]*schema.Resource{
-		"edgecast_customer_services":               customer.DataSourceCustomerServices(),
-		"edgecast_cps_countrycodes":                cps.DataSourceCountryCodes(),
-		"edgecast_cps_dcv_types":                   cps.DataSourceDCVTypes(),
-		"edgecast_cps_domain_statuses":             cps.DataSourceDomainStatuses(),
-		"edgecast_cps_validation_statuses":         cps.DataSourceValidationStatuses(),
-		"edgecast_cps_cert_validation_levels":      cps.DataSourceCertValidationLevels(),
-		"edgecast_cps_cert_request_cancel_actions": cps.DataSourceCancelCertReqActions(),
-		"edgecast_cps_cert_request_statuses":       cps.DataSourceCertReqStatuses(),
-		"edgecast_cps_cert_order_statuses":         cps.DataSourceCertOrderStatuses(),
+		"edgecast_customer_services":                     customer.DataSourceCustomerServices(),
+		"edgecast_cps_countrycodes":                      cps.DataSourceCountryCodes(),
+		"edgecast_cps_dcv_types":                         cps.DataSourceDCVTypes(),
+		"edgecast_cps_domain_statuses":                   cps.DataSourceDomainStatuses(),
+		"edgecast_cps_validation_statuses":               cps.DataSourceValidationStatuses(),
+		"edgecast_cps_cert_validation_levels":            cps.DataSourceCertValidationLevels(),
+		"edgecast_cps_cert_request_cancel_actions":       cps.DataSourceCancelCertReqActions(),
+		"edgecast_cps_cert_request_statuses":             cps.DataSourceCertReqStatuses(),
+		"edgecast_cps_cert_order_statuses":               cps.DataSourceCertOrderStatuses(),
+		"edgecast_originv3_httplarge_origin_shield_pops": originv3.DataSourceOriginShieldPops(),
+		"edgecast_originv3_protocoltypes":                originv3.DataSourceProtocolTypes(),
+		"edgecast_originv3_hostname_resolution_methods":  originv3.DataSourceHostnameResolutionMethods(),
 	}
 }
