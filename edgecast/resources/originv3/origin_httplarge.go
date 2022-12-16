@@ -216,14 +216,15 @@ func ResourceOriginGroupUpdate(
 
 	updateParams := originv3.NewUpdateHttpLargeGroupParams()
 	updateParams.GroupId = int32(grpID)
-	updateParams.CustomerOriginGroupHTTPRequest = originv3.CustomerOriginGroupHTTPRequest{
-		Name:               originGroupState.Name,
-		HostHeader:         originv3.NewNullableString(originGroupState.HostHeader),
-		ShieldPops:         originGroupState.ShieldPops,
-		NetworkTypeId:      originv3.NewNullableInt32(originGroupState.NetworkTypeID),
-		StrictPciCertified: originv3.NewNullableBool(originGroupState.StrictPCICertified),
-		TlsSettings:        originGroupState.TLSSettings,
-	}
+	updateParams.CustomerOriginGroupHTTPRequest =
+		originv3.CustomerOriginGroupHTTPRequest{
+			Name:               originGroupState.Name,
+			HostHeader:         originv3.NewNullableString(originGroupState.HostHeader),
+			ShieldPops:         originGroupState.ShieldPops,
+			NetworkTypeId:      originv3.NewNullableInt32(originGroupState.NetworkTypeID),
+			StrictPciCertified: originv3.NewNullableBool(originGroupState.StrictPCICertified),
+			TlsSettings:        originGroupState.TLSSettings,
+		}
 
 	// Spin up a worker to call the api.
 	wg.Add(1)
@@ -240,15 +241,21 @@ func ResourceOriginGroupUpdate(
 		}
 	}(updateParams)
 
+	//update Origins
 	if d.HasChange("origin") {
-		toadd, todelete, toupdate := getOriginsDelta(d)
-		log.Printf("[INFO] toadd: %# v\n", pretty.Formatter(toadd))
-		log.Printf("[INFO] todelete: %# v\n", pretty.Formatter(todelete))
-		log.Printf("[INFO] toupdate: %# v\n", pretty.Formatter(toupdate))
+		old, new := d.GetChange("origin")
+		// Represents current resource, state prior to latest Terraform apply
+		oldOrigins, _ := expandOrigins(old)
+		// Repesents desired resource state
+		newOrigins, _ := expandOrigins(new)
+
+		toAdd := getOriginsToAdd(newOrigins, oldOrigins)
+		toDelete := getOriginsToDelete(newOrigins, oldOrigins)
+		toUpdate := getOriginsToUpdate(newOrigins, oldOrigins)
 
 		//add new origins
-		if len(toadd) > 0 {
-			for _, v := range toadd {
+		if len(toAdd) > 0 {
+			for _, v := range toAdd {
 				params := originv3.NewAddOriginParams()
 				params.MediaType = enums.HttpLarge.String()
 				params.CustomerOriginRequest = originv3.CustomerOriginRequest{
@@ -277,8 +284,8 @@ func ResourceOriginGroupUpdate(
 			}
 		}
 
-		if len(todelete) > 0 {
-			for _, v := range todelete {
+		if len(toDelete) > 0 {
+			for _, v := range toDelete {
 				params := originv3.NewDeleteOriginParams()
 				params.Id = v.ID
 				params.MediaType = enums.HttpLarge.String()
@@ -299,8 +306,8 @@ func ResourceOriginGroupUpdate(
 			}
 		}
 
-		if len(toupdate) > 0 {
-			for _, v := range toupdate {
+		if len(toUpdate) > 0 {
+			for _, v := range toUpdate {
 				params := originv3.NewUpdateOriginParams()
 				params.Id = v.ID
 				params.MediaType = enums.HttpLarge.String()
@@ -475,40 +482,54 @@ func setHttpLargeOriginGroupState(
 	return nil
 }
 
-func getOriginsDelta(
-	d *schema.ResourceData,
-) ([]*OriginState, []*OriginState, []*OriginState) {
-	old, new := d.GetChange("origin")
-	// Represents current resource, state prior to latest Terraform apply
-	oldOrigins, _ := expandOrigins(old)
-	// Repesents desired resource state
-	newOrigins, _ := expandOrigins(new)
-
+// Gets the delta between existing state and desired state,
+// returning a list of origins that need to be created.
+func getOriginsToAdd(
+	newOrigins []*OriginState, oldOrigins []*OriginState,
+) []*OriginState {
 	toAdd := make([]*OriginState, 0)
-	toUpdate := make([]*OriginState, 0)
-	toDelete := make([]*OriginState, 0)
 
-	// To add
 	linq.From(newOrigins).Where(func(c interface{}) bool {
 		return c.(*OriginState).ID == 0
 	}).Select(func(c interface{}) interface{} {
 		return (c.(*OriginState))
 	}).ToSlice(&toAdd)
 
-	// To delete
+	log.Printf("[INFO] toadd: %# v\n", pretty.Formatter(toAdd))
+	return toAdd
+}
+
+// Gets the delta between existing state and desired state,
+// returning a list of origins that need to be deleted.
+func getOriginsToDelete(
+	newOrigins []*OriginState, oldOrigins []*OriginState,
+) []*OriginState {
+	toDelete := make([]*OriginState, 0)
+
 	linq.From(oldOrigins).
 		ExceptBy(linq.From(newOrigins),
 			func(c interface{}) interface{} { return c.(*OriginState).ID },
 		).ToSlice(&toDelete)
 
-	// To update
+	log.Printf("[INFO] toadd: %# v\n", pretty.Formatter(toDelete))
+	return toDelete
+}
+
+// Gets the delta between existing state and desired state,
+// returning a list of origins that need to be updated.
+func getOriginsToUpdate(
+	newOrigins []*OriginState, oldOrigins []*OriginState,
+) []*OriginState {
+	toUpdate := make([]*OriginState, 0)
+
 	linq.From(newOrigins).Where(func(c interface{}) bool {
 		return c.(*OriginState).ID != 0
 	}).Select(func(c interface{}) interface{} {
 		return (c.(*OriginState))
 	}).ToSlice(&toUpdate)
 
-	return toAdd, toDelete, toUpdate
+	log.Printf("[INFO] toadd: %# v\n", pretty.Formatter(toUpdate))
+	return toUpdate
 }
 
 // OriginGroupState represents the state of a Origin Group as it exists in the
