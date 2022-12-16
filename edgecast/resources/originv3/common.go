@@ -124,6 +124,11 @@ func expandOrigins(attr interface{}) ([]*OriginState, error) {
 				return nil, errors.New("origin.protocol_type_id was not an int")
 			}
 
+			failoverOrder, ok := curr["failover_order"].(int)
+			if !ok {
+				return nil, errors.New("origin.failover_order was not an int")
+			}
+
 			origin := OriginState{
 				ID:             int32(id),
 				Name:           name,
@@ -132,6 +137,7 @@ func expandOrigins(attr interface{}) ([]*OriginState, error) {
 				IsPrimary:      isPrimary,
 				StorageTypeID:  int32(storageTypeID),
 				ProtocolTypeID: int32(protocolTypeID),
+				FailoverOrder: int32(failoverOrder),
 			}
 
 			origins = append(origins, &origin)

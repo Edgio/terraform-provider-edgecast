@@ -74,9 +74,10 @@ func ResourceOriginGroupCreate(
 
 	grpID := cresp.Id
 
+	failoverOrders := make([]originv3.FailoverOrder, 0)
+
 	mlock := &sync.Mutex{}
 	wg := sync.WaitGroup{}
-
 	if len(originGroupState.Origins) > 0 {
 		errs := make([]error, 0)
 		for _, origin := range originGroupState.Origins {
@@ -92,6 +93,7 @@ func ResourceOriginGroupCreate(
 				StorageTypeId:  originv3.NewNullableInt32(origin.StorageTypeID),
 				ProtocolTypeId: originv3.NewNullableInt32(origin.ProtocolTypeID),
 			}
+			originFailoverOrder := origin.FailoverOrder
 
 			// Spin up a worker to call the api.
 			wg.Add(1)
@@ -101,7 +103,15 @@ func ResourceOriginGroupCreate(
 
 				resp, err := svc.Common.AddOrigin(params)
 				if err == nil {
+					mlock.Lock()
 					log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
+					failoverOrder := originv3.FailoverOrder{
+						Id:            *resp.Id,
+						Host:          *resp.Host,
+						FailoverOrder: originFailoverOrder,
+					}
+					failoverOrders = append(failoverOrders, failoverOrder)
+					mlock.Unlock()
 				} else {
 					mlock.Lock()
 					errs = append(errs, err)
@@ -111,6 +121,18 @@ func ResourceOriginGroupCreate(
 		}
 		// Wait for all api workers to finish.
 		wg.Wait()
+
+		if len(errs) == 0 && len(failoverOrders) > 0 {
+			params := originv3.NewUpdateFailoverOrderParams()
+			params.GroupId = *grpID
+			params.MediaType = enums.HttpLarge.String()
+			params.FailoverOrder = failoverOrders
+
+			err := svc.Common.UpdateFailoverOrder(params)
+			if err != nil {
+				errs = append(errs, err)
+			}
+		}
 
 		if len(errs) > 0 {
 			d.SetId("")
@@ -211,6 +233,7 @@ func ResourceOriginGroupUpdate(
 
 	log.Printf("[INFO] Updating origin group : ID: %d\n", grpID)
 	errs := make([]error, 0)
+	failoverOrders := make([]originv3.FailoverOrder, 0)
 	mlock := &sync.Mutex{}
 	wg := sync.WaitGroup{}
 
@@ -267,6 +290,7 @@ func ResourceOriginGroupUpdate(
 					StorageTypeId:  originv3.NewNullableInt32(v.StorageTypeID),
 					ProtocolTypeId: originv3.NewNullableInt32(v.ProtocolTypeID),
 				}
+				originFailoverOrder := v.FailoverOrder
 
 				wg.Add(1)
 				go func(params originv3.AddOriginParams) {
@@ -274,7 +298,15 @@ func ResourceOriginGroupUpdate(
 
 					resp, err := svc.Common.AddOrigin(params)
 					if err == nil {
+						mlock.Lock()
 						log.Printf("[INFO] Added origin: ID: %d\n", *resp.Id)
+						failoverOrder := originv3.FailoverOrder{
+							Id:            *resp.Id,
+							Host:          *resp.Host,
+							FailoverOrder: originFailoverOrder,
+						}
+						failoverOrders = append(failoverOrders, failoverOrder)
+						mlock.Unlock()
 					} else {
 						mlock.Lock()
 						errs = append(errs, err)
@@ -320,14 +352,23 @@ func ResourceOriginGroupUpdate(
 					StorageTypeId:  originv3.NewNullableInt32(v.StorageTypeID),
 					ProtocolTypeId: originv3.NewNullableInt32(v.ProtocolTypeID),
 				}
+				originFailoverOrder := v.FailoverOrder
 
 				wg.Add(1)
 				go func(params originv3.UpdateOriginParams) {
 					defer wg.Done()
 
-					_, err := svc.Common.UpdateOrigin(params)
+					resp, err := svc.Common.UpdateOrigin(params)
 					if err == nil {
+						mlock.Lock()
 						log.Printf("[INFO] Updated origin: ID: %d\n", params.Id)
+						failoverOrder := originv3.FailoverOrder{
+							Id:            *resp.Id,
+							Host:          *resp.Host,
+							FailoverOrder: originFailoverOrder,
+						}
+						failoverOrders = append(failoverOrders, failoverOrder)
+						mlock.Unlock()
 					} else {
 						mlock.Lock()
 						errs = append(errs, err)
@@ -339,6 +380,19 @@ func ResourceOriginGroupUpdate(
 	}
 	// Wait for all api workers to finish.
 	wg.Wait()
+
+	//update failover order for the group
+	if len(errs) == 0 && len(failoverOrders) > 0 {
+		params := originv3.NewUpdateFailoverOrderParams()
+		params.GroupId = int32(grpID)
+		params.MediaType = enums.HttpLarge.String()
+		params.FailoverOrder = failoverOrders
+
+		err := svc.Common.UpdateFailoverOrder(params)
+		if err != nil {
+			errs = append(errs, err)
+		}
+	}
 
 	if len(errs) > 0 {
 		return helper.DiagsFromErrors("error updating origin group", errs)
@@ -574,4 +628,6 @@ type OriginState struct {
 	StorageTypeID int32
 
 	HostHeader string
+
+	FailoverOrder int32
 }
