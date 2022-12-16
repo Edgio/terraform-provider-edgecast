@@ -24,8 +24,27 @@ resource "edgecast_originv3_httplarge" "group_1" {
     	name = "marketing-origin-entry-b"
     	host = "https://cdn-lb.example.com"
     	port = 443
-		is_primary = true
+		is_primary = false
 		storage_type_id = 1
 		protocol_type_id = 2
+		failover_order = 1
+	}
+	origin {
+    	name = "marketing-origin-entry-c"
+    	host = "https://cdn-lc.example.com"
+    	port = 443
+		is_primary = false
+		storage_type_id = 1
+		protocol_type_id = 2
+		failover_order = 2
+	}
+	origin {
+    	name = "marketing-origin-entry-d"
+    	host = "https://cdn-ld.example.com"
+    	port = 443
+		is_primary = false
+		storage_type_id = 1
+		protocol_type_id = 2
+		failover_order = 3
 	}
 }

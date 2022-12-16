@@ -222,6 +222,7 @@ func TestExpandOrigins(t *testing.T) {
 					"is_primary":       true,
 					"storage_type_id":  1,
 					"protocol_type_id": 2,
+					"failover_order":   0,
 				},
 				map[string]any{
 					"id":               2,
@@ -231,6 +232,7 @@ func TestExpandOrigins(t *testing.T) {
 					"is_primary":       true,
 					"storage_type_id":  1,
 					"protocol_type_id": 2,
+					"failover_order":   0,
 				},
 			},
 			expectedPtr: []*OriginState{
@@ -243,6 +245,7 @@ func TestExpandOrigins(t *testing.T) {
 					IsPrimary:      true,
 					StorageTypeID:  1,
 					ProtocolTypeID: 2,
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -253,6 +256,7 @@ func TestExpandOrigins(t *testing.T) {
 					IsPrimary:      true,
 					StorageTypeID:  1,
 					ProtocolTypeID: 2,
+					FailoverOrder:  0,
 				},
 			},
 			expectSuccess: true,
@@ -473,6 +477,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 			},
 			inputNewOrigins: []*OriginState{
@@ -486,6 +491,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             0,
@@ -497,6 +503,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             0,
@@ -508,6 +515,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 3",
+					FailoverOrder:  0,
 				},
 			},
 			expected: []*OriginState{
@@ -521,6 +529,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             0,
@@ -532,6 +541,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 3",
+					FailoverOrder:  0,
 				},
 			},
 		},
@@ -550,6 +560,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             0,
@@ -561,6 +572,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 			expected: []*OriginState{
@@ -574,6 +586,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             0,
@@ -585,6 +598,7 @@ func TestGetOriginToAdd(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 		},
@@ -645,6 +659,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -656,6 +671,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 			inputNewOrigins: []*OriginState{
@@ -669,6 +685,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 			},
 			expected: []*OriginState{
@@ -682,6 +699,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 		},
@@ -699,6 +717,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -710,6 +729,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 			inputNewOrigins: nil,
@@ -724,6 +744,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -735,6 +756,7 @@ func TestGetOriginToDelete(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 		},
@@ -795,6 +817,7 @@ func TestGetOriginToUpdate(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -806,6 +829,7 @@ func TestGetOriginToUpdate(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 			inputNewOrigins: []*OriginState{
@@ -819,6 +843,7 @@ func TestGetOriginToUpdate(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -830,6 +855,7 @@ func TestGetOriginToUpdate(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 			expected: []*OriginState{
@@ -843,6 +869,7 @@ func TestGetOriginToUpdate(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 1",
+					FailoverOrder:  0,
 				},
 				{
 					ID:             2,
@@ -854,6 +881,7 @@ func TestGetOriginToUpdate(t *testing.T) {
 					ProtocolTypeID: 1,
 					StorageTypeID:  2,
 					HostHeader:     "header 2",
+					FailoverOrder:  0,
 				},
 			},
 		},
