@@ -74,7 +74,11 @@ func ResourceOriginGroupCreate(
 
 	grpID := cresp.Id
 
+	mlock := &sync.Mutex{}
+	wg := sync.WaitGroup{}
+
 	if len(originGroupState.Origins) > 0 {
+		errs := make([]error, 0)
 		for _, origin := range originGroupState.Origins {
 
 			params := originv3.NewAddOriginParams()
@@ -89,26 +93,38 @@ func ResourceOriginGroupCreate(
 				ProtocolTypeId: originv3.NewNullableInt32(origin.ProtocolTypeID),
 			}
 
-			resp, err := svc.Common.AddOrigin(params)
-			if err != nil {
-				d.SetId("")
+			// Spin up a worker to call the api.
+			wg.Add(1)
 
-				//delete the created origin group
-				deleteparams := originv3.NewDeleteGroupParams()
-				deleteparams.GroupId = *grpID
-				params.MediaType = enums.HttpLarge.String()
+			go func(params originv3.AddOriginParams) {
+				defer wg.Done()
 
-				deleteErr := svc.Common.DeleteGroup(deleteparams)
-				if deleteErr != nil {
-					return diag.Errorf(
-						"failed to roll back origin group request upon error: %v, original err: %v",
-						deleteErr.Error(),
-						err.Error())
+				resp, err := svc.Common.AddOrigin(params)
+				if err == nil {
+					log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
+				} else {
+					mlock.Lock()
+					errs = append(errs, err)
+					mlock.Unlock()
 				}
-				return diag.Errorf("failed to create origin group: %v", err)
-			}
+			}(params)
+		}
+		// Wait for all api workers to finish.
+		wg.Wait()
 
-			log.Printf("[INFO] origin created: %# v\n", pretty.Formatter(resp))
+		if len(errs) > 0 {
+			d.SetId("")
+
+			//delete the created origin group
+			deleteparams := originv3.NewDeleteGroupParams()
+			deleteparams.GroupId = *grpID
+			deleteparams.MediaType = enums.HttpLarge.String()
+
+			deleteErr := svc.Common.DeleteGroup(deleteparams)
+			if deleteErr != nil {
+				errs = append(errs, deleteErr)
+			}
+			return helper.DiagsFromErrors("error updating origin group", errs)
 		}
 	}
 
@@ -216,9 +232,7 @@ func ResourceOriginGroupUpdate(
 
 		_, err = svc.HttpLargeOnly.UpdateHttpLargeGroup(updateParams)
 		if err == nil {
-			mlock.Lock()
 			log.Printf("[INFO] Updated origin group info: ID: %d\n", grpID)
-			mlock.Unlock()
 		} else {
 			mlock.Lock()
 			errs = append(errs, err)
@@ -253,9 +267,7 @@ func ResourceOriginGroupUpdate(
 
 					resp, err := svc.Common.AddOrigin(params)
 					if err == nil {
-						mlock.Lock()
 						log.Printf("[INFO] Added origin: ID: %d\n", *resp.Id)
-						mlock.Unlock()
 					} else {
 						mlock.Lock()
 						errs = append(errs, err)
@@ -277,9 +289,7 @@ func ResourceOriginGroupUpdate(
 
 					err := svc.Common.DeleteOrigin(params)
 					if err == nil {
-						mlock.Lock()
 						log.Printf("[INFO] Deleted origin: ID: %d\n", params.Id)
-						mlock.Unlock()
 					} else {
 						mlock.Lock()
 						errs = append(errs, err)
@@ -310,9 +320,7 @@ func ResourceOriginGroupUpdate(
 
 					_, err := svc.Common.UpdateOrigin(params)
 					if err == nil {
-						mlock.Lock()
 						log.Printf("[INFO] Updated origin: ID: %d\n", params.Id)
-						mlock.Unlock()
 					} else {
 						mlock.Lock()
 						errs = append(errs, err)
