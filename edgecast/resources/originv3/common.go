@@ -76,14 +76,21 @@ func expandTLSSettings(attr interface{}) (*originv3.TlsSettings, error) {
 	return &tls, nil
 }
 
-func expandOrigins(attr interface{}) ([]*originv3.CustomerOriginRequest, error) {
+// expandOrigins converts the Terraform representation of Origins
+// into the OriginState Model.
+func expandOrigins(attr interface{}) ([]*OriginState, error) {
 	if items, ok := attr.([]interface{}); ok {
-		origins := make([]*originv3.CustomerOriginRequest, 0)
+		origins := make([]*OriginState, 0)
 
 		for _, item := range items {
 			curr, ok := item.(map[string]interface{})
 			if !ok {
 				return nil, errors.New("origin was not map[string]interface{}")
+			}
+
+			id, ok := curr["id"].(int)
+			if !ok {
+				id = 0
 			}
 
 			host, ok := curr["host"].(string)
@@ -111,21 +118,26 @@ func expandOrigins(attr interface{}) ([]*originv3.CustomerOriginRequest, error) 
 			if !ok {
 				return nil, errors.New("origin.storage_type_id was not an int")
 			}
-			storageTypeID32 := int32(storageTypeID)
 
 			protocolTypeID, ok := curr["protocol_type_id"].(int)
 			if !ok {
 				return nil, errors.New("origin.protocol_type_id was not an int")
 			}
-			protocolTypeID32 := int32(protocolTypeID)
 
-			origin := originv3.CustomerOriginRequest{
-				Name:           originv3.NewNullableString(name),
+			failoverOrder, ok := curr["failover_order"].(int)
+			if !ok {
+				return nil, errors.New("origin.failover_order was not an int")
+			}
+
+			origin := OriginState{
+				ID:             int32(id),
+				Name:           name,
 				Host:           host,
-				Port:           &port32,
+				Port:           port32,
 				IsPrimary:      isPrimary,
-				StorageTypeId:  originv3.NewNullableInt32(storageTypeID32),
-				ProtocolTypeId: originv3.NewNullableInt32(protocolTypeID32),
+				StorageTypeID:  int32(storageTypeID),
+				ProtocolTypeID: int32(protocolTypeID),
+				FailoverOrder: int32(failoverOrder),
 			}
 
 			origins = append(origins, &origin)
@@ -164,7 +176,6 @@ func flattenTLSSettings(
 func flattenOrigins(
 	origins []originv3.CustomerOriginFailoverOrder,
 ) []map[string]interface{} {
-
 	flattened := make([]map[string]interface{}, 0)
 
 	for _, v := range origins {
@@ -181,6 +192,5 @@ func flattenOrigins(
 
 		flattened = append(flattened, m)
 	}
-
 	return flattened
 }

@@ -18,15 +18,13 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 	isAllowSelfSigned := false
 	pop1 := "pop1"
 	pop2 := "pop2"
-	port := int32(443)
 
 	tests := []struct {
-		name           string
-		input          map[string]any
-		expectedGrpPtr *originv3.CustomerOriginGroupHTTPRequest
-		expectedPtr    []*originv3.CustomerOriginRequest
-		expectErrs     bool
-		errCount       int
+		name        string
+		input       map[string]any
+		expectedPtr *OriginGroupState
+		expectErrs  bool
+		errCount    int
 	}{
 		{
 			name:       "Happy path",
@@ -55,35 +53,36 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					},
 				},
 			},
-			expectedGrpPtr: &originv3.CustomerOriginGroupHTTPRequest{
+			expectedPtr: &OriginGroupState{
 				Name:          "my_origin_group",
-				HostHeader:    originv3.NewNullableString("myhost"),
-				NetworkTypeId: originv3.NewNullableInt32(2),
+				HostHeader:    "myhost",
+				NetworkTypeID: 2,
 				ShieldPops:    []*string{&pop1, &pop2},
-				TlsSettings: &originv3.TlsSettings{
+				TLSSettings: &originv3.TlsSettings{
 					SniHostname:        originv3.NewNullableString("mysnihost"),
 					AllowSelfSigned:    &isAllowSelfSigned,
 					PublicKeysToVerify: []string{"key1", "key2"},
 				},
-			},
-			expectedPtr: []*originv3.CustomerOriginRequest{
-				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
-					Host:           "https://cdn-la.example.com",
-					Port:           &port,
-					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
+				Origins: []*OriginState{
+					{
+						ID:             0,
+						GroupID:        0,
+						Name:           "marketing-origin-entry-a",
+						Host:           "https://cdn-la.example.com",
+						Port:           443,
+						IsPrimary:      true,
+						StorageTypeID:  1,
+						ProtocolTypeID: 2,
+					},
 				},
 			},
 		},
 		{
-			name:           "nil input",
-			errCount:       1,
-			input:          nil,
-			expectedPtr:    nil,
-			expectedGrpPtr: nil,
-			expectErrs:     true,
+			name:        "nil input",
+			errCount:    1,
+			input:       nil,
+			expectedPtr: nil,
+			expectErrs:  true,
 		},
 	}
 
@@ -100,7 +99,7 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					tt.input)
 			}
 
-			actualGrpPtr, actualPtr, errs := expandHttpLargeOriginGroup(rd)
+			actualGrpPtr, errs := expandHttpLargeOriginGroup(rd)
 
 			if !tt.expectErrs && (len(errs) > 0) {
 				t.Fatalf("unexpected errors: %v", errs)
@@ -116,7 +115,7 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 
 			//Group
 			actualGrp := *actualGrpPtr
-			expectedGrp := *tt.expectedGrpPtr
+			expectedGrp := *tt.expectedPtr
 
 			if !reflect.DeepEqual(actualGrp, expectedGrp) {
 				// deep.Equal doesn't compare pointer values, so we just use it to
@@ -127,22 +126,6 @@ func TestExpandHttpLargeOriginGrp(t *testing.T) {
 					tt.name,
 					expectedGrp,
 					actualGrp,
-				)
-			}
-
-			//Origins
-			actual := actualPtr
-			expected := tt.expectedPtr
-
-			if !reflect.DeepEqual(actual, expected) {
-				// deep.Equal doesn't compare pointer values, so we just use it to
-				// generate a human friendly diff
-				diff := deep.Equal(actual, expected)
-				t.Errorf("Diff: %+v", diff)
-				t.Fatalf("%s: Expected %+v but got %+v",
-					tt.name,
-					expected,
-					actual,
 				)
 			}
 		})
@@ -222,50 +205,58 @@ func TestExpandTLSSettings(t *testing.T) {
 }
 
 func TestExpandOrigins(t *testing.T) {
-	port := int32(443)
-
 	cases := []struct {
 		name          string
 		input         interface{}
-		expectedPtr   []*originv3.CustomerOriginRequest
+		expectedPtr   []*OriginState
 		expectSuccess bool
 	}{
 		{
 			name: "Happy path",
 			input: []any{
 				map[string]any{
+					"id":               1,
 					"name":             "marketing-origin-entry-a",
 					"host":             "https://cdn-la.example.com",
 					"port":             443,
 					"is_primary":       true,
 					"storage_type_id":  1,
 					"protocol_type_id": 2,
+					"failover_order":   0,
 				},
 				map[string]any{
+					"id":               2,
 					"name":             "marketing-origin-entry-b",
 					"host":             "https://cdn-lb.example.com",
 					"port":             443,
 					"is_primary":       true,
 					"storage_type_id":  1,
 					"protocol_type_id": 2,
+					"failover_order":   0,
 				},
 			},
-			expectedPtr: []*originv3.CustomerOriginRequest{
+			expectedPtr: []*OriginState{
 				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-a"),
+					ID:             1,
+					GroupID:        0,
+					Name:           "marketing-origin-entry-a",
 					Host:           "https://cdn-la.example.com",
-					Port:           &port,
+					Port:           443,
 					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
+					StorageTypeID:  1,
+					ProtocolTypeID: 2,
+					FailoverOrder:  0,
 				},
 				{
-					Name:           originv3.NewNullableString("marketing-origin-entry-b"),
+					ID:             2,
+					GroupID:        0,
+					Name:           "marketing-origin-entry-b",
 					Host:           "https://cdn-lb.example.com",
-					Port:           &port,
+					Port:           443,
 					IsPrimary:      true,
-					StorageTypeId:  originv3.NewNullableInt32(1),
-					ProtocolTypeId: originv3.NewNullableInt32(2),
+					StorageTypeID:  1,
+					ProtocolTypeID: 2,
+					FailoverOrder:  0,
 				},
 			},
 			expectSuccess: true,
@@ -279,7 +270,7 @@ func TestExpandOrigins(t *testing.T) {
 		{
 			name:          "nil input",
 			input:         nil,
-			expectedPtr:   make([]*originv3.CustomerOriginRequest, 0),
+			expectedPtr:   make([]*OriginState, 0),
 			expectSuccess: false,
 		},
 	}
@@ -459,6 +450,471 @@ func TestFlattenOrigins(t *testing.T) {
 				c.name,
 				c.expected,
 				actual,
+			)
+		}
+	}
+}
+
+func TestGetOriginToAdd(t *testing.T) {
+	cases := []struct {
+		name            string
+		inputNewOrigins []*OriginState
+		inputOldOrigins []*OriginState
+		expected        []*OriginState
+		expectSuccess   bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			inputOldOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      false,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+			},
+			inputNewOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 3",
+					IsPrimary:      false,
+					Name:           "origin 3",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 3",
+					FailoverOrder:  0,
+				},
+			},
+			expected: []*OriginState{
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 3",
+					IsPrimary:      false,
+					Name:           "origin 3",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 3",
+					FailoverOrder:  0,
+				},
+			},
+		},
+		{
+			name:            "No existing origins",
+			expectSuccess:   true,
+			inputOldOrigins: nil,
+			inputNewOrigins: []*OriginState{
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+			expected: []*OriginState{
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             0,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+		},
+		{
+			name:            "Nil input",
+			inputOldOrigins: nil,
+			inputNewOrigins: nil,
+			expected:        make([]*OriginState, 0),
+			expectSuccess:   false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := getOriginsToAdd(c.inputNewOrigins, c.inputOldOrigins)
+
+		actualOrigins := make([]OriginState, 0)
+		expectedOrigins := make([]OriginState, 0)
+		for _, v := range actual {
+			actualOrigins = append(actualOrigins, *v)
+		}
+		for _, v := range c.expected {
+			expectedOrigins = append(expectedOrigins, *v)
+		}
+
+		if !reflect.DeepEqual(actualOrigins, expectedOrigins) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actualOrigins, expectedOrigins)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				&expectedOrigins,
+				&actualOrigins,
+			)
+		}
+	}
+}
+
+func TestGetOriginToDelete(t *testing.T) {
+	cases := []struct {
+		name            string
+		inputNewOrigins []*OriginState
+		inputOldOrigins []*OriginState
+		expected        []*OriginState
+		expectSuccess   bool
+	}{
+		{
+			name:          "Happy path",
+			expectSuccess: true,
+			inputOldOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+			inputNewOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+			},
+			expected: []*OriginState{
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+		},
+		{
+			name:          "Delete all",
+			expectSuccess: true,
+			inputOldOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+			inputNewOrigins: nil,
+			expected: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+		},
+		{
+			name:            "Nil input",
+			inputOldOrigins: nil,
+			inputNewOrigins: nil,
+			expected:        make([]*OriginState, 0),
+			expectSuccess:   false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := getOriginsToDelete(c.inputNewOrigins, c.inputOldOrigins)
+
+		actualOrigins := make([]OriginState, 0)
+		expectedOrigins := make([]OriginState, 0)
+		for _, v := range actual {
+			actualOrigins = append(actualOrigins, *v)
+		}
+		for _, v := range c.expected {
+			expectedOrigins = append(expectedOrigins, *v)
+		}
+
+		if !reflect.DeepEqual(actualOrigins, expectedOrigins) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actualOrigins, expectedOrigins)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				&expectedOrigins,
+				&actualOrigins,
+			)
+		}
+	}
+}
+
+func TestGetOriginToUpdate(t *testing.T) {
+	cases := []struct {
+		name            string
+		inputNewOrigins []*OriginState
+		inputOldOrigins []*OriginState
+		expected        []*OriginState
+		expectSuccess   bool
+	}{
+		{
+			name:          "happy path",
+			expectSuccess: true,
+			inputOldOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+			inputNewOrigins: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1 Updated",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2 Updated",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+			expected: []*OriginState{
+				{
+					ID:             1,
+					GroupID:        1,
+					Host:           "host 1 Updated",
+					IsPrimary:      true,
+					Name:           "origin 1",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 1",
+					FailoverOrder:  0,
+				},
+				{
+					ID:             2,
+					GroupID:        1,
+					Host:           "host 2 Updated",
+					IsPrimary:      false,
+					Name:           "origin 2",
+					Port:           443,
+					ProtocolTypeID: 1,
+					StorageTypeID:  2,
+					HostHeader:     "header 2",
+					FailoverOrder:  0,
+				},
+			},
+		},
+		{
+			name:            "Nil input",
+			inputOldOrigins: nil,
+			inputNewOrigins: nil,
+			expected:        make([]*OriginState, 0),
+			expectSuccess:   false,
+		},
+	}
+
+	for _, c := range cases {
+		actual := getOriginsToUpdate(c.inputNewOrigins, c.inputOldOrigins)
+
+		actualOrigins := make([]OriginState, 0)
+		expectedOrigins := make([]OriginState, 0)
+		for _, v := range actual {
+			actualOrigins = append(actualOrigins, *v)
+		}
+		for _, v := range c.expected {
+			expectedOrigins = append(expectedOrigins, *v)
+		}
+
+		if !reflect.DeepEqual(actualOrigins, expectedOrigins) {
+			// deep.Equal doesn't compare pointer values, so we just use it to
+			// generate a human friendly diff
+			diff := deep.Equal(actualOrigins, expectedOrigins)
+			t.Errorf("Diff: %+v", diff)
+			t.Fatalf("%s: Expected %+v but got %+v",
+				c.name,
+				&expectedOrigins,
+				&actualOrigins,
 			)
 		}
 	}

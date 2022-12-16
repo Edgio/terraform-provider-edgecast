@@ -170,7 +170,7 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 					},
 					"failover_order": {
 						Type:     schema.TypeInt,
-						Computed: true,
+						Optional: true,
 						Description: "Indicates this origin entry's sort position as a 0-based number. \n\n" +
 							"Position 0 is reserved for the primary origin entry as determined by the is_primary field. \n\n" +
 							"The primary purpose of this position is to determine the order in which requests are load balanced \n " +
