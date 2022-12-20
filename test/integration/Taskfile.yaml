@@ -83,6 +83,10 @@ includes:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/cps_certificate
 
+  originv3_httplarge:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/originv3_httplarge
+
 
 tasks:
   populate:
@@ -161,6 +165,10 @@ tasks:
         vars:
           RESOURCE_NAME: edgecast_cps_certificate
           IMPORT_ID: $CERTIFICATE_ID
+      - task: originv3_httplarge:default
+        vars:
+          RESOURCE_NAME: edgecast_originv3_httplarge
+          IMPORT_ID: $GROUP_ID
           
   default:
     cmds:
