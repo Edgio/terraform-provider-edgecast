@@ -1,0 +1,20 @@
+---
+page_title: "edgecast_originv3_protocoltypes Data Source"
+subcategory: "Origins - V3"
+description: |-
+  edgecast_originv3_protocoltypes Data Source
+---
+
+# edgecast_originv3_protocoltypes Data Source
+
+Use the `edgecast_originv3_protocoltypes` data source to retrieve the available protocols that you may assign to an origin entry.
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `cdn.origins` scope.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_originv3_httplarge_datasource/data.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

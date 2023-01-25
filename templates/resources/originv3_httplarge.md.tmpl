@@ -1,0 +1,52 @@
+---
+page_title: "edgecast_originv3_httplarge Resource"
+subcategory: "Origins - V3"
+description: |-
+  edgecast_originv3_httplarge Resource
+---
+
+# edgecast_originv3_httplarge Resource
+
+Use the `ec_edgecast_originv3_httplarge` resource to:
+* Manage a customer origin group
+  * Create a customer origin group
+  * Update a customer origin group
+  * Delete a customer origin group
+* Manage a customer origin group's origin entries
+  * Add an origin entry to a customer origin group
+  * Update origin entry(s) for a customer origin group
+  * Delete origin entry(s) for a customer origin group
+* Manage load balancing configuration through origin group's failover order
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `cdn.origins` scope.
+
+## Example Usage
+
+{{tffile "examples/resources/edgecast_originv3_httplarge/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
+
+## Import Resource
+Manage an existing origin group through Terraform by importing it as a resource. Perform the following steps:
+1. Insert an empty resource block within your resource configuration.
+
+        resource "edgecast_originv3_httplarge" "<RESOURCE>" {
+          
+        }
+    **Example:**
+
+        resource "edgecast_originv3_httplarge" "sample_group" {
+          
+        }
+1. Run the following command to attach a origin group to your resource configuration.
+
+        terraform import edgecast_originv3_httplarge.<RESOURCE> <ORIGIN_GROUP_ID>
+    * `<RESOURCE>` - Replace this term with the name of the resource defined in step 1.
+    * `<ORIGIN_GROUP_ID>` - Replace this term with the system-defined ID assigned to the desired origin group. You may retrieve a list of origin groups and their system-defined IDs through our [REST API](https://developer.edgecast.com/cdn/api/index.html#Origins/Get-All-Customer-Origin-Groups.htm#GetAllCustomerOriginGroupsHTTPLarge).
+
+    **Example:**
+
+        terraform import edgecast_originv3_httplarge.sample_group 123456
+-> Upon running the above command, a resource for that origin group will be recorded in the state file.
