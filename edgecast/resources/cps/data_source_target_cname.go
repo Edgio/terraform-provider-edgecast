@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 	"time"
@@ -35,28 +36,10 @@ func DataSourceTargetCNAME() *schema.Resource {
 				Type:     schema.TypeString,
 				Optional: true,
 			},
-			"deployments": {
-				Type:     schema.TypeSet,
-				Computed: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"delivery_region": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Indicates the name of the delivery region to which this certificate was deployed.",
-						},
-						"platform": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Identifies the delivery platform (e.g., `HttpLarge`) associated with this certificate. ",
-						},
-						"hex_url": {
-							Type:        schema.TypeString,
-							Computed:    true,
-							Description: "Indicates the CDN domain through which requests for this certificate will be routed.",
-						},
-					},
-				},
+			"value": {
+				Type:        schema.TypeString,
+				Computed:    true,
+				Description: "Indicates the CDN domain through which requests for this certificate will be routed.",
 			},
 		},
 	}
@@ -114,8 +97,17 @@ func DataSourceTargetCNAMERead(
 						err))
 			}
 
-			// No token found.
-			if len(resp.Deployments) == 0 {
+			// only http large - there should be exactly one
+			var deployment *models.RequestDeployment
+
+			for _, d := range resp.Deployments {
+				if strings.EqualFold(d.Platform, "HttpLarge") {
+					deployment = d
+				}
+			}
+
+			// No target cname found.
+			if deployment == nil || len(deployment.HexURL) == 0 {
 				log.Println("target cname not availale")
 				if retry {
 					log.Println("retrying")
@@ -128,8 +120,7 @@ func DataSourceTargetCNAMERead(
 				}
 			}
 
-			flattenedDeployments := FlattenDeployments(resp.Deployments)
-			d.Set("deployments", flattenedDeployments)
+			d.Set("value", deployment.HexURL)
 			d.SetId(helper.GetUnixTimeStamp())
 			return nil
 		})
