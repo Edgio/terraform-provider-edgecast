@@ -18,8 +18,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-const (
-	readTokenDefaultTimeout = "20m"
+var (
+	readTokenDefaultTimeout = 30 * time.Minute
 )
 
 func DataSourceDNSTXTToken() *schema.Resource {
@@ -46,6 +46,9 @@ func DataSourceDNSTXTToken() *schema.Resource {
 				Computed: true,
 			},
 		},
+		Timeouts: &schema.ResourceTimeout{
+			Read: schema.DefaultTimeout(readTokenDefaultTimeout),
+		},
 	}
 }
 
@@ -54,13 +57,8 @@ func DataSourceDNSTXTTokenRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-	timeoutRaw := d.Get("wait_timeout").(string)
-	timeout, err := time.ParseDuration(timeoutRaw)
-	if err != nil {
-		return diag.Errorf("invalid wait_timeout: %v", err)
-	}
-
-	log.Printf("timeout: %v\n", timeout)
+	timeout := d.Timeout(schema.TimeoutRead)
+	log.Printf("read timeout: %v\n", timeout)
 
 	config, ok := m.(internal.ProviderConfig)
 	if !ok {
@@ -85,7 +83,6 @@ func DataSourceDNSTXTTokenRead(
 
 	retry := d.Get("wait_until_available").(bool)
 	log.Printf("wait_until_available: %t\n", retry)
-	log.Printf("timeout: %v\n", d.Timeout(schema.TimeoutRead))
 
 	err = resource.RetryContext(
 		ctx,
