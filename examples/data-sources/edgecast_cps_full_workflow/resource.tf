@@ -1,5 +1,5 @@
 resource "edgecast_cps_certificate" "my_cert" {
-  certificate_label     = "retry demo cert 1"
+  certificate_label     = "retry demo cert 14"
   description           = "DV certificate for stevenpaz.com"
   auto_renew            = true
   certificate_authority = "DigiCert"
@@ -19,10 +19,11 @@ data "edgecast_cps_dns_txt_token" "token" {
 data "edgecast_cps_target_cname" "target_cname" {
   certificate_id       = edgecast_cps_certificate.my_cert.id
   wait_until_available = true
+  wait_timeout = "6h"
 
-  timeouts {
-    read = "4h"
-  }
+  depends_on = [
+    data.edgecast_cps_dns_txt_token.token
+  ]
 }
 
 output "dns_txt_token" {

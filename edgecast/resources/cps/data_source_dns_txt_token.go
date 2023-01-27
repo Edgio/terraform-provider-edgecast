@@ -18,6 +18,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
+const (
+	readTokenDefaultTimeout = "20m"
+)
+
 func DataSourceDNSTXTToken() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: DataSourceDNSTXTTokenRead,
@@ -31,11 +35,13 @@ func DataSourceDNSTXTToken() *schema.Resource {
 				Optional: true,
 				Default:  false,
 			},
-			"retry_time": {
-				Type:     schema.TypeString,
-				Optional: true,
+			"wait_timeout": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          readTokenDefaultTimeout,
+				ValidateDiagFunc: internal.ValidateDuration,
 			},
-			"token": {
+			"value": {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
@@ -48,6 +54,14 @@ func DataSourceDNSTXTTokenRead(
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	timeoutRaw := d.Get("wait_timeout").(string)
+	timeout, err := time.ParseDuration(timeoutRaw)
+	if err != nil {
+		return diag.Errorf("invalid wait_timeout: %v", err)
+	}
+
+	log.Printf("timeout: %v\n", timeout)
+
 	config, ok := m.(internal.ProviderConfig)
 	if !ok {
 		return diag.Errorf("failed to load configuration")
@@ -72,20 +86,11 @@ func DataSourceDNSTXTTokenRead(
 	retry := d.Get("wait_until_available").(bool)
 	log.Printf("wait_until_available: %t\n", retry)
 	log.Printf("timeout: %v\n", d.Timeout(schema.TimeoutRead))
-	// var retryTime time.Duration
-	// if retryTimeRaw, ok := d.GetOk("retry_time"); ok {
-	// 	retryTimeString := retryTimeRaw.(string)
-	// 	retryTime, err = time.ParseDuration(retryTimeString)
-	// 	if err != nil {
-	// 		return errors.New("retry_time format invalid")
-	// 	}
-	// }
 
 	err = resource.RetryContext(
 		ctx,
-		d.Timeout(schema.TimeoutRead)-time.Minute,
+		timeout,
 		func() *resource.RetryError {
-
 			// 1. Call API
 			resp, err := svc.Certificate.CertificateGet(params)
 			if err != nil {
@@ -118,7 +123,7 @@ func DataSourceDNSTXTTokenRead(
 			// All of the domains have the same token, so take the first.
 			log.Printf("setting token to %s", metadata[0].DcvToken.Token)
 			helper.LogInstanceAsPrettyJson("metadata output", metadata)
-			d.Set("token", metadata[0].DcvToken.Token)
+			d.Set("value", metadata[0].DcvToken.Token)
 
 			// always run
 			d.SetId(helper.GetUnixTimeStamp())
@@ -126,12 +131,4 @@ func DataSourceDNSTXTTokenRead(
 		})
 
 	return diag.FromErr(err)
-}
-
-func setDomainsState(
-	d *schema.ResourceData,
-	resp *certificate.CertificateGetOK,
-	dcvresp []*models.DomainDcvFull,
-) error {
-	return nil
 }
