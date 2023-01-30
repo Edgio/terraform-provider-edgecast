@@ -1,0 +1,20 @@
+---
+page_title: "edgecast_originv3_hostname_resolution_methods Data Source"
+subcategory: "Origins - V3"
+description: |-
+  edgecast_originv3_hostname_resolution_methods Data Source
+---
+
+# edgecast_originv3_hostname_resolution_methods Data Source
+
+Use the `edgecast_originv3_hostname_resolution_methods` data source to retrieve the available methods through which our service may resolve a hostname assigned to an origin entry.
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `cdn.origins` scope.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_originv3_datasource/data.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}
