@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
+// todo: unit test
 func ValidateDuration(val interface{}, p cty.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 

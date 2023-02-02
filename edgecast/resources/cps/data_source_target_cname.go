@@ -107,10 +107,21 @@ func DataSourceTargetCNAMERead(
 			for _, d := range resp.Deployments {
 				if strings.EqualFold(d.Platform, "HttpLarge") {
 					deployment = d
+					break
 				}
 			}
 
 			// No target cname found.
+			// TODO: check workflow error field is empty
+			// TODO: if workflow error field is not empty, then include in error returned
+			// TODO: pull this statement into its own func
+			// tests:
+			//		if deployment is empty
+			//		1. retry = true, then expect error
+			//		2. retry == false, return nil
+			//		if hex URL is empty
+			//		1. retry = true, then expect error
+			//		2. retry == false, return nil
 			if deployment == nil || len(deployment.HexURL) == 0 {
 				log.Println("target cname not availale")
 				if retry {

@@ -100,6 +100,7 @@ func DataSourceDNSTXTTokenRead(
 						err))
 			}
 
+			// test: if cert is not DV, return error
 			if resp.ValidationType != models.CdnProvidedCertificateValidationTypeDV {
 				return resource.NonRetryableError(errors.New("certificate must have validation type DV"))
 			}
@@ -107,6 +108,22 @@ func DataSourceDNSTXTTokenRead(
 			metadata := GetDomainMetadata(resp, svc)
 
 			// No token found.
+			// TODO: check cert status, do not loop on Token value
+			// TODO: check workflow error field is empty
+			// TODO: if workflow error field is not empty, then include in error returned
+			// TODO: pull this statement into its own func
+			// tests:
+			//		if metadata is empty
+			//		1. retry = true, then expect error
+			//		2. retry == false, return nil
+			//		if dcv token is nil
+			//		1. retry = true, then expect error
+			//		2. retry == false, return nil
+			//		if dcv token value is empty string
+			//		1. retry = true, then expect error
+			//		2. retry == false, return nil
+
+			// err := CheckForRetry(metadata, resp)
 			if len(metadata) == 0 || metadata[0].DcvToken == nil || len(metadata[0].DcvToken.Token) == 0 {
 				log.Println("token not availale")
 				if retry {
