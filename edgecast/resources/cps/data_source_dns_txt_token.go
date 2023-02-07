@@ -78,9 +78,7 @@ func DataSourceDNSTXTTokenRead(
 		return diag.Errorf("failed to parse certificate ID: %v", err)
 	}
 
-	// Call APIs.
 	log.Printf("[INFO] Retrieving certificate : ID: %d\n", certID)
-
 	params := certificate.NewCertificateGetParams()
 	params.ID = certID
 
@@ -96,7 +94,7 @@ func DataSourceDNSTXTTokenRead(
 		ctx,
 		timeout,
 		func() *resource.RetryError {
-			// 1. Call API
+			// Call APIs
 			resp, err := svc.Certificate.CertificateGet(params)
 			if err != nil {
 				return resource.NonRetryableError(
@@ -105,7 +103,8 @@ func DataSourceDNSTXTTokenRead(
 						err))
 			}
 
-			statusresp, err := svc.Certificate.CertificateGetCertificateStatus(statusparams)
+			statusresp, err :=
+				svc.Certificate.CertificateGetCertificateStatus(statusparams)
 			if err != nil {
 				return resource.NonRetryableError(
 					fmt.Errorf(
@@ -114,8 +113,10 @@ func DataSourceDNSTXTTokenRead(
 			}
 
 			// test: if cert is not DV, return error
-			if resp.ValidationType != models.CdnProvidedCertificateValidationTypeDV {
-				return resource.NonRetryableError(errors.New("certificate must have validation type DV"))
+			if resp.ValidationType !=
+				models.CdnProvidedCertificateValidationTypeDV {
+				return resource.NonRetryableError(
+					errors.New("certificate must have validation type DV"))
 			}
 
 			// test: if workflow error, return error
@@ -128,28 +129,13 @@ func DataSourceDNSTXTTokenRead(
 
 			metadata := GetDomainMetadata(resp, svc)
 
-			// No token found.
-			// TODO: check cert status, do not loop on Token value - DONE
-			// TODO: check workflow error field is empty - DONE
-			// TODO: if workflow error field is not empty, then include in error returned - DONE
-			// TODO: pull this statement into its own func - DONE
-			// tests:
-			//		if metadata is empty
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-			//		if dcv token is nil
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-			//		if dcv token value is empty string
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-
 			needsRetry := CheckForRetry(metadata, statusresp)
 			if needsRetry {
 				log.Println("token not availale")
 				if retry {
 					log.Println("retrying")
-					return resource.RetryableError(errors.New("token not available"))
+					return resource.RetryableError(
+						errors.New("token not available"))
 				} else {
 					// Just exit if retry is not desired.
 					// The user will need to run refresh to try again.
@@ -173,7 +159,8 @@ func DataSourceDNSTXTTokenRead(
 
 func CheckForRetry(metadata []*models.DomainDcvFull,
 	statusresp *certificate.CertificateGetCertificateStatusOK) bool {
-	if strings.ToLower(statusresp.Status) == "processing" ||
+	if len(statusresp.Status) == 0 ||
+		strings.ToLower(statusresp.Status) == "processing" ||
 		len(metadata) == 0 || metadata[0].DcvToken == nil ||
 		len(metadata[0].DcvToken.Token) == 0 {
 		return true
