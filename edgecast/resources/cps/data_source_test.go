@@ -13,6 +13,65 @@ import (
 	"github.com/go-test/deep"
 )
 
+func Test_CheckForCNAMERetry(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		argRetry      bool
+		argDeployment *models.RequestDeployment
+		expectError   bool
+	}{
+		{
+			name:          "Deployment Empty, Retry True",
+			argRetry:      true,
+			argDeployment: nil,
+			expectError:   true,
+		},
+		{
+			name:          "Deployment Empty, Do Not Retry",
+			argRetry:      false,
+			argDeployment: nil,
+			expectError:   false,
+		},
+		{
+			name:          "Deployment Non-Nil, No CNAME, Retry True",
+			argRetry:      true,
+			argDeployment: &models.RequestDeployment{HexURL: ""},
+			expectError:   true,
+		},
+		{
+			name:          "Deployment Non-Nil, CNAME is present",
+			argDeployment: &models.RequestDeployment{HexURL: "e1.example.com"},
+			expectError:   false,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := cps.CheckForCNAMERetry(tt.argRetry, tt.argDeployment)
+
+			if tt.expectError && err == nil {
+				t.Fatal("expected error but got none")
+			}
+
+			if tt.expectError && err != nil {
+				return // expected error and error is present, success
+			}
+
+			if !tt.expectError && err != nil {
+				t.Fatalf("unexpected error: %s", err.Err.Error())
+			}
+
+			if !tt.expectError && err == nil {
+				return // no error expected, no error present, success
+			}
+		})
+	}
+}
+
 func Test_FlattenCountryCodes(t *testing.T) {
 	t.Parallel()
 

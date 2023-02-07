@@ -1,5 +1,5 @@
-// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
-// See LICENSE file in project root for terms.
+// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// license. See LICENSE file in project root for terms.
 package cps
 
 import (
@@ -121,32 +121,13 @@ func DataSourceTargetCNAMERead(
 			}
 
 			// No target cname found.
-			// tests:
-			//		if deployment is empty
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-			//		if hex URL is empty
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-			needsRetry := CheckForCNAMERetry(deployment)
-			if needsRetry {
-				log.Println("target cname not availale")
-				if retry {
-					log.Println("retrying")
-					return resource.RetryableError(
-						errors.New("target cname not available"))
-				} else {
-					// Just exit if retry is not desired.
-					// The user will need to run refresh to try again.
-					log.Println("not retrying")
-					return nil
-				}
+			retryErr := CheckForCNAMERetry(retry, deployment)
+			if retryErr == nil {
+				d.Set("value", deployment.HexURL)
+				d.SetId(helper.GetUnixTimeStamp())
 			}
 
-			d.Set("value", deployment.HexURL)
-			d.SetId(helper.GetUnixTimeStamp())
-
-			return nil
+			return retryErr
 		})
 
 	return diag.FromErr(err)
@@ -154,7 +135,25 @@ func DataSourceTargetCNAMERead(
 
 // CheckForCNAMERetry determines whether the provider should check for a target
 // CNAME again.
-func CheckForCNAMERetry(deployment *models.RequestDeployment) bool {
-	// retry if deployment not yet available or CNAME is not available.
-	return deployment == nil || len(deployment.HexURL) == 0
+func CheckForCNAMERetry(
+	doRetry bool,
+	deployment *models.RequestDeployment,
+) *resource.RetryError {
+	// if a deployment is available with a target cname, no retry is needed.
+	if deployment != nil && len(deployment.HexURL) > 0 {
+		return nil
+	}
+
+	log.Println("target cname not availale")
+
+	if doRetry {
+		log.Println("retrying")
+		return resource.RetryableError(
+			errors.New("target cname not available"))
+	}
+
+	// Just exit if retry is not desired.
+	// The user will need to run refresh to try again.
+	log.Println("not retrying")
+	return nil
 }
