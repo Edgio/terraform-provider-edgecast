@@ -129,21 +129,6 @@ func DataSourceDNSTXTTokenRead(
 			metadata := GetDomainMetadata(resp, svc)
 
 			// No token found.
-			// TODO: check cert status, do not loop on Token value - DONE
-			// TODO: check workflow error field is empty - DONE
-			// TODO: if workflow error field is not empty, then include in error returned - DONE
-			// TODO: pull this statement into its own func - DONE
-			// tests:
-			//		if metadata is empty
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-			//		if dcv token is nil
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-			//		if dcv token value is empty string
-			//		1. retry = true, then expect error
-			//		2. retry == false, return nil
-
 			needsRetry := CheckForRetry(metadata, statusresp)
 			if needsRetry {
 				log.Println("token not availale")
