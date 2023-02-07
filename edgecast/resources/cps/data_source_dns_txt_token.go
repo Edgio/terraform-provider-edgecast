@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 	"time"
@@ -83,6 +84,10 @@ func DataSourceDNSTXTTokenRead(
 	params := certificate.NewCertificateGetParams()
 	params.ID = certID
 
+	log.Printf("[INFO] Retrieving certificate Status: ID: %d\n", certID)
+	statusparams := certificate.NewCertificateGetCertificateStatusParams()
+	statusparams.ID = certID
+
 	retry := d.Get("wait_until_available").(bool)
 	log.Printf("wait_until_available: %t\n", retry)
 	log.Printf("timeout: %v\n", d.Timeout(schema.TimeoutRead))
@@ -100,18 +105,34 @@ func DataSourceDNSTXTTokenRead(
 						err))
 			}
 
+			statusresp, err := svc.Certificate.CertificateGetCertificateStatus(statusparams)
+			if err != nil {
+				return resource.NonRetryableError(
+					fmt.Errorf(
+						"error while retrieving certificate details: %w",
+						err))
+			}
+
 			// test: if cert is not DV, return error
 			if resp.ValidationType != models.CdnProvidedCertificateValidationTypeDV {
 				return resource.NonRetryableError(errors.New("certificate must have validation type DV"))
 			}
 
+			// test: if workflow error, return error
+			if len(resp.WorkflowErrorMessage) > 0 {
+				return resource.NonRetryableError(
+					fmt.Errorf(
+						"error in workflow: %s",
+						resp.WorkflowErrorMessage))
+			}
+
 			metadata := GetDomainMetadata(resp, svc)
 
 			// No token found.
-			// TODO: check cert status, do not loop on Token value
-			// TODO: check workflow error field is empty
-			// TODO: if workflow error field is not empty, then include in error returned
-			// TODO: pull this statement into its own func
+			// TODO: check cert status, do not loop on Token value - DONE
+			// TODO: check workflow error field is empty - DONE
+			// TODO: if workflow error field is not empty, then include in error returned - DONE
+			// TODO: pull this statement into its own func - DONE
 			// tests:
 			//		if metadata is empty
 			//		1. retry = true, then expect error
@@ -123,8 +144,8 @@ func DataSourceDNSTXTTokenRead(
 			//		1. retry = true, then expect error
 			//		2. retry == false, return nil
 
-			// err := CheckForRetry(metadata, resp)
-			if len(metadata) == 0 || metadata[0].DcvToken == nil || len(metadata[0].DcvToken.Token) == 0 {
+			needsRetry := CheckForRetry(metadata, statusresp)
+			if needsRetry {
 				log.Println("token not availale")
 				if retry {
 					log.Println("retrying")
@@ -148,4 +169,15 @@ func DataSourceDNSTXTTokenRead(
 		})
 
 	return diag.FromErr(err)
+}
+
+func CheckForRetry(metadata []*models.DomainDcvFull,
+	statusresp *certificate.CertificateGetCertificateStatusOK) bool {
+	if strings.ToLower(statusresp.Status) == "processing" ||
+		len(metadata) == 0 || metadata[0].DcvToken == nil ||
+		len(metadata[0].DcvToken.Token) == 0 {
+		return true
+	} else {
+		return false
+	}
 }
