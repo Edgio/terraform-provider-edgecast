@@ -35,7 +35,7 @@ const (
 // Provider creates a new instance of the Edgecast Terraform Provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
-		Schema:               getProviderSchema(),
+		Schema:               GetProviderSchema(),
 		ResourcesMap:         buildResourcesMap(),
 		DataSourcesMap:       buildDataSourcesMap(),
 		ConfigureContextFunc: configureProvider,
@@ -63,7 +63,7 @@ func configureProvider(
 	return *config, nil
 }
 
-func getProviderSchema() map[string]*schema.Schema {
+func GetProviderSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"api_token": {
 			Type:        schema.TypeString,

@@ -9,8 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 )
 
-// todo: unit test
-func ValidateDuration(val interface{}, p cty.Path) diag.Diagnostics {
+// ValidateDuration validates both numeric string duration values for terraform
+// properties. e.g. '6m', '6h'
+func ValidateDuration(val any, p cty.Path) diag.Diagnostics {
 	var diags diag.Diagnostics
 
 	switch raw := val.(type) {
