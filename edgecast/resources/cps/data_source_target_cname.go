@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
+
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
-	"time"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
@@ -101,7 +102,15 @@ func DataSourceTargetCNAMERead(
 						err))
 			}
 
-			// only http large - there should be exactly one
+			// if workflow error, return error
+			if len(resp.WorkflowErrorMessage) > 0 {
+				return resource.NonRetryableError(
+					fmt.Errorf(
+						"error in workflow: %s",
+						resp.WorkflowErrorMessage))
+			}
+
+			// There should be exactly one deployment - for HTTP Large.
 			var deployment *models.RequestDeployment
 
 			for _, d := range resp.Deployments {
@@ -112,9 +121,6 @@ func DataSourceTargetCNAMERead(
 			}
 
 			// No target cname found.
-			// TODO: check workflow error field is empty
-			// TODO: if workflow error field is not empty, then include in error returned
-			// TODO: pull this statement into its own func
 			// tests:
 			//		if deployment is empty
 			//		1. retry = true, then expect error
@@ -122,11 +128,13 @@ func DataSourceTargetCNAMERead(
 			//		if hex URL is empty
 			//		1. retry = true, then expect error
 			//		2. retry == false, return nil
-			if deployment == nil || len(deployment.HexURL) == 0 {
+			needsRetry := CheckForCNAMERetry(deployment)
+			if needsRetry {
 				log.Println("target cname not availale")
 				if retry {
 					log.Println("retrying")
-					return resource.RetryableError(errors.New("target cname not available"))
+					return resource.RetryableError(
+						errors.New("target cname not available"))
 				} else {
 					// Just exit if retry is not desired.
 					// The user will need to run refresh to try again.
@@ -137,8 +145,16 @@ func DataSourceTargetCNAMERead(
 
 			d.Set("value", deployment.HexURL)
 			d.SetId(helper.GetUnixTimeStamp())
+
 			return nil
 		})
 
 	return diag.FromErr(err)
+}
+
+// CheckForCNAMERetry determines whether the provider should check for a target
+// CNAME again.
+func CheckForCNAMERetry(deployment *models.RequestDeployment) bool {
+	// retry if deployment not yet available or CNAME is not available.
+	return deployment == nil || len(deployment.HexURL) == 0
 }

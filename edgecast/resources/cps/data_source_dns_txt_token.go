@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
+
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
-	"time"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
@@ -113,12 +114,12 @@ func DataSourceDNSTXTTokenRead(
 						err))
 			}
 
-			// test: if cert is not DV, return error
+			// If cert is not DV, return error.
 			if resp.ValidationType != models.CdnProvidedCertificateValidationTypeDV {
 				return resource.NonRetryableError(errors.New("certificate must have validation type DV"))
 			}
 
-			// test: if workflow error, return error
+			// If workflow error, return error.
 			if len(resp.WorkflowErrorMessage) > 0 {
 				return resource.NonRetryableError(
 					fmt.Errorf(
@@ -129,9 +130,10 @@ func DataSourceDNSTXTTokenRead(
 			metadata := GetDomainMetadata(resp, svc)
 
 			// No token found.
-			needsRetry := CheckForRetry(metadata, statusresp)
+			needsRetry := CheckForDCVTokenRetry(metadata, statusresp)
 			if needsRetry {
 				log.Println("token not availale")
+
 				if retry {
 					log.Println("retrying")
 					return resource.RetryableError(errors.New("token not available"))
@@ -150,19 +152,20 @@ func DataSourceDNSTXTTokenRead(
 
 			// always run
 			d.SetId(helper.GetUnixTimeStamp())
+
 			return nil
 		})
 
 	return diag.FromErr(err)
 }
 
-func CheckForRetry(metadata []*models.DomainDcvFull,
-	statusresp *certificate.CertificateGetCertificateStatusOK) bool {
-	if strings.ToLower(statusresp.Status) == "processing" ||
+// CheckForTokenRetry determines whether the provider should check for a DCV
+// token again.
+func CheckForDCVTokenRetry(
+	metadata []*models.DomainDcvFull,
+	statusresp *certificate.CertificateGetCertificateStatusOK,
+) bool {
+	return strings.ToLower(statusresp.Status) == "processing" ||
 		len(metadata) == 0 || metadata[0].DcvToken == nil ||
-		len(metadata[0].DcvToken.Token) == 0 {
-		return true
-	} else {
-		return false
-	}
+		len(metadata[0].DcvToken.Token) == 0
 }
