@@ -9,6 +9,7 @@ import (
 	"terraform-provider-edgecast/edgecast/resources/cps"
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/appendix"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/go-test/deep"
 )
@@ -52,6 +53,224 @@ func Test_CheckForCNAMERetry(t *testing.T) {
 			t.Parallel()
 
 			err := cps.CheckForCNAMERetry(tt.argRetry, tt.argDeployment)
+
+			if tt.expectError && err == nil {
+				t.Fatal("expected error but got none")
+			}
+
+			if tt.expectError && err != nil {
+				return // expected error and error is present, success
+			}
+
+			if !tt.expectError && err != nil {
+				t.Fatalf("unexpected error: %s", err.Err.Error())
+			}
+
+			if !tt.expectError && err == nil {
+				return // no error expected, no error present, success
+			}
+		})
+	}
+}
+
+func Test_CheckForDNSTokenRetry(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name         string
+		argRetry     bool
+		argsMetadata []*models.DomainDcvFull
+		argsStatus   *certificate.CertificateGetCertificateStatusOK
+		expectError  bool
+	}{
+		{
+			name: "Happy Path - status is not processing, dcv token is available",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "DomainControlValidation"},
+			},
+			argRetry:    false,
+			expectError: false,
+		},
+		{
+			name:         "status is processing, metadata is empty",
+			argsMetadata: nil,
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "Processing"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name: "status is processing, dcv token is empty",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  nil,
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  nil,
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "Processing"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name: "status is processing, dcv token is empty string",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: ""},
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: ""},
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "Processing"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name: "status is processing, dcv token is available",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "Processing"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name:         "status is not processing, metadata is empty",
+			argsMetadata: nil,
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "DomainControlValidation"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name: "status is not processing, dcv token is empty",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  nil,
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  nil,
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "DomainControlValidation"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name: "status is not processing, dcv token is empty string",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: ""},
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: ""},
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: "DomainControlValidation"},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+		{
+			name: "status is empty, dcv token is available",
+			argsMetadata: []*models.DomainDcvFull{
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  1,
+					Emails:    nil,
+				},
+				{
+					DcvMethod: "DnsCnameToken",
+					DcvToken:  &models.DcvToken{Token: "token"},
+					DomainID:  2,
+					Emails:    nil,
+				},
+			},
+			argsStatus: &certificate.CertificateGetCertificateStatusOK{
+				CertificateStatus: models.CertificateStatus{
+					Status: ""},
+			},
+			argRetry:    true,
+			expectError: true,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := cps.CheckForDCVTokenRetry(tt.argRetry, tt.argsMetadata, tt.argsStatus)
 
 			if tt.expectError && err == nil {
 				t.Fatal("expected error but got none")
