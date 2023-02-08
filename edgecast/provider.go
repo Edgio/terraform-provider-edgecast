@@ -35,7 +35,7 @@ const (
 // Provider creates a new instance of the Edgecast Terraform Provider
 func Provider() *schema.Provider {
 	return &schema.Provider{
-		Schema:               getProviderSchema(),
+		Schema:               GetProviderSchema(),
 		ResourcesMap:         buildResourcesMap(),
 		DataSourcesMap:       buildDataSourcesMap(),
 		ConfigureContextFunc: configureProvider,
@@ -63,7 +63,7 @@ func configureProvider(
 	return *config, nil
 }
 
-func getProviderSchema() map[string]*schema.Schema {
+func GetProviderSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"api_token": {
 			Type:        schema.TypeString,
@@ -159,6 +159,8 @@ func buildDataSourcesMap() map[string]*schema.Resource {
 		"edgecast_cps_cert_request_cancel_actions":       cps.DataSourceCancelCertReqActions(),
 		"edgecast_cps_cert_request_statuses":             cps.DataSourceCertReqStatuses(),
 		"edgecast_cps_cert_order_statuses":               cps.DataSourceCertOrderStatuses(),
+		"edgecast_cps_target_cname":                      cps.DataSourceTargetCNAME(),
+		"edgecast_cps_dns_txt_token":                     cps.DataSourceDNSTXTToken(),
 		"edgecast_originv3_httplarge_origin_shield_pops": originv3.DataSourceOriginShieldPops(),
 		"edgecast_originv3_protocoltypes":                originv3.DataSourceProtocolTypes(),
 		"edgecast_originv3_hostname_resolution_methods":  originv3.DataSourceHostnameResolutionMethods(),
