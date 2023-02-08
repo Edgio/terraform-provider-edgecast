@@ -144,7 +144,7 @@ func DataSourceDNSTXTTokenRead(
 	return diag.FromErr(err)
 }
 
-// CheckForTokenRetry determines whether the provider should check for a target
+// CheckForTokenRetry determines whether the provider should check for a dns
 // token again.
 func CheckForDCVTokenRetry(
 	doRetry bool,
