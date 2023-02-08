@@ -1,0 +1,20 @@
+---
+page_title: "edgecast_cps_target_cname Data Source"
+subcategory: "Certificate Provisioning System (CPS)"
+description: |-
+  edgecast_cps_target_cname Data Source
+---
+
+# edgecast_cps_target_cname Data Source
+
+Use the `edgecast_cps_target_cname` data source to retrieve the CDN domain through which requests for this certificate will be routed.
+
+## Authentication
+
+This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `sec.cps.certificates` scope.
+
+## Example Usage
+
+{{tffile "examples/data-sources/edgecast_cps_target_cname/resource.tf"}}
+
+{{ .SchemaMarkdown | trimspace }}

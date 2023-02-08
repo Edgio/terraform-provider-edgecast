@@ -29,19 +29,22 @@ func DataSourceTargetCNAME() *schema.Resource {
 		ReadContext: DataSourceTargetCNAMERead,
 		Schema: map[string]*schema.Schema{
 			"certificate_id": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:        schema.TypeString,
+				Required:    true,
+				Description: "Indicates the system-defined ID assigned to a certificate.",
 			},
 			"wait_until_available": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Indicates whether Terraform should wait until the token is available.",
 			},
 			"wait_timeout": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          readCNAMEDefaultTimeout,
 				ValidateDiagFunc: internal.ValidateDuration,
+				Description:      "Indicates the maximum time Terraform will wait (e.g. `60m` for 60 minutes, `10s` for ten seconds, or `2h` for two hours). If `wait_until_available` is not set, this value is ignored.",
 			},
 			"value": {
 				Type:        schema.TypeString,
