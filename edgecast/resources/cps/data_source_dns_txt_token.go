@@ -130,42 +130,45 @@ func DataSourceDNSTXTTokenRead(
 			metadata := GetDomainMetadata(resp, svc)
 
 			// No token found.
-			needsRetry := CheckForDCVTokenRetry(metadata, statusresp)
-			if needsRetry {
-				log.Println("token not availale")
-
-				if retry {
-					log.Println("retrying")
-					return resource.RetryableError(errors.New("token not available"))
-				} else {
-					// Just exit if retry is not desired.
-					// The user will need to run refresh to try again.
-					log.Println("not retrying")
-					return nil
-				}
+			retryErr := CheckForDCVTokenRetry(retry, metadata, statusresp)
+			if retryErr == nil {
+				// All of the domains have the same token, so take the first.
+				log.Printf("setting token to %s", metadata[0].DcvToken.Token)
+				d.Set("value", metadata[0].DcvToken.Token)
+				d.SetId(helper.GetUnixTimeStamp())
 			}
 
-			// All of the domains have the same token, so take the first.
-			log.Printf("setting token to %s", metadata[0].DcvToken.Token)
-			helper.LogInstanceAsPrettyJson("metadata output", metadata)
-			d.Set("value", metadata[0].DcvToken.Token)
-
-			// always run
-			d.SetId(helper.GetUnixTimeStamp())
-
-			return nil
+			return retryErr
 		})
 
 	return diag.FromErr(err)
 }
 
-// CheckForTokenRetry determines whether the provider should check for a DCV
+// CheckForTokenRetry determines whether the provider should check for a target
 // token again.
 func CheckForDCVTokenRetry(
+	doRetry bool,
 	metadata []*models.DomainDcvFull,
 	statusresp *certificate.CertificateGetCertificateStatusOK,
-) bool {
-	return strings.ToLower(statusresp.Status) == "processing" ||
-		len(metadata) == 0 || metadata[0].DcvToken == nil ||
-		len(metadata[0].DcvToken.Token) == 0
+) *resource.RetryError {
+	// if token is available, and status is not processing, no retry is needed.
+	if statusresp.Status != "" &&
+		strings.ToLower(statusresp.Status) != "processing" &&
+		metadata != nil && len(metadata) > 0 &&
+		metadata[0].DcvToken != nil && len(metadata[0].DcvToken.Token) > 0 {
+		return nil
+	}
+
+	log.Println("token not availale")
+
+	if doRetry {
+		log.Println("retrying")
+		return resource.RetryableError(
+			errors.New("token not available"))
+	}
+
+	// Just exit if retry is not desired.
+	// The user will need to run refresh to try again.
+	log.Println("not retrying")
+	return nil
 }

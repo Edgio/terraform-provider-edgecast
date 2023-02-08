@@ -1,13 +1,13 @@
 resource "edgecast_cps_certificate" "my_cert" {
-  certificate_label     = "retry demo cert 14"
-  description           = "DV certificate for stevenpaz.com"
+  certificate_label     = "retry demo cert 7"
+  description           = "DV certificate for somedomain.com"
   auto_renew            = true
   certificate_authority = "DigiCert"
   validation_type       = "DV"
   dcv_method            = "DnsTxtToken"
   domain {
     is_common_name = true
-    name           = "stevenpaz.com"
+    name           = "somedomain.com"
   }
 }
 
