@@ -14,21 +14,9 @@ resource "edgecast_cps_certificate" "my_cert" {
 data "edgecast_cps_dns_txt_token" "token" {
   certificate_id       = edgecast_cps_certificate.my_cert.id
   wait_until_available = true
-}
-
-data "edgecast_cps_target_cname" "target_cname" {
-  certificate_id       = edgecast_cps_certificate.my_cert.id
-  wait_until_available = true
-
-  timeouts {
-    read = "4h"
-  }
+  wait_timeout = "20m"
 }
 
 output "dns_txt_token" {
   value = data.edgecast_cps_dns_txt_token.token.value
-}
-
-output "target_cname" {
-  value = data.edgecast_cps_target_cname.target_cname.value
 }

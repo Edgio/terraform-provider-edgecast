@@ -1,5 +1,5 @@
 resource "edgecast_cps_certificate" "my_cert" {
-  certificate_label     = "retry demo cert 7"
+  certificate_label     = "my certificate 1"
   description           = "DV certificate for somedomain.com"
   auto_renew            = true
   certificate_authority = "DigiCert"
@@ -15,6 +15,10 @@ data "edgecast_cps_dns_txt_token" "token" {
   certificate_id       = edgecast_cps_certificate.my_cert.id
   wait_until_available = true
 }
+
+#
+# manual step: prove domain control using the DCV token above
+#
 
 data "edgecast_cps_target_cname" "target_cname" {
   certificate_id       = edgecast_cps_certificate.my_cert.id
