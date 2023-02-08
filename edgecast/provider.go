@@ -27,7 +27,7 @@ const (
 	idsURLProd       string = "https://id.vdms.io"
 
 	// Version indicates the current version of this provider
-	Version string = "0.6.1"
+	Version string = "1.0.0"
 
 	userAgentFormat = "edgecast/terraform-provider:%s"
 )
