@@ -33,7 +33,7 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 				" * **4:** IPv4 Only. Indicates that hostnames for this customer origin can only be resolved to IPv4. \n" +
 				" * **5:** IPv6 Only. Indicates that hostnames for this customer origin can only be resolved to IPv6. \n" +
 				" **Default Value:** \n" +
-				" **1**",
+				" * **1**",
 		},
 		"shield_pops": {
 			Type:     schema.TypeList,

@@ -1,5 +1,5 @@
 resource "edgecast_cps_certificate" "my_cert" {
-  certificate_label     = "retry demo cert 1"
+  certificate_label     = "my cert 1"
   description           = "DV certificate for somedomain.com"
   auto_renew            = true
   certificate_authority = "DigiCert"
