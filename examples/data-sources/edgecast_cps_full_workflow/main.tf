@@ -5,7 +5,7 @@ terraform {
   required_providers {
     edgecast = {
       version = "1.1.1"
-      source  = "EdgeCast/edgecast"
+      source  = "Edgio/edgecast"
     }
   }
 }
