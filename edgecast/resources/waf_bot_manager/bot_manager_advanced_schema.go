@@ -4,18 +4,25 @@
 package waf_bot_manager
 
 import (
+	"terraform-provider-edgecast/edgecast/helper"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func ResourceBotManagerAdvanced() *schema.Resource {
 	return &schema.Resource{
 		CreateContext: ResourceBotManagerCreate,
-		// ReadContext:   ResourceBotManagerRead,
-		// UpdateContext: ResourceBotManagerUpdate,
+		ReadContext:   ResourceBotManagerRead,
+		UpdateContext: ResourceBotManagerUpdate,
 		DeleteContext: ResourceBotManagerDelete,
-		// Importer:      helper.Import(ResourceBotManagerRead, "account_number", "id"),
+		Importer:      helper.Import(ResourceBotManagerRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
+			"id": {
+				Type:        schema.TypeString,
+				Description: "Indicates the system-defined ID assigned to this Bot Manager.",
+				Computed:    true,
+			},
 			"customer_id": {
 				Type:        schema.TypeString,
 				Required:    true,
@@ -32,15 +39,17 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 				Computed:    true,
 				Description: "Bots Production ID.",
 			},
-			"actions": {
-				Type:     schema.TypeSet,
+			"action": {
+				Type:     schema.TypeList,
 				Optional: true,
+				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
 						"alert": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "",
 							Optional:    true,
+							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -56,15 +65,16 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 									"enf_type": {
 										Optional:    true,
 										Type:        schema.TypeString,
-										Description: "enum. Default value = ALERT",
+										Description: "enum. Value = ALERT",
 									},
 								},
 							},
 						},
 						"custom_response": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "",
 							Optional:    true,
+							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -118,6 +128,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Type:        schema.TypeSet,
 							Description: "",
 							Optional:    true,
+							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -142,6 +153,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Type:        schema.TypeSet,
 							Description: "",
 							Optional:    true,
+							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
@@ -171,6 +183,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Type:        schema.TypeSet,
 							Description: "",
 							Optional:    true,
+							MaxItems:    1,
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
