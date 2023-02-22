@@ -4,9 +4,10 @@ package internal_test
 
 import (
 	"net/url"
+	"testing"
+
 	"terraform-provider-edgecast/edgecast"
 	"terraform-provider-edgecast/edgecast/internal"
-	"testing"
 
 	"github.com/go-test/deep"
 	"github.com/google/uuid"

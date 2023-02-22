@@ -87,7 +87,6 @@ func ResourceBotManagerDelete(ctx context.Context,
 	}
 
 	log.Printf("[INFO] Successfully deleted WAF Bot Manager: %s", botManagerID)
-
 	d.SetId("")
 
 	return diags
