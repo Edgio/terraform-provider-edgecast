@@ -8,13 +8,12 @@ import (
 )
 
 func ResourceBotManagerAdvanced() *schema.Resource {
-
 	return &schema.Resource{
 		CreateContext: ResourceBotManagerCreate,
-		//ReadContext:   ResourceBotManagerRead,
-		//UpdateContext: ResourceBotManagerUpdate,
-		//DeleteContext: ResourceBotManagerDelete,
-		//Importer:      helper.Import(ResourceBotManagerRead, "account_number", "id"),
+		// ReadContext:   ResourceBotManagerRead,
+		// UpdateContext: ResourceBotManagerUpdate,
+		DeleteContext: ResourceBotManagerDelete,
+		// Importer:      helper.Import(ResourceBotManagerRead, "account_number", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"customer_id": {
