@@ -13,6 +13,7 @@ const (
 	int64BitSize int = 64
 )
 
+// ParseInt64 provides an easy way to parse an int64 from a string.
 func ParseInt64(s string) (int64, error) {
 	i, err := strconv.ParseInt(s, int64Base, int64BitSize)
 	if err != nil {
