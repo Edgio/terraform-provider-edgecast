@@ -10,7 +10,6 @@ import (
 )
 
 func ResourceBotManager() *schema.Resource {
-
 	return &schema.Resource{
 		CreateContext: ResourceBotManagerCreate,
 		ReadContext:   ResourceBotManagerRead,

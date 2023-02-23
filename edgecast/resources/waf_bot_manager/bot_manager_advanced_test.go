@@ -4,8 +4,9 @@ package waf_bot_manager_test
 
 import (
 	"reflect"
-	"terraform-provider-edgecast/edgecast/resources/waf_bot_manager"
 	"testing"
+
+	"terraform-provider-edgecast/edgecast/resources/waf_bot_manager"
 
 	botmanager "github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
 	"github.com/go-test/deep"
@@ -24,14 +25,12 @@ func TestFlattenActions(t *testing.T) {
 			name: "Happy Path",
 			args: botmanager.ActionObj{
 				ALERT: &botmanager.AlertAction{
-					Id:      botmanager.PtrString("1"),
-					Name:    botmanager.PtrString("my alert action"),
-					EnfType: botmanager.PtrString("ALERT"),
+					Id:   botmanager.PtrString("1"),
+					Name: botmanager.PtrString("my alert action"),
 				},
 				CUSTOM_RESPONSE: &botmanager.CustomResponseAction{
 					Id:                 botmanager.PtrString("2"),
 					Name:               botmanager.PtrString("my custom_response action"),
-					EnfType:            botmanager.PtrString("CUSTOM_RESPONSE"),
 					ResponseBodyBase64: &base64Body,
 					Status:             botmanager.PtrInt32(403),
 					ResponseHeaders: &map[string]string{
@@ -39,20 +38,17 @@ func TestFlattenActions(t *testing.T) {
 					},
 				},
 				BLOCK_REQUEST: &botmanager.BlockRequestAction{
-					Id:      botmanager.PtrString("3"),
-					Name:    botmanager.PtrString("my block_request action"),
-					EnfType: botmanager.PtrString("BLOCK_REQUEST"),
+					Id:   botmanager.PtrString("3"),
+					Name: botmanager.PtrString("my block_request action"),
 				},
 				REDIRECT302: &botmanager.RedirectAction{
-					Id:      botmanager.PtrString("4"),
-					Name:    botmanager.PtrString("my redirect_302 action"),
-					EnfType: botmanager.PtrString("REDIRECT_302"),
-					Url:     botmanager.PtrString("http://imouttahere.com"),
+					Id:   botmanager.PtrString("4"),
+					Name: botmanager.PtrString("my redirect_302 action"),
+					Url:  botmanager.PtrString("http://imouttahere.com"),
 				},
 				BROWSER_CHALLENGE: &botmanager.BrowserChallengeAction{
 					Id:                 botmanager.PtrString("5"),
 					Name:               botmanager.PtrString("my browser_challenge action"),
-					EnfType:            botmanager.PtrString("BROWSER_CHALLENGE"),
 					IsCustomChallenge:  botmanager.PtrBool(true),
 					ResponseBodyBase64: &base64Body,
 					ValidForSec:        botmanager.PtrInt32(3),
@@ -62,14 +58,12 @@ func TestFlattenActions(t *testing.T) {
 			want: []map[string]interface{}{
 				{
 					"alert": map[string]interface{}{
-						"id":       "1",
-						"name":     "my alert action",
-						"enf_type": "ALERT",
+						"id":   "1",
+						"name": "my alert action",
 					},
 					"custom_response": map[string]interface{}{
 						"id":                   "2",
 						"name":                 "my custom_response action",
-						"enf_type":             "CUSTOM_RESPONSE",
 						"response_body_base64": base64Body,
 						"status":               int32(403),
 						"response_headers": map[string]string{
@@ -77,20 +71,17 @@ func TestFlattenActions(t *testing.T) {
 						},
 					},
 					"block_request": map[string]interface{}{
-						"id":       "3",
-						"name":     "my block_request action",
-						"enf_type": "BLOCK_REQUEST",
+						"id":   "3",
+						"name": "my block_request action",
 					},
 					"redirect_302": map[string]interface{}{
-						"id":       "4",
-						"name":     "my redirect_302 action",
-						"enf_type": "REDIRECT_302",
-						"url":      "http://imouttahere.com",
+						"id":   "4",
+						"name": "my redirect_302 action",
+						"url":  "http://imouttahere.com",
 					},
 					"browser_challenge": map[string]interface{}{
 						"id":                   "5",
 						"name":                 "my browser_challenge action",
-						"enf_type":             "BROWSER_CHALLENGE",
 						"is_custom_challenge":  true,
 						"response_body_base64": base64Body,
 						"valid_for_sec":        int32(3),
@@ -102,42 +93,9 @@ func TestFlattenActions(t *testing.T) {
 		{
 			name: "Empty input",
 			args: botmanager.ActionObj{},
+			// we expect a single empty map
 			want: []map[string]interface{}{
-				{
-					"alert": map[string]interface{}{
-						"id":       "",
-						"name":     "",
-						"enf_type": "",
-					},
-					"custom_response": map[string]interface{}{
-						"id":                   "",
-						"name":                 "",
-						"enf_type":             "",
-						"response_body_base64": "",
-						"status":               int32(0),
-						"response_headers":     make(map[string]string, 0),
-					},
-					"block_request": map[string]interface{}{
-						"id":       "",
-						"name":     "",
-						"enf_type": "",
-					},
-					"redirect_302": map[string]interface{}{
-						"id":       "",
-						"name":     "",
-						"enf_type": "",
-						"url":      "",
-					},
-					"browser_challenge": map[string]interface{}{
-						"id":                   "",
-						"name":                 "",
-						"enf_type":             "",
-						"is_custom_challenge":  false,
-						"response_body_base64": "",
-						"valid_for_sec":        int32(0),
-						"status":               int32(0),
-					},
-				},
+				make(map[string]interface{}, 0),
 			},
 		},
 	}
@@ -147,7 +105,7 @@ func TestFlattenActions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			got := waf_bot_manager.FlattenAction(tt.args)
+			got := waf_bot_manager.FlattenActions(tt.args)
 
 			if !reflect.DeepEqual(got, tt.want) {
 				// deep.Equal doesn't compare pointer values, so we just use it

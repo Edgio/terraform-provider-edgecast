@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 
@@ -41,7 +42,7 @@ func ResourceBotManagerCreate(ctx context.Context,
 		return helper.DiagsFromErrors("error parsing bot manager", errs)
 	}
 
-	//Call API
+	// Call API
 	cparams := botmanager.NewCreateBotManagerParams()
 	cparams.CustId = customerID
 	cparams.BotManagerInfo = *botManagerState
@@ -101,113 +102,10 @@ func ResourceBotManagerRead(ctx context.Context,
 	return diag.Diagnostics{}
 }
 
-func FlattenBotManager(
-	d *schema.ResourceData,
-	bm *botmanager.BotManager,
-) error {
-	if bm == nil {
-		return fmt.Errorf("bot manager is nil")
-	}
-
-	d.Set("name", bm.GetName())
-	d.Set("bots_prod_id", bm.GetBotsProdId())
-	d.Set("actions", FlattenAction(bm.GetActions()))
-	d.Set("exception_cookie", bm.GetExceptionCookie())
-	d.Set("exception_ja3", bm.GetExceptionJa3())
-	d.Set("exception_url", bm.GetExceptionUrl())
-	d.Set("exception_user_agent", bm.GetExceptionUserAgent())
-	d.Set("inspect_known_bots", bm.GetInspectKnownBots())
-	d.Set("known_bots", FlattenKnownBots(bm.GetKnownBots()))
-	d.Set("last_modified_date", bm.GetLastModifiedDate())
-	d.Set("last_modified_by", bm.GetLastModifiedBy())
-	d.Set("spoof_bot_action_type", bm.GetSpoofBotActionType())
-
-	return nil
-}
-
-func FlattenKnownBots(kb []botmanager.KnownBotObj) interface{} {
-	flattened := make([]map[string]interface{}, 0)
-
-	for _, v := range kb {
-		fb := make(map[string]interface{})
-		fb["action_type"] = v.GetActionType()
-		fb["bot_token"] = v.GetBotToken()
-		flattened = append(flattened, fb)
-	}
-
-	return flattened
-}
-
-func FlattenAction(action botmanager.ActionObj) interface{} {
-	flattened := make([]map[string]interface{}, 1)
-	flattened[0] = make(map[string]interface{})
-	flattened[0]["alert"] = FlattenAlert(action.GetALERT())
-	flattened[0]["custom_response"] = FlattenCustomResponse(action.GetCUSTOM_RESPONSE())
-	flattened[0]["block_request"] = FlattenBlockRequest(action.GetBLOCK_REQUEST())
-	flattened[0]["redirect_302"] = FlattenRedirect(action.GetREDIRECT302())
-	flattened[0]["browser_challenge"] = FlattenBrowserChallenge(action.GetBROWSER_CHALLENGE())
-
-	return flattened
-}
-
-func FlattenAlert(alert botmanager.AlertAction) interface{} {
-	flattened := make(map[string]interface{})
-	flattened["id"] = alert.GetId()
-	flattened["name"] = alert.GetName()
-	flattened["enf_type"] = alert.GetEnfType()
-
-	return flattened
-}
-
-func FlattenCustomResponse(cr botmanager.CustomResponseAction) interface{} {
-	flattened := make(map[string]interface{})
-	flattened["id"] = cr.GetId()
-	flattened["name"] = cr.GetName()
-	flattened["enf_type"] = cr.GetEnfType()
-	flattened["response_body_base64"] = cr.GetResponseBodyBase64()
-	flattened["status"] = cr.GetStatus()
-	flattened["response_headers"] = cr.GetResponseHeaders()
-
-	return flattened
-}
-
-func FlattenBlockRequest(br botmanager.BlockRequestAction) interface{} {
-	flattened := make(map[string]interface{})
-	flattened["id"] = br.GetId()
-	flattened["name"] = br.GetName()
-	flattened["enf_type"] = br.GetEnfType()
-
-	return flattened
-}
-
-func FlattenRedirect(r botmanager.RedirectAction) interface{} {
-	flattened := make(map[string]interface{})
-	flattened["id"] = r.GetId()
-	flattened["name"] = r.GetName()
-	flattened["enf_type"] = r.GetEnfType()
-	flattened["url"] = r.GetUrl()
-
-	return flattened
-}
-
-func FlattenBrowserChallenge(bc botmanager.BrowserChallengeAction) interface{} {
-	flattened := make(map[string]interface{})
-	flattened["id"] = bc.GetId()
-	flattened["name"] = bc.GetName()
-	flattened["enf_type"] = bc.GetEnfType()
-	flattened["is_custom_challenge"] = bc.GetIsCustomChallenge()
-	flattened["response_body_base64"] = bc.GetResponseBodyBase64()
-	flattened["valid_for_sec"] = bc.GetValidForSec()
-	flattened["status"] = bc.GetStatus()
-
-	return flattened
-}
-
 func ResourceBotManagerUpdate(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-
 	return ResourceBotManagerRead(ctx, d, m)
 }
 
@@ -215,7 +113,6 @@ func ResourceBotManagerDelete(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
-
 	var diags diag.Diagnostics
 
 	return diags
@@ -382,40 +279,35 @@ func ExpandActions(
 	action := botmanager.ActionObj{}
 
 	if curr["alert"] != nil {
-		alert, err :=
-			ExpandAlert(curr["alert"])
+		alert, err := ExpandAlert(curr["alert"])
 		if err != nil {
 			return nil, err
 		}
 		action.ALERT = alert
 	}
 	if curr["custom_response"] != nil {
-		customResponse, err :=
-			ExpandCustomResponse(curr["custom_response"])
+		customResponse, err := ExpandCustomResponse(curr["custom_response"])
 		if err != nil {
 			return nil, err
 		}
 		action.CUSTOM_RESPONSE = customResponse
 	}
 	if curr["block_request"] != nil {
-		blockRequest, err :=
-			ExpandBlockRequest(curr["block_request"])
+		blockRequest, err := ExpandBlockRequest(curr["block_request"])
 		if err != nil {
 			return nil, err
 		}
 		action.BLOCK_REQUEST = blockRequest
 	}
 	if curr["redirect_302"] != nil {
-		redirect302, err :=
-			ExpandRedirect302(curr["redirect_302"])
+		redirect302, err := ExpandRedirect302(curr["redirect_302"])
 		if err != nil {
 			return nil, err
 		}
 		action.REDIRECT302 = redirect302
 	}
 	if curr["browser_challenge"] != nil {
-		browserChallenge, err :=
-			ExpandBrowserChallenge(curr["browser_challenge"])
+		browserChallenge, err := ExpandBrowserChallenge(curr["browser_challenge"])
 		if err != nil {
 			return nil, err
 		}
@@ -501,8 +393,7 @@ func ExpandCustomResponse(attr interface{}) (*botmanager.CustomResponseAction, e
 	}
 
 	if curr["response_headers"] != nil {
-		responseHeaders, err :=
-			ExpandResponseHeaders(curr["response_headers"])
+		responseHeaders, err := ExpandResponseHeaders(curr["response_headers"])
 		if err != nil {
 			return nil, err
 		}
@@ -679,4 +570,211 @@ func ExpandKnownBots(
 		return nil, errors.New(
 			"ExpandKNownBots: attr input was not a []interface{}")
 	}
+}
+
+func FlattenBotManager(
+	d *schema.ResourceData,
+	bm *botmanager.BotManager,
+) error {
+	if bm == nil {
+		return fmt.Errorf("bot manager is nil")
+	}
+
+	if name, ok := bm.GetNameOk(); ok {
+		d.Set("name", *name)
+	}
+
+	if botsProdID, ok := bm.GetBotsProdIdOk(); ok {
+		d.Set("bots_prod_id", *botsProdID)
+	}
+
+	if actions, ok := bm.GetActionsOk(); ok {
+		d.Set("actions", FlattenActions(*actions))
+	}
+
+	if exceptionCookie, ok := bm.GetExceptionCookieOk(); ok {
+		d.Set("exception_cookie", exceptionCookie)
+	}
+
+	if exceptionJa3, ok := bm.GetExceptionJa3Ok(); ok {
+		d.Set("exception_ja3", exceptionJa3)
+	}
+
+	if exceptionURL, ok := bm.GetExceptionUrlOk(); ok {
+		d.Set("exception_url", exceptionURL)
+	}
+
+	if exceptionUserAgent, ok := bm.GetExceptionUserAgentOk(); ok {
+		d.Set("exception_user_agent", exceptionUserAgent)
+	}
+
+	if inspectKnownBots, ok := bm.GetInspectKnownBotsOk(); ok {
+		d.Set("inspect_known_bots", *inspectKnownBots)
+	}
+
+	if knownBots, ok := bm.GetKnownBotsOk(); ok {
+		d.Set("known_bots", FlattenKnownBots(knownBots))
+	}
+
+	if lastModifiedDate, ok := bm.GetLastModifiedDateOk(); ok {
+		d.Set("last_modified_date", *lastModifiedDate)
+	}
+
+	if lastModifiedBy, ok := bm.GetLastModifiedByOk(); ok {
+		d.Set("last_modified_by", *lastModifiedBy)
+	}
+
+	if spoofBotActionType, ok := bm.GetSpoofBotActionTypeOk(); ok {
+		d.Set("spoof_bot_action_type", *spoofBotActionType)
+	}
+
+	return nil
+}
+
+func FlattenKnownBots(kb []botmanager.KnownBotObj) interface{} {
+	flattened := make([]map[string]interface{}, len(kb), len(kb))
+
+	for i, v := range kb {
+		fb := make(map[string]interface{})
+
+		if at, ok := v.GetActionTypeOk(); ok {
+			fb["action_type"] = *at
+		}
+
+		if bt, ok := v.GetBotTokenOk(); ok {
+			fb["bot_token"] = *bt
+		}
+
+		flattened[i] = fb
+	}
+
+	return flattened
+}
+
+func FlattenActions(action botmanager.ActionObj) interface{} {
+	m := make(map[string]interface{})
+
+	if alert, ok := action.GetALERTOk(); ok {
+		m["alert"] = FlattenAlert(*alert)
+	}
+
+	if cr, ok := action.GetCUSTOM_RESPONSEOk(); ok {
+		m["custom_response"] = FlattenCustomResponse(*cr)
+	}
+
+	if br, ok := action.GetBLOCK_REQUESTOk(); ok {
+		m["block_request"] = FlattenBlockRequest(*br)
+	}
+
+	if r, ok := action.GetREDIRECT302Ok(); ok {
+		m["redirect_302"] = FlattenRedirect(*r)
+	}
+
+	if bc, ok := action.GetBROWSER_CHALLENGEOk(); ok {
+		m["browser_challenge"] = FlattenBrowserChallenge(*bc)
+	}
+
+	return []map[string]interface{}{m}
+}
+
+func FlattenAlert(alert botmanager.AlertAction) interface{} {
+	flattened := make(map[string]interface{})
+
+	if id, ok := alert.GetIdOk(); ok {
+		flattened["id"] = *id
+	}
+
+	if name, ok := alert.GetNameOk(); ok {
+		flattened["name"] = *name
+	}
+
+	return flattened
+}
+
+func FlattenCustomResponse(cr botmanager.CustomResponseAction) interface{} {
+	flattened := make(map[string]interface{})
+
+	if id, ok := cr.GetIdOk(); ok {
+		flattened["id"] = *id
+	}
+
+	if name, ok := cr.GetNameOk(); ok {
+		flattened["name"] = *name
+	}
+
+	if responseBodyBase64, ok := cr.GetResponseBodyBase64Ok(); ok {
+		flattened["response_body_base64"] = *responseBodyBase64
+	}
+
+	if status, ok := cr.GetStatusOk(); ok {
+		flattened["status"] = *status
+	}
+
+	if responseHeaders, ok := cr.GetResponseHeadersOk(); ok {
+		flattened["response_headers"] = *responseHeaders
+	}
+
+	return flattened
+}
+
+func FlattenBlockRequest(br botmanager.BlockRequestAction) interface{} {
+	flattened := make(map[string]interface{})
+
+	if id, ok := br.GetIdOk(); ok {
+		flattened["id"] = *id
+	}
+
+	if name, ok := br.GetNameOk(); ok {
+		flattened["name"] = *name
+	}
+
+	return flattened
+}
+
+func FlattenRedirect(r botmanager.RedirectAction) interface{} {
+	flattened := make(map[string]interface{})
+
+	if id, ok := r.GetIdOk(); ok {
+		flattened["id"] = *id
+	}
+
+	if name, ok := r.GetNameOk(); ok {
+		flattened["name"] = *name
+	}
+
+	if url, ok := r.GetUrlOk(); ok {
+		flattened["url"] = *url
+	}
+
+	return flattened
+}
+
+func FlattenBrowserChallenge(bc botmanager.BrowserChallengeAction) interface{} {
+	flattened := make(map[string]interface{})
+
+	if id, ok := bc.GetIdOk(); ok {
+		flattened["id"] = *id
+	}
+
+	if name, ok := bc.GetNameOk(); ok {
+		flattened["name"] = *name
+	}
+
+	if isCustomChallenge, ok := bc.GetIsCustomChallengeOk(); ok {
+		flattened["is_custom_challenge"] = *isCustomChallenge
+	}
+
+	if responseBodyBase64, ok := bc.GetResponseBodyBase64Ok(); ok {
+		flattened["response_body_base64"] = *responseBodyBase64
+	}
+
+	if validForSec, ok := bc.GetValidForSecOk(); ok {
+		flattened["valid_for_sec"] = *validForSec
+	}
+
+	if status, ok := bc.GetStatusOk(); ok {
+		flattened["status"] = *status
+	}
+
+	return flattened
 }
