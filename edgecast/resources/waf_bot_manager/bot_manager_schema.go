@@ -9,14 +9,14 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func ResourceBotManagerAdvanced() *schema.Resource {
+func ResourceBotManager() *schema.Resource {
 
 	return &schema.Resource{
 		CreateContext: ResourceBotManagerCreate,
 		ReadContext:   ResourceBotManagerRead,
 		UpdateContext: ResourceBotManagerUpdate,
 		DeleteContext: ResourceBotManagerDelete,
-		Importer:      helper.Import(ResourceBotManagerRead, "account_number", "id"),
+		Importer:      helper.Import(ResourceBotManagerRead, "ccustomer_id", "id"),
 
 		Schema: map[string]*schema.Schema{
 			"id": {
@@ -54,7 +54,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Optional:    true,
+										Computed:    true,
 										Type:        schema.TypeString,
 										Description: "",
 									},
@@ -79,7 +79,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Optional:    true,
+										Computed:    true,
 										Type:        schema.TypeString,
 										Description: "",
 									},
@@ -133,7 +133,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Optional:    true,
+										Computed:    true,
 										Type:        schema.TypeString,
 										Description: "",
 									},
@@ -158,7 +158,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Optional:    true,
+										Computed:    true,
 										Type:        schema.TypeString,
 										Description: "",
 									},
@@ -188,7 +188,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Optional:    true,
+										Computed:    true,
 										Type:        schema.TypeString,
 										Description: "",
 									},
@@ -267,7 +267,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 				Optional:    true,
 				Description: "",
 			},
-			"known_bots": {
+			"known_bot": {
 				Type:        schema.TypeList,
 				Description: "",
 				Optional:    true,
@@ -298,7 +298,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 			},
 			"spoof_bot_action_type": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Optional:    true,
 				Description: "Valid Values : ALERT, BLOCK_REQUEST, CUSTOM_RESPONSE, BROWSER_CHALLENGE, REDIRECT_302",
 			},
 		},
