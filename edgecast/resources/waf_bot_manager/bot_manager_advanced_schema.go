@@ -40,7 +40,7 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 				Computed:    true,
 				Description: "Bots Production ID.",
 			},
-			"action": {
+			"actions": {
 				Type:     schema.TypeList,
 				Optional: true,
 				MaxItems: 1,
@@ -104,22 +104,10 @@ func ResourceBotManagerAdvanced() *schema.Resource {
 										Description: "Value must be of format 'uint32'",
 									},
 									"response_headers": {
-										Optional:    true,
-										Type:        schema.TypeSet,
-										Description: "",
-										Elem: &schema.Resource{
-											Schema: map[string]*schema.Schema{
-												"key": {
-													Optional:    true,
-													Type:        schema.TypeString,
-													Description: "",
-												},
-												"value": {
-													Optional:    true,
-													Type:        schema.TypeString,
-													Description: "",
-												},
-											},
+										Type:     schema.TypeMap,
+										Optional: true,
+										Elem: &schema.Schema{
+											Type: schema.TypeString,
 										},
 									},
 								},

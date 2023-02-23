@@ -1,4 +1,4 @@
-// Copyright 2022 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0
 // license. See LICENSE file in project root for terms.
 
 package waf_bot_manager
@@ -64,9 +64,143 @@ func ResourceBotManagerRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	config, ok := m.(internal.ProviderConfig)
+	if !ok {
+		return diag.Errorf("failed to load configuration")
+	}
 
-	var diags diag.Diagnostics
-	return diags
+	svc, err := buildBotManagerService(config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	customerID := d.Get("customer_id").(string)
+	botManagerID := d.Id()
+
+	log.Printf(
+		"[INFO] Retrieving Bot Manager ID %s for Account >> %s",
+		botManagerID,
+		customerID)
+
+	params := botmanager.NewGetBotManagerParams()
+	params.BotManagerId = botManagerID
+	params.CustId = customerID
+
+	resp, err := svc.BotManagers.GetBotManager(params)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf("[INFO] Retrieved Bot Manager: %# v\n", pretty.Formatter(resp))
+
+	err = FlattenBotManager(d, resp)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	return diag.Diagnostics{}
+}
+
+func FlattenBotManager(
+	d *schema.ResourceData,
+	bm *botmanager.BotManager,
+) error {
+	if bm == nil {
+		return fmt.Errorf("bot manager is nil")
+	}
+
+	d.Set("name", bm.GetName())
+	d.Set("bots_prod_id", bm.GetBotsProdId())
+	d.Set("actions", FlattenAction(bm.GetActions()))
+	d.Set("exception_cookie", bm.GetExceptionCookie())
+	d.Set("exception_ja3", bm.GetExceptionJa3())
+	d.Set("exception_url", bm.GetExceptionUrl())
+	d.Set("exception_user_agent", bm.GetExceptionUserAgent())
+	d.Set("inspect_known_bots", bm.GetInspectKnownBots())
+	d.Set("known_bots", FlattenKnownBots(bm.GetKnownBots()))
+	d.Set("last_modified_date", bm.GetLastModifiedDate())
+	d.Set("last_modified_by", bm.GetLastModifiedBy())
+	d.Set("spoof_bot_action_type", bm.GetSpoofBotActionType())
+
+	return nil
+}
+
+func FlattenKnownBots(kb []botmanager.KnownBotObj) interface{} {
+	flattened := make([]map[string]interface{}, 0)
+
+	for _, v := range kb {
+		fb := make(map[string]interface{})
+		fb["action_type"] = v.GetActionType()
+		fb["bot_token"] = v.GetBotToken()
+		flattened = append(flattened, fb)
+	}
+
+	return flattened
+}
+
+func FlattenAction(action botmanager.ActionObj) interface{} {
+	flattened := make([]map[string]interface{}, 1)
+	flattened[0] = make(map[string]interface{})
+	flattened[0]["alert"] = FlattenAlert(action.GetALERT())
+	flattened[0]["custom_response"] = FlattenCustomResponse(action.GetCUSTOM_RESPONSE())
+	flattened[0]["block_request"] = FlattenBlockRequest(action.GetBLOCK_REQUEST())
+	flattened[0]["redirect_302"] = FlattenRedirect(action.GetREDIRECT302())
+	flattened[0]["browser_challenge"] = FlattenBrowserChallenge(action.GetBROWSER_CHALLENGE())
+
+	return flattened
+}
+
+func FlattenAlert(alert botmanager.AlertAction) interface{} {
+	flattened := make(map[string]interface{})
+	flattened["id"] = alert.GetId()
+	flattened["name"] = alert.GetName()
+	flattened["enf_type"] = alert.GetEnfType()
+
+	return flattened
+}
+
+func FlattenCustomResponse(cr botmanager.CustomResponseAction) interface{} {
+	flattened := make(map[string]interface{})
+	flattened["id"] = cr.GetId()
+	flattened["name"] = cr.GetName()
+	flattened["enf_type"] = cr.GetEnfType()
+	flattened["response_body_base64"] = cr.GetResponseBodyBase64()
+	flattened["status"] = cr.GetStatus()
+	flattened["response_headers"] = cr.GetResponseHeaders()
+
+	return flattened
+}
+
+func FlattenBlockRequest(br botmanager.BlockRequestAction) interface{} {
+	flattened := make(map[string]interface{})
+	flattened["id"] = br.GetId()
+	flattened["name"] = br.GetName()
+	flattened["enf_type"] = br.GetEnfType()
+
+	return flattened
+}
+
+func FlattenRedirect(r botmanager.RedirectAction) interface{} {
+	flattened := make(map[string]interface{})
+	flattened["id"] = r.GetId()
+	flattened["name"] = r.GetName()
+	flattened["enf_type"] = r.GetEnfType()
+	flattened["url"] = r.GetUrl()
+
+	return flattened
+}
+
+func FlattenBrowserChallenge(bc botmanager.BrowserChallengeAction) interface{} {
+	flattened := make(map[string]interface{})
+	flattened["id"] = bc.GetId()
+	flattened["name"] = bc.GetName()
+	flattened["enf_type"] = bc.GetEnfType()
+	flattened["is_custom_challenge"] = bc.GetIsCustomChallenge()
+	flattened["response_body_base64"] = bc.GetResponseBodyBase64()
+	flattened["valid_for_sec"] = bc.GetValidForSec()
+	flattened["status"] = bc.GetStatus()
+
+	return flattened
 }
 
 func ResourceBotManagerUpdate(ctx context.Context,
