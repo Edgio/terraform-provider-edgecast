@@ -343,7 +343,7 @@ func ExpandBotManager(
 		}
 	}
 
-	if v, ok := d.GetOk("known_bots"); ok {
+	if v, ok := d.GetOk("known_bot"); ok {
 		if knownBots, err := ExpandKnownBots(v); err == nil {
 			botManagerState.KnownBots = knownBots
 		} else {
