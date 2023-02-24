@@ -12,8 +12,7 @@ import (
 	"terraform-provider-edgecast/edgecast/helper"
 	"terraform-provider-edgecast/edgecast/internal"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
-	botmanager "github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
+	sdkbotmanager "github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
@@ -44,7 +43,7 @@ func ResourceBotManagerCreate(ctx context.Context,
 	}
 
 	// Call API
-	cparams := botmanager.NewCreateBotManagerParams()
+	cparams := sdkbotmanager.NewCreateBotManagerParams()
 	cparams.CustId = customerID
 	cparams.BotManagerInfo = *botManagerState
 
@@ -84,7 +83,7 @@ func ResourceBotManagerRead(ctx context.Context,
 		botManagerID,
 		customerID)
 
-	params := botmanager.NewGetBotManagerParams()
+	params := sdkbotmanager.NewGetBotManagerParams()
 	params.BotManagerId = botManagerID
 	params.CustId = customerID
 
@@ -131,7 +130,7 @@ func ResourceBotManagerDelete(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	params := waf_bot_manager.NewDeleteBotManagerParams()
+	params := sdkbotmanager.NewDeleteBotManagerParams()
 	params.CustId = customerID
 	params.BotManagerId = botManagerID
 
@@ -148,13 +147,13 @@ func ResourceBotManagerDelete(ctx context.Context,
 
 func ExpandBotManager(
 	d *schema.ResourceData,
-) (*botmanager.BotManager, []error) {
+) (*sdkbotmanager.BotManager, []error) {
 	if d == nil {
 		return nil, []error{errors.New("no data to read")}
 	}
 
 	errs := make([]error, 0)
-	botManagerState := &botmanager.BotManager{}
+	botManagerState := &sdkbotmanager.BotManager{}
 
 	if v, ok := d.GetOk("customer_id"); ok {
 		if customerID, ok := v.(string); ok {
@@ -208,7 +207,9 @@ func ExpandBotManager(
 		if spoofBotActionType, ok := v.(string); ok {
 			botManagerState.SpoofBotActionType = &spoofBotActionType
 		} else {
-			errs = append(errs, errors.New("spoof_bot_action_type not a string"))
+			errs = append(
+				errs,
+				errors.New("spoof_bot_action_type not a string"))
 		}
 	}
 
@@ -283,7 +284,7 @@ func ExpandBotManager(
 // action into the ActionObj API Model.
 func ExpandActions(
 	attr interface{},
-) (*botmanager.ActionObj, error) {
+) (*sdkbotmanager.ActionObj, error) {
 	raw, ok := attr.([]any)
 	if !ok {
 		return nil, errors.New("attr was not a TypeList")
@@ -304,7 +305,7 @@ func ExpandActions(
 		return nil, nil
 	}
 
-	action := botmanager.ActionObj{}
+	action := sdkbotmanager.ActionObj{}
 
 	if curr["alert"] != nil {
 		alert, err := ExpandAlert(curr["alert"])
@@ -335,17 +336,17 @@ func ExpandActions(
 		action.REDIRECT302 = redirect302
 	}
 	if curr["browser_challenge"] != nil {
-		browserChallenge, err := ExpandBrowserChallenge(curr["browser_challenge"])
+		bc, err := ExpandBrowserChallenge(curr["browser_challenge"])
 		if err != nil {
 			return nil, err
 		}
-		action.BROWSER_CHALLENGE = browserChallenge
+		action.BROWSER_CHALLENGE = bc
 	}
 
 	return &action, nil
 }
 
-func ExpandAlert(attr interface{}) (*botmanager.AlertAction, error) {
+func ExpandAlert(attr interface{}) (*sdkbotmanager.AlertAction, error) {
 	raw, ok := attr.([]any)
 	if !ok {
 		return nil, errors.New("attr was not a TypeList")
@@ -366,7 +367,7 @@ func ExpandAlert(attr interface{}) (*botmanager.AlertAction, error) {
 		return nil, nil
 	}
 
-	alert := botmanager.AlertAction{}
+	alert := sdkbotmanager.AlertAction{}
 
 	id := curr["id"].(string)
 	alert.Id = &id
@@ -380,7 +381,9 @@ func ExpandAlert(attr interface{}) (*botmanager.AlertAction, error) {
 	return &alert, nil
 }
 
-func ExpandCustomResponse(attr interface{}) (*botmanager.CustomResponseAction, error) {
+func ExpandCustomResponse(
+	attr interface{},
+) (*sdkbotmanager.CustomResponseAction, error) {
 	raw, ok := attr.([]any)
 	if !ok {
 		return nil, errors.New("attr was not a TypeList")
@@ -401,7 +404,7 @@ func ExpandCustomResponse(attr interface{}) (*botmanager.CustomResponseAction, e
 		return nil, nil
 	}
 
-	customResponse := botmanager.CustomResponseAction{}
+	customResponse := sdkbotmanager.CustomResponseAction{}
 
 	id := curr["id"].(string)
 	customResponse.Id = &id
@@ -450,7 +453,9 @@ func ExpandResponseHeaders(
 	}
 }
 
-func ExpandBlockRequest(attr interface{}) (*botmanager.BlockRequestAction, error) {
+func ExpandBlockRequest(
+	attr interface{},
+) (*sdkbotmanager.BlockRequestAction, error) {
 	raw, ok := attr.([]any)
 	if !ok {
 		return nil, errors.New("attr was not a TypeList")
@@ -471,7 +476,7 @@ func ExpandBlockRequest(attr interface{}) (*botmanager.BlockRequestAction, error
 		return nil, nil
 	}
 
-	blockRequest := botmanager.BlockRequestAction{}
+	blockRequest := sdkbotmanager.BlockRequestAction{}
 
 	id := curr["id"].(string)
 	blockRequest.Id = &id
@@ -485,7 +490,9 @@ func ExpandBlockRequest(attr interface{}) (*botmanager.BlockRequestAction, error
 	return &blockRequest, nil
 }
 
-func ExpandRedirect302(attr interface{}) (*botmanager.RedirectAction, error) {
+func ExpandRedirect302(
+	attr interface{},
+) (*sdkbotmanager.RedirectAction, error) {
 	raw, ok := attr.([]any)
 	if !ok {
 		return nil, errors.New("attr was not a TypeList")
@@ -506,7 +513,7 @@ func ExpandRedirect302(attr interface{}) (*botmanager.RedirectAction, error) {
 		return nil, nil
 	}
 
-	redirect := botmanager.RedirectAction{}
+	redirect := sdkbotmanager.RedirectAction{}
 
 	id := curr["id"].(string)
 	redirect.Id = &id
@@ -523,7 +530,9 @@ func ExpandRedirect302(attr interface{}) (*botmanager.RedirectAction, error) {
 	return &redirect, nil
 }
 
-func ExpandBrowserChallenge(attr interface{}) (*botmanager.BrowserChallengeAction, error) {
+func ExpandBrowserChallenge(
+	attr interface{},
+) (*sdkbotmanager.BrowserChallengeAction, error) {
 	raw, ok := attr.([]any)
 	if !ok {
 		return nil, errors.New("attr was not a TypeList")
@@ -544,7 +553,7 @@ func ExpandBrowserChallenge(attr interface{}) (*botmanager.BrowserChallengeActio
 		return nil, nil
 	}
 
-	browserChallenge := botmanager.BrowserChallengeAction{}
+	browserChallenge := sdkbotmanager.BrowserChallengeAction{}
 
 	id := curr["id"].(string)
 	browserChallenge.Id = &id
@@ -578,14 +587,14 @@ func ExpandBrowserChallenge(attr interface{}) (*botmanager.BrowserChallengeActio
 // organization contacts into the OrganizationContact API Model.
 func ExpandKnownBots(
 	attr interface{},
-) ([]botmanager.KnownBotObj, error) {
+) ([]sdkbotmanager.KnownBotObj, error) {
 	if items, ok := attr.([]interface{}); ok {
-		knownBots := make([]botmanager.KnownBotObj, 0)
+		knownBots := make([]sdkbotmanager.KnownBotObj, 0)
 
 		for _, item := range items {
 			curr := item.(map[string]interface{})
 
-			knownBot := botmanager.KnownBotObj{
+			knownBot := sdkbotmanager.KnownBotObj{
 				ActionType: curr["action_type"].(string),
 				BotToken:   curr["bot_token"].(string),
 			}
@@ -602,7 +611,7 @@ func ExpandKnownBots(
 
 func FlattenBotManager(
 	d *schema.ResourceData,
-	bm *botmanager.BotManager,
+	bm *sdkbotmanager.BotManager,
 ) error {
 	if bm == nil {
 		return fmt.Errorf("bot manager is nil")
@@ -659,7 +668,7 @@ func FlattenBotManager(
 	return nil
 }
 
-func FlattenKnownBots(kb []botmanager.KnownBotObj) interface{} {
+func FlattenKnownBots(kb []sdkbotmanager.KnownBotObj) interface{} {
 	flattened := make([]map[string]interface{}, len(kb), len(kb))
 
 	for i, v := range kb {
@@ -679,7 +688,7 @@ func FlattenKnownBots(kb []botmanager.KnownBotObj) interface{} {
 	return flattened
 }
 
-func FlattenActions(action botmanager.ActionObj) interface{} {
+func FlattenActions(action sdkbotmanager.ActionObj) interface{} {
 	m := make(map[string]interface{})
 
 	if alert, ok := action.GetALERTOk(); ok {
@@ -705,7 +714,7 @@ func FlattenActions(action botmanager.ActionObj) interface{} {
 	return []map[string]interface{}{m}
 }
 
-func FlattenAlert(alert botmanager.AlertAction) interface{} {
+func FlattenAlert(alert sdkbotmanager.AlertAction) interface{} {
 	flattened := make(map[string]interface{})
 
 	if id, ok := alert.GetIdOk(); ok {
@@ -719,7 +728,7 @@ func FlattenAlert(alert botmanager.AlertAction) interface{} {
 	return flattened
 }
 
-func FlattenCustomResponse(cr botmanager.CustomResponseAction) interface{} {
+func FlattenCustomResponse(cr sdkbotmanager.CustomResponseAction) interface{} {
 	flattened := make(map[string]interface{})
 
 	if id, ok := cr.GetIdOk(); ok {
@@ -745,7 +754,7 @@ func FlattenCustomResponse(cr botmanager.CustomResponseAction) interface{} {
 	return flattened
 }
 
-func FlattenBlockRequest(br botmanager.BlockRequestAction) interface{} {
+func FlattenBlockRequest(br sdkbotmanager.BlockRequestAction) interface{} {
 	flattened := make(map[string]interface{})
 
 	if id, ok := br.GetIdOk(); ok {
@@ -759,7 +768,7 @@ func FlattenBlockRequest(br botmanager.BlockRequestAction) interface{} {
 	return flattened
 }
 
-func FlattenRedirect(r botmanager.RedirectAction) interface{} {
+func FlattenRedirect(r sdkbotmanager.RedirectAction) interface{} {
 	flattened := make(map[string]interface{})
 
 	if id, ok := r.GetIdOk(); ok {
@@ -777,7 +786,9 @@ func FlattenRedirect(r botmanager.RedirectAction) interface{} {
 	return flattened
 }
 
-func FlattenBrowserChallenge(bc botmanager.BrowserChallengeAction) interface{} {
+func FlattenBrowserChallenge(
+	bc sdkbotmanager.BrowserChallengeAction,
+) interface{} {
 	flattened := make(map[string]interface{})
 
 	if id, ok := bc.GetIdOk(); ok {
