@@ -3,8 +3,9 @@
 package internal_test
 
 import (
-	"terraform-provider-edgecast/edgecast/internal"
 	"testing"
+
+	"terraform-provider-edgecast/edgecast/internal"
 
 	"github.com/hashicorp/go-cty/cty"
 )

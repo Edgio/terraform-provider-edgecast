@@ -4,9 +4,10 @@ package internal_test
 
 import (
 	"net/url"
+	"testing"
+
 	"terraform-provider-edgecast/edgecast"
 	"terraform-provider-edgecast/edgecast/internal"
-	"testing"
 
 	"github.com/go-test/deep"
 	"github.com/google/uuid"
@@ -22,6 +23,7 @@ func TestExpandProviderConfig(t *testing.T) {
 	clientSecret := uuid.New().String()
 	clientScope := "rules"
 	idsAddress := "https://ids.example.com"
+	badURL := "http$://badurl.com"
 	apiAddress := "https://api.example.com"
 	apiAddressLegacy := "https://apilegacy.example.com"
 	partnerUserID := 999
@@ -66,6 +68,33 @@ func TestExpandProviderConfig(t *testing.T) {
 				PartnerID:        partnerID,
 			},
 			expectError: false,
+		},
+		{
+			name: "bad ids url",
+			arg: map[string]any{
+				"ids_address": badURL,
+			},
+			want:        nil,
+			expectError: true,
+		},
+		{
+			name: "bad api url",
+			arg: map[string]any{
+				"ids_address": idsAddress,
+				"api_address": badURL,
+			},
+			want:        nil,
+			expectError: true,
+		},
+		{
+			name: "bad api url legacy",
+			arg: map[string]any{
+				"ids_address":        idsAddress,
+				"api_address":        apiAddress,
+				"api_address_legacy": badURL,
+			},
+			want:        nil,
+			expectError: true,
 		},
 	}
 
