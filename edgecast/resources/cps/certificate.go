@@ -233,7 +233,7 @@ func ResourceCertificateRead(ctx context.Context,
 
 	resp, err := svc.Certificate.CertificateGet(params)
 	if err != nil {
-		return diag.FromErr(err)
+		return helper.DiagFromErrorf("error getting cert: %w", err)
 	}
 
 	log.Printf("[INFO] Retrieved certificate: %# v\n", pretty.Formatter(resp))
@@ -245,7 +245,7 @@ func ResourceCertificateRead(ctx context.Context,
 
 	statusresp, err := svc.Certificate.CertificateGetCertificateStatus(statusparams)
 	if err != nil {
-		return diag.FromErr(err)
+		return helper.DiagFromErrorf("error getting cert status: %w", err)
 	}
 
 	log.Printf(
@@ -275,7 +275,9 @@ func ResourceCertificateRead(ctx context.Context,
 
 	nresp, err := svc.Certificate.CertificateGetRequestNotifications(nparams)
 	if err != nil {
-		return diag.FromErr(err)
+		return helper.DiagFromErrorf(
+			"error getting cert notification settings: %w",
+			err)
 	}
 
 	log.Printf(
@@ -287,7 +289,7 @@ func ResourceCertificateRead(ctx context.Context,
 	// Write TF state.
 	err = setCertificateState(d, resp, nresp, statusresp, metadata)
 	if err != nil {
-		return diag.FromErr(err)
+		return helper.DiagFromErrorf("error setting cert state: %w", err)
 	}
 
 	return diag.Diagnostics{}
@@ -385,16 +387,8 @@ func GetDomainGroupedMetadata(
 		}
 	}(dcvparams)
 
-	// log.Printf(
-	// 	"[INFO] Retrieved dcv metadata (no children): %# v\n",
-	// 	pretty.Formatter(dcvresp))
-
 	// Wait for all api workers to finish.
 	wg.Wait()
-
-	// log.Printf(
-	// 	"[INFO] dcv metadata combined: %# v\n",
-	// 	pretty.Formatter(metadata))
 
 	return metadata
 }
@@ -505,7 +499,7 @@ func ResourceCertificateUpdate(
 	// Initialize CPS Service.
 	config, ok := m.(internal.ProviderConfig)
 	if !ok {
-		return helper.CreationErrorf(d, "failed to load configuration")
+		return diag.Errorf("failed to load configuration")
 	}
 
 	svc, err := buildCPSService(config)
@@ -561,9 +555,17 @@ func ResourceCertificateDelete(
 	// Get certificate status.
 	statusParams := certificate.NewCertificateGetCertificateStatusParams()
 	statusParams.ID = certID
+
 	statusResp, err := cpsService.Certificate.CertificateGetCertificateStatus(statusParams)
+	if statusResp != nil && statusResp.Status == "Deleted" {
+		// if cert has been deleted outside of terraform, exit gracefully and
+		// mark the resouce as deleted.
+		d.SetId("")
+		return diag.Diagnostics{}
+	}
+
 	if err != nil {
-		return diag.FromErr(err)
+		return helper.DiagFromErrorf("error getting cert status: %w", err)
 	}
 
 	if statusResp.Status == "Processing" &&
@@ -573,9 +575,10 @@ func ResourceCertificateDelete(
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
 		cancelParams.Apply = true
+
 		_, err := cpsService.Certificate.CertificateCancel(cancelParams)
 		if err != nil {
-			return diag.FromErr(err)
+			return helper.DiagFromErrorf("error cancelling cert: %w", err)
 		}
 
 		log.Printf("[INFO] Canceled Certificate ID: %v", certID)
@@ -589,21 +592,22 @@ func ResourceCertificateDelete(
 		cancelParams := certificate.NewCertificateCancelParams()
 		cancelParams.ID = certID
 		cancelParams.Apply = true
+
 		_, err := cpsService.Certificate.CertificateCancel(cancelParams)
 		if err != nil {
-			return diag.FromErr(err)
+			return helper.DiagFromErrorf("error cancelling cert: %w", err)
 		}
 
 		log.Printf("[INFO] Canceled Certificate ID: %v", certID)
 
 	} else {
-
 		// certificate has been issued.
 		deleteParams := certificate.NewCertificateDeleteParams()
 		deleteParams.ID = certID
+
 		_, err := cpsService.Certificate.CertificateDelete(deleteParams)
 		if err != nil {
-			return diag.FromErr(err)
+			return helper.DiagFromErrorf("error deleting cert: %w", err)
 		}
 
 		log.Printf("[INFO] Deleted Certificate ID: %v", certID)
@@ -770,8 +774,7 @@ func ExpandOrganization(attr interface{}) (*models.OrganizationDetail, error) {
 	}
 
 	if curr["additional_contact"] != nil {
-		additionalContacts, err :=
-			ExpandAdditionalContacts(curr["additional_contact"])
+		additionalContacts, err := ExpandAdditionalContacts(curr["additional_contact"])
 		if err != nil {
 			return nil, err
 		}
@@ -944,8 +947,7 @@ func FlattenOrganization(
 	m["state"] = organization.State
 	m["zip_code"] = organization.ZipCode
 	if organization.AdditionalContacts != nil {
-		m["additional_contact"] =
-			flattenAdditionalContacts(organization.AdditionalContacts)
+		m["additional_contact"] = flattenAdditionalContacts(organization.AdditionalContacts)
 	}
 
 	flattened = append(flattened, m)
@@ -1017,13 +1019,11 @@ func flattenOrderValidation(
 	m["status"] = orderValidation.Status
 
 	if orderValidation.OrganizationValidation != nil {
-		m["organization_validation"] =
-			flattenOrganizationValidation(orderValidation.OrganizationValidation)
+		m["organization_validation"] = flattenOrganizationValidation(orderValidation.OrganizationValidation)
 	}
 
 	if orderValidation.DomainValidations != nil {
-		m["domain_validation"] =
-			flattenDomainValidation(orderValidation.DomainValidations)
+		m["domain_validation"] = flattenDomainValidation(orderValidation.DomainValidations)
 	}
 
 	flattened = append(flattened, m)
