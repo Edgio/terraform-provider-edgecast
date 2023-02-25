@@ -213,7 +213,7 @@ func ExpandBotManager(
 		}
 	}
 
-	if v, ok := d.GetOk("action"); ok {
+	if v, ok := d.GetOk("actions"); ok {
 		if actions, err := ExpandActions(v); err == nil {
 			botManagerState.Actions = actions
 		} else {
@@ -281,7 +281,7 @@ func ExpandBotManager(
 }
 
 // ExpandActions converts the Terraform representation of
-// action into the ActionObj API Model.
+// actions into the ActionObj API Model.
 func ExpandActions(
 	attr interface{},
 ) (*sdkbotmanager.ActionObj, error) {
@@ -295,7 +295,7 @@ func ExpandActions(
 	}
 
 	if len(raw) > 1 {
-		return nil, errors.New("only one alert is allowed")
+		return nil, errors.New("only one action is allowed")
 	}
 
 	curr := raw[0].(map[string]any)
@@ -375,9 +375,6 @@ func ExpandAlert(attr interface{}) (*sdkbotmanager.AlertAction, error) {
 	name := curr["name"].(string)
 	alert.Name = &name
 
-	enfType := curr["enf_type"].(string)
-	alert.EnfType = &enfType
-
 	return &alert, nil
 }
 
@@ -412,22 +409,17 @@ func ExpandCustomResponse(
 	name := curr["name"].(string)
 	customResponse.Name = &name
 
-	enfType := curr["enf_type"].(string)
-	customResponse.EnfType = &enfType
-
 	responseBodyBase64 := curr["response_body_base64"].(string)
 	customResponse.ResponseBodyBase64 = &responseBodyBase64
 
-	if status, ok := curr["status"].(uint32); ok {
-		statusint := int32(status)
-		customResponse.Status = &statusint
-	}
+	status := curr["status"].(int)
+	statusint32 := int32(status)
+	customResponse.Status = &statusint32
 
 	if curr["response_headers"] != nil {
-		responseHeaders, err := ExpandResponseHeaders(curr["response_headers"])
-		if err != nil {
-			return nil, err
-		}
+		responseHeaders := helper.ConvertToStringMapPointer(
+			curr["response_headers"], true,
+		)
 		customResponse.ResponseHeaders = responseHeaders
 	}
 
@@ -484,9 +476,6 @@ func ExpandBlockRequest(
 	name := curr["name"].(string)
 	blockRequest.Name = &name
 
-	enfType := curr["enf_type"].(string)
-	blockRequest.EnfType = &enfType
-
 	return &blockRequest, nil
 }
 
@@ -520,9 +509,6 @@ func ExpandRedirect302(
 
 	name := curr["name"].(string)
 	redirect.Name = &name
-
-	enfType := curr["enf_type"].(string)
-	redirect.EnfType = &enfType
 
 	url := curr["url"].(string)
 	redirect.Url = &url
@@ -561,30 +547,23 @@ func ExpandBrowserChallenge(
 	name := curr["name"].(string)
 	browserChallenge.Name = &name
 
-	enfType := curr["enf_type"].(string)
-	browserChallenge.EnfType = &enfType
-
 	isCustomChallenge := curr["is_custom_challenge"].(bool)
 	browserChallenge.IsCustomChallenge = &isCustomChallenge
 
 	responseBodyBase64 := curr["response_body_base64"].(string)
 	browserChallenge.ResponseBodyBase64 = &responseBodyBase64
 
-	if validfor, ok := curr["valid_for_sec"].(uint32); ok {
-		validforInt := int32(validfor)
-		browserChallenge.ValidForSec = &validforInt
-	}
+	validfor := curr["valid_for_sec"].(int)
+	validforInt32 := int32(validfor)
+	browserChallenge.ValidForSec = &validforInt32
 
-	if status, ok := curr["status"].(uint32); ok {
-		statusint := int32(status)
-		browserChallenge.Status = &statusint
-	}
+	status := curr["status"].(int)
+	statusInt32 := int32(status)
+	browserChallenge.Status = &statusInt32
 
 	return &browserChallenge, nil
 }
 
-// ExpandAdditionalContacts converts the Terraform representation of
-// organization contacts into the OrganizationContact API Model.
 func ExpandKnownBots(
 	attr interface{},
 ) ([]sdkbotmanager.KnownBotObj, error) {

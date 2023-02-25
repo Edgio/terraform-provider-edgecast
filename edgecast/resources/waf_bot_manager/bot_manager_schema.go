@@ -36,7 +36,7 @@ func ResourceBotManager() *schema.Resource {
 			},
 			"bots_prod_id": {
 				Type:        schema.TypeString,
-				Computed:    true,
+				Required:    true,
 				Description: "Bots Production ID.",
 			},
 			"actions": {
@@ -62,11 +62,6 @@ func ResourceBotManager() *schema.Resource {
 										Type:        schema.TypeString,
 										Description: "",
 									},
-									"enf_type": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "enum. Value = ALERT",
-									},
 								},
 							},
 						},
@@ -86,11 +81,6 @@ func ResourceBotManager() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeString,
 										Description: "",
-									},
-									"enf_type": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "enum. Default value = CUSTOM_RESPONSE",
 									},
 									"response_body_base64": {
 										Optional:    true,
@@ -113,7 +103,7 @@ func ResourceBotManager() *schema.Resource {
 							},
 						},
 						"block_request": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "",
 							Optional:    true,
 							MaxItems:    1,
@@ -128,17 +118,12 @@ func ResourceBotManager() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeString,
 										Description: "",
-									},
-									"enf_type": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "enum. Default value = BLOCK_REQUEST",
 									},
 								},
 							},
 						},
 						"redirect_302": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "",
 							Optional:    true,
 							MaxItems:    1,
@@ -153,11 +138,6 @@ func ResourceBotManager() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeString,
 										Description: "",
-									},
-									"enf_type": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "enum. Default value = REDIRECT_302",
 									},
 									"url": {
 										Optional:    true,
@@ -168,7 +148,7 @@ func ResourceBotManager() *schema.Resource {
 							},
 						},
 						"browser_challenge": {
-							Type:        schema.TypeSet,
+							Type:        schema.TypeList,
 							Description: "",
 							Optional:    true,
 							MaxItems:    1,
@@ -183,11 +163,6 @@ func ResourceBotManager() *schema.Resource {
 										Optional:    true,
 										Type:        schema.TypeString,
 										Description: "",
-									},
-									"enf_type": {
-										Optional:    true,
-										Type:        schema.TypeString,
-										Description: "enum. Default value = BROWSER_CHALLENGE",
 									},
 									"is_custom_challenge": {
 										Optional:    true,
@@ -219,7 +194,7 @@ func ResourceBotManager() *schema.Resource {
 			},
 			"exception_cookie": {
 				Type:        schema.TypeList,
-				Computed:    true,
+				Optional:    true,
 				Description: "",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -227,7 +202,7 @@ func ResourceBotManager() *schema.Resource {
 			},
 			"exception_ja3": {
 				Type:        schema.TypeList,
-				Computed:    true,
+				Optional:    true,
 				Description: "",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -235,7 +210,7 @@ func ResourceBotManager() *schema.Resource {
 			},
 			"exception_url": {
 				Type:        schema.TypeList,
-				Computed:    true,
+				Optional:    true,
 				Description: "",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
@@ -243,7 +218,7 @@ func ResourceBotManager() *schema.Resource {
 			},
 			"exception_user_agent": {
 				Type:        schema.TypeList,
-				Computed:    true,
+				Optional:    true,
 				Description: "",
 				Elem: &schema.Schema{
 					Type: schema.TypeString,
