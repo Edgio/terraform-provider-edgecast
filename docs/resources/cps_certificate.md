@@ -156,6 +156,7 @@ Describes the certificate request's organization.
 - `created` (String) Indicates the timestamp at which this request for a certificate was initially submitted.  
 **Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z
 - `created_by` (Block Set) Describes the user that submitted this certificate request. (see [below for nested schema](#nestedblock--created_by))
+- `default_notification_setting` (Set of Object) The default notification configuration that is applicable to all certificates that have not been explicitly configured. This configuration determines the conditions under which notifications will be sent and to whom they will be sent. (see [below for nested schema](#nestedatt--default_notification_setting))
 - `deployments` (Block Set) Returns a null value. (see [below for nested schema](#nestedblock--deployments))
 - `expiration_date` (String) Indicates the timestamp at which this certificate will expire.  
 **Syntax:**  *YYYY*-*MM*-*DD*T*hh*:*mm*:*ss*.*ffffff*Z  
@@ -344,6 +345,16 @@ Read-Only:
 - `identity_type` (String) Reserved for future use. [ User, Client ]
 - `portal_type_id` (String) Reserved for future use. [ Customer, Partner, Wholesaler, Uber, OpenCdn ]
 - `user_id` (Number) Reserved for future use.
+
+
+<a id="nestedatt--default_notification_setting"></a>
+### Nested Schema for `default_notification_setting`
+
+Read-Only:
+
+- `emails` (List of String)
+- `enabled` (Boolean)
+- `notification_type` (String)
 
 
 <a id="nestedblock--deployments"></a>

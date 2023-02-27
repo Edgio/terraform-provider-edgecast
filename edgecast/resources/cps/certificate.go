@@ -19,6 +19,7 @@ import (
 
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/certificate"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/customer"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/dcv"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
 	"github.com/ahmetalpbalkan/go-linq"
@@ -282,10 +283,25 @@ func ResourceCertificateRead(ctx context.Context,
 		"[INFO] Retrieved certificate notification settings: %# v\n",
 		pretty.Formatter(resp))
 
+	log.Printf(
+		"[INFO] Retrieving default certificate notification settings: ID: %d\n",
+		certID)
+
+	dnparams := customer.NewCustomerGetCustomerNotificationsParams()
+
+	dnresp, err := svc.Customer.CustomerGetCustomerNotifications(dnparams)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	log.Printf(
+		"[INFO] Retrieved default certificate notification settings: %# v\n",
+		pretty.Formatter(dnresp))
+
 	log.Printf("[INFO] metadata ALL: %# v\n", pretty.Formatter(metadata))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp, metadata)
+	err = setCertificateState(d, resp, nresp, dnresp, statusresp, metadata)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -403,6 +419,7 @@ func setCertificateState(
 	d *schema.ResourceData,
 	resp *certificate.CertificateGetOK,
 	nresp *certificate.CertificateGetRequestNotificationsOK,
+	dnresp *customer.CustomerGetCustomerNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
 	dcvresp []*models.DomainDcvFull,
 ) error {
@@ -424,11 +441,35 @@ func setCertificateState(
 	d.Set("organization", flattendOrganization)
 
 	if nresp != nil {
-		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
+		// Discard incoming notif settings if the user has not set them -
+		// this is caused by the API merging certificate-level notif settings
+		// with the account's defaults.
+		filtered := make([]*models.EmailNotification, 0)
+
+		locals, errs := ExpandNotifSettings(d.Get("notification_setting"))
+		if len(errs) > 0 {
+			return errors.Join(errs...)
+		}
+
+		// include the remote settings that match the local settings
+		for _, local := range locals {
+			for _, remote := range nresp.Items {
+				if local.NotificationType == remote.NotificationType {
+					filtered = append(filtered, remote)
+				}
+			}
+		}
+
+		flattenedNotifSettings := FlattenNotifSettings(filtered)
 		d.Set("notification_setting", flattenedNotifSettings)
 	}
 
 	// Computed/Read-Only properties.
+	if dnresp != nil {
+		flattenedNotifSettings := FlattenNotifSettings(dnresp.Items)
+		d.Set("default_notification_setting", flattenedNotifSettings)
+	}
+
 	if resp.CreatedBy != nil {
 		flattenedCreatedBy := FlattenActor(resp.CreatedBy)
 		d.Set("created_by", flattenedCreatedBy)
