@@ -8,8 +8,9 @@ import (
 
 	"terraform-provider-edgecast/edgecast/resources/waf_bot_manager"
 
-	botmanager "github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
+	sdkbotmanager "github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
 	"github.com/go-test/deep"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func TestFlattenActions(t *testing.T) {
@@ -18,41 +19,41 @@ func TestFlattenActions(t *testing.T) {
 
 	tests := []struct {
 		name string
-		args botmanager.ActionObj
+		args sdkbotmanager.ActionObj
 		want interface{}
 	}{
 		{
 			name: "Happy Path",
-			args: botmanager.ActionObj{
-				ALERT: &botmanager.AlertAction{
-					Id:   botmanager.PtrString("1"),
-					Name: botmanager.PtrString("my alert action"),
+			args: sdkbotmanager.ActionObj{
+				ALERT: &sdkbotmanager.AlertAction{
+					Id:   sdkbotmanager.PtrString("1"),
+					Name: sdkbotmanager.PtrString("my alert action"),
 				},
-				CUSTOM_RESPONSE: &botmanager.CustomResponseAction{
-					Id:                 botmanager.PtrString("2"),
-					Name:               botmanager.PtrString("my custom_response action"),
+				CUSTOM_RESPONSE: &sdkbotmanager.CustomResponseAction{
+					Id:                 sdkbotmanager.PtrString("2"),
+					Name:               sdkbotmanager.PtrString("my custom_response action"),
 					ResponseBodyBase64: &base64Body,
-					Status:             botmanager.PtrInt32(403),
+					Status:             sdkbotmanager.PtrInt32(403),
 					ResponseHeaders: &map[string]string{
 						"x-ec-rules": "rejected",
 					},
 				},
-				BLOCK_REQUEST: &botmanager.BlockRequestAction{
-					Id:   botmanager.PtrString("3"),
-					Name: botmanager.PtrString("my block_request action"),
+				BLOCK_REQUEST: &sdkbotmanager.BlockRequestAction{
+					Id:   sdkbotmanager.PtrString("3"),
+					Name: sdkbotmanager.PtrString("my block_request action"),
 				},
-				REDIRECT302: &botmanager.RedirectAction{
-					Id:   botmanager.PtrString("4"),
-					Name: botmanager.PtrString("my redirect_302 action"),
-					Url:  botmanager.PtrString("http://imouttahere.com"),
+				REDIRECT302: &sdkbotmanager.RedirectAction{
+					Id:   sdkbotmanager.PtrString("4"),
+					Name: sdkbotmanager.PtrString("my redirect_302 action"),
+					Url:  sdkbotmanager.PtrString("http://imouttahere.com"),
 				},
-				BROWSER_CHALLENGE: &botmanager.BrowserChallengeAction{
-					Id:                 botmanager.PtrString("5"),
-					Name:               botmanager.PtrString("my browser_challenge action"),
-					IsCustomChallenge:  botmanager.PtrBool(true),
+				BROWSER_CHALLENGE: &sdkbotmanager.BrowserChallengeAction{
+					Id:                 sdkbotmanager.PtrString("5"),
+					Name:               sdkbotmanager.PtrString("my browser_challenge action"),
+					IsCustomChallenge:  sdkbotmanager.PtrBool(true),
 					ResponseBodyBase64: &base64Body,
-					ValidForSec:        botmanager.PtrInt32(3),
-					Status:             botmanager.PtrInt32(401),
+					ValidForSec:        sdkbotmanager.PtrInt32(3),
+					Status:             sdkbotmanager.PtrInt32(401),
 				},
 			},
 			want: []map[string]interface{}{
@@ -92,7 +93,7 @@ func TestFlattenActions(t *testing.T) {
 		},
 		{
 			name: "Empty input",
-			args: botmanager.ActionObj{},
+			args: sdkbotmanager.ActionObj{},
 			// we expect a single empty map
 			want: []map[string]interface{}{
 				make(map[string]interface{}, 0),
@@ -127,12 +128,12 @@ func TestFlattenKnownBots(t *testing.T) {
 
 	tests := []struct {
 		name string
-		args []botmanager.KnownBotObj
+		args []sdkbotmanager.KnownBotObj
 		want []map[string]interface{}
 	}{
 		{
 			name: "Happy Path",
-			args: []botmanager.KnownBotObj{
+			args: []sdkbotmanager.KnownBotObj{
 				{
 					ActionType: "ALERT",
 					BotToken:   "google",
@@ -179,7 +180,7 @@ func TestFlattenKnownBots(t *testing.T) {
 		},
 		{
 			name: "Empty input",
-			args: make([]botmanager.KnownBotObj, 0),
+			args: make([]sdkbotmanager.KnownBotObj, 0),
 			want: make([]map[string]interface{}, 0),
 		},
 	}
@@ -204,4 +205,270 @@ func TestFlattenKnownBots(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExpandActions(t *testing.T) {
+	status403 := int32(403)
+	status401 := int32(401)
+	validforsec := int32(3)
+
+	cases := []struct {
+		name          string
+		input         any
+		expectedPtr   *sdkbotmanager.ActionObj
+		expectSuccess bool
+	}{
+		{
+			name: "Happy path",
+			input: []interface{}{
+				map[string]interface{}{
+					"alert": []interface{}{
+						map[string]interface{}{
+							"id":   "1",
+							"name": "known_bot action",
+						},
+					},
+					"custom_response": []interface{}{
+						map[string]any{
+							"id":                   "1",
+							"name":                 "known_bot action",
+							"response_body_base64": "base64string",
+							"status":               403,
+							"response_headers": map[string]any{
+								"header1": "x-ec-rules",
+								"header2": "rejected",
+							},
+						},
+					},
+					"block_request": []interface{}{
+						map[string]any{
+							"id":   "1",
+							"name": "known_bot action",
+						},
+					},
+					"redirect_302": []interface{}{
+						map[string]any{
+							"id":   "1",
+							"name": "known_bot action",
+							"url":  "http://imouttahere.com",
+						},
+					},
+					"browser_challenge": []interface{}{
+						map[string]any{
+							"id":                   "1",
+							"name":                 "known_bot action",
+							"is_custom_challenge":  true,
+							"response_body_base64": "base64string",
+							"status":               401,
+							"valid_for_sec":        3,
+						},
+					},
+				},
+			},
+			expectedPtr: &sdkbotmanager.ActionObj{
+				ALERT: &sdkbotmanager.AlertAction{
+					Id:   wrapStringInPtr("1"),
+					Name: wrapStringInPtr("known_bot action"),
+				},
+				CUSTOM_RESPONSE: &sdkbotmanager.CustomResponseAction{
+					Id:                 wrapStringInPtr("1"),
+					Name:               wrapStringInPtr("known_bot action"),
+					ResponseBodyBase64: wrapStringInPtr("base64string"),
+					Status:             &status403,
+					ResponseHeaders: &map[string]string{
+						"header1": "x-ec-rules",
+						"header2": "rejected",
+					},
+				},
+				BLOCK_REQUEST: &sdkbotmanager.BlockRequestAction{
+					Id:   wrapStringInPtr("1"),
+					Name: wrapStringInPtr("known_bot action"),
+				},
+				REDIRECT302: &sdkbotmanager.RedirectAction{
+					Id:   wrapStringInPtr("1"),
+					Name: wrapStringInPtr("known_bot action"),
+					Url:  wrapStringInPtr("http://imouttahere.com"),
+				},
+				BROWSER_CHALLENGE: &sdkbotmanager.BrowserChallengeAction{
+					Id:                 wrapStringInPtr("1"),
+					Name:               wrapStringInPtr("known_bot action"),
+					IsCustomChallenge:  wrapBoolInPtr(true),
+					ResponseBodyBase64: wrapStringInPtr("base64string"),
+					Status:             &status401,
+					ValidForSec:        &validforsec,
+				},
+			},
+			expectSuccess: true,
+		},
+		{
+			name:          "nil input",
+			input:         nil,
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+		{
+			name:          "Error path - incorrect input type",
+			input:         "not a []interface{}",
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+	}
+
+	for _, v := range cases {
+		actualPtr, err := waf_bot_manager.ExpandActions(v.input)
+
+		if v.expectSuccess {
+			if err == nil {
+				actual := *actualPtr
+				expected := *v.expectedPtr
+
+				if !reflect.DeepEqual(actual, expected) {
+					// deep.Equal doesn't compare pointer values, so we just use it to
+					// generate a human friendly diff
+					diff := deep.Equal(actual, expected)
+					t.Errorf("Diff: %+v", diff)
+					t.Fatalf("%s: Expected %+v but got %+v",
+						v.name,
+						expected,
+						actual,
+					)
+				}
+			} else {
+				t.Fatalf("%s: Encountered error where one was not expected: %+v",
+					v.name,
+					err,
+				)
+			}
+		} else {
+			if err == nil {
+				t.Fatalf("%s: Expected error, but got no error", v.name)
+			}
+		}
+	}
+}
+
+func TestExpandBotManager(t *testing.T) {
+
+	cases := []struct {
+		name          string
+		input         map[string]any
+		expectedPtr   *sdkbotmanager.BotManager
+		expectSuccess bool
+	}{
+		{
+			name: "Happy path",
+			input: map[string]interface{}{
+				"customer_id":  "ABC",
+				"name":         "my bot manager",
+				"bots_prod_id": "123",
+				"exception_cookie": []any{
+					"yummy-cookie",
+					"yucky-cookie",
+				},
+				"exception_ja3": []any{
+					"656b9a2f4de6ed4909e157482860ab3d",
+				},
+				"exception_url": []any{
+					"myurl",
+				},
+				"exception_user_agent": []any{
+					"useragent 1", "useragent 2",
+				},
+				"inspect_known_bots": true,
+				"known_bot": []any{
+					map[string]any{
+						"action_type": "ALERT",
+						"bot_token":   "google",
+					},
+					map[string]any{
+						"action_type": "ALERT",
+						"bot_token":   "facebook",
+					},
+				},
+				"spoof_bot_action_type": "ALERT",
+			},
+
+			expectedPtr: &sdkbotmanager.BotManager{
+				CustomerId:         wrapStringInPtr("ABC"),
+				Name:               wrapStringInPtr("my bot manager"),
+				BotsProdId:         wrapStringInPtr("123"),
+				ExceptionCookie:    []string{"yummy-cookie", "yucky-cookie"},
+				ExceptionJa3:       []string{"656b9a2f4de6ed4909e157482860ab3d"},
+				ExceptionUrl:       []string{"myurl"},
+				ExceptionUserAgent: []string{"useragent 1", "useragent 2"},
+				InspectKnownBots:   wrapBoolInPtr(true),
+				KnownBots: []sdkbotmanager.KnownBotObj{
+					{
+						ActionType: "ALERT",
+						BotToken:   "google",
+					},
+					{
+						ActionType: "ALERT",
+						BotToken:   "facebook",
+					},
+				},
+				SpoofBotActionType: wrapStringInPtr("ALERT"),
+			},
+			expectSuccess: true,
+		},
+		{
+			name:          "nil input",
+			input:         nil,
+			expectedPtr:   nil,
+			expectSuccess: false,
+		},
+	}
+
+	for _, tt := range cases {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			var rd *schema.ResourceData
+			if tt.input != nil {
+				rd = schema.TestResourceDataRaw(
+					t,
+					waf_bot_manager.GetBotManagerSchema(),
+					tt.input)
+			}
+
+			actualPtr, err := waf_bot_manager.ExpandBotManager(rd)
+
+			if tt.expectSuccess {
+				if len(err) == 0 {
+					actual := actualPtr
+					expected := tt.expectedPtr
+
+					if !reflect.DeepEqual(actual, expected) {
+						// deep.Equal doesn't compare pointer values, so we just use it to
+						// generate a human friendly diff
+						diff := deep.Equal(actual, expected)
+						t.Errorf("Diff: %+v", diff)
+						t.Fatalf("%s: Expected %+v but got %+v",
+							tt.name,
+							expected,
+							actual,
+						)
+					}
+				} else {
+					t.Fatalf("%s: Encountered error where one was not expected: %+v",
+						tt.name,
+						err,
+					)
+				}
+			} else {
+				if err == nil {
+					t.Fatalf("%s: Expected error, but got no error", tt.name)
+				}
+			}
+
+		})
+	}
+}
+
+func wrapStringInPtr(val string) *string {
+	return &val
+}
+func wrapBoolInPtr(val bool) *bool {
+	return &val
 }

@@ -18,6 +18,17 @@ import (
 	"github.com/kr/pretty"
 )
 
+func ResourceBotManager() *schema.Resource {
+	return &schema.Resource{
+		CreateContext: ResourceBotManagerCreate,
+		ReadContext:   ResourceBotManagerRead,
+		UpdateContext: ResourceBotManagerUpdate,
+		DeleteContext: ResourceBotManagerDelete,
+		Importer:      helper.Import(ResourceBotManagerRead, "ccustomer_id", "id"),
+		Schema:        GetBotManagerSchema(),
+	}
+}
+
 func ResourceBotManagerCreate(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
@@ -369,8 +380,8 @@ func ExpandAlert(attr interface{}) (*sdkbotmanager.AlertAction, error) {
 
 	alert := sdkbotmanager.AlertAction{}
 
-	id := curr["id"].(string)
-	alert.Id = &id
+	id := helper.ConvertToStringPointer(curr["id"], true)
+	alert.Id = id
 
 	name := curr["name"].(string)
 	alert.Name = &name
@@ -403,7 +414,7 @@ func ExpandCustomResponse(
 
 	customResponse := sdkbotmanager.CustomResponseAction{}
 
-	id := curr["id"].(string)
+	id := helper.ConvertToString(curr["id"])
 	customResponse.Id = &id
 
 	name := curr["name"].(string)
@@ -470,7 +481,7 @@ func ExpandBlockRequest(
 
 	blockRequest := sdkbotmanager.BlockRequestAction{}
 
-	id := curr["id"].(string)
+	id := helper.ConvertToString(curr["id"])
 	blockRequest.Id = &id
 
 	name := curr["name"].(string)
@@ -504,7 +515,7 @@ func ExpandRedirect302(
 
 	redirect := sdkbotmanager.RedirectAction{}
 
-	id := curr["id"].(string)
+	id := helper.ConvertToString(curr["id"])
 	redirect.Id = &id
 
 	name := curr["name"].(string)
@@ -541,7 +552,7 @@ func ExpandBrowserChallenge(
 
 	browserChallenge := sdkbotmanager.BrowserChallengeAction{}
 
-	id := curr["id"].(string)
+	id := helper.ConvertToString(curr["id"])
 	browserChallenge.Id = &id
 
 	name := curr["name"].(string)
