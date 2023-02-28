@@ -3,7 +3,7 @@
 
 module terraform-provider-edgecast
 
-go 1.20
+go 1.19
 
 require (
 	github.com/EdgeCast/ec-sdk-go v1.1.1
