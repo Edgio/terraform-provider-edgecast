@@ -117,6 +117,38 @@ func ResourceBotManagerUpdate(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
 ) diag.Diagnostics {
+	customerID := d.Get("customer_id").(string)
+	botManagerID := d.Id()
+
+	log.Printf("[INFO] Updating WAF Bot Manager ID %s for Account >> %s",
+		botManagerID,
+		customerID,
+	)
+
+	config := m.(internal.ProviderConfig)
+
+	svc, err := buildBotManagerService(config)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	// Read from TF state.
+	botManagerState, errs := ExpandBotManager(d)
+	if len(errs) > 0 {
+		return helper.DiagsFromErrors("error parsing bot manager", errs)
+	}
+
+	// Call API
+	params := sdkbotmanager.NewUpdateBotManagerParams()
+	params.CustId = customerID
+	params.BotManagerId = botManagerID
+	params.BotManagerInfo = *botManagerState
+
+	err = svc.BotManagers.UpdateBotManager(params)
+	if err != nil {
+		return helper.DiagFromError("failed to update certificate", err)
+	}
+
 	return ResourceBotManagerRead(ctx, d, m)
 }
 
