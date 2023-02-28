@@ -448,7 +448,12 @@ func setCertificateState(
 
 		locals, errs := ExpandNotifSettings(d.Get("notification_setting"))
 		if len(errs) > 0 {
-			return errors.Join(errs...)
+			msg := "error parsing notification_setting:"
+			for _, e := range errs {
+				msg = msg + ";" + e.Error()
+			}
+
+			return errors.New(msg)
 		}
 
 		// include the remote settings that match the local settings
