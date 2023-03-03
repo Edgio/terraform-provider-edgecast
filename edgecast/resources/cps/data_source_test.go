@@ -101,7 +101,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "DomainControlValidation"},
+					Status: "DomainControlValidation",
+				},
 			},
 			argRetry:    false,
 			expectError: false,
@@ -111,7 +112,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			argsMetadata: nil,
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "Processing"},
+					Status: "Processing",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -134,7 +136,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "Processing"},
+					Status: "Processing",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -157,7 +160,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "Processing"},
+					Status: "Processing",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -180,7 +184,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "Processing"},
+					Status: "Processing",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -190,7 +195,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			argsMetadata: nil,
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "DomainControlValidation"},
+					Status: "DomainControlValidation",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -213,7 +219,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "DomainControlValidation"},
+					Status: "DomainControlValidation",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -236,7 +243,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: "DomainControlValidation"},
+					Status: "DomainControlValidation",
+				},
 			},
 			argRetry:    true,
 			expectError: true,
@@ -259,7 +267,8 @@ func Test_CheckForDNSTokenRetry(t *testing.T) {
 			},
 			argsStatus: &certificate.CertificateGetCertificateStatusOK{
 				CertificateStatus: models.CertificateStatus{
-					Status: ""},
+					Status: "",
+				},
 			},
 			argRetry:    true,
 			expectError: true,

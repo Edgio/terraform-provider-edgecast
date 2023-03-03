@@ -64,6 +64,13 @@ func DiagFromError(msg string, err error) diag.Diagnostics {
 	}
 }
 
+// DiagFromErrorf wraps an error in a diag.Diagnostic with a formatted message.
+// This is useful because diag.FromErr does not support the %w verb.
+func DiagFromErrorf(format string, err error) diag.Diagnostics {
+	wrapped := fmt.Errorf(format, err)
+	return diag.FromErr(wrapped)
+}
+
 // DiagsFromErrors creates a diag.Diagnostics instance from multiple errors and
 // a base message.
 func DiagsFromErrors(msg string, errs []error) diag.Diagnostics {
