@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <title>403 unauthorized</title>
+    <meta content="403 unauthorized" property="og:title"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <style>
+      body {
+        font-family: sans-serif;
+        line-height: 1.2;
+        font-size: 18px;
+      }
+      section {
+        margin: 0 auto;
+        margin-top: 130px;
+        width: 75%;
+      }
+      h1 {
+        font-size: 50px;
+        line-height: 45px;
+        font-weight: 700;
+        margin-bottom: 75px;
+        white-space: nowrap;
+      }
+      p {
+        margin-bottom: 10px;
+      }
+      small {
+        font-size: 80%;
+        color: #333;
+      }
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        padding: .7rem 0 .7rem 4rem;
+        width: 100%;
+        background:  Indigo;
+      }
+      footer a {
+        color: white;
+        margin-left: 40px;
+        text-decoration: none;
+      }
+      .d-none {
+        display: none !important;
+      }
+      .section-error {
+        color: #bd2426;
+      }
+      .loading {
+        animation: 3s infinite slidein;
+      }
+      @keyframes slidein {
+        from {
+          margin-left: 10%;
+          color: rgb(134, 51, 255);
+        }
+​
+        30% {
+          color: rgb(134, 51, 255);
+        }
+​
+        to {
+          margin-left: 0%;
+          color: black;
+        }
+      }
+    </style>
+  </head>
+​
+  <body onload="onloadCookieCheck()">
+    {{BOT_JS}}
+    <section>
+      <h1>
+        Validating your browser - custom challenge page
+        <span class="loading">.</span><span class="loading">.</span><span class="loading">.</span>
+      </h1>
+​
+      <noscript>
+        <h4 class="section-error">Please turn JavaScript on and reload the page.</h4>
+      </noscript>
+​
+      <div id="cookie-error" class="d-none">
+        <h4 class="section-error">Please enable cookies and reload the page.</h4>
+      </div>
+​
+      <p>This may take up to 5 seconds</p>
+​
+      <small>Event ID: {{EVENT_ID}}</small>
+    </section>
+​
+    <footer>
+      <p>
+        <a href="https://www.edgecast.com/security/">Powered by Edgio</a>
+      </p>
+    </footer>
+  </body>
+  <script>
+    function onloadCookieCheck() {
+      if (!navigator.cookieEnabled) {
+        document.getElementById('cookie-error').classList.remove('d-none');
+      }
+    }
+  </script>
+</html>
