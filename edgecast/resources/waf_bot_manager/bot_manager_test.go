@@ -8,6 +8,8 @@ import (
 
 	"terraform-provider-edgecast/edgecast/resources/waf_bot_manager"
 
+	"terraform-provider-edgecast/edgecast/helper"
+
 	sdkbotmanager "github.com/EdgeCast/ec-sdk-go/edgecast/waf_bot_manager"
 	"github.com/go-test/deep"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -267,13 +269,13 @@ func TestExpandActions(t *testing.T) {
 			},
 			expectedPtr: &sdkbotmanager.ActionObj{
 				ALERT: &sdkbotmanager.AlertAction{
-					Id:   wrapStringInPtr("1"),
-					Name: wrapStringInPtr("known_bot action"),
+					Id:   helper.WrapStringInPtr("1"),
+					Name: helper.WrapStringInPtr("known_bot action"),
 				},
 				CUSTOM_RESPONSE: &sdkbotmanager.CustomResponseAction{
-					Id:                 wrapStringInPtr("1"),
-					Name:               wrapStringInPtr("known_bot action"),
-					ResponseBodyBase64: wrapStringInPtr("base64string"),
+					Id:                 helper.WrapStringInPtr("1"),
+					Name:               helper.WrapStringInPtr("known_bot action"),
+					ResponseBodyBase64: helper.WrapStringInPtr("base64string"),
 					Status:             &status403,
 					ResponseHeaders: &map[string]string{
 						"header1": "x-ec-rules",
@@ -281,19 +283,19 @@ func TestExpandActions(t *testing.T) {
 					},
 				},
 				BLOCK_REQUEST: &sdkbotmanager.BlockRequestAction{
-					Id:   wrapStringInPtr("1"),
-					Name: wrapStringInPtr("known_bot action"),
+					Id:   helper.WrapStringInPtr("1"),
+					Name: helper.WrapStringInPtr("known_bot action"),
 				},
 				REDIRECT302: &sdkbotmanager.RedirectAction{
-					Id:   wrapStringInPtr("1"),
-					Name: wrapStringInPtr("known_bot action"),
-					Url:  wrapStringInPtr("http://imouttahere.com"),
+					Id:   helper.WrapStringInPtr("1"),
+					Name: helper.WrapStringInPtr("known_bot action"),
+					Url:  helper.WrapStringInPtr("http://imouttahere.com"),
 				},
 				BROWSER_CHALLENGE: &sdkbotmanager.BrowserChallengeAction{
-					Id:                 wrapStringInPtr("1"),
-					Name:               wrapStringInPtr("known_bot action"),
-					IsCustomChallenge:  wrapBoolInPtr(true),
-					ResponseBodyBase64: wrapStringInPtr("base64string"),
+					Id:                 helper.WrapStringInPtr("1"),
+					Name:               helper.WrapStringInPtr("known_bot action"),
+					IsCustomChallenge:  helper.WrapBoolInPtr(true),
+					ResponseBodyBase64: helper.WrapStringInPtr("base64string"),
 					Status:             &status401,
 					ValidForSec:        &validforsec,
 				},
@@ -389,14 +391,14 @@ func TestExpandBotManager(t *testing.T) {
 			},
 
 			expectedPtr: &sdkbotmanager.BotManager{
-				CustomerId:         wrapStringInPtr("ABC"),
-				Name:               wrapStringInPtr("my bot manager"),
-				BotsProdId:         wrapStringInPtr("123"),
+				CustomerId:         helper.WrapStringInPtr("ABC"),
+				Name:               helper.WrapStringInPtr("my bot manager"),
+				BotsProdId:         helper.WrapStringInPtr("123"),
 				ExceptionCookie:    []string{"yummy-cookie", "yucky-cookie"},
 				ExceptionJa3:       []string{"656b9a2f4de6ed4909e157482860ab3d"},
 				ExceptionUrl:       []string{"myurl"},
 				ExceptionUserAgent: []string{"useragent 1", "useragent 2"},
-				InspectKnownBots:   wrapBoolInPtr(true),
+				InspectKnownBots:   helper.WrapBoolInPtr(true),
 				KnownBots: []sdkbotmanager.KnownBotObj{
 					{
 						ActionType: "ALERT",
@@ -407,7 +409,7 @@ func TestExpandBotManager(t *testing.T) {
 						BotToken:   "facebook",
 					},
 				},
-				SpoofBotActionType: wrapStringInPtr("ALERT"),
+				SpoofBotActionType: helper.WrapStringInPtr("ALERT"),
 			},
 			expectSuccess: true,
 		},
@@ -464,11 +466,4 @@ func TestExpandBotManager(t *testing.T) {
 
 		})
 	}
-}
-
-func wrapStringInPtr(val string) *string {
-	return &val
-}
-func wrapBoolInPtr(val bool) *bool {
-	return &val
 }

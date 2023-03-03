@@ -24,7 +24,7 @@ func ResourceBotManager() *schema.Resource {
 		ReadContext:   ResourceBotManagerRead,
 		UpdateContext: ResourceBotManagerUpdate,
 		DeleteContext: ResourceBotManagerDelete,
-		Importer:      helper.Import(ResourceBotManagerRead, "ccustomer_id", "id"),
+		Importer:      helper.Import(ResourceBotManagerRead, "customer_id", "id"),
 		Schema:        GetBotManagerSchema(),
 	}
 }
