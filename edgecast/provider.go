@@ -16,6 +16,7 @@ import (
 	"terraform-provider-edgecast/edgecast/resources/originv3"
 	"terraform-provider-edgecast/edgecast/resources/rulesengine"
 	"terraform-provider-edgecast/edgecast/resources/waf"
+	"terraform-provider-edgecast/edgecast/resources/waf_bot_manager"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -145,6 +146,7 @@ func buildResourcesMap() map[string]*schema.Resource {
 		"edgecast_waf_bot_rule_set":       waf.ResourceBotRuleSet(),
 		"edgecast_cps_certificate":        cps.ResourceCertificate(),
 		"edgecast_originv3_httplarge":     originv3.ResourceOriginGrpHttpLarge(),
+		"edgecast_waf_botmanager":         waf_bot_manager.ResourceBotManager(),
 	}
 }
 
