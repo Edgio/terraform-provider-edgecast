@@ -22,7 +22,7 @@ includes:
 
 
 tasks:
-  docs:
+  generate:
     desc: generates documentation markdown
     cmds:
       - go generate
