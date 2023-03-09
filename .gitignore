@@ -13,6 +13,9 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# test output files
+test/**/*.json 
+
 # Terraform generated files and folders
 examples/**/.terraform
 examples/**/*.log

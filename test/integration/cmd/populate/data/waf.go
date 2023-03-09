@@ -1,12 +1,13 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
-// See LICENSE file in project root for terms.
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// license. See LICENSE file in project root for terms.
 package data
 
 import (
 	"encoding/base64"
+
+	"terraform-provider-edgecast/test/integration/cmd/populate/config"
 	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
 
-	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/access"
@@ -17,20 +18,35 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/scopes"
 )
 
-func createWAFData(cfg edgecast.SDKConfig) (wafRateRuleID, wafAccessRuleID, wafBotRuleID, wafCustomRuleID, wafManagedRuleID, wafScopesID string) {
-	svc := internal.Check(waf.New(cfg))
-	wafManagedRuleID = createWAFKManagedRule(svc)
-	wafAccessRuleID = createWAFAccessRule(svc)
-	wafBotRuleID = createBotRule(svc)
-	wafRateRuleID = createWAFRateRule(svc)
-	wafCustomRuleID = createWAFCustomRule(svc)
-	wafScopesID = createWAFScopes(svc, wafRateRuleID, wafAccessRuleID, wafManagedRuleID, wafCustomRuleID)
-	return
+func createWAFData(cfg config.Config) WAFResult {
+	svc := internal.Check(waf.New(cfg.SDKConfig))
+	wafManagedRuleID := createWAFKManagedRule(svc, cfg.AccountNumber)
+	wafAccessRuleID := createWAFAccessRule(svc, cfg.AccountNumber)
+	wafBotRuleID := createBotRule(svc, cfg.AccountNumber)
+	wafRateRuleID := createWAFRateRule(svc, cfg.AccountNumber)
+	wafCustomRuleID := createWAFCustomRule(svc, cfg.AccountNumber)
+	wafScopesID := createWAFScopes(
+		svc,
+		wafRateRuleID,
+		wafAccessRuleID,
+		wafManagedRuleID,
+		wafCustomRuleID,
+		wafBotRuleID,
+		cfg.AccountNumber)
+
+	return WAFResult{
+		RateRuleID:    wafRateRuleID,
+		AccessRuleID:  wafAccessRuleID,
+		BotRuleID:     wafBotRuleID,
+		CustomRuleID:  wafCustomRuleID,
+		ManagedRuleID: wafManagedRuleID,
+		ScopesID:      wafScopesID,
+	}
 }
 
-func createWAFRateRule(svc *waf.WafService) (id string) {
+func createWAFRateRule(svc *waf.WafService, accountNumber string) (id string) {
 	params := rate.AddRateRuleParams{
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 		RateRule: rate.RateRule{
 			ConditionGroups: []rate.ConditionGroup{
 				{
@@ -44,7 +60,10 @@ func createWAFRateRule(svc *waf.WafService) (id string) {
 								IsCaseInsensitive: internal.Pointer(true),
 								IsNegated:         internal.Pointer(false),
 								Type:              "EM",
-								Values:            []string{"Mozilla/5.0", "Chrome/91.0.4472.114"},
+								Values: []string{
+									"Mozilla/5.0",
+									"Chrome/91.0.4472.114",
+								},
 							},
 						},
 					},
@@ -61,35 +80,40 @@ func createWAFRateRule(svc *waf.WafService) (id string) {
 								IsCaseInsensitive: internal.Pointer(true),
 								IsNegated:         internal.Pointer(false),
 								Type:              "EM",
-								Values:            []string{"Mozilla/5.0", "Chrome/91.0.4472.114"},
+								Values: []string{
+									"Mozilla/5.0",
+									"Chrome/91.0.4472.114",
+								},
 							},
 						},
 					},
 					Name: "2",
 				},
 			},
-			CustomerID:  account(),
+			CustomerID:  accountNumber,
 			Disabled:    false,
 			DurationSec: 1,
 			Keys:        []string{"IP", "USER_AGENT"},
-			Name:        "rate rule 1",
+			Name:        internal.Unique("-rate_rule"),
 			Num:         10,
 		},
 	}
 	return internal.Check(svc.Rate.AddRateRule(params))
 }
 
-func createBotRule(svc *waf.WafService) (id string) {
+func createBotRule(svc *waf.WafService, accountNumber string) (id string) {
 	params := bot.AddBotRuleSetParams{
 		BotRuleSet: bot.BotRuleSet{
-			Name: "test rule",
+			Name: internal.Unique("-bot_rule_set"),
 			Directives: []bot.BotRuleDirective{
 				{
 					SecRule: &rules.SecRule{
-						Name: "new bot rule",
+						Name: internal.Unique("-sec_rule"),
 						Action: rules.Action{
-							ID:              "77375686",
-							Transformations: []rules.Transformation{rules.TransformNone},
+							ID: "77375686",
+							Transformations: []rules.Transformation{
+								rules.TransformNone,
+							},
 						},
 						Operator: rules.Operator{
 							IsNegated: true,
@@ -117,7 +141,7 @@ func createBotRule(svc *waf.WafService) (id string) {
 				},
 			},
 		},
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 	}
 
 	id = internal.Check(svc.Bot.AddBotRuleSet(params))
@@ -125,21 +149,24 @@ func createBotRule(svc *waf.WafService) (id string) {
 	return
 }
 
-func createWAFAccessRule(svc *waf.WafService) (id string) {
+func createWAFAccessRule(
+	svc *waf.WafService,
+	accountNumber string,
+) (id string) {
 	params := access.AddAccessRuleParams{
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 		AccessRule: access.AccessRule{
 			AllowedHTTPMethods:         []string{"GET", "POST"},
 			AllowedRequestContentTypes: []string{"application/json"},
 			ASNAccessControls:          nil,
 			CookieAccessControls:       nil,
 			CountryAccessControls:      nil,
-			CustomerID:                 account(),
+			CustomerID:                 accountNumber,
 			DisallowedExtensions:       nil,
 			DisallowedHeaders:          nil,
 			IPAccessControls:           nil,
 			MaxFileSize:                0,
-			Name:                       "access rule 1",
+			Name:                       internal.Unique("-access_rule"),
 			RefererAccessControls:      nil,
 			ResponseHeaderName:         "",
 			URLAccessControls:          nil,
@@ -149,18 +176,23 @@ func createWAFAccessRule(svc *waf.WafService) (id string) {
 	return internal.Check(svc.Access.AddAccessRule(params))
 }
 
-func createWAFCustomRule(svc *waf.WafService) (id string) {
+func createWAFCustomRule(
+	svc *waf.WafService,
+	accountNumber string,
+) (id string) {
 	params := custom.AddCustomRuleSetParams{
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 		CustomRuleSet: custom.CustomRuleSet{
 			Directives: []custom.CustomRuleDirective{
 				{
 					SecRule: rules.SecRule{
 						Action: rules.Action{
-							Message:         "Invalid user agent",
-							Transformations: []rules.Transformation{rules.TransformNone},
+							Message: "Invalid user agent",
+							Transformations: []rules.Transformation{
+								rules.TransformNone,
+							},
 						},
-						Name: "a name",
+						Name: internal.Unique("-sec_rule"),
 						Operator: rules.Operator{
 							IsNegated: false,
 							Type:      rules.OpNumberEquality,
@@ -182,18 +214,21 @@ func createWAFCustomRule(svc *waf.WafService) (id string) {
 					},
 				},
 			},
-			Name: unique("My-Rule"),
+			Name: internal.Unique("-custom_rule"),
 		},
 	}
 
 	return internal.Check(svc.Custom.AddCustomRuleSet(params))
 }
 
-func createWAFKManagedRule(svc *waf.WafService) (id string) {
+func createWAFKManagedRule(
+	svc *waf.WafService,
+	accountNumber string,
+) (id string) {
 	params := managed.AddManagedRuleParams{
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 		ManagedRule: managed.ManagedRule{
-			Name:           "Terraform Managed Rule",
+			Name:           internal.Unique("-managed_rule"),
 			RulesetID:      "ECRS",
 			RulesetVersion: "2020-05-01",
 			DisabledRules:  nil,
@@ -250,21 +285,32 @@ func createWAFKManagedRule(svc *waf.WafService) (id string) {
 	return internal.Check(svc.Managed.AddManagedRule(params))
 }
 
-func createWAFScopes(svc *waf.WafService, rateRuleID, accessRuleID, managedRuleID, customRuleID string) (id string) {
+func createWAFScopes(
+	svc *waf.WafService,
+	rateRuleID,
+	accessRuleID,
+	managedRuleID,
+	customRuleID,
+	botRuleID string,
+	accountNumber string,
+) (id string) {
 	trueVar := true
 	encodedMessage := base64.StdEncoding.EncodeToString([]byte("hello!"))
 	status404 := 404
 	redirectURL := "https://www.devenblment.com/redirected"
 
 	params := scopes.Scopes{
-		CustomerID: account(),
+		CustomerID: accountNumber,
 		Scopes: []scopes.Scope{
 			{
-				Name: "Sample Scope",
+				Name: internal.Unique("-scope"),
 				Host: scopes.MatchCondition{
 					Type:              "EM",
 					IsCaseInsensitive: &trueVar,
-					Values:            &[]string{"devenblment.com", "devenblment2.com"},
+					Values: &[]string{
+						"devenblment.com",
+						"devenblment2.com",
+					},
 				},
 				Path: scopes.MatchCondition{
 					Type:   "EM",
@@ -278,8 +324,10 @@ func createWAFScopes(svc *waf.WafService, rateRuleID, accessRuleID, managedRuleI
 							DurationSec:        10,
 							ENFType:            "CUSTOM_RESPONSE",
 							ResponseBodyBase64: &encodedMessage,
-							ResponseHeaders:    &map[string]string{"key1": "value1"},
-							Status:             &status404,
+							ResponseHeaders: &map[string]string{
+								"key1": "value1",
+							},
+							Status: &status404,
 						},
 					},
 				},
@@ -307,5 +355,4 @@ func createWAFScopes(svc *waf.WafService, rateRuleID, accessRuleID, managedRuleI
 	}
 
 	return internal.Check(svc.Scopes.ModifyAllScopes(params)).ID
-
 }

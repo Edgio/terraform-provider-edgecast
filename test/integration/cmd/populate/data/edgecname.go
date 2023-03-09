@@ -1,24 +1,29 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
-// See LICENSE file in project root for terms.
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// license. See LICENSE file in project root for terms.
 package data
 
 import (
-	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
+	"terraform-provider-edgecast/test/integration/cmd/populate/config"
 	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
+
+	"github.com/EdgeCast/ec-sdk-go/edgecast/edgecname"
 )
 
-func createEdgeCnameData(cfg edgecast.SDKConfig) (edgeCnameID int) {
-	svc := internal.Check(edgecname.New(cfg))
-	edgeCnameID = createEdgeCname(svc)
-	return
+func createEdgeCnameData(cfg config.Config) CNAMEResult {
+	svc := internal.Check(edgecname.New(cfg.SDKConfig))
+	edgeCnameID := createEdgeCname(svc, cfg.AccountNumber)
+
+	return CNAMEResult{edgeCnameID}
 }
 
-func createEdgeCname(svc *edgecname.EdgeCnameService) int {
+func createEdgeCname(
+	svc *edgecname.EdgeCnameService,
+	accountNumber string,
+) int {
 	params := edgecname.AddEdgeCnameParams{
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 		EdgeCname: edgecname.EdgeCname{
-			Name:        unique("abc.asd"),
+			Name:        internal.Unique("abc.asd"),
 			OriginID:    -1,
 			MediaTypeID: 3,
 		},

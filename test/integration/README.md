@@ -1,45 +1,24 @@
 # Integration Tests
 
 ## Configuration
-You can specify the environment you wish to run the tests against by specifying configuration values in the `.env` in the root of this project. 
-
-
-```bash
-  ACCOUNT_NUMBER             = ""
-  TF_VAR_MCC_ACCOUNT_EMAIL   = "" # Email associated to above account number
-  
-  API_ADDRESS                = ""
-  API_ADDRESS_LEGACY         = ""
-  API_TOKEN                  = ""
-  
-  IDS_ADDRESS                = ""
-  IDS_CLIENT_ID              = ""
-  IDS_CLIENT_SECRET          = ""
-  IDS_SCOPE                  = ""
-  
-  # SUPPLYING THESE VALUES ENABLE IMPORT TESTING ON THE RESOURCE
-  CUSTOMER_USER_IMPORT_ID             = ""
-  DNS_MASTER_ZONE_GROUP_IMPORT_ID     = ""
-  DNS_SECONDARY_ZONE_GROUP_IMPORT_ID  = ""
-  DNS_GROUP_IMPORT_ID                 = ""
-  DNS_TSIG_IMPORT_ID                  = "" 
-  DNS_ZONE_IMPORT_ID                  = ""
-  ORIGIN_IMPORT_ID                    = ""
-  RULES_ENGINE_IMPORT_ID              = ""
-  WAF_ACCESS_RULE_IMPORT_ID           = "" 
-  WAF_BOT_RULE_SET_ID                 = ""
-  WAF_CUSTOM_RULE_IMPORT_ID           = ""
-  WAF_MANAGED_RULE_IMPORT_ID          = ""
-  WAF_RATE_RULE_IMPORT_ID             = ""
-  WAF_SCOPES_IMPORT_ID                = ""
-  CERTIFICATE_ID                      = ""
-```
+You can specify the environment you wish to run the tests against by specifying configuration values in a `.env` file in this directory. Make a copy of the `.env-sample` file and rename it to `.env` to get started.
 
 ## Usage
-Integration tests are run with the following command in the root directory of the project:
 
+### Populate Data
+To run the Import integration tests, you must have existing data to import. To populate this, run the following command after filling out your `.env` file:
+
+```bash
+task populate
 ```
-task integration_test:run
+
+This will call the APIs to create the data you need. The results will be written to a timestamped json file e.g. `result-2023-03-08T14_09_11-08_00.json`. These values can be placed into the `.env` file for the Integration Tests.
+
+### Integration Tests
+Integration tests are run with the following command in the test directory:
+
+```bash
+task run
 ```
 
 This will run all the tests within the integration test suite.
