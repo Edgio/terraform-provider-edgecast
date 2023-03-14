@@ -13,4 +13,5 @@ const (
 	envIDSClientSecret  = "IDS_CLIENT_SECRET"
 	envIDSScope         = "IDS_SCOPE"
 	envLogFile          = "LOG_FILE"
+	envMCCEmail         = "TF_VAR_MCC_ACCOUNT_EMAIL"
 )

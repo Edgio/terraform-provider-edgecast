@@ -40,6 +40,9 @@ type Config struct {
 
 	// The API Token for Customer creation
 	APITokenPCC string
+
+	// Email for the MCC account
+	AccountEmail string
 }
 
 // NewConfig creates a new instance of Config.
@@ -50,6 +53,7 @@ func NewConfig() Config {
 		PopulateFlags: make(map[string]bool),
 		SDKConfig:     createSDKConfig(),
 		APITokenPCC:   getEnvRequired(envAPITokenPCC),
+		AccountEmail:  getEnvRequired(envMCCEmail),
 	}
 
 	populateOnly := internal.GetEnvWithDefault(envPopulateOnly, "")

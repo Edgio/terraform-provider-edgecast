@@ -8,11 +8,13 @@ vars:
   ACCOUNT: -var "account_number=$ACCOUNT_NUMBER"
 
 env:
+  # create env files in various folders e.g. staging/.env, prod/.env
+  ENV: staging
   MODE: apply
   TF_VAR_cert_label_random:
     sh: date '+%s'
 
-dotenv: ['.env']
+dotenv: ['.env', '{{.ENV}}/.env']
 
 includes:
   customer:

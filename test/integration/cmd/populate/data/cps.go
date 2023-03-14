@@ -18,6 +18,7 @@ const timestampFormat = "2006-01-02T15_04_05Z07_00"
 func createCPSData(cfg config.Config) CPSResult {
 	svc := internal.Check(cps.New(cfg.SDKConfig))
 	id := createCertificate(svc)
+	createCertNotifSettings(svc, id, cfg.AccountEmail)
 
 	return CPSResult{
 		CertificateID: id,
@@ -43,4 +44,20 @@ func createCertificate(svc *cps.CpsService) int64 {
 
 	resp := internal.Check(svc.Certificate.CertificatePost(certParams))
 	return resp.ID
+}
+
+func createCertNotifSettings(svc *cps.CpsService, certID int64, email string) {
+	params := certificate.NewCertificateUpdateRequestNotificationsParams()
+	params.ID = certID
+	params.Notifications = []*models.EmailNotification{
+		{
+			NotificationType: "CertificateRenewal",
+			Enabled:          true,
+			Emails:           []string{email},
+		},
+	}
+
+	internal.Check(
+		svc.Certificate.CertificateUpdateRequestNotifications(params),
+	)
 }
