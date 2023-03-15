@@ -1,15 +1,17 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
-// See LICENSE file in project root for terms.
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// license. See LICENSE file in project root for terms.
 package data
 
 import (
 	"fmt"
-	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
+
+	"terraform-provider-edgecast/test/integration/cmd/populate/config"
 	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
+
+	"github.com/EdgeCast/ec-sdk-go/edgecast/rulesengine"
 )
 
-var policyString = `{
+var fmtPolicyString = `{
 		"@type": "policy-create",
 		"name": "a%s",
 		"description": "This is a test of the policy-create process.",
@@ -31,16 +33,27 @@ var policyString = `{
 		]
 	}`
 
-func createRulesEnginePolicyData(cfg edgecast.SDKConfig) (id string) {
-	svc := internal.Check(rulesengine.New(cfg))
-	id = createPolicyV4(svc)
-	return
+func createRulesEnginePolicyData(cfg config.Config) RulseEngineResult {
+	svc := internal.Check(rulesengine.New(cfg.SDKConfig))
+	id := createPolicyV4(svc, cfg.AccountNumber)
+
+	return RulseEngineResult{
+		PolicyID: id,
+	}
 }
 
-func createPolicyV4(svc *rulesengine.RulesEngineService) (id string) {
+func createPolicyV4(
+	svc *rulesengine.RulesEngineService,
+	accountNumber string,
+) (id string) {
+	policyString := fmt.Sprintf(
+		fmtPolicyString,
+		internal.Unique("policy"),
+		internal.Unique("rule"))
+
 	params := rulesengine.AddPolicyParams{
-		AccountNumber:  account(),
-		PolicyAsString: fmt.Sprintf(policyString, unique("policy"), unique("rule")),
+		AccountNumber:  accountNumber,
+		PolicyAsString: policyString,
 	}
 
 	res := internal.Check(svc.AddPolicy(params))

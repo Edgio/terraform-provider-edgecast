@@ -1,26 +1,27 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
-// See LICENSE file in project root for terms.
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0
+// license. See LICENSE file in project root for terms.
 package data
 
 import (
-	"github.com/EdgeCast/ec-sdk-go/edgecast"
+	"terraform-provider-edgecast/test/integration/cmd/populate/config"
+	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
+
 	"github.com/EdgeCast/ec-sdk-go/edgecast/origin"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/shared/enums"
-	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
 )
 
-func createOriginData(cfg edgecast.SDKConfig) (id int) {
-	svc := internal.Check(origin.New(cfg))
-	id = createOrigin(svc)
-	return
+func createOriginData(cfg config.Config) OriginResult {
+	svc := internal.Check(origin.New(cfg.SDKConfig))
+	id := createOrigin(svc, cfg.AccountNumber)
+	return OriginResult{id}
 }
 
-func createOrigin(svc *origin.OriginService) int {
+func createOrigin(svc *origin.OriginService, accountNumber string) int {
 	params := origin.AddOriginParams{
-		AccountNumber: account(),
+		AccountNumber: accountNumber,
 		MediaTypeID:   enums.HttpLarge,
 		Origin: origin.Origin{
-			DirectoryName:   unique("www"),
+			DirectoryName:   internal.Unique("www"),
 			FollowRedirects: false,
 			HostHeader:      "home.example.com:80",
 			HTTPHostnames: []origin.Hostname{

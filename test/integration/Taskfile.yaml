@@ -1,18 +1,20 @@
 # https://taskfile.dev
 version: '3'
 
-
 output: prefixed
-
 
 vars:
   CREDS: -var "credentials={\"api_token\":\"$API_TOKEN\",\"ids_client_secret\":\"$IDS_CLIENT_SECRET\",\"ids_client_id\":\"$IDS_CLIENT_ID\",\"ids_scope\":\"$IDS_SCOPE\",\"api_address\":\"$API_ADDRESS\",\"api_address_legacy\":\"$API_ADDRESS_LEGACY\",\"ids_address\":\"$IDS_ADDRESS\"}"
   ACCOUNT: -var "account_number=$ACCOUNT_NUMBER"
 
 env:
+  # create env files in various folders e.g. staging/.env, prod/.env
+  ENV: staging
   MODE: apply
   TF_VAR_cert_label_random:
     sh: date '+%s'
+
+dotenv: ['.env', '{{.ENV}}/.env']
 
 includes:
   customer:
@@ -86,6 +88,10 @@ includes:
   originv3_httplarge:
     taskfile: Integration.Taskfile.yaml
     dir: ./resources/originv3_httplarge
+  
+  waf_bot_manager:
+    taskfile: Integration.Taskfile.yaml
+    dir: ./resources/waf_bot_manager
 
 
 tasks:
@@ -164,11 +170,15 @@ tasks:
       - task: cps_certificate:default
         vars:
           RESOURCE_NAME: edgecast_cps_certificate
-          IMPORT_ID: $CERTIFICATE_ID
+          IMPORT_ID: $CERTIFICATE_IMPORT_ID
       - task: originv3_httplarge:default
         vars:
           RESOURCE_NAME: edgecast_originv3_httplarge
-          IMPORT_ID: $GROUP_ID
+          IMPORT_ID: $ORIGINV3_GROUP_IMPORT_ID
+      - task: waf_bot_manager:default
+        vars:
+          RESOURCE_NAME: edgecast_waf_botmanager
+          IMPORT_ID: $WAF_BOT_MANAGER_IMPORT_ID
           
   default:
     cmds:

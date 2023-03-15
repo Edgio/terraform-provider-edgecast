@@ -1,30 +1,42 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
 // See LICENSE file in project root for terms.
 package data
 
 import (
-	"github.com/EdgeCast/ec-sdk-go/edgecast"
-	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
+	"terraform-provider-edgecast/test/integration/cmd/populate/config"
 	"terraform-provider-edgecast/test/integration/cmd/populate/internal"
+
+	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 )
 
-func createCustomerData(cfg edgecast.SDKConfig) (accountNumber string, customerUser int) {
+func createCustomerData(cfg config.Config) CustomerResult {
+	// Need to use a PCC token to create a customer.
+	pccSDKConfig := cfg.SDKConfig
+	pccSDKConfig.APIToken = cfg.APITokenPCC
 
-	svc := internal.Check(customer.New(cfg))
-	accountNumber = account()
+	svc := internal.Check(customer.New(pccSDKConfig))
+	accountNumber := cfg.AccountNumber
 
 	if accountNumber == "" {
 		accountNumber = internal.Check(createCustomer(svc))
 	}
 
-	customerUser = internal.Check(createCustomerUser(svc, accountNumber))
-	return
+	customerUserID := internal.Check(
+		createCustomerUser(svc, accountNumber, cfg.TestEmail),
+	)
+
+	return CustomerResult{accountNumber, customerUserID}
 }
 
-func createCustomerUser(service *customer.CustomerService, accountNumber string) (int, error) {
-	customerGetOK := internal.Check(service.GetCustomer(customer.GetCustomerParams{
-		AccountNumber: accountNumber,
-	}))
+func createCustomerUser(
+	service *customer.CustomerService,
+	accountNumber string,
+	testEmail string,
+) (int, error) {
+	customerGetOK := internal.Check(
+		service.GetCustomer(customer.GetCustomerParams{
+			AccountNumber: accountNumber,
+		}))
 
 	return service.AddCustomerUser(customer.AddCustomerUserParams{
 		Customer: *customerGetOK,
@@ -38,7 +50,7 @@ func createCustomerUser(service *customer.CustomerService, accountNumber string)
 			Mobile:    "1-555-5555",
 			Phone:     "1-555-5555",
 			Fax:       "",
-			Email:     email(),
+			Email:     testEmail,
 			Title:     "Tester",
 			FirstName: "Dev",
 			LastName:  "Integration",
@@ -50,7 +62,6 @@ func createCustomerUser(service *customer.CustomerService, accountNumber string)
 func createCustomer(service *customer.CustomerService) (string, error) {
 	return service.AddCustomer(customer.AddCustomerParams{
 		Customer: customer.Customer{
-			AccountID:                 account(),
 			Address1:                  "111 main street",
 			Address2:                  "",
 			City:                      "Beverly Hills",

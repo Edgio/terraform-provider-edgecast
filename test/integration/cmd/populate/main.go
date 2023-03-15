@@ -1,15 +1,19 @@
-// Copyright 2021 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
+// Copyright 2023 Edgecast Inc., Licensed under the terms of the Apache 2.0 license.
 // See LICENSE file in project root for terms.
 package main
 
 import (
-	"github.com/joho/godotenv"
+	"terraform-provider-edgecast/test/integration/cmd/populate/config"
 	"terraform-provider-edgecast/test/integration/cmd/populate/data"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
 	_ = godotenv.Load()
-	data.Create(
-		createConfig(),
-	)
+	dp := data.DataPopulator{
+		Config: config.NewConfig(),
+	}
+
+	dp.Populate()
 }
