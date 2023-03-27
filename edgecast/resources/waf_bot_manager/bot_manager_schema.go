@@ -20,7 +20,7 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 		"name": {
 			Type:     schema.TypeString,
 			Required: true,
-			Description: "The unique name by which this Bot Manager configuration will be identified. /n" +
+			Description: "The unique name by which this Bot Manager configuration will be identified. \n" +
 				"This name should be sufficiently descriptive to identify it when setting up a Security Application Manager configuration.",
 		},
 		"bots_prod_id": {
@@ -36,7 +36,7 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 				Schema: map[string]*schema.Schema{
 					"alert": {
 						Type: schema.TypeList,
-						Description: "Configuration for generating an alert. /n" +
+						Description: "Configuration for generating an alert. \n" +
 							"Use this mode to track detected threats through the Bots dashboard without impacting production traffic.",
 						Optional: true,
 						MaxItems: 1,
@@ -75,27 +75,27 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 								"response_body_base64": {
 									Optional: true,
 									Type:     schema.TypeString,
-									Description: "Defines the payload that will be delivered to the client. /n" +
-										" * This option supports the use of event variables to customize the response. /n/n" +
-										"**Sample payload for a HTML file:** /n" +
-										"```<!DOCTYPE html><html> /n" +
-										"<head><title>Page Not Found</title></head> /n" +
-										"<body>Page not found.</body> /n" +
+									Description: "Defines the payload that will be delivered to the client. \n" +
+										" * This option supports the use of event variables to customize the response. \n\n" +
+										"**Sample payload for a HTML file:** \n" +
+										"```<!DOCTYPE html><html> \n" +
+										"<head><title>Page Not Found</title></head> \n" +
+										"<body>Page not found.</body> \n" +
 										"</html>```",
 								},
 								"status": {
 									Optional: true,
 									Type:     schema.TypeInt,
-									Description: "Defines the HTTP status code that will be sent to the client. /n" +
+									Description: "Defines the HTTP status code that will be sent to the client. \n" +
 										" --> Value must be of format 'uint32'",
 								},
 								"response_headers": {
 									Type:     schema.TypeMap,
 									Optional: true,
-									Description: "Defines one or more response headers that will be sent to the client. Define each custom response header on a separate line. /n" +
-										"Syntax: {Name}:{Value} /n" +
-										"Example: MyCustomHeader: True /n" +
-										" * This option supports the use of event variables to customize the response. /n" +
+									Description: "Defines one or more response headers that will be sent to the client. Define each custom response header on a separate line. \n" +
+										"Syntax: {Name}:{Value} \n" +
+										"Example: MyCustomHeader: True \n" +
+										" * This option supports the use of event variables to customize the response. \n" +
 										" * All characters, including spaces, defined before or after the colon will be treated as a part of the specified header name or value, respectively.",
 									Elem: &schema.Schema{
 										Type: schema.TypeString,
@@ -144,7 +144,7 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 								"url": {
 									Optional: true,
 									Type:     schema.TypeString,
-									Description: "The full URL to which requests will be redirected. /n" +
+									Description: "The full URL to which requests will be redirected. \n" +
 										"Example: http://cdn.mydomain.com/marketing/busy.html",
 								},
 							},
@@ -152,13 +152,13 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 					},
 					"browser_challenge": {
 						Type: schema.TypeList,
-						Description: "Configuration for Sending a browser challenge to the client. The client must solve this challenge within a few seconds. /n" +
-							"**Key Information:** /n" +
-							" * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. /n" +
-							" * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. /n" +
-							" * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. /n" +
-							"   - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. /n" +
-							" * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload.",
+						Description: "Configuration for Sending a browser challenge to the client. The client must solve this challenge within a few seconds. \n" +
+							"**Key Information:** \n" +
+							"  * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. \n" +
+							"  * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. \n" +
+							"  * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. \n" +
+							"    - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. \n" +
+							"  * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload.",
 						Optional: true,
 						MaxItems: 1,
 						Elem: &schema.Resource{
@@ -181,8 +181,8 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 								"response_body_base64": {
 									Optional: true,
 									Type:     schema.TypeString,
-									Description: "Describes the results of the above browser challenge determines what happens next. /n" +
-										" * Solved: If the client is able to solve the challenge, then our CDN serves the requested content. Additionally, a cookie will be added to the user's session. This cookie instructs our CDN to serve content to the user without requiring a browser challenge. Once the cookie expires, new requests for content protected by Bot Manager will once again require the client to solve a challenge. /n" +
+									Description: "Describes the results of the above browser challenge determines what happens next. \n" +
+										" * Solved: If the client is able to solve the challenge, then our CDN serves the requested content. Additionally, a cookie will be added to the user's session. This cookie instructs our CDN to serve content to the user without requiring a browser challenge. Once the cookie expires, new requests for content protected by Bot Manager will once again require the client to solve a challenge. \n" +
 										" * Unsolved: If the client is unable to solve the challenge, then our CDN responds with a new browser challenge.",
 								},
 								"valid_for_sec": {
@@ -193,8 +193,8 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 								"status": {
 									Optional: true,
 									Type:     schema.TypeInt,
-									Description: "Determines the HTTP status code for the response provided to clients that are being served the browser challenge. /n " +
-										"**Note:** Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. /n" +
+									Description: "Determines the HTTP status code for the response provided to clients that are being served the browser challenge. \n " +
+										"**Note:** Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. \n" +
 										"Value must be of format 'uint32'",
 								},
 							},

@@ -92,7 +92,8 @@ resource "edgecast_waf_botmanager" "botmanager_1" {
 
 - `bots_prod_id` (String) Indicates the system-defined ID assigned to an existing Bot Rule.
 - `customer_id` (String) Identifies the customer id.
-- `name` (String) The unique name by which this Bot Manager configuration will be identified. /nThis name should be sufficiently descriptive to identify it when setting up a Security Application Manager configuration.
+- `name` (String) The unique name by which this Bot Manager configuration will be identified. 
+This name should be sufficiently descriptive to identify it when setting up a Security Application Manager configuration.
 
 ### Optional
 
@@ -118,9 +119,16 @@ resource "edgecast_waf_botmanager" "botmanager_1" {
 
 Optional:
 
-- `alert` (Block List, Max: 1) Configuration for generating an alert. /nUse this mode to track detected threats through the Bots dashboard without impacting production traffic. (see [below for nested schema](#nestedblock--actions--alert))
+- `alert` (Block List, Max: 1) Configuration for generating an alert. 
+Use this mode to track detected threats through the Bots dashboard without impacting production traffic. (see [below for nested schema](#nestedblock--actions--alert))
 - `block_request` (Block List, Max: 1) Configuration for dropping the request and providing the client with a 403 Forbidden response. (see [below for nested schema](#nestedblock--actions--block_request))
-- `browser_challenge` (Block List, Max: 1) Configuration for Sending a browser challenge to the client. The client must solve this challenge within a few seconds. /n**Key Information:** /n * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. /n * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. /n * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. /n   - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. /n * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload. (see [below for nested schema](#nestedblock--actions--browser_challenge))
+- `browser_challenge` (Block List, Max: 1) Configuration for Sending a browser challenge to the client. The client must solve this challenge within a few seconds. 
+**Key Information:** 
+  * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. 
+  * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. 
+  * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. 
+    - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. 
+  * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload. (see [below for nested schema](#nestedblock--actions--browser_challenge))
 - `custom_response` (Block List, Max: 1) Configuration for returning a custom response. (see [below for nested schema](#nestedblock--actions--custom_response))
 - `redirect_302` (Block List, Max: 1) Configuration for Redirecting requests to the specified URL. The HTTP status code for this response will be a 302 Found. (see [below for nested schema](#nestedblock--actions--redirect_302))
 
@@ -155,8 +163,12 @@ Optional:
 
 - `is_custom_challenge` (Boolean) Valid Values: True | False
 - `name` (String) The name by which this browser challenge will be identified.
-- `response_body_base64` (String) Describes the results of the above browser challenge determines what happens next. /n * Solved: If the client is able to solve the challenge, then our CDN serves the requested content. Additionally, a cookie will be added to the user's session. This cookie instructs our CDN to serve content to the user without requiring a browser challenge. Once the cookie expires, new requests for content protected by Bot Manager will once again require the client to solve a challenge. /n * Unsolved: If the client is unable to solve the challenge, then our CDN responds with a new browser challenge.
-- `status` (Number) Determines the HTTP status code for the response provided to clients that are being served the browser challenge. /n **Note:** Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. /nValue must be of format 'uint32'
+- `response_body_base64` (String) Describes the results of the above browser challenge determines what happens next. 
+ * Solved: If the client is able to solve the challenge, then our CDN serves the requested content. Additionally, a cookie will be added to the user's session. This cookie instructs our CDN to serve content to the user without requiring a browser challenge. Once the cookie expires, new requests for content protected by Bot Manager will once again require the client to solve a challenge. 
+ * Unsolved: If the client is unable to solve the challenge, then our CDN responds with a new browser challenge.
+- `status` (Number) Determines the HTTP status code for the response provided to clients that are being served the browser challenge. 
+ **Note:** Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. 
+Value must be of format 'uint32'
 - `valid_for_sec` (Number) Defines the duration for the cookie. Value must be of format 'uint32'
 
 Read-Only:
@@ -170,9 +182,21 @@ Read-Only:
 Optional:
 
 - `name` (String) The name by which this custom response configuration will be identified.
-- `response_body_base64` (String) Defines the payload that will be delivered to the client. /n * This option supports the use of event variables to customize the response. /n/n**Sample payload for a HTML file:** /n```<!DOCTYPE html><html> /n<head><title>Page Not Found</title></head> /n<body>Page not found.</body> /n</html>```
-- `response_headers` (Map of String) Defines one or more response headers that will be sent to the client. Define each custom response header on a separate line. /nSyntax: {Name}:{Value} /nExample: MyCustomHeader: True /n * This option supports the use of event variables to customize the response. /n * All characters, including spaces, defined before or after the colon will be treated as a part of the specified header name or value, respectively.
-- `status` (Number) Defines the HTTP status code that will be sent to the client. /n --> Value must be of format 'uint32'
+- `response_body_base64` (String) Defines the payload that will be delivered to the client. 
+ * This option supports the use of event variables to customize the response. 
+
+**Sample payload for a HTML file:** 
+```<!DOCTYPE html><html> 
+<head><title>Page Not Found</title></head> 
+<body>Page not found.</body> 
+</html>```
+- `response_headers` (Map of String) Defines one or more response headers that will be sent to the client. Define each custom response header on a separate line. 
+Syntax: {Name}:{Value} 
+Example: MyCustomHeader: True 
+ * This option supports the use of event variables to customize the response. 
+ * All characters, including spaces, defined before or after the colon will be treated as a part of the specified header name or value, respectively.
+- `status` (Number) Defines the HTTP status code that will be sent to the client. 
+ --> Value must be of format 'uint32'
 
 Read-Only:
 
@@ -185,7 +209,8 @@ Read-Only:
 Optional:
 
 - `name` (String) The name by which this redirect configuration will be identified.
-- `url` (String) The full URL to which requests will be redirected. /nExample: http://cdn.mydomain.com/marketing/busy.html
+- `url` (String) The full URL to which requests will be redirected. 
+Example: http://cdn.mydomain.com/marketing/busy.html
 
 Read-Only:
 
