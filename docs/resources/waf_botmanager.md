@@ -124,11 +124,11 @@ Use this mode to track detected threats through the Bots dashboard without impac
 - `block_request` (Block List, Max: 1) Configuration for dropping the request and providing the client with a 403 Forbidden response. (see [below for nested schema](#nestedblock--actions--block_request))
 - `browser_challenge` (Block List, Max: 1) Configuration for Sending a browser challenge to the client. The client must solve this challenge within a few seconds. 
 **Key Information:** 
- * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. 
- * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. 
- * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. 
-   - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. 
- * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload. (see [below for nested schema](#nestedblock--actions--browser_challenge))
+  * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. 
+  * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. 
+  * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. 
+    - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. 
+  * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload. (see [below for nested schema](#nestedblock--actions--browser_challenge))
 - `custom_response` (Block List, Max: 1) Configuration for returning a custom response. (see [below for nested schema](#nestedblock--actions--custom_response))
 - `redirect_302` (Block List, Max: 1) Configuration for Redirecting requests to the specified URL. The HTTP status code for this response will be a 302 Found. (see [below for nested schema](#nestedblock--actions--redirect_302))
 

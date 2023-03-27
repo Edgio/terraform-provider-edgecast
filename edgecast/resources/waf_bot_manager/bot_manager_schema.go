@@ -154,11 +154,11 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 						Type: schema.TypeList,
 						Description: "Configuration for Sending a browser challenge to the client. The client must solve this challenge within a few seconds. \n" +
 							"**Key Information:** \n" +
-							" * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. \n" +
-							" * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. \n" +
-							" * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. \n" +
-							"   - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. \n" +
-							" * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload.",
+							"  * Solving a challenge requires a JavaScript-enabled client. Users that have disabled JavaScript on their browsing session will be unable to access content protected by browser challenges. \n" +
+							"  * We strongly recommend that you avoid applying browser challenges to machine-to-machine interactions. For example, applying browser challenges to API traffic will disrupt your API workflow. \n" +
+							"  * The HTTP Status Code option determines the HTTP status code for the response provided to clients that are being served the browser challenge. \n" +
+							"    - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. \n" +
+							"  * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload.",
 						Optional: true,
 						MaxItems: 1,
 						Elem: &schema.Resource{
