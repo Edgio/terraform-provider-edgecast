@@ -190,6 +190,7 @@ func ExpandCertificate(
 	if v, ok := d.GetOk("organization"); ok {
 		if org, err := ExpandOrganization(v); err == nil {
 			certState.Organization = org
+			certState.OrganizationChanged = d.HasChange("organization")
 		} else {
 			errs = append(errs, fmt.Errorf("error parsing organization: %w", err))
 		}
@@ -282,7 +283,7 @@ func ResourceCertificateRead(ctx context.Context,
 
 	log.Printf(
 		"[INFO] Retrieved certificate notification settings: %# v\n",
-		pretty.Formatter(resp))
+		pretty.Formatter(nresp))
 
 	log.Printf("[INFO] metadata ALL: %# v\n", pretty.Formatter(metadata))
 
@@ -320,6 +321,8 @@ func GetDomainMetadata(
 	if err == nil {
 		// continue
 		metadata = append(metadata, dcvresp.Items...)
+	} else {
+		log.Printf("error while getting domain metadata: %s", err.Error())
 	}
 
 	log.Printf(
@@ -1163,6 +1166,9 @@ type CertificateState struct {
 	// organization.
 	Organization *models.OrganizationDetail
 
+	// indicates whether the user modified the organization.
+	OrganizationChanged bool
+
 	// validation type
 	// Enum: [None DV OV EV].
 	ValidationType string
@@ -1218,7 +1224,7 @@ func GetUpdater(
 			UpdateDomains:              true,
 			UpdateNotificationSettings: true,
 			UpdateDCVMethod:            true,
-			UpdateOrganization:         true,
+			UpdateOrganization:         state.OrganizationChanged,
 		}, nil
 	}
 

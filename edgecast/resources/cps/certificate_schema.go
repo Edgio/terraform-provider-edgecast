@@ -47,7 +47,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 		},
 		"validation_status": {
 			Type:        schema.TypeSet,
-			Optional:    true,
+			Computed:    true,
 			Description: "Retrieve status information for your certificate request. This includes certificate request status, certificate order status, organization validation status, and domain control validation (DCV) status.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -415,7 +415,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 		},
 		"created_by": {
 			Type:        schema.TypeSet,
-			Optional:    true,
+			Computed:    true,
 			Description: "Describes the user that submitted this certificate request.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
@@ -458,7 +458,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 		},
 		"modified_by": {
 			Type:        schema.TypeSet,
-			Optional:    true,
+			Computed:    true,
 			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
