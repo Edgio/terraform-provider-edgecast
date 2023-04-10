@@ -141,6 +141,7 @@ func TestExpandCertificate(t *testing.T) {
 						Name:         "testdomain2.com",
 					},
 				},
+				OrganizationChanged: true, // HasChange == true during create
 				Organization: &models.OrganizationDetail{
 					City:               "L.A.",
 					CompanyAddress:     "111 fantastic way",
@@ -1585,6 +1586,7 @@ func TestGetUpdater(t *testing.T) {
 		name       string
 		expectErr  bool
 		statusFunc func(params certificate.CertificateGetCertificateStatusParams) (*certificate.CertificateGetCertificateStatusOK, error)
+		state      CertificateState
 		want       updaterFlags
 	}{
 		{
@@ -1624,17 +1626,23 @@ func TestGetUpdater(t *testing.T) {
 			name:       "Status Deployment",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("Deployment"),
+			state: CertificateState{
+				OrganizationChanged: false,
+			},
 			want: updaterFlags{
 				UpdateDomains:              true,
 				UpdateNotificationSettings: true,
 				UpdateDCVMethod:            true,
-				UpdateOrganization:         true,
+				UpdateOrganization:         false,
 			},
 		},
 		{
 			name:       "Status Active",
 			expectErr:  false,
 			statusFunc: mockStatusFunc("Active"),
+			state: CertificateState{
+				OrganizationChanged: true,
+			},
 			want: updaterFlags{
 				UpdateDomains:              true,
 				UpdateNotificationSettings: true,
@@ -1672,7 +1680,7 @@ func TestGetUpdater(t *testing.T) {
 				},
 			}
 
-			got, err := GetUpdater(mockSvc, CertificateState{})
+			got, err := GetUpdater(mockSvc, tt.state)
 
 			if !tt.expectErr && err != nil {
 				t.Fatalf("unexpected error: %v", err)
