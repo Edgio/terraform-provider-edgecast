@@ -14,6 +14,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps"
 	"github.com/EdgeCast/ec-sdk-go/edgecast/cps/models"
+	"github.com/EdgeCast/ec-sdk-go/edgecast/eclog"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/kr/pretty"
@@ -37,6 +38,8 @@ func buildCPSService(
 	sdkConfig.BaseAPIURLLegacy = *config.APIURLLegacy
 	sdkConfig.BaseIDSURL = *config.IdsURL
 	sdkConfig.UserAgent = config.UserAgent
+
+	sdkConfig.Logger = eclog.NewFileLogger("sdk.log")
 
 	return cps.New(sdkConfig)
 }
