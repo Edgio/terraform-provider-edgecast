@@ -75,7 +75,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 					},
 					"order_validation": {
 						Type:        schema.TypeSet,
-						Optional:    true,
+						Computed:    true,
 						Description: "Describes order status information for this certificate request.",
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
@@ -86,7 +86,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 								},
 								"organization_validation": {
 									Type:        schema.TypeSet,
-									Optional:    true,
+									Computed:    true,
 									Description: "Describes the requested certificate's validation level and its status.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
@@ -106,7 +106,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 								},
 								"domain_validation": {
 									Type:        schema.TypeList,
-									Optional:    true,
+									Computed:    true,
 									Description: "Contains the domains associated with this certificate request and their current Domain Control Validation (DCV) status.",
 									Elem: &schema.Resource{
 										Schema: map[string]*schema.Schema{
@@ -118,7 +118,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 											},
 											"domain_names": {
 												Type:        schema.TypeList,
-												Optional:    true,
+												Computed:    true,
 												Description: "Indicates the domain name.",
 												Elem: &schema.Schema{
 													Type: schema.TypeString,
@@ -375,7 +375,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 		},
 		"deployments": {
 			Type:        schema.TypeSet,
-			Optional:    true,
+			Computed:    true,
 			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
