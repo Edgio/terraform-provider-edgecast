@@ -375,7 +375,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 		},
 		"deployments": {
 			Type:        schema.TypeSet,
-			Optional:    true,
+			Computed:    true,
 			Description: "Returns a null value.",
 			Elem: &schema.Resource{
 				Schema: map[string]*schema.Schema{
