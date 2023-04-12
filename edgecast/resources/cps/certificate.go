@@ -196,13 +196,37 @@ func ExpandCertificate(
 		}
 	}
 
-	if v, ok := d.GetOk("notification_setting"); ok {
-		if ns, nserrs := ExpandNotifSettings(v); len(errs) == 0 {
-			certState.NotificationSettings = ns
-		} else {
-			errs = append(errs, nserrs...)
+	oldRaw, newRaw := d.GetChange("notification_setting")
+
+	old, errs := ExpandNotifSettings(oldRaw)
+	if len(errs) > 0 {
+		errs = append(errs, errs...)
+	}
+
+	new, errs := ExpandNotifSettings(newRaw)
+
+	if len(errs) > 0 {
+		errs = append(errs, errs...)
+	}
+
+	// Merge old into new - include removed settings as "enabled=false"
+	for _, o := range old {
+		found := false
+		for _, n := range new {
+			if o.NotificationType == n.NotificationType {
+				found = true
+			}
+		}
+
+		if !found {
+			new = append(new, &models.EmailNotification{
+				Enabled:          false,
+				NotificationType: o.NotificationType,
+			})
 		}
 	}
+
+	certState.NotificationSettings = new
 
 	return certState, errs
 }
@@ -421,7 +445,19 @@ func setCertificateState(
 	d.Set("organization", flattendOrganization)
 
 	if nresp != nil {
-		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
+		// we are only interested in the notif settings the user has set
+		filtered := make([]*models.EmailNotification, 0)
+		locals, _ := ExpandNotifSettings(d.Get("notification_setting"))
+
+		for _, local := range locals {
+			for _, remote := range nresp.Items {
+				if local.NotificationType == remote.NotificationType {
+					filtered = append(filtered, remote)
+				}
+			}
+		}
+
+		flattenedNotifSettings := FlattenNotifSettings(filtered)
 		d.Set("notification_setting", flattenedNotifSettings)
 	}
 
