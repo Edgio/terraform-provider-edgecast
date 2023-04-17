@@ -37,7 +37,7 @@ func ResourceCertificate() *schema.Resource {
 		ReadContext:   ResourceCertificateRead,
 		UpdateContext: ResourceCertificateUpdate,
 		DeleteContext: ResourceCertificateDelete,
-		Importer:      helper.Import(ResourceCertificateRead, "id"),
+		Importer:      helper.Import(ResourceCertificateImportRead, "id"),
 		Schema:        GetCertificateSchema(),
 	}
 }
@@ -231,9 +231,24 @@ func ExpandCertificate(
 	return certState, errs
 }
 
+func ResourceCertificateImportRead(ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	return read(ctx, d, m, true)
+}
+
 func ResourceCertificateRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
+) diag.Diagnostics {
+	return read(ctx, d, m, false)
+}
+
+func read(ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+	isImport bool,
 ) diag.Diagnostics {
 	config, ok := m.(internal.ProviderConfig)
 	if !ok {
@@ -312,7 +327,7 @@ func ResourceCertificateRead(ctx context.Context,
 	log.Printf("[INFO] metadata ALL: %# v\n", pretty.Formatter(metadata))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp, metadata)
+	err = setCertificateState(d, resp, nresp, statusresp, metadata, isImport)
 	if err != nil {
 		return helper.DiagFromErrorf("error setting cert state: %w", err)
 	}
@@ -426,6 +441,7 @@ func setCertificateState(
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
 	dcvresp []*models.DomainDcvFull,
+	isImport bool,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -445,14 +461,21 @@ func setCertificateState(
 	d.Set("organization", flattendOrganization)
 
 	if nresp != nil {
-		// we are only interested in the notif settings the user has set
-		filtered := make([]*models.EmailNotification, 0)
-		locals, _ := ExpandNotifSettings(d.Get("notification_setting"))
+		var filtered []*models.EmailNotification
 
-		for _, local := range locals {
-			for _, remote := range nresp.Items {
-				if local.NotificationType == remote.NotificationType {
-					filtered = append(filtered, remote)
+		if isImport {
+			// we do not have user-set notif settings to compare, do not filter
+			filtered = nresp.Items
+		} else {
+			// we are only interested in the notif settings the user has set
+			filtered = make([]*models.EmailNotification, 0)
+			locals, _ := ExpandNotifSettings(d.Get("notification_setting"))
+
+			for _, local := range locals {
+				for _, remote := range nresp.Items {
+					if local.NotificationType == remote.NotificationType {
+						filtered = append(filtered, remote)
+					}
 				}
 			}
 		}
