@@ -274,6 +274,14 @@ func cleanMatches(matches []interface{}) ([]map[string]interface{}, error) {
 
 	for _, match := range matches {
 		cleanedMatch := match.(map[string]interface{})
+
+		// Hacky workaround for a Rules Engine API bug:
+		// API returns "select.first-match" as "match.select.first-match.
+		// We will adjust type here, but needs to be fixed in the API.
+		if cleanedMatch["type"] == "match.select.first-match" {
+			cleanedMatch["type"] = "select.first-match"
+		}
+
 		delete(cleanedMatch, "ordinal")
 		err := standardizeMatchFeature(cleanedMatch)
 		if err != nil {
@@ -492,9 +500,41 @@ func policyDiffSuppress(k, old, new string, _ *schema.ResourceData) bool {
 	_ = json.Unmarshal([]byte(old), &oldPolicy)
 	_ = json.Unmarshal([]byte(new), &newPolicy)
 
-	// ignore name changes
+	// Ignore policy name changes.
 	delete(oldPolicy, "name")
 	delete(newPolicy, "name")
 
+	// Empty and null rule names are equal - just clear them out.
+	deleteEmptyRuleNames(oldPolicy)
+	deleteEmptyRuleNames(newPolicy)
+
 	return reflect.DeepEqual(oldPolicy, newPolicy)
+}
+
+// deleteEmptyRuleNames is used to remove empty or null rule names before a
+// policy diff comparison. They interfere with terraform diffs.
+func deleteEmptyRuleNames(policy map[string]interface{}) {
+	rulesRaw, ok := policy["rules"]
+
+	if !ok || rulesRaw == nil {
+		return
+	}
+
+	rules := rulesRaw.([]interface{})
+	cleanedRules := make([]map[string]interface{}, 0)
+
+	for _, rule := range rules {
+		ruleMap := rule.(map[string]interface{})
+
+		val, ok := ruleMap["name"]
+
+		if ok && len(val.(string)) == 0 {
+			delete(ruleMap, "name")
+		}
+
+		cleanedRules = append(cleanedRules, ruleMap)
+	}
+
+	// replace with cleaned rules
+	policy["rules"] = cleanedRules
 }
