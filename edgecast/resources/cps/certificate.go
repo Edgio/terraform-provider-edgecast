@@ -37,7 +37,7 @@ func ResourceCertificate() *schema.Resource {
 		ReadContext:   ResourceCertificateRead,
 		UpdateContext: ResourceCertificateUpdate,
 		DeleteContext: ResourceCertificateDelete,
-		Importer:      helper.Import(ResourceCertificateRead, "id"),
+		Importer:      helper.Import(ResourceCertificateImportRead, "id"),
 		Schema:        GetCertificateSchema(),
 	}
 }
@@ -196,20 +196,59 @@ func ExpandCertificate(
 		}
 	}
 
-	if v, ok := d.GetOk("notification_setting"); ok {
-		if ns, nserrs := ExpandNotifSettings(v); len(errs) == 0 {
-			certState.NotificationSettings = ns
-		} else {
-			errs = append(errs, nserrs...)
+	oldRaw, newRaw := d.GetChange("notification_setting")
+
+	old, errs := ExpandNotifSettings(oldRaw)
+	if len(errs) > 0 {
+		errs = append(errs, errs...)
+	}
+
+	new, errs := ExpandNotifSettings(newRaw)
+
+	if len(errs) > 0 {
+		errs = append(errs, errs...)
+	}
+
+	// Merge old into new - include removed settings as "enabled=false"
+	for _, o := range old {
+		found := false
+		for _, n := range new {
+			if o.NotificationType == n.NotificationType {
+				found = true
+			}
+		}
+
+		if !found {
+			new = append(new, &models.EmailNotification{
+				Enabled:          false,
+				NotificationType: o.NotificationType,
+			})
 		}
 	}
 
+	certState.NotificationSettings = new
+
 	return certState, errs
+}
+
+func ResourceCertificateImportRead(ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+) diag.Diagnostics {
+	return read(ctx, d, m, true)
 }
 
 func ResourceCertificateRead(ctx context.Context,
 	d *schema.ResourceData,
 	m interface{},
+) diag.Diagnostics {
+	return read(ctx, d, m, false)
+}
+
+func read(ctx context.Context,
+	d *schema.ResourceData,
+	m interface{},
+	isImport bool,
 ) diag.Diagnostics {
 	config, ok := m.(internal.ProviderConfig)
 	if !ok {
@@ -288,7 +327,7 @@ func ResourceCertificateRead(ctx context.Context,
 	log.Printf("[INFO] metadata ALL: %# v\n", pretty.Formatter(metadata))
 
 	// Write TF state.
-	err = setCertificateState(d, resp, nresp, statusresp, metadata)
+	err = setCertificateState(d, resp, nresp, statusresp, metadata, isImport)
 	if err != nil {
 		return helper.DiagFromErrorf("error setting cert state: %w", err)
 	}
@@ -402,6 +441,7 @@ func setCertificateState(
 	nresp *certificate.CertificateGetRequestNotificationsOK,
 	sresp *certificate.CertificateGetCertificateStatusOK,
 	dcvresp []*models.DomainDcvFull,
+	isImport bool,
 ) error {
 	// Modifiable properties.
 	d.Set("certificate_authority", resp.CertificateAuthority)
@@ -421,7 +461,26 @@ func setCertificateState(
 	d.Set("organization", flattendOrganization)
 
 	if nresp != nil {
-		flattenedNotifSettings := FlattenNotifSettings(nresp.Items)
+		var filtered []*models.EmailNotification
+
+		if isImport {
+			// we do not have user-set notif settings to compare, do not filter
+			filtered = nresp.Items
+		} else {
+			// we are only interested in the notif settings the user has set
+			filtered = make([]*models.EmailNotification, 0)
+			locals, _ := ExpandNotifSettings(d.Get("notification_setting"))
+
+			for _, local := range locals {
+				for _, remote := range nresp.Items {
+					if local.NotificationType == remote.NotificationType {
+						filtered = append(filtered, remote)
+					}
+				}
+			}
+		}
+
+		flattenedNotifSettings := FlattenNotifSettings(filtered)
 		d.Set("notification_setting", flattenedNotifSettings)
 	}
 
