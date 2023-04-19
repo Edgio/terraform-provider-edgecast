@@ -200,6 +200,42 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 							},
 						},
 					},
+					"recaptcha": {
+						Type:        schema.TypeList,
+						Description: "Configuration for sending a reCAPTCHA challenge to the client.",
+						Optional:    true,
+						MaxItems:    1,
+						Elem: &schema.Resource{
+							Schema: map[string]*schema.Schema{
+								"id": {
+									Computed:    true,
+									Type:        schema.TypeString,
+									Description: "Indicates the system-defined ID assigned to this reCHAPTCHA challenge.",
+								},
+								"name": {
+									Optional:    true,
+									Type:        schema.TypeString,
+									Description: "The name by which this reCAPTCHA challenge will be identified.",
+								},
+								"valid_for_sec": {
+									Optional:    true,
+									Type:        schema.TypeInt,
+									Description: "Defines the duration for the cookie. Value must be of format 'uint32'",
+								},
+								"status": {
+									Optional: true,
+									Type:     schema.TypeInt,
+									Description: "Determines the HTTP status code for the response provided to clients that are being served the reCAPTCHA challenge. " +
+										"Value must be of format 'uint32'",
+								},
+								"failed_action_type": {
+									Type:        schema.TypeString,
+									Optional:    true,
+									Description: "enum. Valid options: ALERT, BLOCK_REQUEST",
+								},
+							},
+						},
+					},
 				},
 			},
 			Description: "Contains the type of actions that can be applied to bot traffic, and can include browser challenge, custom response, or redirect that can be applied to known bots, spoofed bots, and bots detected through rules. \n\n" +

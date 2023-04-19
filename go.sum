@@ -19,8 +19,8 @@ cloud.google.com/go/storage v1.29.0 h1:6weCgzRvMg7lzuUurI4697AqIRPU1SvzHhynwpW31
 cloud.google.com/go/storage v1.29.0/go.mod h1:4puEjyTKnku6gfKoTfNOU/W+a9JyuVNxjpS5GBrB8h4=
 github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03qcyfWMU=
 github.com/BurntSushi/xgb v0.0.0-20160522181843-27f122750802/go.mod h1:IVnqGOEym/WlBOVXweHU+Q+/VP0lqqI8lqeDx9IjBqo=
-github.com/EdgeCast/ec-sdk-go v1.1.2 h1:or0ir6VdfhNS7vLMlK2yeNHff9AGD1Cy3+5DqH9ZBSg=
-github.com/EdgeCast/ec-sdk-go v1.1.2/go.mod h1:zU+IUUCCRGHJMQWhwivstrxkrlW7aVSFl/Ponz41AUo=
+github.com/EdgeCast/ec-sdk-go v1.1.3 h1:mkhj2bR3vwOA7uv0ApKnGYnVydZwi5ddzuGmhfra5nI=
+github.com/EdgeCast/ec-sdk-go v1.1.3/go.mod h1:zU+IUUCCRGHJMQWhwivstrxkrlW7aVSFl/Ponz41AUo=
 github.com/Masterminds/goutils v1.1.1 h1:5nUrii3FMTL5diU80unEVvNevw1nH4+ZV4DSLVJLSYI=
 github.com/Masterminds/goutils v1.1.1/go.mod h1:8cTjp+g8YejhMuvIA5y2vz3BpJxksy863GQaJW2MFNU=
 github.com/Masterminds/semver/v3 v3.1.1/go.mod h1:VPu/7SZ7ePZ3QOrcuXROw5FAcLl4a0cBrbBpGY/8hQs=

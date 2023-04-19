@@ -55,6 +55,12 @@ resource "edgecast_waf_botmanager" "botmanager_1" {
 			status = 401
 			valid_for_sec = 35
 		}
+		recaptcha{
+			name = "my recaptcha"
+			status = 401
+			valid_for_sec = 35
+			failed_action_type = "ALERT"
+		}
 	}
 	exception_cookie = ["yummy-cookie", "yucky-cookie"]
 	exception_ja3 = ["656b9a2f4de6ed4909e157482860ab3d"]
@@ -130,6 +136,7 @@ Use this mode to track detected threats through the Bots dashboard without impac
     - Setting this option to certain status codes (e.g., 204) may prevent clients that successfully solve a browser challenge from properly displaying your site. 
   * You may define a custom payload for the browser challenge by enabling the Custom Browser Challenge Page option and then setting the Browser Challenge Page Template option to the desired payload. (see [below for nested schema](#nestedblock--actions--browser_challenge))
 - `custom_response` (Block List, Max: 1) Configuration for returning a custom response. (see [below for nested schema](#nestedblock--actions--custom_response))
+- `recaptcha` (Block List, Max: 1) Configuration for sending a reCAPTCHA challenge to the client. (see [below for nested schema](#nestedblock--actions--recaptcha))
 - `redirect_302` (Block List, Max: 1) Configuration for Redirecting requests to the specified URL. The HTTP status code for this response will be a 302 Found. (see [below for nested schema](#nestedblock--actions--redirect_302))
 
 <a id="nestedblock--actions--alert"></a>
@@ -201,6 +208,21 @@ Example: MyCustomHeader: True
 Read-Only:
 
 - `id` (String) Indicates the system-defined ID assigned to this custom response.
+
+
+<a id="nestedblock--actions--recaptcha"></a>
+### Nested Schema for `actions.recaptcha`
+
+Optional:
+
+- `failed_action_type` (String) enum. Valid options: ALERT, BLOCK_REQUEST
+- `name` (String) The name by which this reCAPTCHA challenge will be identified.
+- `status` (Number) Determines the HTTP status code for the response provided to clients that are being served the reCAPTCHA challenge. Value must be of format 'uint32'
+- `valid_for_sec` (Number) Defines the duration for the cookie. Value must be of format 'uint32'
+
+Read-Only:
+
+- `id` (String) Indicates the system-defined ID assigned to this reCHAPTCHA challenge.
 
 
 <a id="nestedblock--actions--redirect_302"></a>
