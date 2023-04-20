@@ -1,7 +1,7 @@
 resource "edgecast_waf_botmanager" "botmanager_1" {
 
 	customer_id = "ABCDE"
-	name = "My Bot Manager updated"
+	name = "My Bot Manager"
 	bots_prod_id = "123bot1" # Must be an existing production Bot Rule
 	actions {
 		alert{
@@ -29,6 +29,12 @@ resource "edgecast_waf_botmanager" "botmanager_1" {
 			response_body_base64 = base64encode(file("response_body.html"))
 			status = 401
 			valid_for_sec = 35
+		}
+		recaptcha{
+			name = "my recaptcha"
+			status = 401
+			valid_for_sec = 35
+			failed_action_type = "ALERT"
 		}
 	}
 	exception_cookie = ["yummy-cookie", "yucky-cookie"]

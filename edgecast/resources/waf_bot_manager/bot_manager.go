@@ -385,6 +385,13 @@ func ExpandActions(
 		}
 		action.BROWSER_CHALLENGE = bc
 	}
+	if curr["recaptcha"] != nil {
+		r, err := ExpandRecaptcha(curr["recaptcha"])
+		if err != nil {
+			return nil, err
+		}
+		action.RECAPTCHA = r
+	}
 
 	return &action, nil
 }
@@ -607,6 +614,51 @@ func ExpandBrowserChallenge(
 	return &browserChallenge, nil
 }
 
+func ExpandRecaptcha(
+	attr interface{},
+) (*sdkbotmanager.RecaptchaAction, error) {
+	raw, ok := attr.([]any)
+	if !ok {
+		return nil, errors.New("attr was not a TypeList")
+	}
+
+	if len(raw) == 0 {
+		return nil, nil
+	}
+
+	if len(raw) > 1 {
+		return nil, errors.New("only one browser challenge action is allowed")
+	}
+
+	curr := raw[0].(map[string]any)
+
+	// Empty map.
+	if len(curr) == 0 {
+		return nil, nil
+	}
+
+	recaptcha := sdkbotmanager.RecaptchaAction{}
+
+	id := helper.ConvertToString(curr["id"])
+	recaptcha.Id = &id
+
+	name := curr["name"].(string)
+	recaptcha.Name = &name
+
+	validfor := curr["valid_for_sec"].(int)
+	validforInt32 := int32(validfor)
+	recaptcha.ValidForSec = &validforInt32
+
+	status := curr["status"].(int)
+	statusInt32 := int32(status)
+	recaptcha.Status = &statusInt32
+
+	failedActionType := curr["failed_action_type"].(string)
+	recaptcha.FailedActionType = &failedActionType
+
+	return &recaptcha, nil
+}
+
 func ExpandKnownBots(
 	attr interface{},
 ) ([]sdkbotmanager.KnownBotObj, error) {
@@ -733,6 +785,10 @@ func FlattenActions(action sdkbotmanager.ActionObj) interface{} {
 		m["browser_challenge"] = FlattenBrowserChallenge(*bc)
 	}
 
+	if r, ok := action.GetRECAPTCHAOk(); ok {
+		m["recaptcha"] = FlattenRecaptcha(*r)
+	}
+
 	return []map[string]interface{}{m}
 }
 
@@ -837,5 +893,32 @@ func FlattenBrowserChallenge(
 		flattened["status"] = *status
 	}
 
+	return flattened
+}
+
+func FlattenRecaptcha(
+	r sdkbotmanager.RecaptchaAction,
+) interface{} {
+	flattened := make(map[string]interface{})
+
+	if id, ok := r.GetIdOk(); ok {
+		flattened["id"] = *id
+	}
+
+	if name, ok := r.GetNameOk(); ok {
+		flattened["name"] = *name
+	}
+
+	if validForSec, ok := r.GetValidForSecOk(); ok {
+		flattened["valid_for_sec"] = *validForSec
+	}
+
+	if status, ok := r.GetStatusOk(); ok {
+		flattened["status"] = *status
+	}
+
+	if failedActionType, ok := r.GetFailedActionTypeOk(); ok {
+		flattened["failed_action_type"] = *failedActionType
+	}
 	return flattened
 }

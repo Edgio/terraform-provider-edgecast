@@ -57,6 +57,13 @@ func TestFlattenActions(t *testing.T) {
 					ValidForSec:        sdkbotmanager.PtrInt32(3),
 					Status:             sdkbotmanager.PtrInt32(401),
 				},
+				RECAPTCHA: &sdkbotmanager.RecaptchaAction{
+					Id:               sdkbotmanager.PtrString("6"),
+					Name:             sdkbotmanager.PtrString("my reCaptcha"),
+					ValidForSec:      sdkbotmanager.PtrInt32(3),
+					Status:           sdkbotmanager.PtrInt32(401),
+					FailedActionType: sdkbotmanager.PtrString("ALERT"),
+				},
 			},
 			want: []map[string]interface{}{
 				{
@@ -89,6 +96,13 @@ func TestFlattenActions(t *testing.T) {
 						"response_body_base64": base64Body,
 						"valid_for_sec":        int32(3),
 						"status":               int32(401),
+					},
+					"recaptcha": map[string]interface{}{
+						"id":                 "6",
+						"name":               "my reCaptcha",
+						"valid_for_sec":      int32(3),
+						"status":             int32(401),
+						"failed_action_type": "ALERT",
 					},
 				},
 			},
@@ -265,6 +279,15 @@ func TestExpandActions(t *testing.T) {
 							"valid_for_sec":        3,
 						},
 					},
+					"recaptcha": []interface{}{
+						map[string]any{
+							"id":                 "1",
+							"name":               "my recaptcha",
+							"status":             401,
+							"valid_for_sec":      3,
+							"failed_action_type": "ALERT",
+						},
+					},
 				},
 			},
 			expectedPtr: &sdkbotmanager.ActionObj{
@@ -298,6 +321,13 @@ func TestExpandActions(t *testing.T) {
 					ResponseBodyBase64: helper.WrapStringInPtr("base64string"),
 					Status:             &status401,
 					ValidForSec:        &validforsec,
+				},
+				RECAPTCHA: &sdkbotmanager.RecaptchaAction{
+					Id:               helper.WrapStringInPtr("1"),
+					Name:             helper.WrapStringInPtr("my recaptcha"),
+					Status:           &status401,
+					ValidForSec:      &validforsec,
+					FailedActionType: helper.WrapStringInPtr("ALERT"),
 				},
 			},
 			expectSuccess: true,
