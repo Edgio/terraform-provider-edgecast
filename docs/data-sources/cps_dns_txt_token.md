@@ -13,6 +13,17 @@ Use the `edgecast_cps_dns_txt_token` data source to retrieve the token value thr
 
 This resource requires a [REST API client](../guides/authentication#rest-api-oauth-20-client-credentials) that has been assigned the `sec.cps.certificates` scope.
 
+## Potential issue with CPS Data Sources
+There is a potential issue where setting `wait_until_available=true` for `edgecast_cps_dns_txt_token` causes the provider to wait for the data source on terraform plan. This wait time is valid, but it may not be desired behavior at plan time.
+
+To work around this, you will need to define a variable that can be set to `false` at plan time and then `true` at apply time. Then, you can use it like so:
+
+```bash
+terraform apply -var 'wait_for_ec_cps_data_sources=true'
+```
+
+An exampe of this workaround be found below.
+
 ## Example Usage
 
 ```terraform
@@ -31,8 +42,19 @@ resource "edgecast_cps_certificate" "my_cert" {
 
 data "edgecast_cps_dns_txt_token" "token" {
   certificate_id       = edgecast_cps_certificate.my_cert.id
-  wait_until_available = true
   wait_timeout = "20m"
+
+  # There is a known issue where wait_until_available=true causes the provider
+  # to wait for this data source on terraform plan.
+  #
+  # Use the var wait_for_ec_cps_data_sources (defined in main.tf) to force the
+  # provider to not wait for data sources on terraform plan. Note that its
+  # default value is false
+  #
+  # When you are ready to apply, set the variable:
+  #
+  # terraform apply -var 'wait_for_ec_cps_data_sources=true'
+  wait_until_available = var.wait_for_ec_cps_data_sources
 }
 
 output "dns_txt_token" {

@@ -68,6 +68,17 @@ Then follow the usual flow for Terraform:
 2. Run `terraform plan out="tf.plan"` and inspect the detected changes.
 3. Run `terraform apply tf.plan`
 
+### Potential issue with CPS Data Sources
+There is a potential issue where setting `wait_until_available=true` for `edgecast_cps_dns_txt_token` and `edgecast_cps_target_cname` causes the provider to wait for the data source on terraform plan. This wait time is valid, but it may not be desired behavior at plan time.
+
+To work around this, you will need to define a variable that can be set to `false` at plan time and then `true` at apply time. Then, you can use it like so:
+
+```bash
+terraform apply -var 'wait_for_ec_cps_data_sources=true'
+```
+
+An exampe of this workaround be found in the examples for [edgecast_cps_dns_txt_token](examples/data-sources/edgecast_cps_dns_txt_token/) and [edgecast_cps_target_cname](examples/data-sources/edgecast_cps_target_cname/).
+
 ## Development
 ### Requirements
 -    [Terraform](https://www.terraform.io/downloads.html) 0.13.x
