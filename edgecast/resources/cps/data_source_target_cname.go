@@ -125,7 +125,7 @@ func DataSourceTargetCNAMERead(
 
 			// No target cname found.
 			retryErr := CheckForCNAMERetry(retry, deployment)
-			if retryErr == nil {
+			if retryErr == nil && deployment != nil {
 				d.Set("value", deployment.HexURL)
 				d.SetId(helper.GetUnixTimeStamp())
 			}
@@ -158,5 +158,6 @@ func CheckForCNAMERetry(
 	// Just exit if retry is not desired.
 	// The user will need to run refresh to try again.
 	log.Println("not retrying")
+
 	return nil
 }

@@ -13,7 +13,7 @@ resource "edgecast_cps_certificate" "my_cert" {
 
 data "edgecast_cps_dns_txt_token" "token" {
   certificate_id       = edgecast_cps_certificate.my_cert.id
-  wait_until_available = true
+  wait_until_available = var.wait_for_ec_cps_data_sources
   wait_timeout = "20m"
 }
 
