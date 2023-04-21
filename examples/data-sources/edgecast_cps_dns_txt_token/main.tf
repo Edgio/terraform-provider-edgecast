@@ -26,6 +26,11 @@ variable "credentials" {
   })
 }
 
+variable "wait_for_ec_cps_data_sources" {
+  type = bool
+  default = false
+}
+
 ##########################################
 # Providers
 ##########################################
