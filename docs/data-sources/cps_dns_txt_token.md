@@ -22,7 +22,7 @@ To work around this, you will need to define a variable that can be set to `fals
 terraform apply -var 'wait_for_ec_cps_data_sources=true'
 ```
 
-An exampe of this workaround be found below.
+An exampe of this workaround can be found below.
 
 ## Example Usage
 

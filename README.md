@@ -77,7 +77,7 @@ To work around this, you will need to define a variable that can be set to `fals
 terraform apply -var 'wait_for_ec_cps_data_sources=true'
 ```
 
-An exampe of this workaround be found in the examples for [edgecast_cps_dns_txt_token](examples/data-sources/edgecast_cps_dns_txt_token/) and [edgecast_cps_target_cname](examples/data-sources/edgecast_cps_target_cname/).
+An exampe of this workaround can be found in the examples for [edgecast_cps_dns_txt_token](examples/data-sources/edgecast_cps_dns_txt_token/) and [edgecast_cps_target_cname](examples/data-sources/edgecast_cps_target_cname/).
 
 ## Development
 ### Requirements
