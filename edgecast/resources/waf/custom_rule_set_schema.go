@@ -21,9 +21,10 @@ func ResourceCustomRuleSet() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"id": {
 				Type:        schema.TypeString,
@@ -62,14 +63,14 @@ func ResourceCustomRuleSet() *schema.Resource {
 													Optional: true,
 													Type:     schema.TypeString,
 													Description: "Determines the custom ID that will be assigned to this custom rule. This custom ID is exposed via the Threats Dashboard.  \n" +
-													"Valid values fall within this range: `66000000 - 66999999`  \n" +
-													"**Default Value:** Random number \n\n" +
-													"    ->This argument is only applicable for the `action` block defined within the root of the `sec_rule` block.",
+														"Valid values fall within this range: `66000000 - 66999999`  \n" +
+														"**Default Value:** Random number \n\n" +
+														"    ->This argument is only applicable for the `action` block defined within the root of the `sec_rule` block.",
 												},
 												"msg": {
 													Optional: true,
 													Type:     schema.TypeString,
-													Description: "Determines the rule message that will be assigned to this custom rule. This message is exposed via the Threats Dashboard.  \n" +														
+													Description: "Determines the rule message that will be assigned to this custom rule. This message is exposed via the Threats Dashboard.  \n" +
 														"**Default Value:** Blank \n\n" +
 														"    ->This argument is only applicable for the `action` block defined within the root of the `sec_rule` block.",
 												},
@@ -132,9 +133,10 @@ func ResourceCustomRuleSet() *schema.Resource {
 																	" * `False` - Matches",
 															},
 															"type": {
-																Required: true,
-																Type:     schema.TypeString,
-																Description: "Indicates how the system will interpret the comparison between the `value` argument and the value derived from the request element defined within a `variable` block. Valid values are: \n" + 
+																Required:     true,
+																Type:         schema.TypeString,
+																ValidateFunc: validation.StringIsNotWhiteSpace,
+																Description: "Indicates how the system will interpret the comparison between the `value` argument and the value derived from the request element defined within a `variable` block. Valid values are: \n" +
 																	" * `RX` - Indicates that the string value derived from the request element must satisfy the regular expression defined in the `value` argument. \n" +
 																	" * `STREQ` - Indicates that the string value derived from the request element must be an exact match to the `value` argument. \n" +
 																	" * `CONTAINS` - Indicates that the `value` argument must contain the string value derived from the request element. \n" +
@@ -150,7 +152,6 @@ func ResourceCustomRuleSet() *schema.Resource {
 																Description: "Indicates a value that will be compared against the string or number value derived from the request element defined within a `variable` block.  \n" +
 																	"**Sample values:** `/marketing` and `/800001/myorigin` \n\n" +
 																	"    ->If you are identifying traffic via a URL path (`REQUEST_URI`), then you should specify a URL path pattern that starts directly after the hostname. Exclude a protocol or a hostname when defining this argument.",
-
 															},
 														},
 													},
@@ -162,8 +163,9 @@ func ResourceCustomRuleSet() *schema.Resource {
 													Elem: &schema.Resource{
 														Schema: map[string]*schema.Schema{
 															"type": {
-																Required: true,
-																Type:     schema.TypeString,
+																Required:     true,
+																Type:         schema.TypeString,
+																ValidateFunc: validation.StringIsNotWhiteSpace,
 																Description: "Determines the request element that will be assessed. Valid values are: \n\n" +
 																	"        ARGS_POST | GEO | QUERY_STRING | REMOTE_ADDR | REQUEST_BODY | REQUEST_COOKIES | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI \n\n" +
 																	"    ->If a request element consists of one or more key-value pairs, then you may identify a key via a `match` block. If the `is_count` argument has been disabled, then you may identify a specific value via the `operator` block.",
@@ -233,8 +235,9 @@ func ResourceCustomRuleSet() *schema.Resource {
 														" * `False` - Matches",
 												},
 												"type": {
-													Required: true,
-													Type:     schema.TypeString,
+													Required:     true,
+													Type:         schema.TypeString,
+													ValidateFunc: validation.StringIsNotWhiteSpace,
 													Description: "Indicates how the system will interpret the comparison between the `value` argument and the value derived from the request element defined within a `variable` block. Valid values are: \n" +
 														" * `RX` - Indicates that the string value derived from the request element must satisfy the regular expression defined in the `value` argument. \n" +
 														" * `STREQ` - Indicates that the string value derived from the request element must be an exact match to the `value` argument. \n" +
@@ -248,8 +251,8 @@ func ResourceCustomRuleSet() *schema.Resource {
 												"value": {
 													Type:     schema.TypeString,
 													Optional: true,
-													Description: "Indicates a value that will be compared against the string or number value derived from the request element defined within a `variable` block.  \n" +														
-														"**Sample values:** `/marketing` and `/800001/myorigin`  \n\n" + 
+													Description: "Indicates a value that will be compared against the string or number value derived from the request element defined within a `variable` block.  \n" +
+														"**Sample values:** `/marketing` and `/800001/myorigin`  \n\n" +
 														"    ->If you are identifying traffic via a URL path (`REQUEST_URI`), then you should specify a URL path pattern that starts directly after the hostname. Exclude a protocol or a hostname when defining this argument. ",
 												},
 											},
@@ -262,8 +265,9 @@ func ResourceCustomRuleSet() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"type": {
-													Required: true,
-													Type:     schema.TypeString,
+													Required:     true,
+													Type:         schema.TypeString,
+													ValidateFunc: validation.StringIsNotWhiteSpace,
 													Description: "Determines the request element that will be assessed. Valid values are: \n\n" +
 														"        ARGS_POST | GEO | QUERY_STRING | REMOTE_ADDR | REQUEST_BODY | REQUEST_COOKIES | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI  \n\n" +
 														"    ->If a request element consists of one or more key-value pairs, then you may identify a key via a match object. If is_count has been disabled, then you may identify a specific value via the `operator` block.",

@@ -13,6 +13,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // DNS Secondary Group
@@ -30,12 +31,16 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 				Required: true,
 				Description: `Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
-				in the upper right-hand corner of the MCC.`},
+				in the upper right-hand corner of the MCC.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"name": {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: `Indicates the name assigned to the new secondary 
-				zone group.`},
+				zone group.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"zone_composition": {
 				Type:     schema.TypeList,
 				Required: true,
@@ -60,6 +65,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 										defined on the master name server(s) 
 										associated with this secondary zone 
 										group.`,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 									},
 									"status": {
 										Type:     schema.TypeInt,
@@ -80,6 +86,7 @@ func ResourceSecondaryZoneGroup() *schema.Resource {
 										Required: true,
 										Description: `Comment about this 
 										secondary zone.`,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 									},
 								},
 							},

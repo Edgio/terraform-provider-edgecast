@@ -13,6 +13,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/customer"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceCustomer() *schema.Resource {
@@ -35,8 +36,9 @@ func ResourceCustomer() *schema.Resource {
 				Computed: true,
 			},
 			"service_level_code": {
-				Type:     schema.TypeString,
-				Required: true,
+				Type:         schema.TypeString,
+				Required:     true,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"bandwidth_usage_limit": {
 				Type:     schema.TypeString,

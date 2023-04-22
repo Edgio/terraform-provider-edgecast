@@ -14,6 +14,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // DNS Master Server Group
@@ -31,7 +32,9 @@ func ResourceMasterServerGroup() *schema.Resource {
 				Required: true,
 				Description: `Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
-				in the upper right-hand corner of the MCC.`},
+				in the upper right-hand corner of the MCC.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"master_group_id": {
 				Type:     schema.TypeInt,
 				Computed: true,
@@ -41,7 +44,9 @@ func ResourceMasterServerGroup() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: `Indicates the name that will be assigned to the 
-				new master server group.`},
+				new master server group.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"masters": {
 				Type:     schema.TypeList,
 				Computed: false,
@@ -62,6 +67,7 @@ func ResourceMasterServerGroup() *schema.Resource {
 							assigned to a new master name server that will be 
 							associated with the master server group being 
 							created.`,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 						"ipaddress": {
 							Type:     schema.TypeString,
@@ -70,6 +76,7 @@ func ResourceMasterServerGroup() *schema.Resource {
 							assigned to a new master name server that will be 
 							associated with the master server group being 
 							created.`,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 					},
 				},

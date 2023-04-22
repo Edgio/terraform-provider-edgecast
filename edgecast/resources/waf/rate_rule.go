@@ -97,8 +97,9 @@ func ResourceRateRule() *schema.Resource {
 										Elem: &schema.Resource{
 											Schema: map[string]*schema.Schema{
 												"type": {
-													Required: true,
-													Type:     schema.TypeString,
+													Required:     true,
+													Type:         schema.TypeString,
+													ValidateFunc: validation.StringIsNotWhiteSpace,
 													Description: "Determines how requests will be identified. Valid values are: \n\n" +
 														"        FILE_EXT | REMOTE_ADDR | REQUEST_HEADERS | REQUEST_METHOD | REQUEST_URI",
 												},
@@ -129,8 +130,9 @@ func ResourceRateRule() *schema.Resource {
 													Description: "Indicates whether this match condition will be satisfied when the request matches or does not match the value defined by the `values` argument.",
 												},
 												"type": {
-													Required: true,
-													Type:     schema.TypeString,
+													Required:     true,
+													Type:         schema.TypeString,
+													ValidateFunc: validation.StringIsNotWhiteSpace,
 													Description: "Indicates how the system will interpret the comparison between the request and the `values` argument. Valid values are: \n" +
 														" * `EM` - Requires that the request's attribute be set to one of the value(s) defined in the `values` argument. \n" +
 														" * `IPMATCH` - Requires that the request's IP address either be contained by an IP block or be an exact match to an IP address defined in the `values` argument. \n\n" +
