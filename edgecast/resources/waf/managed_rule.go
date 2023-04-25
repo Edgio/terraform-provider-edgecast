@@ -14,6 +14,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/waf/rules/managed"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceManagedRule() *schema.Resource {
@@ -37,14 +38,16 @@ func ResourceManagedRule() *schema.Resource {
 				Description: "Indicates the name of the managed rule.",
 			},
 			"ruleset_id": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Indicates the ID for the rule set associated with this managed rule.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Indicates the ID for the rule set associated with this managed rule.",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"ruleset_version": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Indicates the version of the rule set associated with this managed rule.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Indicates the version of the rule set associated with this managed rule.",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"created_date": {
 				Type:        schema.TypeString,
@@ -207,19 +210,22 @@ func ResourceManagedRule() *schema.Resource {
 							Optional:    true,
 						},
 						"rule_id": {
-							Type:        schema.TypeString,
-							Description: "Identifies a rule by its system-defined ID.",
-							Required:    true,
+							Type:         schema.TypeString,
+							Description:  "Identifies a rule by its system-defined ID.",
+							Required:     true,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 						"target": {
-							Type:        schema.TypeString,
-							Description: "Identifies the type of data source (e.g., `REQUEST_COOKIES`, `ARGS`, `GEO`, etc.) for which a target will be created.",
-							Required:    true,
+							Type:         schema.TypeString,
+							Description:  "Identifies the type of data source (e.g., `REQUEST_COOKIES`, `ARGS`, `GEO`, etc.) for which a target will be created.",
+							Required:     true,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 						"target_match": {
-							Type:        schema.TypeString,
-							Description: "Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the `target` argument.",
-							Required:    true,
+							Type:         schema.TypeString,
+							Description:  "Identifies a name or category (e.g., cookie name, query string name, country code, etc.) for the data source defined in the `target` argument.",
+							Required:     true,
+							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 					},
 				},

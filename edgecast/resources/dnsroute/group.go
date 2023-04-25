@@ -14,6 +14,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 // DNS Master Server Group
@@ -57,12 +58,14 @@ func ResourceGroup() *schema.Resource {
 						Required: true,
 						Description: `Defines the text that will be used to 
 						verify the success of the health check.`,
+						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"email_notification_address": {
 						Type:     schema.TypeString,
 						Required: true,
 						Description: `Defines the e-mail address to which 
 						health check notifications will be sent.`,
+						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"failed_check_threshold": {
 						Type:     schema.TypeInt,
@@ -183,9 +186,10 @@ func ResourceGroup() *schema.Resource {
 						Description: `Defines a record's TTL.`,
 					},
 					"rdata": {
-						Type:        schema.TypeString,
-						Required:    true,
-						Description: `Defines a record's value.`,
+						Type:         schema.TypeString,
+						Required:     true,
+						Description:  `Defines a record's value.`,
+						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"verify_id": {
 						Type:        schema.TypeInt,
@@ -261,6 +265,7 @@ func ResourceGroup() *schema.Resource {
 				Description: `Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
 				in the upper right-hand corner of the MCC.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"group_id": {
 				Type:        schema.TypeInt,
@@ -277,6 +282,7 @@ func ResourceGroup() *schema.Resource {
 				Required: true,
 				Description: `Defines the group type. Valid values are: cname | 
 				subdomain`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"group_type_id": {
 				Type:        schema.TypeInt,
@@ -288,6 +294,7 @@ func ResourceGroup() *schema.Resource {
 				Required: true,
 				Description: `Defines the group product type. Valid values are:
 				loadbalancing | failover`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"group_product_type_id": {
 				Type:     schema.TypeInt,
@@ -300,6 +307,7 @@ func ResourceGroup() *schema.Resource {
 				Required: true,
 				Description: `Defines the name of the failover or load balancing 
 				group.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"zone_id": {
 				Type:        schema.TypeInt,

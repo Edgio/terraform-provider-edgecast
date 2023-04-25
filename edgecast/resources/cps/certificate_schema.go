@@ -2,7 +2,10 @@
 // See LICENSE file in project root for terms.
 package cps
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
 
 func GetCertificateSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
@@ -12,9 +15,10 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Description: "Indicates the system-defined ID assigned to this certificate.",
 		},
 		"certificate_label": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Sets the certificate's name. Specify a unique name that solely consists of alphanumeric characters, underscores, and dashes.",
+			Type:         schema.TypeString,
+			Required:     true,
+			Description:  "Sets the certificate's name. Specify a unique name that solely consists of alphanumeric characters, underscores, and dashes.",
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"description": {
 			Type:        schema.TypeString,
@@ -22,9 +26,10 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Description: "Sets the certificate's description.",
 		},
 		"certificate_authority": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Set to `DigiCert`.",
+			Type:         schema.TypeString,
+			Required:     true,
+			Description:  "Set to `DigiCert`.",
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"auto_renew": {
 			Type:     schema.TypeBool,
@@ -38,12 +43,14 @@ func GetCertificateSchema() map[string]*schema.Schema {
 			Required: true,
 			Description: "Determines the method through which your control over the domains associated with this certificate will be validated.  \n\n" +
 				"    -> Use the [edgecast_cps_dcv_types data source](../data-sources/cps_dcv_types) to retrieve a list of Domain Control Validation (DCV) types. ",
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"validation_type": {
 			Type:     schema.TypeString,
 			Required: true,
 			Description: "Determines the certificate's level of validation.  \n\n" +
 				"    -> Use the [edgecast_cps_cert_validation_levels data source](../data-sources/cps_cert_validation_levels) to retrieve a list of certificate validation levels. ",
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"validation_status": {
 			Type:        schema.TypeSet,
@@ -150,6 +157,7 @@ func GetCertificateSchema() map[string]*schema.Schema {
 						Required: true,
 						Description: "Sets the domain name.  \n" +
 							"**Example:** cdn.example.com",
+						ValidateFunc: validation.StringIsNotWhiteSpace,
 					},
 					"active_date": {
 						Type:        schema.TypeString,
@@ -354,6 +362,9 @@ func GetCertificateSchema() map[string]*schema.Schema {
 						Required: true,
 						Description: "Identifies the type of notification that will be configured. Valid values are: \n\n" +
 							"        CertificateRenewal | CertificateExpiring | PendingValidations",
+						ValidateFunc: validation.StringInSlice(
+							[]string{"CertificateRenewal", "CertificateExpiring", "PendingValidations"},
+							false),
 					},
 					"enabled": {
 						Type:        schema.TypeBool,

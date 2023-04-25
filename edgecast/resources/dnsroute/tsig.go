@@ -14,6 +14,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/routedns"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceTsig() *schema.Resource {
@@ -30,27 +31,37 @@ func ResourceTsig() *schema.Resource {
 				Required: true,
 				Description: `Account Number associated with the customer whose 
 				resources you wish to manage. This account number may be found 
-				in the upper right-hand corner of the MCC.`},
+				in the upper right-hand corner of the MCC.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"alias": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Indicates a brief description for the TSIG key."},
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Indicates a brief description for the TSIG key.",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"key_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: `Identifies the key on the master name server and 
-				our Route name servers. This name must be unique.`},
+				our Route name servers. This name must be unique.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"key_value": {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: `Identifies a hash value through which our name 
-				servers will be authenticated to a master name server.`},
+				servers will be authenticated to a master name server.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 			"algorithm_name": {
 				Type:     schema.TypeString,
 				Required: true,
 				Description: `Identifies a cryptographic hash function name. 
 				Options: HMAC-MD5 | HMAC-SHA1 | HMAC-SHA256 | HMAC-SHA384 | 
-				HMAC-SHA224 | HMAC-SHA512`},
+				HMAC-SHA224 | HMAC-SHA512`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
+			},
 		},
 	}
 }

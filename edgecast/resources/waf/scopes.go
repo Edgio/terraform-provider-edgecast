@@ -63,8 +63,9 @@ func ResourceScopes() *schema.Resource {
 											"        True | False",
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 										Description: "Indicates how the system will interpret the comparison between the request's hostname and the value defined within the `value`/`values` argument. Valid values are: \n" +
 											" * `EM` - Indicates that request's hostname must be an exact match to one of the case-sensitive values specified in the `values` argument. \n" +
 											" * `GLOB` - Indicates that the request's hostname must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
@@ -94,9 +95,10 @@ func ResourceScopes() *schema.Resource {
 							Elem: &schema.Resource{
 								Schema: map[string]*schema.Schema{
 									"id": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Indicates the system-defined ID for the rate rule that will be applied to this Security Application Manager configuration.",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Indicates the system-defined ID for the rate rule that will be applied to this Security Application Manager configuration.",
 									},
 									"duration_sec": {
 										Type:         schema.TypeInt,
@@ -106,8 +108,9 @@ func ResourceScopes() *schema.Resource {
 											"        10 | 60 | 300",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 										Description: "Indicates the type of action that will be applied to rate limited requests. Valid values are: \n" +
 											" * `ALERT` - Alert only \n" +
 											" * `REDIRECT_302` - Redirect (HTTP 302) \n" +
@@ -166,8 +169,9 @@ func ResourceScopes() *schema.Resource {
 											"        True | False",
 									},
 									"type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 										Description: "Indicates how the system will interpret the comparison between the request's URL and the value defined within the `value`/`values` argument. Valid values are: \n" +
 											" * `EM` - Indicates that request's URL path must be an exact match to one of the case-sensitive values specified in the `values` argument.\n" +
 											" * `GLOB` - Indicates that the request's URL path must be an exact match to the wildcard pattern defined in the `value` argument. \n" +
@@ -204,9 +208,10 @@ func ResourceScopes() *schema.Resource {
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
@@ -230,8 +235,9 @@ func ResourceScopes() *schema.Resource {
 										ValidateFunc: validation.IntAtLeast(0),
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
 											" * `BLOCK_REQUEST` - Block request \n" +
 											" * `ALERT` - Alert only \n" +
@@ -290,9 +296,10 @@ func ResourceScopes() *schema.Resource {
 										Description:  "Indicates the number of minutes for which our CDN will serve content to a client that solves a browser challenge without requiring an additional browser challenge to be solved. Specify a value between 1 and 1,440 minutes.",
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Set this property to `BROWSER_CHALLENGE`.",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Set this property to `BROWSER_CHALLENGE`.",
 									},
 									"name": {
 										Type:        schema.TypeString,
@@ -345,9 +352,10 @@ func ResourceScopes() *schema.Resource {
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
@@ -371,8 +379,9 @@ func ResourceScopes() *schema.Resource {
 										Description:  "Reserved for future use.",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
 											" * `BLOCK_REQUEST` - Block Request \n" +
 											" * `ALERT` - Alert Only \n" +
@@ -431,9 +440,10 @@ func ResourceScopes() *schema.Resource {
 										Description: "Indicates the name assigned to this enforcement action configuration.",
 									},
 									"enf_type": {
-										Type:        schema.TypeString,
-										Required:    true,
-										Description: "Set to `ALERT`. This indicates that malicious traffic will be audited.",
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
+										Description:  "Set to `ALERT`. This indicates that malicious traffic will be audited.",
 									},
 								},
 							},
@@ -457,8 +467,9 @@ func ResourceScopes() *schema.Resource {
 										Description:  "Reserved for future use.",
 									},
 									"enf_type": {
-										Type:     schema.TypeString,
-										Required: true,
+										Type:         schema.TypeString,
+										Required:     true,
+										ValidateFunc: validation.StringIsNotWhiteSpace,
 										Description: "Indicates the enforcement action that will be applied to malicious traffic. Valid values are: \n" +
 											" * `BLOCK_REQUEST` - Block Request \n" +
 											" * `ALERT` - Alert Only \n" +

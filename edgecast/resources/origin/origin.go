@@ -15,6 +15,7 @@ import (
 	"github.com/EdgeCast/ec-sdk-go/edgecast/shared/enums"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceOrigin() *schema.Resource {
@@ -27,6 +28,7 @@ func ResourceOrigin() *schema.Resource {
 				address of an origin server that will be 
 				associated with the customer origin 
 				configuration being created.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"is_primary": {
 				Type:     schema.TypeInt,
@@ -67,6 +69,7 @@ func ResourceOrigin() *schema.Resource {
 				Description: `Account Number associated with the customer whose 
 				origins you wish to manage. This account number may be found in 
 				the upper right-hand corner of the MCC.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"directory_name": {
 				Type:     schema.TypeString,
@@ -77,6 +80,7 @@ func ResourceOrigin() *schema.Resource {
 				the customer origin server. Note: A protocol should not be 
 				specified when setting this parameter. Examples: 
 				"www.example.com:80","10.10.10.255:80","[1:2:3:4:5:6:7:8]:80"`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"host_header": {
 				Type:     schema.TypeString,
@@ -86,6 +90,7 @@ func ResourceOrigin() *schema.Resource {
 				configuration. A host header is especially useful when there are 
 				multiple virtual hostnames hosted on a single physical server or 
 				load-balanced set of servers.`,
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"media_type_id": {
 				Type:     schema.TypeInt,

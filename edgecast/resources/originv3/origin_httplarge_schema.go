@@ -2,7 +2,10 @@
 // See LICENSE file in project root for terms.
 package originv3
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
 
 func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
@@ -12,9 +15,10 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 			Description: "Indicates the customer origin group's system-defined ID.",
 		},
 		"name": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Indicates the customer origin group's name.",
+			Type:         schema.TypeString,
+			Required:     true,
+			Description:  "Indicates the customer origin group's name.",
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 		},
 		"host_header": {
 			Type:        schema.TypeString,
@@ -108,8 +112,9 @@ func GetOriginGrpHttpLargeSchema() map[string]*schema.Schema {
 						Description: "Indicates the origin entry's system-defined ID.",
 					},
 					"host": {
-						Type:     schema.TypeString,
-						Required: true,
+						Type:         schema.TypeString,
+						Required:     true,
+						ValidateFunc: validation.StringIsNotWhiteSpace,
 						Description: "Identifies the web server(s) that will be associated with this origin entry through either a hostname or IP address.  \n" +
 							"**Key information:**  \n\n" +
 							" * If you set the protocol_type_id property to either the HTTPS Only or HTTP Only mode, then you may also define a protocol for edge to origin communication. \n" +

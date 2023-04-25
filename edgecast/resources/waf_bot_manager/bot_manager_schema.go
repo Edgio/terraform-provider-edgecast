@@ -3,7 +3,10 @@
 
 package waf_bot_manager
 
-import "github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+)
 
 func GetBotManagerSchema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
@@ -13,20 +16,23 @@ func GetBotManagerSchema() map[string]*schema.Schema {
 			Computed:    true,
 		},
 		"customer_id": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Identifies the customer id.",
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
+			Description:  "Identifies the customer id.",
 		},
 		"name": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
 			Description: "The unique name by which this Bot Manager configuration will be identified. \n" +
 				"This name should be sufficiently descriptive to identify it when setting up a Security Application Manager configuration.",
 		},
 		"bots_prod_id": {
-			Type:        schema.TypeString,
-			Required:    true,
-			Description: "Indicates the system-defined ID assigned to an existing Bot Rule.",
+			Type:         schema.TypeString,
+			Required:     true,
+			ValidateFunc: validation.StringIsNotWhiteSpace,
+			Description:  "Indicates the system-defined ID assigned to an existing Bot Rule.",
 		},
 		"actions": {
 			Type:     schema.TypeList,

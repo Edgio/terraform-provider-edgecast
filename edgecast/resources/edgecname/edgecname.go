@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/customdiff"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 )
 
 func ResourceEdgeCname() *schema.Resource {
@@ -51,14 +52,16 @@ func ResourceEdgeCname() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"account_number": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Identifies your account. Find your account number in the upper right-hand corner of the MCC.",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "Identifies a hostname through which your content will be delivered. It should only consist of lower-case alphanumeric characters, dashes, and periods. From your DNS service provider, configure a CNAME record for this hostname.",
+				Type:         schema.TypeString,
+				Required:     true,
+				Description:  "Identifies a hostname through which your content will be delivered. It should only consist of lower-case alphanumeric characters, dashes, and periods. From your DNS service provider, configure a CNAME record for this hostname.",
+				ValidateFunc: validation.StringIsNotWhiteSpace,
 			},
 			"dir_path": {
 				Type:        schema.TypeString,
