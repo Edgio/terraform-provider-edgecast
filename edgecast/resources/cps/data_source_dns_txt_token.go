@@ -123,25 +123,29 @@ func DataSourceDNSTXTTokenRead(
 				return resource.NonRetryableError(errors.New("certificate must have validation type DV"))
 			}
 
-			// If workflow error, return error.
+			var retryErr *resource.RetryError
+
 			if len(resp.WorkflowErrorMessage) > 0 {
-				return resource.NonRetryableError(
-					fmt.Errorf(
-						"error in workflow: %s",
-						resp.WorkflowErrorMessage))
+				if retry {
+					retryErr = resource.RetryableError(
+						fmt.Errorf(
+							"error in workflow: %s",
+							resp.WorkflowErrorMessage))
+				}
+			} else {
+				metadata := GetDomainMetadata(resp, svc)
+
+				// No token found.
+				retryErr := CheckForDCVTokenRetry(retry, metadata, statusresp)
+				if retryErr == nil {
+					// All of the domains have the same token, so take the first.
+					log.Printf("setting token to %s", metadata[0].DcvToken.Token)
+					d.Set("value", metadata[0].DcvToken.Token)
+					d.SetId(helper.GetUnixTimeStamp())
+				}
 			}
 
-			metadata := GetDomainMetadata(resp, svc)
-
-			// No token found.
-			retryErr := CheckForDCVTokenRetry(retry, metadata, statusresp)
-			if retryErr == nil {
-				// All of the domains have the same token, so take the first.
-				log.Printf("setting token to %s", metadata[0].DcvToken.Token)
-				d.Set("value", metadata[0].DcvToken.Token)
-				d.SetId(helper.GetUnixTimeStamp())
-			}
-
+			// Nil retryErr causes a "success" exit out of the retry loop.
 			return retryErr
 		})
 
