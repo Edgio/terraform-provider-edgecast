@@ -105,31 +105,35 @@ func DataSourceTargetCNAMERead(
 						err))
 			}
 
-			// if workflow error, return error
+			var retryErr *resource.RetryError
+
 			if len(resp.WorkflowErrorMessage) > 0 {
-				return resource.NonRetryableError(
-					fmt.Errorf(
-						"error in workflow: %s",
-						resp.WorkflowErrorMessage))
-			}
+				if retry {
+					retryErr = resource.RetryableError(
+						fmt.Errorf(
+							"error in workflow: %s",
+							resp.WorkflowErrorMessage))
+				}
+			} else {
+				// There should be exactly one deployment - for HTTP Large.
+				var deployment *models.RequestDeployment
 
-			// There should be exactly one deployment - for HTTP Large.
-			var deployment *models.RequestDeployment
+				for _, d := range resp.Deployments {
+					if strings.EqualFold(d.Platform, "HttpLarge") {
+						deployment = d
+						break
+					}
+				}
 
-			for _, d := range resp.Deployments {
-				if strings.EqualFold(d.Platform, "HttpLarge") {
-					deployment = d
-					break
+				// No target cname found.
+				retryErr := CheckForCNAMERetry(retry, deployment)
+				if retryErr == nil && deployment != nil {
+					d.Set("value", deployment.HexURL)
+					d.SetId(helper.GetUnixTimeStamp())
 				}
 			}
 
-			// No target cname found.
-			retryErr := CheckForCNAMERetry(retry, deployment)
-			if retryErr == nil && deployment != nil {
-				d.Set("value", deployment.HexURL)
-				d.SetId(helper.GetUnixTimeStamp())
-			}
-
+			// Nil retryErr causes a "success" exit out of the retry loop.
 			return retryErr
 		})
 
