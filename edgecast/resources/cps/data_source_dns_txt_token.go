@@ -137,7 +137,7 @@ func DataSourceDNSTXTTokenRead(
 
 				// No token found.
 				retryErr := CheckForDCVTokenRetry(retry, metadata, statusresp)
-				if retryErr == nil {
+				if retryErr == nil && IsDNSTxtTokenPresent(metadata) {
 					// All of the domains have the same token, so take the first.
 					log.Printf("setting token to %s", metadata[0].DcvToken.Token)
 					d.Set("value", metadata[0].DcvToken.Token)
@@ -162,8 +162,7 @@ func CheckForDCVTokenRetry(
 	// if token is available, and status is not processing, no retry is needed.
 	if statusresp.Status != "" &&
 		strings.ToLower(statusresp.Status) != "processing" &&
-		metadata != nil && len(metadata) > 0 &&
-		metadata[0].DcvToken != nil && len(metadata[0].DcvToken.Token) > 0 {
+		IsDNSTxtTokenPresent(metadata) {
 		return nil
 	}
 
@@ -179,4 +178,11 @@ func CheckForDCVTokenRetry(
 	// The user will need to run refresh to try again.
 	log.Println("not retrying")
 	return nil
+}
+
+func IsDNSTxtTokenPresent(metadata []*models.DomainDcvFull) bool {
+	return metadata != nil &&
+		len(metadata) > 0 &&
+		metadata[0].DcvToken != nil &&
+		len(metadata[0].DcvToken.Token) > 0
 }
