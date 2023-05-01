@@ -90,13 +90,12 @@ resource "edgecast_waf_scopes" "scopes1" {
 
     rules_prod_id = "<Custom Rule ID>"
 
-    bots_prod_id = "<Bots Rule ID>"
+    bot_manager_config_id = "<Bot Manager Config ID>"
 
-    bots_prod_action {
-      name = "bots action"
-      enf_type = "BROWSER_CHALLENGE"
-      valid_for_sec = 60
-    }
+    recaptcha_action_name = "edgio_bot"
+    recaptcha_secret_key = "2Phg5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1vkF"
+    recaptcha_site_key = "6Lcm3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX5mfX"
+
   }
 
 }

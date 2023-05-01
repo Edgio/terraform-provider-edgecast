@@ -41,6 +41,9 @@ func TestExpandScopes(t *testing.T) {
 							"value":               "*",
 						},
 					}),
+					"recaptcha_action_name": "edgio_bot",
+					"recaptcha_secret_key":  "2Phg5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1vkF",
+					"recaptcha_site_key":    "6Lcm3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX5mfX",
 					"limit": []interface{}{
 						map[string]interface{}{
 							"id":           "rateruleid1",
@@ -116,14 +119,7 @@ func TestExpandScopes(t *testing.T) {
 							"enf_type": "BLOCK_REQUEST",
 						},
 					}),
-					"bots_prod_id": "botsRuleID",
-					"bots_prod_action": helper.NewTerraformSet([]interface{}{
-						map[string]interface{}{
-							"name":          "bots rule prod action",
-							"valid_for_sec": 60,
-							"enf_type":      "BROWSER_CHALLENGE",
-						},
-					}),
+					"bot_manager_config_id": "BOT_MANAGER_ID",
 				},
 			},
 			expected: []scopes.Scope{
@@ -144,6 +140,9 @@ func TestExpandScopes(t *testing.T) {
 						IsNegated:         wrapBoolInPtr(false),
 						Value:             wrapStringInPtr("*"),
 					},
+					ReCaptchaActionName: wrapStringInPtr("edgio_bot"),
+					ReCaptchaSecretKey:  wrapStringInPtr("2Phg5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1vkF"),
+					ReCaptchaSiteKey:    wrapStringInPtr("6Lcm3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX5mfX"),
 					Limits: &[]scopes.Limit{
 						{
 							ID: "rateruleid1",
@@ -216,12 +215,7 @@ func TestExpandScopes(t *testing.T) {
 						Name:    "custom rule prod action",
 					},
 
-					BotsProdID: wrapStringInPtr("botsRuleID"),
-					BotsProdAction: &scopes.ProdAction{
-						ENFType:     "BROWSER_CHALLENGE",
-						ValidForSec: wrapIntInPtr(60),
-						Name:        "bots rule prod action",
-					},
+					BotManagerConfigId: wrapStringInPtr("BOT_MANAGER_ID"),
 				},
 			},
 			expectSuccess: true,
@@ -287,6 +281,9 @@ func TestFlattenScopes(t *testing.T) {
 							IsNegated:         wrapBoolInPtr(false),
 							Value:             wrapStringInPtr("*"),
 						},
+						ReCaptchaActionName: wrapStringInPtr("edgio_bot"),
+						ReCaptchaSecretKey:  wrapStringInPtr("2Phg5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1vkF"),
+						ReCaptchaSiteKey:    wrapStringInPtr("6Lcm3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX5mfX"),
 						Limits: &[]scopes.Limit{
 							{
 								ID: "rateruleid1",
@@ -358,12 +355,7 @@ func TestFlattenScopes(t *testing.T) {
 							ENFType: "BLOCK_REQUEST",
 							Name:    "custom rule prod action",
 						},
-
-						BotsProdID: wrapStringInPtr("botsRuleID"),
-						BotsProdAction: &scopes.ProdAction{
-							ENFType: "BROWSER_CHALLENGE",
-							Name:    "bots rule prod action",
-						},
+						BotManagerConfigId: wrapStringInPtr("BOT_MANAGER_ID"),
 					},
 				},
 			},
@@ -389,6 +381,9 @@ func TestFlattenScopes(t *testing.T) {
 							"value":               "*",
 						},
 					},
+					"recaptcha_action_name": "edgio_bot",
+					"recaptcha_secret_key":  "2Phg5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1vkF",
+					"recaptcha_site_key":    "6Lcm3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX5mfX",
 					"limit": []map[string]interface{}{
 						{
 							"id":           "rateruleid1",
@@ -464,13 +459,7 @@ func TestFlattenScopes(t *testing.T) {
 							"enf_type": "BLOCK_REQUEST",
 						},
 					},
-					"bots_prod_id": "botsRuleID",
-					"bots_prod_action": []map[string]interface{}{
-						{
-							"name":     "bots rule prod action",
-							"enf_type": "BROWSER_CHALLENGE",
-						},
-					},
+					"bot_manager_config_id": "BOT_MANAGER_ID",
 				},
 			},
 		},

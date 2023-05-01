@@ -194,6 +194,21 @@ func ResourceScopes() *schema.Resource {
 								},
 							},
 						},
+						"recaptcha_action_name": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Indicates the name assigned to the action that will take place when the bot manager with recaptcha type defined within the BotManagerConfigId property is violated.",
+						},
+						"recaptcha_secret_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Indicates the secret key assigned to the bot manager with recaptcha type defined within the BotManagerConfigId property.",
+						},
+						"recaptcha_site_key": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Description: "Indicates the reCaptcha site key assigned to the bot manager with recaptcha type defined within the BotManagerConfigId property.",
+						},
 						"acl_audit_action": {
 							Type:        schema.TypeSet,
 							MaxItems:    1,
@@ -282,61 +297,10 @@ func ResourceScopes() *schema.Resource {
 							Optional:    true,
 							Description: "Indicates the system-defined ID for the access rule that will be applied to production traffic for this Security Application Manager configuration.",
 						},
-						"bots_prod_action": {
-							Type:        schema.TypeSet,
-							MaxItems:    1,
-							Optional:    true,
-							Description: "Describes the browser challenge that will be applied to requests that satisfy the bot rule set defined within the `bot_prod_id` argument.",
-							Elem: &schema.Resource{
-								Schema: map[string]*schema.Schema{
-									"valid_for_sec": {
-										Type:         schema.TypeInt,
-										Optional:     true,
-										ValidateFunc: validation.IntAtLeast(0),
-										Description:  "Indicates the number of minutes for which our CDN will serve content to a client that solves a browser challenge without requiring an additional browser challenge to be solved. Specify a value between 1 and 1,440 minutes.",
-									},
-									"enf_type": {
-										Type:         schema.TypeString,
-										Required:     true,
-										ValidateFunc: validation.StringIsNotWhiteSpace,
-										Description:  "Set this property to `BROWSER_CHALLENGE`.",
-									},
-									"name": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Default:     "bots action",
-										Description: "Indicates the name assigned to this enforcement action configuration.",
-									},
-									"response_body_base64": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Reserved for future use.",
-									},
-									"response_headers": {
-										Type:        schema.TypeMap,
-										Optional:    true,
-										Description: "Reserved for future use.",
-										Elem: &schema.Schema{
-											Type: schema.TypeString,
-										},
-									},
-									"status": {
-										Type:        schema.TypeInt,
-										Optional:    true,
-										Description: "Indicates the HTTP status code (e.g., 404) for the response provided to clients that are being served the browser challenge.",
-									},
-									"url": {
-										Type:        schema.TypeString,
-										Optional:    true,
-										Description: "Reserved for future use.",
-									},
-								},
-							},
-						},
-						"bots_prod_id": {
+						"bot_manager_config_id": {
 							Type:        schema.TypeString,
 							Optional:    true,
-							Description: "Indicates the system-defined ID for the bots rule that will be applied to production traffic for this Security Application Manager configuration.",
+							Description: "Indicates the system-defined ID for the bot manager that will be applied to production traffic for this Security Application Manager configuration.",
 						},
 						"profile_audit_action": {
 							Type:        schema.TypeSet,
@@ -633,6 +597,15 @@ func expandScopes(flatScopes interface{}) ([]scopes.Scope, error) {
 					m["host"])
 				scope.Path = expandMatchCondition(
 					m["path"])
+				scope.ReCaptchaActionName = helper.ConvertToStringPointer(
+					m["recaptcha_action_name"],
+					true)
+				scope.ReCaptchaSecretKey = helper.ConvertToStringPointer(
+					m["recaptcha_secret_key"],
+					true)
+				scope.ReCaptchaSiteKey = helper.ConvertToStringPointer(
+					m["recaptcha_site_key"],
+					true)
 				scope.ACLAuditAction = expandAuditAction(
 					m["acl_audit_action"])
 				scope.ACLAuditID = helper.ConvertToStringPointer(
@@ -643,10 +616,8 @@ func expandScopes(flatScopes interface{}) ([]scopes.Scope, error) {
 				scope.ACLProdID = helper.ConvertToStringPointer(
 					m["acl_prod_id"],
 					true)
-				scope.BotsProdAction = expandProdAction(
-					m["bots_prod_action"])
-				scope.BotsProdID = helper.ConvertToStringPointer(
-					m["bots_prod_id"],
+				scope.BotManagerConfigId = helper.ConvertToStringPointer(
+					m["bot_manager_config_id"],
 					true)
 				scope.ProfileAuditAction = expandAuditAction(
 					m["profile_audit_action"])
@@ -808,6 +779,15 @@ func flattenScopes(scopes *scopes.Scopes) ([]map[string]interface{}, error) {
 		m["name"] = s.Name
 		m["host"] = flattenMatchCondition(s.Host)
 		m["path"] = flattenMatchCondition(s.Path)
+		if s.ReCaptchaActionName != nil {
+			m["recaptcha_action_name"] = *s.ReCaptchaActionName
+		}
+		if s.ReCaptchaSecretKey != nil {
+			m["recaptcha_secret_key"] = *s.ReCaptchaSecretKey
+		}
+		if s.ReCaptchaSiteKey != nil {
+			m["recaptcha_site_key"] = *s.ReCaptchaSiteKey
+		}
 		if s.Limits != nil {
 			m["limit"] = flattenLimits(*s.Limits)
 		}
@@ -823,11 +803,8 @@ func flattenScopes(scopes *scopes.Scopes) ([]map[string]interface{}, error) {
 		if s.ACLProdAction != nil {
 			m["acl_prod_action"] = flattenProdAction(*s.ACLProdAction)
 		}
-		if s.BotsProdID != nil {
-			m["bots_prod_id"] = *s.BotsProdID
-		}
-		if s.BotsProdAction != nil {
-			m["bots_prod_action"] = flattenProdAction(*s.BotsProdAction)
+		if s.BotManagerConfigId != nil {
+			m["bot_manager_config_id"] = *s.BotManagerConfigId
 		}
 		if s.ProfileAuditID != nil {
 			m["profile_audit_id"] = *s.ProfileAuditID
@@ -1025,12 +1002,18 @@ func logScope(s scopes.Scope) {
 		logProdAction(*s.ACLProdAction)
 	}
 
-	if s.BotsProdID != nil {
-		log.Printf("[DEBUG] \tBots Prod ID: %+v \n", *s.BotsProdID)
+	if s.ReCaptchaActionName != nil {
+		log.Printf("[DEBUG] \tRecaptcha action name: %+v \n", *s.ReCaptchaActionName)
 	}
-	if s.BotsProdAction != nil {
-		log.Print("[DEBUG] \tBots Action: \n\n")
-		logProdAction(*s.BotsProdAction)
+	if s.ReCaptchaSecretKey != nil {
+		log.Printf("[DEBUG] \tRecaptcha secret key: %+v \n", *s.ReCaptchaSecretKey)
+	}
+	if s.ReCaptchaSiteKey != nil {
+		log.Printf("[DEBUG] \tRecaptcha site key: %+v \n", *s.ReCaptchaSiteKey)
+	}
+
+	if s.BotManagerConfigId != nil {
+		log.Printf("[DEBUG] \tBot manager config ID: %+v \n", *s.BotManagerConfigId)
 	}
 
 	if s.ProfileAuditID != nil {
