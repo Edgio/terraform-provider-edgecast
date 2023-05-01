@@ -33,7 +33,7 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 terraform {
   required_providers {
     edgecast = {
-     version = "1.3.1"
+     version = "1.4.0"
       source  = "Edgio/edgecast"
     }
   }
@@ -121,7 +121,7 @@ Example:
 terraform {
   required_providers {
     edgecast = {
-     version = "1.3.1"
+     version = "1.4.0"
       source  = "Edgio/edgecast"
     }
   }
