@@ -6,7 +6,7 @@ module terraform-provider-edgecast
 go 1.19
 
 require (
-	github.com/EdgeCast/ec-sdk-go v1.1.3
+	github.com/EdgeCast/ec-sdk-go v1.2.0
 	github.com/go-test/deep v1.1.0
 	github.com/google/uuid v1.3.0
 	github.com/gruntwork-io/terratest v0.41.10
