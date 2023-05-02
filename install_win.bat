@@ -9,7 +9,7 @@ set HOSTNAME=github.com
 set NAMESPACE=terraform-providers
 set NAME=edgecast
 set BINARY=terraform-provider-%NAME%.exe
-set VERSION=1.3.1
+set VERSION=1.3.3
 set OS_ARCH=windows_amd64
 
 go build
