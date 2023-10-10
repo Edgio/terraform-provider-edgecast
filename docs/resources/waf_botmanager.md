@@ -26,7 +26,7 @@ This resource requires a [REST API token](../guides/authentication#rest-api-toke
 resource "edgecast_waf_botmanager" "botmanager_1" {
 
 	customer_id = "ABCDE"
-	name = "My Bot Manager updated"
+	name = "My Bot Manager"
 	bots_prod_id = "123bot1" # Must be an existing production Bot Rule
 	actions {
 		alert{

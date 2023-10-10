@@ -117,13 +117,12 @@ resource "edgecast_waf_scopes" "scopes1" {
 
     rules_prod_id = "<Custom Rule ID>"
 
-    bots_prod_id = "<Bots Rule ID>"
+    bot_manager_config_id = "<Bot Manager Config ID>"
 
-    bots_prod_action {
-      name = "bots action"
-      enf_type = "BROWSER_CHALLENGE"
-      valid_for_sec = 60
-    }
+    recaptcha_action_name = "edgio_bot"
+    recaptcha_secret_key = "2Phg5FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF1vkF"
+    recaptcha_site_key = "6Lcm3XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX5mfX"
+
   }
 
 }
@@ -153,8 +152,7 @@ Optional:
 - `acl_audit_id` (String) Indicates the system-defined ID for the access rule that will audit production traffic for this Security Application Manager configuration.
 - `acl_prod_action` (Block Set, Max: 1) Describes the type of action that will take place when the access rule defined within the `acl_prod_id` argument is violated. (see [below for nested schema](#nestedblock--scope--acl_prod_action))
 - `acl_prod_id` (String) Indicates the system-defined ID for the access rule that will be applied to production traffic for this Security Application Manager configuration.
-- `bots_prod_action` (Block Set, Max: 1) Describes the browser challenge that will be applied to requests that satisfy the bot rule set defined within the `bot_prod_id` argument. (see [below for nested schema](#nestedblock--scope--bots_prod_action))
-- `bots_prod_id` (String) Indicates the system-defined ID for the bots rule that will be applied to production traffic for this Security Application Manager configuration.
+- `bot_manager_config_id` (String) Indicates the system-defined ID for the bot manager that will be applied to production traffic for this Security Application Manager configuration.
 - `host` (Block Set, Max: 1) Describes a hostname match condition. (see [below for nested schema](#nestedblock--scope--host))
 - `limit` (Block List) Identifies the set of rate rules that will be enforced for this Security Application Manager configuration and the enforcement action that will be applied to rate limited requests. (see [below for nested schema](#nestedblock--scope--limit))
 - `name` (String) Indicates the name assigned to the Security Application Manager configuration.  
@@ -164,6 +162,9 @@ Optional:
 - `profile_audit_id` (String) Indicates the system-defined ID for the managed rule that will audit production traffic for this Security Application Manager configuration.
 - `profile_prod_action` (Block Set, Max: 1) Describes the type of action that will take place when the managed rule defined within the `profile_prod_id` property is violated. (see [below for nested schema](#nestedblock--scope--profile_prod_action))
 - `profile_prod_id` (String) Indicates the system-defined ID for the managed rule that will be applied to production traffic for this Security Application Manager configuration.
+- `recaptcha_action_name` (String) Indicates the name assigned to the action that will take place when the bot manager with recaptcha type defined within the BotManagerConfigId property is violated.
+- `recaptcha_secret_key` (String) Indicates the secret key assigned to the bot manager with recaptcha type defined within the BotManagerConfigId property.
+- `recaptcha_site_key` (String) Indicates the reCaptcha site key assigned to the bot manager with recaptcha type defined within the BotManagerConfigId property.
 - `rules_audit_action` (Block Set, Max: 1) Describes the type of action that will take place when the custom rule set defined within the `rules_audit_id` property is violated. (see [below for nested schema](#nestedblock--scope--rules_audit_action))
 - `rules_audit_id` (String) Indicates the system-defined ID for the custom rule set that will audit production traffic for this Security Application Manager configuration.
 - `rules_prod_action` (Block Set, Max: 1) Describes the type of action that will take place when the custom rule set defined within the `rules_prod_id` property is violated. (see [below for nested schema](#nestedblock--scope--rules_prod_action))
@@ -200,23 +201,6 @@ Optional:
 - `status` (Number) **acl_prod_action.type=CUSTOM_RESPONSE:** Indicates the HTTP status code (e.g., 404) for the custom response that will be sent to malicious traffic.
 - `url` (String) **acl_prod_action.type=REDIRECT_302:** Indicates the URL to which malicious requests will be redirected.
 - `valid_for_sec` (Number) Reserved for future use.
-
-
-<a id="nestedblock--scope--bots_prod_action"></a>
-### Nested Schema for `scope.bots_prod_action`
-
-Required:
-
-- `enf_type` (String) Set this property to `BROWSER_CHALLENGE`.
-
-Optional:
-
-- `name` (String) Indicates the name assigned to this enforcement action configuration.
-- `response_body_base64` (String) Reserved for future use.
-- `response_headers` (Map of String) Reserved for future use.
-- `status` (Number) Indicates the HTTP status code (e.g., 404) for the response provided to clients that are being served the browser challenge.
-- `url` (String) Reserved for future use.
-- `valid_for_sec` (Number) Indicates the number of minutes for which our CDN will serve content to a client that solves a browser challenge without requiring an additional browser challenge to be solved. Specify a value between 1 and 1,440 minutes.
 
 
 <a id="nestedblock--scope--host"></a>
