@@ -58,10 +58,9 @@ func ResourceZone() *schema.Resource {
 						},
 						"content_verification": {
 							Type:     schema.TypeString,
-							Required: true,
+							Optional: true,
 							Description: `Defines the text that will be used to 
 							verify the success of the health check.`,
-							ValidateFunc: validation.StringIsNotWhiteSpace,
 						},
 						"email_notification_address": {
 							Type:     schema.TypeString,

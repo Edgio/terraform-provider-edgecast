@@ -33,7 +33,7 @@ Reference this provider in a Terraform Configuration file (e.g. `main.tf`):
 terraform {
   required_providers {
     edgecast = {
-     version = "1.3.3"
+     version = "1.3.4"
       source  = "Edgio/edgecast"
     }
   }
@@ -121,7 +121,7 @@ Example:
 terraform {
   required_providers {
     edgecast = {
-     version = "1.3.3"
+     version = "1.3.4"
       source  = "Edgio/edgecast"
     }
   }
@@ -195,11 +195,6 @@ for more details on the type of token required, and how to acquire a token.
 Please refer to [the contributing.md file](Contributing.md) for information 
 about how to get involved. We welcome issues, questions, and pull requests.
 
-## Maintainers
-- Steven Paz: steven.paz@edgecast.com
-- Shikha Saluja: shikha.saluja@edgecast.com
-- Frank Contreras: frank.contreras@edgecast.com
-
 ## License
 This project is licensed under the terms of the [Apache 2.0](LICENSE) open 
 source license.
@@ -215,4 +210,4 @@ their inputs and outputs.
 
 [Examples](https://github.com/EdgeCast/terraform-provider-edgecast/tree/Master/examples) - Examples to get started can be found here.
 
-[Submit an Issue](https://github.com/EdgeCast/terraform-provider-edgecast/issues) - Found a bug? Want to request a feature? Please do so here.
+Found a bug? Want to request a feature? Please [contact us](https://www.edg.io/contact-support/).

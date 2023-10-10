@@ -225,8 +225,6 @@ Required:
 						Please refer to the following URL for additional 
 						information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm
-- `content_verification` (String) Defines the text that will be used to 
-						verify the success of the health check.
 - `email_notification_address` (String) Defines the e-mail address to which 
 						health check notifications will be sent.
 - `failed_check_threshold` (Number) Defines the number of consecutive 
@@ -238,6 +236,8 @@ Required:
 
 Optional:
 
+- `content_verification` (String) Defines the text that will be used to 
+						verify the success of the health check.
 - `http_method_id` (Number) Defines an HTTP method by its 
 						system-defined ID. An HTTP method is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
@@ -335,8 +335,6 @@ Required:
 						Please refer to the following URL for additional 
 						information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm
-- `content_verification` (String) Defines the text that will be used to 
-						verify the success of the health check.
 - `email_notification_address` (String) Defines the e-mail address to which 
 						health check notifications will be sent.
 - `failed_check_threshold` (Number) Defines the number of consecutive 
@@ -348,6 +346,8 @@ Required:
 
 Optional:
 
+- `content_verification` (String) Defines the text that will be used to 
+						verify the success of the health check.
 - `http_method_id` (Number) Defines an HTTP method by its 
 						system-defined ID. An HTTP method is only used by 
 						HTTP/HTTPs health checks. Supported values are: 
@@ -445,8 +445,6 @@ Required:
 						Please refer to the following URL for additional 
 						information:
 						https://developer.edgecast.com/cdn/api/Content/Media_Management/DNS/Get_A_HC_Types.htm
-- `content_verification` (String) Defines the text that will be used to 
-						verify the success of the health check.
 - `email_notification_address` (String) Defines the e-mail address to which 
 						health check notifications will be sent.
 - `failed_check_threshold` (Number) Defines the number of consecutive 
@@ -458,6 +456,8 @@ Required:
 
 Optional:
 
+- `content_verification` (String) Defines the text that will be used to 
+						verify the success of the health check.
 - `http_method_id` (Number) Defines an HTTP method by its 
 						system-defined ID. An HTTP method is only used by 
 						HTTP/HTTPs health checks. Supported values are: 

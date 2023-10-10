@@ -31,6 +31,9 @@ unit-tests/**/credential_ucc.json
 .terraform/*
 **/*.copy
 docs_current/
+/*.tf
+/*.tfvars
+/*.tfstate
 
 .idea
 .env
