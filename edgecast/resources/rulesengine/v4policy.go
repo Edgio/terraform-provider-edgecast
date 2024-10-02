@@ -283,6 +283,8 @@ func cleanMatches(matches []interface{}) ([]map[string]interface{}, error) {
 		}
 
 		delete(cleanedMatch, "ordinal")
+		delete(cleanedMatch, "raw_value")
+
 		err := standardizeMatchFeature(cleanedMatch)
 		if err != nil {
 			return nil, fmt.Errorf("error standardizing match: %w", err)
@@ -301,7 +303,11 @@ func cleanMatches(matches []interface{}) ([]map[string]interface{}, error) {
 			cleanedFeatures := make([]map[string]interface{}, 0)
 			for _, feature := range features {
 				cleanedFeature := feature.(map[string]interface{})
+
 				delete(cleanedFeature, "ordinal")
+				delete(cleanedFeature, "raw_source")
+				delete(cleanedFeature, "raw_destination")
+
 				err := standardizeMatchFeature(cleanedFeature)
 				if err != nil {
 					return nil, fmt.Errorf("error standardizing features: %w", err)
