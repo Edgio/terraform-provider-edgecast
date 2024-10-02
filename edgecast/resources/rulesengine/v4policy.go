@@ -307,6 +307,7 @@ func cleanMatches(matches []interface{}) ([]map[string]interface{}, error) {
 				delete(cleanedFeature, "ordinal")
 				delete(cleanedFeature, "raw_source")
 				delete(cleanedFeature, "raw_destination")
+				delete(cleanedFeature, "raw_value")
 
 				err := standardizeMatchFeature(cleanedFeature)
 				if err != nil {
