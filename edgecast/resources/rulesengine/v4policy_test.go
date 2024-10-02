@@ -107,7 +107,7 @@ func Test_policyDiffSuppress(t *testing.T) {
 	}
 }
 
-func Test_cleanMatches(t *testing.T) {
+func Test_cleanPolicy(t *testing.T) {
 
 	policy := map[string]any{
 		"@type":       "Policy",
